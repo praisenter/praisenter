@@ -38,6 +38,9 @@ import org.praisenter.json.InstantJsonSerializer;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
@@ -46,6 +49,12 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
  * @author William Bittle
  * @version 3.0.0
  */
+@JsonTypeInfo(
+	use = JsonTypeInfo.Id.NAME,
+	include = JsonTypeInfo.As.PROPERTY)
+@JsonSubTypes({
+	@Type(value = Bible.class, name = "bible")
+})
 public final class Bible implements Comparable<Bible>, Serializable, Localized {
 	/** The serialization id */
 	private static final long serialVersionUID = 2081803110927884508L;
@@ -56,11 +65,11 @@ public final class Bible implements Comparable<Bible>, Serializable, Localized {
 	// final
 	
 	/** The format (for format identification only) */
-	@JsonProperty
+	@JsonProperty("@format")
 	private final String format;
 	
 	/** The version number */
-	@JsonProperty
+	@JsonProperty("@version")
 	private final String version;
 	
 	// internally modifiable

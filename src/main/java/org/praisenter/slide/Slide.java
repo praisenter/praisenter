@@ -82,6 +82,12 @@ public interface Slide extends SlideRegion, Comparable<Slide> {
 	public abstract void setName(String name);
 	
 	/**
+	 * Returns the slide format name.
+	 * @return String
+	 */
+	public abstract String getFormat();
+	
+	/**
 	 * Returns the slide version this slide was created with.
 	 * @return String
 	 */

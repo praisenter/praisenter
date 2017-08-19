@@ -24,7 +24,6 @@
  */
 package org.praisenter.song;
 
-import java.nio.file.Path;
 import java.text.Collator;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -34,18 +33,18 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElementWrapper;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
-
 import org.apache.commons.lang3.StringUtils;
 import org.praisenter.Constants;
 import org.praisenter.Tag;
-import org.praisenter.xml.adapters.InstantXmlAdapter;
+import org.praisenter.json.InstantJsonDeserializer;
+import org.praisenter.json.InstantJsonSerializer;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 /**
  * Represents a song.
@@ -53,34 +52,28 @@ import org.praisenter.xml.adapters.InstantXmlAdapter;
  * A song is typically broken into various verses like verse 1, chorus, etc.  This collection
  * of verses are called lyrics.  Some songs are translated or transliterated for other language
  * speakers.  Each translation-transliteration combination is a separate set of lyrics in 
- * {@link #getLyrics()}.  The lyrics without a translation/transliteration are typically the
- * default lyrics or the lyrics the song was in originally, althought this may not always be
+ * {@link #getLyrics()}.  The lyrics without a translation/transliteration is typically the
+ * default lyrics or the lyrics the song was in originally, although this may not always be
  * the case.  Use the {@link #getDefaultLyrics()} method to get the default lyrics of the song.
  * This method may not return the correct set, but does a best effort based on the following
  * priority:
  * <br>
  * The first set of non-empty lyrics to match:
  * <ol>
- * <li>No language or transliteration</li>
+ * <li>The primary lyrics as defined {@link #getPrimaryLyrics()}</li>
+ * <li>The one flagged as the original</li>
+ * <li>No language</li>
  * <li>The language/country that matches the current locale</li>
  * <li>The language that matches the current locale</li>
  * <li>The lyrics with the most verses</li>
  * </ol>
- * Likewise, a song my also have it's title translated or transliterated.  You can get the default
- * title by calling the {@link #getDefaultTitle()} method.  This method does a best effort based
- * on the following priority:
- * <br>
- * The first non-empty title to match:
- * <ol>
- * <li>No language or transliteration</li>
- * <li>The language/country that matches the current locale</li>
- * <li>The language that matches the current locale</li>
- * <li>The first title in the list</li>
- * </ol>
- * To get a list of all the locales for the titles and lyrics use the {@link #getLocales()} method.
+ * Likewise, each set of lyrics will have it's own title and authors.  You can get the default
+ * title by calling the {@link #getDefaultTitle()} method and the default author by calling the
+ * {@link #getDefaultAuthor()} method.  These methods return the title and author for the
+ * default lyrics as defined above.
  * <p>
- * In addition, a song may have many authors.  Each author may have authored a different part
- * of the song (words, music, translation, etc).  The {@link #getDefaultAuthor()} method will
+ * In addition, each lyric set may have many authors.  Each author may have authored a different
+ * part of the song (words, music, translation, etc).  The {@link #getDefaultAuthor()} method will
  * return the main author using the following priority:
  * <br>
  * The first non-empty author to match:
@@ -90,124 +83,125 @@ import org.praisenter.xml.adapters.InstantXmlAdapter;
  * <li>The type == music</li>
  * <li>The first author in the list</li>
  * </ol>
- * Apart from these, the song will contain a number of metadata that can assist with searching
- * and cataloging, {@link #getTags()} in particular.
+ * To get a list of all the locales for the titles and lyrics use the {@link #getLocales()} method.
+ * <p>
+ * The song also contains other metadata that can assist with searching and cataloging, 
+ * {@link #getTags()} and {@link #getKeywords()} in particular.
  * <p>
  * Creating a new song defaults the created and modified properties to be created in Praisenter
  * and today.
- * <p>
- * Songs implement the {@link SongOutput} interface to provide a way to store the raw version
- * of the song and also the viewable version.
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlRootElement(name = "song")
-@XmlAccessorType(XmlAccessType.NONE)
-public final class Song implements SongOutput, Comparable<Song> {
+@JsonTypeInfo(
+	use = JsonTypeInfo.Id.NAME,
+	include = JsonTypeInfo.As.PROPERTY)
+@JsonSubTypes({
+	@Type(value = Song.class, name = "song")
+})
+public final class Song implements Comparable<Song> {
 	/** For string comparison (current locale) */
 	static final Collator COLLATOR = Collator.getInstance();
 
 	/** The current version number */
-	public static final int CURRENT_VERSION = 3;
+	public static final String CURRENT_VERSION = "1";
 
 	// final
 	
 	/** The format (for format identification only) */
-	@XmlAttribute(name = "format", required = false)
-	private final String format = Constants.FORMAT_NAME;
+	@JsonProperty("@format")
+	private final String format;
 	
 	/** The version number */
-	@XmlAttribute(name = "version", required = false)
-	private final int version = CURRENT_VERSION;
+	@JsonProperty("@version")
+	private final String version;
 	
-	// for internal use really
-	/** The file path */
-	Path path;
+	// properties
 	
 	/** The song unique id */
-	@XmlElement(name = "id", required = false)
+	@JsonProperty
 	private UUID id;
 	
 	/** The created on date */
-	@XmlElement(name = "createdDate", required = false)
-	@XmlJavaTypeAdapter(value = InstantXmlAdapter.class)
+	@JsonProperty
+	@JsonSerialize(using = InstantJsonSerializer.class)
+	@JsonDeserialize(using = InstantJsonDeserializer.class)
 	Instant createdDate;
 	
 	/** The last modified date */
-	@XmlElement(name = "modifiedData", required = false)
-	@XmlJavaTypeAdapter(value = InstantXmlAdapter.class)
+	@JsonProperty
+	@JsonSerialize(using = InstantJsonSerializer.class)
+	@JsonDeserialize(using = InstantJsonDeserializer.class)
 	Instant modifiedDate;
 
 	/** The created in application */
-	@XmlElement(name = "source", required = false)
+	@JsonProperty
 	String source;
 
 	/** The song's copyright information */
-	@XmlElement(name = "copyright", required = false)
+	@JsonProperty
 	String copyright;
 	
 	/** The song's CCLI number */
-	@XmlElement(name = "ccli", required = false)
+	@JsonProperty
 	int ccli;
 	
 	/** The song's release date */
-	@XmlElement(name = "released", required = false)
+	@JsonProperty
 	String released;
 	
 	/** The song's transposition */
-	@XmlElement(name = "transposition", required = false)
+	@JsonProperty
 	int transposition;
 	
-	/** The song's tempo; typically in bpm */
-	@XmlElement(name = "tempo", required = false)
+	/** The song's tempo; typically in bpm or multiplier */
+	@JsonProperty
 	String tempo;
 	
 	/** The song's key */
-	@XmlElement(name = "key", required = false)
+	@JsonProperty
 	String key;
 	
 	/** The variant name for this song */
-	@XmlElement(name = "variant", required = false)
+	@JsonProperty
 	String variant;
 	
 	/** The publisher */
-	@XmlElement(name = "publisher", required = false)
+	@JsonProperty
 	String publisher;
 	
 	/** The comments */
-	@XmlElement(name = "comments", required = false)
+	@JsonProperty
 	String comments;
 
 	/** The keywords to aid in searching */
-	@XmlElement(name = "keywords", required = false)
+	@JsonProperty
 	String keywords;
 	
 	/** The comments */
-	@XmlElement(name = "primaryLyrics", required = false)
+	@JsonProperty
 	UUID primaryLyrics;
 
 	// lists
 	
 	/** The lyrics */
-	@XmlElement(name = "lyrics", required = false)
-	@XmlElementWrapper(name = "lyricsets", required = false)
-	List<Lyrics> lyrics;
+	@JsonProperty
+	final List<Lyrics> lyrics;
 
 	/** The sequence of verses space separated */
-	@XmlElement(name = "name", required = false)
-	@XmlElementWrapper(name = "sequence", required = false)
-	List<String> sequence;
+	@JsonProperty
+	final List<String> sequence;
 
 	/** The tags; useful for searching or grouping */
-	@XmlElement(name = "tag", required = false)
-	@XmlElementWrapper(name = "tags", required = false)
-	Set<Tag> tags;
+	@JsonProperty
+	final Set<Tag> tags;
 	
 	/**
 	 * Default constructor.
 	 */
 	public Song() {
-		this.path = null;
+		this.format = Constants.FORMAT_NAME;
+		this.version = CURRENT_VERSION;
 		this.id = UUID.randomUUID();
 		this.createdDate = Instant.now();
 		this.source = Constants.NAME + " " + Constants.VERSION;
@@ -216,40 +210,62 @@ public final class Song implements SongOutput, Comparable<Song> {
 		this.transposition = 0;
 		this.primaryLyrics = null;
 		
-		this.lyrics = new ArrayList<>();
-		this.sequence = new ArrayList<>();
-		this.tags = new TreeSet<>();
+		this.lyrics = new ArrayList<Lyrics>();
+		this.sequence = new ArrayList<String>();
+		this.tags = new TreeSet<Tag>();
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.praisenter.song.SongOutput#getOutput(org.praisenter.song.SongOutputType)
+	/**
+	 * Copy constructor.
+	 * @param song the song to copy
+	 * @param exact true if an exact copy should be made (same ids)
 	 */
-	@Override
-	public String getOutput(SongOutputType type) {
-		StringBuilder sb = new StringBuilder();
-		int size = this.lyrics.size();
-		for (int i = 0; i < size; i++) {
-			Lyrics lyrics = this.lyrics.get(i);
-			if (i != 0) {
-				sb.append(Constants.NEW_LINE)
-				  .append(Constants.NEW_LINE);
+	public Song(Song song, boolean exact) {
+		this.format = song.format;
+		this.version = song.version;
+		this.id = exact ? song.id : UUID.randomUUID();
+		this.ccli = song.ccli;
+		this.comments = song.comments;
+		this.copyright = song.copyright;
+		this.createdDate = exact ? song.createdDate : Instant.now();
+		this.key = song.key;
+		this.keywords = song.keywords;
+		this.modifiedDate = exact ? song.modifiedDate : this.createdDate;
+		this.publisher = song.publisher;
+		this.released = song.released;
+		this.source = song.source;
+		this.tempo = song.tempo;
+		this.transposition = song.transposition;
+		this.variant = song.variant;
+		
+		this.sequence = new ArrayList<String>(song.sequence);
+		this.tags = new TreeSet<Tag>(song.tags);
+		
+		this.lyrics = new ArrayList<Lyrics>();
+		for (Lyrics lyrics : song.getLyrics()) {
+			Lyrics copy = lyrics.copy(exact);
+			if (lyrics.id.equals(song.primaryLyrics)) {
+				this.primaryLyrics = copy.id;
 			}
-			
-			if (type == SongOutputType.EDIT) {
-				if (lyrics.language != null && lyrics.language.length() > 0) {
-					// show language
-					sb.append(lyrics.language);
-					// if language is there, there may be a translit
-					if (lyrics.transliteration != null && lyrics.transliteration.length() > 0) {
-						sb.append(Constants.NEW_LINE).append(lyrics.transliteration);
-					}
-					sb.append(Constants.NEW_LINE);
-				}
-			}
-			
-			sb.append(lyrics.getOutput(type));
+			this.lyrics.add(copy);
 		}
-		return sb.toString();
+	}
+	
+	/**
+	 * Returns a deep copy of this song.
+	 * @return {@link Song}
+	 */
+	public Song copy() {
+		return new Song(this, false);
+	}
+	
+	/**
+	 * Returns a deep copy of this song.
+	 * @param exact true if an exact copy should be made (same ids)
+	 * @return {@link Song}
+	 */
+	public Song copy(boolean exact) {
+		return new Song(this, exact);
 	}
 	
 	/* (non-Javadoc)

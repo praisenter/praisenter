@@ -24,6 +24,7 @@
  */
 package org.praisenter.utility;
 
+import java.io.InputStream;
 import java.nio.file.Path;
 
 import javax.activation.FileTypeMap;
@@ -80,7 +81,7 @@ public enum MimeType {
 	 */
 	private static final String reconcileMimeTypes(String mime, String tika) {
 		boolean hasTika = !StringManipulator.isNullOrEmpty(tika);
-		boolean hasMime = !StringManipulator.isNullOrEmpty(mime) && !mime.equals("application/octet-stream");
+		boolean hasMime = !StringManipulator.isNullOrEmpty(mime) && !mime.equalsIgnoreCase("application/octet-stream");
 		
 		if (hasTika && !hasMime) {
 			// this indicates mime.types didn't know what it is
@@ -112,7 +113,7 @@ public enum MimeType {
 		try {
 			tika = TIKA.detect(path);
 		} catch (Exception ex) {
-			LOGGER.warn("Failed to detect mime type using Tika.", ex);
+			LOGGER.warn("Failed to detect mime type of path using Tika.", ex);
 		}
 		
 		// try to reconcile
@@ -137,6 +138,20 @@ public enum MimeType {
 	}
 	
 	/**
+	 * Returns the mime-type for the given stream.
+	 * @param stream the stream
+	 * @return String
+	 */
+	public static final String get(InputStream stream) {
+		try {
+			return TIKA.detect(stream);
+		} catch (Exception ex) {
+			LOGGER.warn("Failed to detect mime type of input stream using Tika.", ex);
+		}
+		return null;
+	}
+	
+	/**
 	 * Returns true if the given path matches this mime-type.
 	 * @param path the path
 	 * @return boolean
@@ -144,7 +159,7 @@ public enum MimeType {
 	public final boolean check(Path path) {
 		String mimeType = get(path);
 		if (mimeType == null) return false;
-		return this.mimeType.equals(mimeType.toLowerCase());
+		return this.mimeType.equalsIgnoreCase(mimeType);
 	}
 	
 	/**
@@ -155,6 +170,26 @@ public enum MimeType {
 	public final boolean check(String name) {
 		String mimeType = get(name);
 		if (mimeType == null) return false;
-		return this.mimeType.equals(mimeType.toLowerCase());
+		return this.mimeType.equalsIgnoreCase(mimeType);
+	}
+	
+	/**
+	 * Returns true if the given stream matches this mime-type.
+	 * @param stream the stream
+	 * @return boolean
+	 */
+	public final boolean check(InputStream stream) {
+		String mimeType = get(stream);
+		if (mimeType == null) return false;
+		return this.mimeType.equalsIgnoreCase(mimeType);
+	}
+	
+	/**
+	 * Returns true if the given mime type is equal to this mime type.
+	 * @param mimeType the mime type
+	 * @return boolean
+	 */
+	public final boolean is(String mimeType) {
+		return this.mimeType.equalsIgnoreCase(mimeType);
 	}
 }

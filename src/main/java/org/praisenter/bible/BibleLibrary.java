@@ -114,9 +114,12 @@ public final class BibleLibrary {
 
 	/** The sub folder in the zip to store bibles */
 	private static final String ZIP_DIR = "bibles";
-	
+
 	// lucene
 
+	/** The relative path to the directory containing the lucene index */
+	private static final String INDEX_DIR = "_index";
+	
 	/** The lucene field to store the bible's path */
 	private static final String FIELD_PATH = "path";
 	
@@ -137,9 +140,6 @@ public final class BibleLibrary {
 	
 	/** The lucene field that contains all the bible searchable text */
 	private static final String FIELD_TEXT = "text";
-	
-	/** The relative path to the directory containing the lucene index */
-	private static final String INDEX_DIR = "_index";
 	
 	// location
 	
@@ -527,7 +527,7 @@ public final class BibleLibrary {
 	 * @throws IOException if an IO error occurs
 	 */
 	public List<Bible> importBibles(Path path) throws FileNotFoundException, IOException, InvalidFormatException, UnknownFormatException {
-		FormatIdentifingBibleImporter importer = new FormatIdentifingBibleImporter();
+		BibleFormatDetector importer = new BibleFormatDetector();
 		List<Bible> bibles = importer.execute(path);
 		
 		LOGGER.debug("'{}' bibles found in '{}'.", bibles.size(), path);
@@ -711,8 +711,14 @@ public final class BibleLibrary {
 			for (ScoreDoc doc : docs) {
 				Document document = searcher.doc(doc.doc);
 				
+				FileData<Bible> fileData = this.bibles.get(UUID.fromString(document.get(FIELD_BIBLE_ID)));
+				if (fileData == null) {
+					LOGGER.warn("Unable to find bible '{}'. A re-index might fix this problem.", document.get(FIELD_BIBLE_ID));
+					continue;
+				}
+				
 				// get the bible
-				Bible bible = this.bibles.get(UUID.fromString(document.get(FIELD_BIBLE_ID))).getData();
+				Bible bible = fileData.getData();
 				short bookNumber = document.getField(FIELD_BOOK_NUMBER).numericValue().shortValue();
 				short chapterNumber = document.getField(FIELD_VERSE_CHAPTER).numericValue().shortValue();
 				short verseNumber = document.getField(FIELD_VERSE_NUMBER).numericValue().shortValue();

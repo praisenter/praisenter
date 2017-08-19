@@ -44,9 +44,9 @@ import org.praisenter.song.Song;
 import org.praisenter.song.SongExportException;
 import org.praisenter.song.SongExporter;
 import org.praisenter.song.Songbook;
-import org.praisenter.song.TextFragment;
+import org.praisenter.song.VerseText;
 import org.praisenter.song.Verse;
-import org.praisenter.song.VerseFragment;
+import org.praisenter.song.VerseText;
 import org.praisenter.xml.XmlIO;
 
 /**
@@ -59,7 +59,7 @@ public final class OpenLyricsSongExporter implements SongExporter {
 	 * @see org.praisenter.song.SongExporter#write(java.nio.file.Path, java.util.List)
 	 */
 	@Override
-	public void write(Path path, List<Song> songs) throws IOException, SongExportException {
+	public void execute(Path path, List<Song> songs) throws IOException, SongExportException {
 		for (Song song : songs) {
 			String ttl = song.getDefaultTitle();
 			String variant = song.getVariant();
@@ -149,9 +149,9 @@ public final class OpenLyricsSongExporter implements SongExporter {
 					v.name = verse.getName();
 					
 					OpenLyricsLine line = new OpenLyricsLine();
-					for (VerseFragment fragment : verse.getFragments()) {
-						if (fragment instanceof TextFragment) {
-							line.elements.add(((TextFragment)fragment).getText());
+					for (VerseText fragment : verse.getFragments()) {
+						if (fragment instanceof VerseText) {
+							line.elements.add(((VerseText)fragment).getText());
 						} else if (fragment instanceof Br) {
 							line.elements.add(new OpenLyricsBr());
 						} else if (fragment instanceof Chord) {

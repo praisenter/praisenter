@@ -115,7 +115,7 @@ public final class BibleActions {
 					// did we have any warnings?
 					if (wFileNames.size() > 0) {
 						// show a dialog of the files that had warnings
-						String list = String.join(", ", wFileNames);
+						String list = String.join("\n", wFileNames);
 						Alert alert = Alerts.info(
 								owner, 
 								Modality.WINDOW_MODAL,

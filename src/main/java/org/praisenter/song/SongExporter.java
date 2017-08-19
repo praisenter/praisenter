@@ -27,6 +27,7 @@ package org.praisenter.song;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.zip.ZipOutputStream;
 
 /**
  * Represents an exporter of songs to a specified format.
@@ -41,7 +42,15 @@ public interface SongExporter {
 	 * @param path the path to write the songs
 	 * @param songs the songs to write
 	 * @throws IOException if and IO error occurs
-	 * @throws SongExportException if the song failed to save for another reason
 	 */
-	public void write(Path path, List<Song> songs) throws IOException, SongExportException;
+	public abstract void execute(Path path, List<Song> songs) throws IOException;
+	
+	/**
+	 * Exports the given songs to the given zip stream.
+	 * @param stream the zip stream to export to
+	 * @param folder the folder in the stream to export to
+	 * @param songs the songs to export
+	 * @throws IOException if an IO error occurs
+	 */
+	public abstract void execute(ZipOutputStream stream, String folder, List<Song> songs) throws IOException;
 }

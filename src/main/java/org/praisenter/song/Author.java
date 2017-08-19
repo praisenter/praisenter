@@ -24,22 +24,17 @@
  */
 package org.praisenter.song;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlValue;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Represents an author of a song.
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlRootElement(name = "author")
-@XmlAccessorType(XmlAccessType.NONE)
 public final class Author {
-	/** Author type = words */
-	public static final String TYPE_WORDS = "words";
+	/** Author type = lyrics */
+	public static final String TYPE_LYRICS = "lyrics";
 	
 	/** Author type = music */
 	public static final String TYPE_MUSIC = "music";
@@ -48,13 +43,43 @@ public final class Author {
 	public static final String TYPE_TRANSLATION = "translation";
 
 	/** The author type */
-	@XmlAttribute(name = "type", required = false)
+	@JsonProperty
 	String type;
 	
 	/** The author's name */
-	@XmlValue
+	@JsonProperty
 	String name;
 
+	/**
+	 * Creates a new author
+	 * @param type the author type
+	 * @param name the author name
+	 */
+	@JsonCreator
+	public Author(
+			@JsonProperty("type") String type, 
+			@JsonProperty("name") String name) {
+		this.type = type;
+		this.name = name;
+	}
+
+	/**
+	 * Copy constructor.
+	 * @param author the author to copy
+	 */
+	public Author(Author author) {
+		this.name = author.name;
+		this.type = author.type;
+	}
+	
+	/**
+	 * Returns a deep copy of this author.
+	 * @return {@link Author}
+	 */
+	public Author copy() {
+		return new Author(this);
+	}
+	
 	/**
 	 * Returns the author type.
 	 * @return String

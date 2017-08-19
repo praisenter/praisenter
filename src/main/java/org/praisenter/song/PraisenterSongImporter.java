@@ -26,54 +26,38 @@ package org.praisenter.song;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.xml.bind.JAXBException;
-import javax.xml.parsers.ParserConfigurationException;
+import org.praisenter.InvalidFormatException;
+import org.praisenter.json.JsonIO;
 
-import org.praisenter.utility.MimeType;
-import org.praisenter.xml.XmlIO;
-import org.xml.sax.SAXException;
-
-// TODO create a formatidentifyingimporter
-// FIXME Allow reading of a zip file with multiple songs in it
+import com.fasterxml.jackson.core.JsonProcessingException;
 
 /**
  * Importer for the Praisenter 3.0.0 song format.
  * @author William Bittle
  * @version 3.0.0
  */
-public final class PraisenterSongImporter implements SongImporter {
+final class PraisenterSongImporter implements SongImporter {
 	/* (non-Javadoc)
-	 * @see org.praisenter.song.SongImporter#read(java.nio.file.Path)
+	 * @see org.praisenter.song.SongImporter#execute(java.lang.String, java.io.InputStream)
 	 */
-	@Override
-	public List<Song> read(Path path) throws IOException, SongImportException {
+	public List<Song> execute(String fileName, InputStream stream) throws IOException, InvalidFormatException {
 		List<Song> songs = new ArrayList<Song>();
-		// only open files
-		if (Files.isRegularFile(path)) {
-			// only open xml files
-			if (MimeType.XML.check(path)) {
-				try (InputStream is = Files.newInputStream(path)) {
-					// read in the xml
-					try {
-						Song song = XmlIO.read(is, Song.class);
-						songs.add(song);
-					} catch (JAXBException e) {
-						throw new SongImportException(e);
-					} catch (SAXException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					} catch (ParserConfigurationException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				}
-			}
+		
+		try {
+			// make a copy to ensure the id is changed
+			Song song = JsonIO.read(stream, Song.class).copy(false);
+			
+			// update the import date
+			song.createdDate = Instant.now();
+			songs.add(song);
+		} catch (JsonProcessingException ex) {
+			throw new InvalidFormatException("Failed to import file '" + fileName + "' as a Praisenter song file.", ex);
 		}
+		
 		return songs;
 	}
 }

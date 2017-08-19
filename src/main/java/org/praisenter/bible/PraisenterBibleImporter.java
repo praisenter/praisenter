@@ -24,26 +24,16 @@
  */
 package org.praisenter.bible;
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.io.InputStream;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.praisenter.Constants;
 import org.praisenter.InvalidFormatException;
-import org.praisenter.UnknownFormatException;
 import org.praisenter.json.JsonIO;
-import org.praisenter.utility.Streams;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
 
 /**
  * {@link BibleImporter} for the Praisenter format.
@@ -52,73 +42,24 @@ import org.praisenter.utility.Streams;
  * @since 3.0.0
  */
 final class PraisenterBibleImporter extends AbstractBibleImporter implements BibleImporter {
-	/** The class level logger */
-	private static final Logger LOGGER = LogManager.getLogger();
-	
 	/* (non-Javadoc)
-	 * @see org.praisenter.bible.BibleImporter#execute(java.nio.file.Path)
+	 * @see org.praisenter.bible.BibleImporter#execute(java.lang.String, java.io.InputStream)
 	 */
 	@Override
-	public List<Bible> execute(Path path) throws IOException, FileNotFoundException, InvalidFormatException, UnknownFormatException {
+	public List<Bible> execute(String fileName, InputStream stream) throws IOException, InvalidFormatException {
 		List<Bible> bibles = new ArrayList<Bible>();
 		
-		// make sure the file exists
-		if (Files.exists(path)) {
-			LOGGER.debug("Reading Praisenter Bible file: " + path.toAbsolutePath().toString());
-
-			boolean read = false;
-			Throwable throwable = null;
-			// first try to open it as a zip
-			try (FileInputStream fis = new FileInputStream(path.toFile());
-				 BufferedInputStream bis = new BufferedInputStream(fis);
-				 ZipInputStream zis = new ZipInputStream(bis);) {
-				LOGGER.debug("Reading as ZIP file: " + path.toAbsolutePath().toString());
-				// read the entries
-				ZipEntry entry = null;
-				while ((entry = zis.getNextEntry()) != null) {
-					read = true;
-					if (!entry.isDirectory()) {
-						LOGGER.debug("Reading as '" + Constants.BIBLE_FILE_EXTENSION + "' file: " + entry.getName());
-						byte[] data = Streams.read(zis);
-						try {
-							// make a copy to ensure the id is changed
-							Bible bible = JsonIO.read(new ByteArrayInputStream(data), Bible.class).copy(false);
-							// update the import date
-							bible.createdDate = Instant.now();
-							bibles.add(bible);
-						} catch (Exception ex) {
-							throwable = ex;
-							LOGGER.warn("Failed to parse zip entry: " + entry.getName());
-						}
-					}
-				}
-			}
+		try {
+			// make a copy to ensure the id is changed
+			Bible bible = JsonIO.read(stream, Bible.class).copy(false);
 			
-			// check if we read an entry
-			// if not, that may mean the file was not a zip so try it as a normal file
-			if (!read) {
-				LOGGER.debug("Reading as '" + Constants.BIBLE_FILE_EXTENSION + "' file: " + path.toAbsolutePath().toString());
-				// just read it
-				try (FileInputStream stream = new FileInputStream(path.toFile())) {
-					// make a copy to ensure the id is changed
-					Bible bible = JsonIO.read(stream, Bible.class).copy(false);
-					// update the import date
-					bible.createdDate = Instant.now();
-					bibles.add(bible);
-				}
-			}
-
-			// throw the exception stored during the unzip process
-			// only if we didn't find any bibles (if we successfully read in
-			// a bible from the zip then we don't want to throw)
-			if (bibles.size() == 0 && throwable != null) {
-				throw new InvalidFormatException(throwable.getMessage(), throwable);
-			}
-
-			return bibles;
-		} else {
-			// throw an exception
-			throw new FileNotFoundException(path.toAbsolutePath().toString());
+			// update the import date
+			bible.createdDate = Instant.now();
+			bibles.add(bible);
+		} catch (JsonProcessingException ex) {
+			throw new InvalidFormatException("Failed to import file '" + fileName + "' as a Praisenter bible file.", ex);
 		}
+		
+		return bibles;
 	}
 }

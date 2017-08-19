@@ -61,7 +61,6 @@ import org.praisenter.javafx.slide.editor.ribbon.SlideEditorRibbon;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.json.JsonIO;
 import org.praisenter.media.Media;
-import org.praisenter.slide.AbstractSlideComponent;
 import org.praisenter.slide.Slide;
 import org.praisenter.slide.SlideComponent;
 import org.praisenter.slide.graphics.ScaleType;

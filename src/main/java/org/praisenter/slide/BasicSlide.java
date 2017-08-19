@@ -51,6 +51,7 @@ import org.praisenter.slide.animation.Animation;
 import org.praisenter.slide.animation.AnimationType;
 import org.praisenter.slide.animation.SlideAnimation;
 import org.praisenter.slide.text.TextPlaceholderComponent;
+import org.praisenter.song.SongReferenceTextStore;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -67,11 +68,11 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
  */
 public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegion, Comparable<Slide> {
 	/** The format (for format identification only) */
-	@JsonProperty
+	@JsonProperty("@format")
 	final String format;
 	
 	/** The slide format version */
-	@JsonProperty
+	@JsonProperty("@version")
 	final String version;
 
 	/** The slide name */
@@ -107,7 +108,8 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 		use = JsonTypeInfo.Id.NAME,
 		include = JsonTypeInfo.As.PROPERTY)
 	@JsonSubTypes({
-		@Type(value = BibleReferenceTextStore.class, name = "bibleTextStore")
+		@Type(value = BibleReferenceTextStore.class, name = "bibleTextStore"),
+		@Type(value = SongReferenceTextStore.class, name = "songTextStore")
 	})
 	TextStore placeholderData;
 	
@@ -299,14 +301,6 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 	@Override
 	public void setLastModifiedDate(Instant date) {
 		this.lastModifiedDate = date;
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.praisenter.slide.Slide#getVersion()
-	 */
-	@Override
-	public String getVersion() {
-		return this.version;
 	}
 	
 	/* (non-Javadoc)
@@ -685,5 +679,21 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 		}
 		
 		return false;
+	}
+
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.Slide#getFormat()
+	 */
+	@Override
+	public String getFormat() {
+		return this.format;
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.Slide#getVersion()
+	 */
+	@Override
+	public String getVersion() {
+		return this.version;
 	}
 }

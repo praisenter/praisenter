@@ -26,7 +26,7 @@ import org.praisenter.song.Song;
 import org.praisenter.song.SongImportException;
 import org.praisenter.song.SongImporter;
 import org.praisenter.song.Songbook;
-import org.praisenter.song.TextFragment;
+import org.praisenter.song.VerseText;
 import org.praisenter.song.Verse;
 import org.praisenter.utility.StringManipulator;
 import org.praisenter.xml.XmlIO;
@@ -38,7 +38,7 @@ public final class OpenLyricsSongImporter implements SongImporter {
 	private static final Pattern PATTERN_VERSE_NAME = Pattern.compile("^([a-zA-Z]+)(\\d+)?([a-zA-Z]+)?$");
 	
 	@Override
-	public List<Song> read(Path path) throws IOException, SongImportException {
+	public List<Song> execute(Path path) throws IOException, SongImportException {
 		try {
 			OpenLyricsSong olsong = null;
 			try {
@@ -194,7 +194,7 @@ public final class OpenLyricsSongImporter implements SongImporter {
 							chord.setName(((OpenLyricsChord)fragment).name);
 							v.getFragments().add(chord);
 						} else if (fragment instanceof String) {
-							TextFragment text = new TextFragment();
+							VerseText text = new VerseText();
 							text.setText((String)fragment);
 							v.getFragments().add(text);
 						} else if (fragment instanceof OpenLyricsLineComment) {

@@ -38,6 +38,7 @@ import java.util.UUID;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.praisenter.Constants;
 import org.praisenter.MediaType;
 import org.praisenter.Tag;
 import org.praisenter.json.BufferedImageJpegJsonDeserializer;
@@ -49,6 +50,9 @@ import org.praisenter.json.InstantJsonSerializer;
 import org.praisenter.utility.MimeType;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
@@ -67,6 +71,12 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
  * @author William Bittle
  * @version 3.0.0
  */
+@JsonTypeInfo(
+	use = JsonTypeInfo.Id.NAME,
+	include = JsonTypeInfo.As.PROPERTY)
+@JsonSubTypes({
+	@Type(value = Media.class, name = "media")
+})
 public final class Media implements Comparable<Media> {
 	/** The class-level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
@@ -76,6 +86,17 @@ public final class Media implements Comparable<Media> {
 	
 	/** Represents an unknown or not-applicable quantity */
 	public static final int UNKNOWN = -1;
+
+	/** The current version of this format */
+	public static final String CURRENT_VERSION = "1";
+	
+	/** The format (for format identification only) */
+	@JsonProperty("@format")
+	private final String format;
+	
+	/** The version number */
+	@JsonProperty("@version")
+	private final String version;
 	
 	/** The media's unique id */
 	@JsonProperty
@@ -116,7 +137,7 @@ public final class Media implements Comparable<Media> {
 	
 	/** The file's format */
 	@JsonProperty
-	final MediaFormat format;
+	final MediaFormat mediaFormat;
 	
 	/** The file's width in pixels (if applicable) */
 	@JsonProperty
@@ -200,7 +221,7 @@ public final class Media implements Comparable<Media> {
 	 * @return {@link Media}
 	 */
 	final static Media forRenamed(Path path, Media media) {
-		return new Media(media.id, path, media.format, media.width, media.height, media.length, media.audio, media.dateAdded, new TreeSet<Tag>(media.tags), media.thumbnail, media.frame);
+		return new Media(media.id, path, media.mediaFormat, media.width, media.height, media.length, media.audio, media.dateAdded, new TreeSet<Tag>(media.tags), media.thumbnail, media.frame);
 	}
 	
 	/**
@@ -211,14 +232,15 @@ public final class Media implements Comparable<Media> {
 	 * @return {@link Media}
 	 */
 	final static Media forUpdated(Instant dateAdded, Set<Tag> tags, Media media) {
-		return new Media(media.id, media.path, media.format, media.width, media.height, media.length, media.audio, dateAdded, tags, media.thumbnail, media.frame);
+		return new Media(media.id, media.path, media.mediaFormat, media.width, media.height, media.length, media.audio, dateAdded, tags, media.thumbnail, media.frame);
 	}
 	
 	/**
 	 * Default constructor.
 	 */
 	private Media() {
-		// for jaxb
+		this.format = Constants.FORMAT_NAME;
+		this.version = CURRENT_VERSION;
 		this.id = UUID.randomUUID();
 		this.mimeType = null;
 		this.type = null;
@@ -228,7 +250,7 @@ public final class Media implements Comparable<Media> {
 		this.size = UNKNOWN;
 		this.dateAdded = Instant.now();
 		this.lastModified = UNKNOWN;
-		this.format = null;
+		this.mediaFormat = null;
 		this.width = UNKNOWN;
 		this.height = UNKNOWN;
 		this.length = UNKNOWN;
@@ -242,7 +264,7 @@ public final class Media implements Comparable<Media> {
 	 * Full constructor.
 	 * @param id the id
 	 * @param path the path to the media
-	 * @param format the format
+	 * @param mediaFormat the format
 	 * @param width the width; {@link #UNKNOWN} if not applicable
 	 * @param height the height; {@link #UNKNOWN} if not applicable
 	 * @param length the length; {@link #UNKNOWN} if not applicable
@@ -252,8 +274,10 @@ public final class Media implements Comparable<Media> {
 	 * @param thumbnail the media thumbnail
 	 * @param frame the media frame
 	 */
-	private Media(UUID id, Path path, MediaFormat format, int width, int height, long length, boolean audio, Instant dateAdded, Set<Tag> tags, BufferedImage thumbnail, BufferedImage frame) {
+	private Media(UUID id, Path path, MediaFormat mediaFormat, int width, int height, long length, boolean audio, Instant dateAdded, Set<Tag> tags, BufferedImage thumbnail, BufferedImage frame) {
 		this.id = id == null ? UUID.randomUUID() : id;
+		this.format = Constants.FORMAT_NAME;
+		this.version = CURRENT_VERSION;
 		
 		// get the media type
 		this.mimeType = MimeType.get(path);
@@ -288,7 +312,7 @@ public final class Media implements Comparable<Media> {
 		this.lastModified = lastModified;
 		
 		// the format
-		this.format = format;
+		this.mediaFormat = mediaFormat;
 		
 		this.width = width;
 		this.height = height;
@@ -419,8 +443,8 @@ public final class Media implements Comparable<Media> {
 	 * Returns the media's format.
 	 * @return {@link MediaFormat}
 	 */
-	public MediaFormat getFormat() {
-		return this.format;
+	public MediaFormat getMediaFormat() {
+		return this.mediaFormat;
 	}
 
 	/**
@@ -481,5 +505,21 @@ public final class Media implements Comparable<Media> {
 	 */
 	public BufferedImage getFrame() {
 		return this.frame;
+	}
+
+	/**
+	 * Returns the format.
+	 * @return String
+	 */
+	public String getFormat() {
+		return this.format;
+	}
+	
+	/**
+	 * Returns the version.
+	 * @return String
+	 */
+	public String getVersion() {
+		return this.version;
 	}
 }

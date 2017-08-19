@@ -24,19 +24,25 @@
  */
 package org.praisenter.song;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.DirectoryStream;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeSet;
 import java.util.UUID;
-
-import javax.xml.bind.JAXBException;
+import java.util.stream.Collectors;
+import java.util.zip.ZipOutputStream;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -57,25 +63,30 @@ import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.FuzzyQuery;
 import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.PhraseQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
-import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
-import org.apache.lucene.search.WildcardQuery;
 import org.apache.lucene.search.highlight.Highlighter;
 import org.apache.lucene.search.highlight.QueryScorer;
 import org.apache.lucene.search.highlight.Scorer;
+import org.apache.lucene.search.spans.SpanMultiTermQueryWrapper;
+import org.apache.lucene.search.spans.SpanNearQuery;
+import org.apache.lucene.search.spans.SpanQuery;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.praisenter.Constants;
+import org.praisenter.FileData;
+import org.praisenter.InvalidFormatException;
+import org.praisenter.LockMap;
 import org.praisenter.SearchType;
+import org.praisenter.Tag;
+import org.praisenter.UnknownFormatException;
+import org.praisenter.json.JsonIO;
 import org.praisenter.utility.MimeType;
 import org.praisenter.utility.StringManipulator;
-import org.praisenter.xml.XmlIO;
 
-// FIXME update for multi-threading and other features added to slide and bible libraries
 // FEATURE (M) Add duplicate detection and merge features
 
 /**
@@ -99,11 +110,14 @@ import org.praisenter.xml.XmlIO;
 public final class SongLibrary {
 	/** The class-level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
-	
-	/** The extension to use for the song files */
-	private static final String EXTENSION = ".xml";
-	
+
+	/** The sub folder in the zip to store songs */
+	private static final String ZIP_DIR = "songs";
+
 	// lucene
+
+	/** The relative path to the directory containing the lucene index */
+	private static final String INDEX_DIR = "_index";
 	
 	/** The lucene field to store the song's unique identifier */
 	private static final String FIELD_ID = "id";
@@ -113,9 +127,6 @@ public final class SongLibrary {
 	
 	/** The lucene field that contains all the song searchable text */
 	private static final String FIELD_TEXT = "text";
-	
-	/** The relative path to the directory containing the lucene index */
-	private static final String INDEX_DIR = "_index";
 	
 	// location
 	
@@ -136,7 +147,12 @@ public final class SongLibrary {
 	// loaded
 	
 	/** The songs */
-	private final Map<UUID, Song> songs;
+	private final Map<UUID, FileData<Song>> songs;
+
+	// locks
+	
+	/** The mutex locks */
+	private final LockMap<String> locks;
 	
 	/**
 	 * Sets up a new {@link SongLibrary} at the given path.
@@ -156,10 +172,9 @@ public final class SongLibrary {
 	 */
 	private SongLibrary(Path path) {
 		this.path = path;
-		
 		this.indexPath = this.path.resolve(INDEX_DIR);
-		
-		this.songs = new HashMap<UUID, Song>();
+		this.songs = new HashMap<UUID, FileData<Song>>();
+		this.locks = new LockMap<String>();
 	}
 	
 	/**
@@ -185,18 +200,17 @@ public final class SongLibrary {
 				for (Path file : stream) {
 					// only open files
 					if (Files.isRegularFile(file)) {
-						// only open xml files
-						if (MimeType.XML.check(file)) {
+						// only open json files
+						if (MimeType.JSON.check(file)) {
 							try (InputStream is = Files.newInputStream(file)) {
 								try {
 									// read in the xml
-									Song song = XmlIO.read(is, Song.class);
-									song.path = file;
+									Song song = JsonIO.read(is, Song.class);
 
 									// once the song has been loaded successfully
 									// and added to the lucene index successfully
 									// then we'll add it to the song map
-									this.songs.put(song.getId(), song);
+									this.songs.put(song.getId(), new FileData<Song>(song, file));
 								} catch (Exception e) {
 									// make sure its not in the index
 									// we don't want to be able to find the song
@@ -222,12 +236,13 @@ public final class SongLibrary {
 	 * Returns a lucene document object that contains the fields for the given song.
 	 * @param song the song
 	 */
-	private Document createDocument(Song song) {
+	private Document createDocument(FileData<Song> fileData) {
+		Song song = fileData.getData();
 		Document document = new Document();
 		// we store the path and id so we can lookup up songs by either
 		
 		// store the path so we know where to get the song
-		Field pathField = new StringField(FIELD_PATH, song.path.toAbsolutePath().toString(), Field.Store.YES);
+		Field pathField = new StringField(FIELD_PATH, fileData.getPath().toAbsolutePath().toString(), Field.Store.YES);
 		document.add(pathField);
 		
 		// store the id so we can lookup the song in the cache
@@ -251,7 +266,7 @@ public final class SongLibrary {
 			
 			// verse fields
 			for (Verse verse : lyrics.verses) {
-				String text = verse.getOutput(SongOutputType.TEXT);
+				String text = verse.getText();
 				if (!StringManipulator.isNullOrEmpty(text)) {
 					Field verseField = new TextField(FIELD_TEXT, text, Field.Store.YES);
 					document.add(verseField);
@@ -266,22 +281,49 @@ public final class SongLibrary {
 	 * Re-indexes all songs.
 	 * @throws IOException if an IO error occurs
 	 */
-	public synchronized void reindex() throws IOException {
+	public void reindex() throws IOException {
 		IndexWriterConfig config = new IndexWriterConfig(this.analyzer);
 		config.setOpenMode(OpenMode.CREATE);
 		try (IndexWriter writer = new IndexWriter(this.directory, config)) {
-			for (Song song : this.songs.values()) {
+			for (FileData<Song> fileData : this.songs.values()) {
+				Song song = fileData.getData();
 				try {
 					// add the data to the document
-					Document document = createDocument(song);
+					Document document = createDocument(fileData);
 					// update the document
 					writer.updateDocument(new Term(FIELD_ID, song.getId().toString()), document);
 				} catch (Exception e) {
 					// make sure its not in the index
-					LOGGER.warn("Failed to update the song in the lucene index '" + song.path.toAbsolutePath().toString() + "'", e);
+					LOGGER.warn("Failed to update the song in the lucene index '" + fileData.getPath().toAbsolutePath().toString() + "'", e);
 				}
 			}
 		}
+	}
+
+	/**
+	 * Returns the lock for the index.
+	 * @return Object
+	 */
+	private Object getIndexLock() {
+		return this.locks.get("INDEX");
+	}
+	
+	/**
+	 * Returns a lock for the given song.
+	 * @param song the song
+	 * @return Object
+	 */
+	private Object getSongLock(Song song) {
+		return this.locks.get(song.getId().toString());
+	}
+
+	/**
+	 * Returns a lock for the given path file name.
+	 * @param path the path
+	 * @return Object
+	 */
+	private Object getPathLock(Path path) {
+		return this.locks.get(path.getFileName().toString());
 	}
 	
 	/**
@@ -289,183 +331,448 @@ public final class SongLibrary {
 	 * @param id the song id
 	 * @return {@link Song}
 	 */
-	public synchronized Song get(UUID id) {
+	public Song get(UUID id) {
 		if (id == null) return null;
-		return this.songs.get(id);
+		if (!this.songs.containsKey(id)) return null;
+		return this.songs.get(id).getData();
 	}
 	
 	/**
 	 * Returns all the songs in this song library.
 	 * @return List&lt;{@link Song}&gt;
 	 */
-	public synchronized List<Song> all() {
-		return new ArrayList<Song>(this.songs.values());
+	public List<Song> all() {
+		return this.songs.values().stream().map(f -> f.getData()).collect(Collectors.toList());
 	}
 	
 	/**
 	 * Returns the number of songs in the library.
 	 * @return int
 	 */
-	public synchronized int size() {
+	public int size() {
 		return this.songs.size();
-	}
-	
-	/**
-	 * Returns true if the given id is in the song library.
-	 * @param id the song id
-	 * @return boolean
-	 */
-	public synchronized boolean contains(UUID id) {
-		if (id == null) return false;
-		return this.songs.containsKey(id);
-	}
-	
-	/**
-	 * Returns true if the given song is in the song library.
-	 * @param song the song
-	 * @return boolean
-	 */
-	public synchronized boolean contains(Song song) {
-		if (song == null || song.getId() == null) return false;
-		return this.songs.containsKey(song.getId());
 	}
 	
 	/**
 	 * Saves the given song (either new or existing) to the song library.
 	 * @param song the song to save
-	 * @throws JAXBException if an error occurs while writing the song to XML
 	 * @throws IOException if an IO error occurs
 	 */
-	public synchronized void save(Song song) throws JAXBException, IOException {
-		if (this.songs.containsKey(song.getId())) {
-			// technically an update
-			song.path = this.songs.get(song.getId()).path;
-		}
+	public void save(Song song) throws IOException {
+		// update the last modified date
+		song.setModifiedDate(Instant.now());
 		
-		if (song.path == null) {
-			String name = createFileName(song);
-			Path path = this.path.resolve(name + EXTENSION);
-			// verify there doesn't exist a song with this name already
-			if (Files.exists(path)) {
-				// just use the guid
-				path = this.path.resolve(song.getId().toString().replaceAll("-", "") + EXTENSION);
+		// calling this method could indicate one of the following:
+		// 1. New
+		// 2. Save Existing
+		// 3. Save Existing + Rename
+		
+		FileData<Song> fileData = null;
+		String title = song.getDefaultTitle();
+		
+		// obtain the lock on the song
+		synchronized (this.getSongLock(song)) {
+			LOGGER.debug("Saving song '{}'.", title);
+			
+			// get the current file reference
+			fileData = this.songs.get(song.getId());
+			
+			// generate the file name and path
+			String name = StringManipulator.toFileName(title, song.getId());
+			Path path = this.path.resolve(name + Constants.SONG_FILE_EXTENSION);
+			Path uuid = this.path.resolve(StringManipulator.toFileName(song.getId()) + Constants.SONG_FILE_EXTENSION);
+			
+			// check for operation
+			if (fileData == null) {
+				LOGGER.debug("Adding song '{}'.", title);
+				// then its a new
+				synchronized (this.getPathLock(path)) {
+					// check if the path exists once we obtain the lock
+					if (Files.exists(path)) {
+						// just use the UUID (which shouldn't need a lock since it's unique)
+						path = uuid;
+					}
+					JsonIO.write(path, song);
+					fileData = new FileData<Song>(song, path);
+					LOGGER.debug("Song '{}' saved to '{}'.", title, path);
+				}
+			} else {
+				LOGGER.debug("Updating song '{}'.", title);
+				// it's an existing one
+				Path original = fileData.getPath();
+				if (!original.equals(path)) {
+					// obtain the desired path lock
+					synchronized (this.getPathLock(path)) {
+						// check if the path exists once we obtain the lock
+						if (Files.exists(path)) {
+							// is the original path the UUID path (which indicates that when it was imported
+							// it had a file name conflict)
+							if (original.equals(uuid)) {
+								// if so, this isn't really a rename, just save it
+								JsonIO.write(original, song);
+							} else {
+								// if the path already exists and the current path isn't the uuid path
+								// then we know that this was a rename to a different name that already exists
+								LOGGER.warn("Unable to rename song '{}' to '{}' because a file with that name already exists.", title, path.getFileName());
+								throw new FileAlreadyExistsException(path.getFileName().toString());
+							}
+						} else {
+							LOGGER.debug("Renaming song '{}' to '{}'.", title, path.getFileName());
+							// otherwise rename the file
+							Files.move(original, path);
+							// then save the changes
+							JsonIO.write(path, song);
+							// update the path
+							fileData = new FileData<Song>(song, path);
+						}
+					}
+				} else {
+					// it's a normal save
+					JsonIO.write(original, song);
+				}
 			}
-			song.path = path;
+			
+			// update the song map (it may have changed)
+			this.songs.put(song.getId(), fileData);
 		}
-		
-		// save the song		
-		XmlIO.save(song.path, song);
 		
 		// add to/update the lucene index
-		IndexWriterConfig config = new IndexWriterConfig(this.analyzer);
-		config.setOpenMode(OpenMode.CREATE_OR_APPEND);
-		try (IndexWriter writer = new IndexWriter(this.directory, config)) {
-			// update the fields
-			Document document = createDocument(song);
-			
-			// update the document
-			writer.updateDocument(new Term(FIELD_ID, song.getId().toString()), document);
-		}
-		
-		this.songs.put(song.getId(), song);
-	}
-	
-	/**
-	 * Removes the given song id from the song library and deletes the file on
-	 * the file system.
-	 * @param id the id of the song
-	 * @throws IOException if an IO error occurs
-	 */
-	public synchronized void remove(UUID id) throws IOException {
-		if (id == null) return;
-		// remove from the lucene index so it can't be found
-		// in searches any more
-		IndexWriterConfig config = new IndexWriterConfig(this.analyzer);
-		config.setOpenMode(OpenMode.CREATE_OR_APPEND);
-		try (IndexWriter writer = new IndexWriter(this.directory, config)) {
-			// update the document
-			writer.deleteDocuments(new Term(FIELD_ID, id.toString()));
-		}
-		
-		// remove it from the map
-		Song song = this.songs.remove(id);
-		
-		// delete the file
-		if (song != null) {
-			Files.deleteIfExists(song.path);
+		synchronized (this.getIndexLock()) {
+			LOGGER.debug("Updating lucene index for song '{}'.", title);
+			IndexWriterConfig config = new IndexWriterConfig(this.analyzer);
+			config.setOpenMode(OpenMode.CREATE_OR_APPEND);
+			try (IndexWriter writer = new IndexWriter(this.directory, config)) {
+				// update the fields
+				Document document = createDocument(fileData);
+				// update the document
+				writer.updateDocument(new Term(FIELD_ID, song.getId().toString()), document);
+			} catch (Exception ex) {
+				// if this happens, the user should really just execute a reindex
+				// we don't know what to back out at this point
+				LOGGER.warn("Failed to update the lucene index for song '" + title + "'. Please initiate a reindex.", ex);
+			}
 		}
 	}
 	
 	/**
 	 * Removes the given song from the song library and deletes the file on
 	 * the file system.
-	 * @param song the song to remove
+	 * @param song the song
 	 * @throws IOException if an IO error occurs
 	 */
-	public synchronized void remove(Song song) throws IOException {
-		if (song == null || song.getId() == null) return;
-		remove(song.getId());
+	public void remove(Song song) throws IOException {
+		if (song == null) return;
+		
+		UUID id = song.getId();
+		if (id == null) return;
+		
+		String title = song.getDefaultTitle();
+		
+		synchronized (this.getSongLock(song)) {
+			FileData<Song> fileData = this.songs.get(song.getId());
+			LOGGER.debug("Removing song '{}'.", title);
+			// delete the file
+			if (fileData != null) {
+				Files.deleteIfExists(fileData.getPath());
+			}
+			// remove it from the map
+			this.songs.remove(id);
+		}
+		
+		synchronized (this.getIndexLock()) {
+			LOGGER.debug("Removing lucene indexing for song '{}'.", title);
+			// remove from the lucene index so it can't be found
+			// in searches any more
+			IndexWriterConfig config = new IndexWriterConfig(this.analyzer);
+			config.setOpenMode(OpenMode.CREATE_OR_APPEND);
+			try (IndexWriter writer = new IndexWriter(this.directory, config)) {
+				// update the document
+				writer.deleteDocuments(new Term(FIELD_ID, id.toString()));
+			} catch (Exception ex) {
+				// if this happens, the user should really just execute a reindex
+				// we don't know what to back out at this point
+				LOGGER.warn("Failed to remove the lucene indexing for song '" + title + "'. Please initiate a reindex.", ex);
+			}
+		}
+	}
+	
+	// tags
+	
+	/**
+	 * Adds the given tag to the given song and saves it.
+	 * @param song the song
+	 * @param tag the new tag
+	 * @return boolean true if the tag was added successfully
+	 * @throws IOException if an IO error occurs
+	 */
+	public boolean addTag(Song song, Tag tag) throws IOException {
+		// obtain the lock for this song
+		synchronized(this.getSongLock(song)) {
+			// sanity check, it's possible that while this thread
+			// was waiting for the lock, that this song was deleted
+			// or renamed. the song map will contain the latest 
+			// object for us to update
+			FileData<Song> fileData = this.songs.get(song.getId());
+			Song latest = fileData.getData();
+			// make sure the song wasn't removed
+			if (latest != null) {
+				LOGGER.debug("Adding tag '{}' to song '{}'.", tag, song.getDefaultTitle());
+				// see if adding the tag really does add it...
+				boolean added = latest.getTags().add(tag);
+				if (added) {
+					try {
+						JsonIO.write(fileData.getPath(), song);
+					} catch (Exception ex) {
+						LOGGER.warn("Failed to save song after adding tag '{}' to song '{}'.", tag, song.getDefaultTitle());
+						// remove the tag due to not being able to save
+						latest.getTags().remove(tag);
+						// rethrow the exception
+						throw ex;
+					}
+				}
+				return added;
+			}
+			return false;			
+		}
+	}
+
+	/**
+	 * Adds the given tags to the given song and saves it.
+	 * @param song the song
+	 * @param tags the new tags
+	 * @return boolean true if the tags were added successfully
+	 * @throws IOException if an IO error occurs
+	 */	
+	public boolean addTags(Song song, Collection<Tag> tags) throws IOException {
+		// obtain the lock for this song
+		synchronized(this.getSongLock(song)) {
+			// sanity check, it's possible that while this thread
+			// was waiting for the lock, that this song was deleted
+			// or renamed. the song map will contain the latest 
+			// song for us to update
+			FileData<Song> fileData = this.songs.get(song.getId());
+			Song latest = fileData.getData();
+			// make sure the song wasn't removed
+			if (latest != null) {
+				String ts = tags.stream().map(t -> t.getName()).collect(Collectors.joining(", "));
+				LOGGER.debug("Adding tags '{}' to song '{}'.", ts, song.getDefaultTitle());
+				// keep the old set just in case the new set fails to save
+				TreeSet<Tag> old = new TreeSet<Tag>(latest.getTags());
+				// attempt to add all of the tags
+				boolean added = latest.getTags().addAll(tags);
+				if (added) {
+					try {
+						JsonIO.write(fileData.getPath(), song);
+					} catch (Exception ex) {
+						LOGGER.warn("Failed to save song after adding tags '{}' to song '{}'.", ts, song.getDefaultTitle());
+						// reset to initial state
+						latest.getTags().retainAll(old);
+						// rethrow the exception
+						throw ex;
+					}
+				}
+				return added;
+			}
+			return false;
+		}
 	}
 	
 	/**
-	 * Creates a file name for the given song based off the
-	 * title, variant and author for use as a file name.
+	 * Sets the given tags on the given song and saves it.
 	 * @param song the song
-	 * @return String
+	 * @param tags the new tags
+	 * @return boolean true if the tags were set successfully
+	 * @throws IOException if an IO error occurs
+	 */	
+	public boolean setTags(Song song, Collection<Tag> tags) throws IOException {
+		// obtain the lock for this song
+		synchronized(this.getSongLock(song)) {
+			// sanity check, it's possible that while this thread
+			// was waiting for the lock, that this song was deleted
+			// or renamed. the song map will contain the latest 
+			// song for us to update
+			FileData<Song> fileData = this.songs.get(song.getId());
+			Song latest = fileData.getData();
+			// make sure the song wasn't removed
+			if (latest != null) {
+				String ts = tags.stream().map(t -> t.getName()).collect(Collectors.joining(", "));
+				LOGGER.debug("Setting tags '{}' on song '{}'.", ts, song.getDefaultTitle());
+				// keep the old set just in case the new set fails to save
+				TreeSet<Tag> old = new TreeSet<Tag>(latest.getTags());
+				// attempt to set the tags
+				boolean changed = latest.getTags().addAll(tags);
+				changed |= latest.getTags().retainAll(tags);
+				if (changed) {
+					try {
+						// attempt to save
+						JsonIO.write(fileData.getPath(), song);
+					} catch (Exception ex) {
+						LOGGER.warn("Failed to save song after setting tags '{}' on song '{}'.", ts, song.getDefaultTitle());
+						// reset to initial state
+						latest.getTags().clear();
+						latest.getTags().addAll(old);
+						// rethrow the exception
+						throw ex;
+					}
+				}
+				return changed;
+			}
+			return false;
+		}
+	}
+	
+	/**
+	 * Removes the given tag from the given song and saves it.
+	 * @param song the song
+	 * @param tag the tag to remove
+	 * @return boolean true if the tag was removed successfully
+	 * @throws IOException if an IO error occurs
+	 */	
+	public boolean removeTag(Song song, Tag tag) throws IOException {
+		// obtain the lock for this song
+		synchronized(this.getSongLock(song)) {
+			// sanity check, it's possible that while this thread
+			// was waiting for the lock, that this song was deleted
+			// or renamed. the song map will contain the latest 
+			// song for us to update
+			FileData<Song> fileData = this.songs.get(song.getId());
+			Song latest = fileData.getData();
+			// make sure the song wasn't removed
+			if (latest != null) {
+				LOGGER.debug("Removing tag '{}' from song '{}'.", tag, song.getDefaultTitle());
+				boolean removed = latest.getTags().remove(tag);
+				if (removed) {
+					try {
+						JsonIO.write(fileData.getPath(), song);
+					} catch (Exception ex) {
+						LOGGER.warn("Failed to save song after removing tag '{}' from song '{}'.", tag, song.getDefaultTitle());
+						// reset to initial state
+						latest.getTags().add(tag);
+						// rethrow the exception
+						throw ex;
+					}
+				}
+				return removed;
+			}
+			return false;
+		}
+	}
+
+	/**
+	 * Removes the given tags from the given song and saves it.
+	 * @param song the song
+	 * @param tags the tags to remove
+	 * @return boolean true if the tags were removed successfully
+	 * @throws IOException if an IO error occurs
+	 */	
+	public boolean removeTags(Song song, Collection<Tag> tags) throws IOException {
+		// obtain the lock for this song
+		synchronized(this.getSongLock(song)) {
+			// sanity check, it's possible that while this thread
+			// was waiting for the lock, that this song was deleted
+			// or renamed. the song map will contain the latest 
+			// song for us to update
+			FileData<Song> fileData = this.songs.get(song.getId());
+			Song latest = fileData.getData();
+			// make sure the song wasn't removed
+			if (latest != null) {
+				String ts = tags.stream().map(t -> t.getName()).collect(Collectors.joining(", "));
+				LOGGER.debug("Removing tags '{}' from song '{}'.", ts, song.getDefaultTitle());
+				// keep the old set just in case the new set fails to save
+				TreeSet<Tag> old = new TreeSet<Tag>(latest.getTags());
+				// attempt to set the tags
+				boolean removed = latest.getTags().removeAll(tags);
+				if (removed) {
+					try {
+						JsonIO.write(fileData.getPath(), song);
+					} catch (Exception ex) {
+						LOGGER.warn("Failed to save song after removing tags '{}' from song '{}'.", ts, song.getDefaultTitle());
+						// reset to initial state
+						latest.getTags().clear();
+						latest.getTags().addAll(old);
+						// rethrow the exception
+						throw ex;
+					}
+				}
+				return removed;
+			}
+			return false;
+		}
+	}
+
+	// export / import
+	
+	/**
+	 * Exports the given songs to the given file using the given exporter
+	 * @param path the file
+	 * @param songs the songs to export
+	 * @param exporter the song exporter to use
+	 * @throws IOException if an IO error occurs
 	 */
-	public static final String createFileName(Song song) {
-		String title = song.getDefaultTitle();
-		String variant = song.getVariant();
-		Author author = song.getDefaultAuthor();
+	public void exportSongs(Path path, List<Song> songs, SongExporter exporter) throws IOException {
+		exporter.execute(path, songs);
+	}
+
+	/**
+	 * Exports the given songs to the given file using the given exporter.
+	 * @param stream the zip stream to export to
+	 * @param songs the songs to export
+	 * @param exporter the song exporter to use
+	 * @throws IOException if an IO error occurs
+	 */
+	public void exportSongs(ZipOutputStream stream, List<Song> songs, SongExporter exporter) throws IOException {
+		exporter.execute(stream, ZIP_DIR, songs);
+	}
+	
+	/**
+	 * Imports the given songs into the library.
+	 * @param path the path to a zip file
+	 * @return List&lt;{@link Song}&gt;
+	 * @throws FileNotFoundException if the given path is not found
+	 * @throws InvalidFormatException if the file wasn't in the format expected
+	 * @throws UnknownFormatException if the format of the file couldn't be determined
+	 * @throws IOException if an IO error occurs
+	 */
+	public List<Song> importSongs(Path path) throws FileNotFoundException, IOException, InvalidFormatException, UnknownFormatException {
+		SongFormatDetector importer = new SongFormatDetector();
+		List<Song> songs = importer.execute(path);
 		
-		StringBuilder sb = new StringBuilder();
-		if (title != null) {
-			sb.append(title);
+		LOGGER.debug("'{}' songs found in '{}'.", songs.size(), path);
+		Iterator<Song> it = songs.iterator();
+		while (it.hasNext()) {
+			Song song = it.next();
+			try {
+				this.save(song);
+			} catch (Exception ex) {
+				LOGGER.error("Failed to save the song '" + song.getDefaultTitle() + "'", ex);
+				it.remove();
+			}
 		}
-		if (variant != null && variant.length() != 0) {
-			sb.append(variant);
-		}
-		if (author != null && author.name != null && author.name.length() != 0) {
-			sb.append(author.name);
-		}
-		String name = sb.toString();
-		
-//		// truncate the name to certain length
-//		int max = Constants.MAX_FILE_NAME_CODEPOINTS - EXTENSION.length();
-//		if (name.length() > max) {
-//			LOGGER.warn("File name too long '{}', truncating.", name);
-//			name = name.substring(0, Math.min(name.length() - 1, max));
-//		}
-		
-		return StringManipulator.toFileName(name, song.getId());
+		return songs;
 	}
 	
 	// searching
 	
 	/**
-	 * Searches this song library for the given text using the given search type.
-	 * @param text the search text
-	 * @param type the search type
+	 * Searches this song library for the given criteria.
+	 * @param criteria the search criteria
 	 * @return List&lt;{@link SongSearchResult}&gt;
 	 * @throws IOException if an IO error occurs
 	 */
-	public List<SongSearchResult> search(String text, SearchType type) throws IOException {
+	public List<SongSearchResult> search(SongSearchCriteria criteria) throws IOException {
 		// verify text
-		if (text == null || text.length() == 0) {
+		if (criteria == null || criteria.getText() == null || criteria.getText().length() == 0) {
 			return Collections.emptyList();
 		}
 		
-//		// check for wildcard characters for non-wildcard searches
-//		if (type != SearchType.ALL_WILDCARD && type != SearchType.ANY_WILDCARD && !text.contains(Character.toString(WildcardQuery.WILDCARD_CHAR))) {
-//			// take the wildcard characters out
-//			text = text.replaceAll("\\" + WildcardQuery.WILDCARD_CHAR, "");
-//		}
-		
 		// tokenize
-		List<String> tokens = this.getTokens(text, FIELD_TEXT);
+		List<String> tokens = this.getTokens(criteria.getText(), FIELD_TEXT);
+		
+		// build query
+		Query query = getQueryForTokens(FIELD_TEXT, tokens, criteria.getType());
 		
 		// search
-		return this.search(getQueryForTokens(FIELD_TEXT, tokens, type));
+		return this.search(query, criteria.getMaximumResults());
 	}
 
 	/**
@@ -478,6 +785,7 @@ public final class SongLibrary {
 	private List<String> getTokens(String text, String field) throws IOException {
 		List<String> tokens = new ArrayList<String>();
 		
+		LOGGER.debug("Tokenizing input '{}'.", text);
 		TokenStream stream = this.analyzer.tokenStream(field, text);
 		CharTermAttribute attr = stream.addAttribute(CharTermAttribute.class);
 		stream.reset();
@@ -489,6 +797,7 @@ public final class SongLibrary {
 		stream.end();
 		stream.close();
 		
+		LOGGER.debug("Input tokenized into: {}", String.join(", ", tokens));
 		return tokens;
 	}
 	
@@ -500,40 +809,39 @@ public final class SongLibrary {
 	 * @return Query
 	 */
 	private Query getQueryForTokens(String field, List<String> tokens, SearchType type) {
-		final String[] temp = new String[0];
+		Query query = null;
+		
+		LOGGER.debug("Building lucene query based on search type '{}' and tokens.", type);
 		if (tokens.size() == 0) return null;
 		if (tokens.size() == 1) {
+			LOGGER.debug("Using single token FuzzyQuery.");
+			// single term, just do a fuzzy query on it with a larger max edit distance
 			String token = tokens.get(0);
-//			if (type == SearchType.ALL_WILDCARD || type == SearchType.ANY_WILDCARD) {
-				// check for wildcard character
-				if (!token.contains(Character.toString(WildcardQuery.WILDCARD_CHAR))) {
-					token = WildcardQuery.WILDCARD_CHAR + token + WildcardQuery.WILDCARD_CHAR;
-				}
-				return new WildcardQuery(new Term(field, token));
-//			} else {
-//				return new TermQuery(new Term(field, token));
-//			}
+			query = new FuzzyQuery(new Term(field, token));
 		// PHRASE
 		} else if (type == SearchType.PHRASE) {
-			return new PhraseQuery(2, field, tokens.toArray(temp));
-		// ALL_WILDCARD, ANY_WILDCARD
-//		} else if (type == SearchType.ALL_WILDCARD || type == SearchType.ANY_WILDCARD) {
-//			BooleanQuery.Builder builder = new BooleanQuery.Builder();
-//			for (String token : tokens) {
-//				if (!token.contains(Character.toString(WildcardQuery.WILDCARD_CHAR))) {
-//					token = WildcardQuery.WILDCARD_CHAR + token + WildcardQuery.WILDCARD_CHAR;
-//				}
-//				builder.add(new WildcardQuery(new Term(field, token)), type == SearchType.ALL_WILDCARD ? Occur.MUST : Occur.SHOULD);
-//			}
-//			return builder.build();
-		// ALL_WORDS, ANY_WORD, LOCATION
+			LOGGER.debug("Using SpanMultiTermQuery with FuzzyQuery for each token.");
+			// for phrase, do a span-near-fuzzy query since we 
+			// care if the words are close to each other
+			SpanQuery[] sqs = new SpanQuery[tokens.size()];
+			for (int i = 0; i < tokens.size(); i++) {
+				sqs[i] = new SpanMultiTermQueryWrapper<FuzzyQuery>(new FuzzyQuery(new Term(field, tokens.get(i))));
+			}
+			// the terms should be within 3 terms of each other
+			query = new SpanNearQuery(sqs, 3, false);
+		// ALL_WORDS, ANY_WORD
 		} else {
+			LOGGER.debug("Using BooleanQuery with FuzzyQuery for each token.");
+			// do an and/or combination of fuzzy queries
 			BooleanQuery.Builder builder = new BooleanQuery.Builder();
 			for (String token : tokens) {
-				builder.add(new TermQuery(new Term(field, token)), type == SearchType.ALL_WORDS ? Occur.MUST : Occur.SHOULD);
+				builder.add(new FuzzyQuery(new Term(field, token)), type == SearchType.ALL_WORDS ? Occur.MUST : Occur.SHOULD);
 			}
-			return builder.build();
+			query = builder.build();
 		}
+		// ALL_WILDCARD, ANY_WILDCARD (not available as an option)
+		
+		return query;
 	}
 	
 	/**
@@ -544,14 +852,19 @@ public final class SongLibrary {
 	 * @see <a href="http://stackoverflow.com/questions/25814445/accessing-words-around-a-positional-match-in-lucene">Accessing words around a positional match in Lucene</a>
 	 * @see SongSearchResult
 	 */
-	private List<SongSearchResult> search(Query query) throws IOException {
+	private List<SongSearchResult> search(Query query, int maxResults) throws IOException {
 		List<SongSearchResult> results = new ArrayList<SongSearchResult>();
 		
+		// NOTE: this doesn't need to be synchronized with the index, it will use a snapshot
+		// of the index at the time it's opened
+		LOGGER.debug("Searching using constructed query.");
 		try (IndexReader reader = DirectoryReader.open(this.directory)) {
 			IndexSearcher searcher = new IndexSearcher(reader);
 			
-			TopDocs result = searcher.search(query, 25);
+			TopDocs result = searcher.search(query, maxResults + 1);
 			ScoreDoc[] docs = result.scoreDocs;
+			
+			LOGGER.debug("Search found {} results.", docs.length);
 			
 			Scorer scorer = new QueryScorer(query);
 			Highlighter highlighter = new Highlighter(scorer);
@@ -560,10 +873,18 @@ public final class SongLibrary {
 				Document document = searcher.doc(doc.doc);
 				
 				// get the song
-				Song song = this.songs.get(UUID.fromString(document.get(FIELD_ID)));
+				FileData<Song> fileData = this.songs.get(UUID.fromString(document.get(FIELD_ID)));
+				if (fileData == null) {
+					LOGGER.warn("Unable to find song '{}'. A re-index might fix this problem.", document.get(FIELD_ID));
+					continue;
+				}
+				
+				// get the song
+				Song song = fileData.getData();
 				
 				// just continue if its not found
 				if (song == null) {
+					LOGGER.warn("Unable to find song '{}'. A re-index might fix this problem.", document.get(FIELD_ID));
 					continue;
 				}
 				
@@ -572,7 +893,7 @@ public final class SongLibrary {
 				String[] items = document.getValues(FIELD_TEXT);
 				for (String item : items) {
 					try {
-						String text = highlighter.getBestFragment(analyzer, FIELD_TEXT, item);
+						String text = highlighter.getBestFragment(this.analyzer, FIELD_TEXT, item);
 						if (text != null) {
 							matches.add(new SongSearchMatch(FIELD_TEXT, item, text));
 						}
@@ -581,7 +902,7 @@ public final class SongLibrary {
 					}
 				}
 				
-				SongSearchResult match = new SongSearchResult(song, matches);
+				SongSearchResult match = new SongSearchResult(doc.score, song, matches);
 				results.add(match);
 			}
 		}

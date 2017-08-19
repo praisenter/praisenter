@@ -241,7 +241,7 @@ final class MediaPropertiesPane extends VBox {
         				audio.set(NOT_APPLICABLE);
         			}
         			
-        			format.set(media.getFormat().toString());
+        			format.set(media.getMediaFormat().toString());
         			dateAdded.set(DATETIME_FORMATTER.format(media.getDateAdded()));
         			
         			tagView.tagsProperty().set(newValue.getTags());

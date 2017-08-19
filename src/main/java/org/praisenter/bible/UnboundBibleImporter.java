@@ -26,13 +26,10 @@ package org.praisenter.bible;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -45,7 +42,6 @@ import java.util.zip.ZipInputStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.InvalidFormatException;
-import org.praisenter.NoContentException;
 
 /**
  * A bible importer for the bible data files hosted on The Unbound Bible at www.unboundbible.org.
@@ -59,12 +55,10 @@ final class UnboundBibleImporter extends AbstractBibleImporter implements BibleI
 	private static final Logger LOGGER = LogManager.getLogger();
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.bible.BibleImporter#execute(java.nio.file.Path)
+	 * @see org.praisenter.bible.BibleImporter#execute(java.lang.String, java.io.InputStream)
 	 */
 	@Override
-	public List<Bible> execute(Path path) throws IOException, FileNotFoundException, InvalidFormatException {
-		// get the file name
-		String fileName = path.getFileName().toString();
+	public List<Bible> execute(String fileName, InputStream stream) throws IOException, InvalidFormatException {
 		int d = fileName.lastIndexOf(".");
 		String name = fileName.substring(0, d);
 		
@@ -75,55 +69,44 @@ final class UnboundBibleImporter extends AbstractBibleImporter implements BibleI
 		Bible bible = new Bible();
 		bible.source = "THE UNBOUND BIBLE (www.unboundbible.org)";
 
-		// make sure the file exists
-		if (Files.exists(path)) {
-			LOGGER.debug("Reading UnboundBible .zip file: " + path.toAbsolutePath().toString());
-			
-			// read the zip file for Books
-			Map<String, Book> bookMap = null;
-			try (FileInputStream fis = new FileInputStream(path.toFile());
-				 BufferedInputStream bis = new BufferedInputStream(fis);
-				 ZipInputStream zis = new ZipInputStream(bis);) {
-				// read the entries
-				ZipEntry entry = null;
-				while ((entry = zis.getNextEntry()) != null) {
-					if (entry.getName().equalsIgnoreCase(bookFileName)) {
-						LOGGER.debug("Reading UnboundBible .zip file contents: " + bookFileName);
-						bookMap = readBooks(bible, bookFileName, zis);
-						LOGGER.debug("UnboundBible .zip file contents read successfully: " + bookFileName);
-					}
-				}
+		BufferedInputStream bis = new BufferedInputStream(stream);
+		bis.mark(Integer.MAX_VALUE);
+		
+		// find the book first
+		Map<String, Book> bookMap = null;
+		ZipInputStream zis = new ZipInputStream(bis);
+		ZipEntry entry = null;
+		while ((entry = zis.getNextEntry()) != null) {
+			if (entry.getName().equalsIgnoreCase(bookFileName)) {
+				LOGGER.debug("Reading UnboundBible .zip file contents: " + bookFileName);
+				bookMap = readBooks(bible, bookFileName, zis);
+				LOGGER.debug("UnboundBible .zip file contents read successfully: " + bookFileName);
+				break;
 			}
-
-			// check for books
-			if (bible.books.size() == 0 || bookMap == null) {
-				LOGGER.error("The file did not contain any books. Import failed.");
-				throw new NoContentException();
-			}
-			
-			// read the zip file for Verses
-			try (FileInputStream fis = new FileInputStream(path.toFile());
-				 BufferedInputStream bis = new BufferedInputStream(fis);
-				 ZipInputStream zis = new ZipInputStream(bis);) {
-				// read the entries
-				ZipEntry entry = null;
-				while ((entry = zis.getNextEntry()) != null) {
-					if (entry.getName().equalsIgnoreCase(verseFileName)) {
-						LOGGER.debug("Reading UnboundBible .zip file contents: " + verseFileName);
-						readVerses(bible, bookMap, verseFileName, zis);
-						LOGGER.debug("UnboundBible .zip file contents read successfully: " + verseFileName);
-					}
-				}
-			}
-			
-			// return
-			List<Bible> bibles = new ArrayList<Bible>();
-			bibles.add(bible);
-			return bibles;
-		} else {
-			// throw an exception
-			throw new FileNotFoundException(path.toAbsolutePath().toString());
 		}
+		
+		// check for books
+		if (bible.books.size() == 0 || bookMap == null) {
+			LOGGER.error("The file did not contain any books. Import failed.");
+			throw new InvalidFormatException("A book_names.txt file was not found '" + fileName + "'.");
+		}
+		
+		bis.reset();
+		// read the zip file for Verses
+		zis = new ZipInputStream(bis);
+		entry = null;
+		while ((entry = zis.getNextEntry()) != null) {
+			if (entry.getName().equalsIgnoreCase(verseFileName) || entry.getName().toLowerCase().endsWith("_utf8.txt")) {
+				LOGGER.debug("Reading UnboundBible .zip file contents: " + verseFileName);
+				readVerses(bible, bookMap, verseFileName, zis);
+				LOGGER.debug("UnboundBible .zip file contents read successfully: " + verseFileName);
+			}
+		}
+		
+		// return
+		List<Bible> bibles = new ArrayList<Bible>();
+		bibles.add(bible);
+		return bibles;
 	}
 	
 	/**

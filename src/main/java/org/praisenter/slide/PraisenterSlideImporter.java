@@ -24,25 +24,16 @@
  */
 package org.praisenter.slide;
 
-import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.io.InputStream;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.praisenter.Constants;
 import org.praisenter.InvalidFormatException;
-import org.praisenter.UnknownFormatException;
 import org.praisenter.json.JsonIO;
-import org.praisenter.utility.Streams;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
 
 /**
  * {@link SlideImporter} for the Praisenter slide format.
@@ -50,87 +41,26 @@ import org.praisenter.utility.Streams;
  * @version 3.0.0
  */
 public final class PraisenterSlideImporter implements SlideImporter {
-	/** The class level logger */
-	private static final Logger LOGGER = LogManager.getLogger();
-	
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.SlideImporter#execute(java.nio.file.Path)
+	 * @see org.praisenter.bible.BibleImporter#execute(java.lang.String, java.io.InputStream)
 	 */
 	@Override
-	public List<Slide> execute(Path path) throws IOException, FileNotFoundException, InvalidFormatException, UnknownFormatException {
+	public List<Slide> execute(String fileName, InputStream stream) throws IOException, InvalidFormatException {
 		List<Slide> slides = new ArrayList<Slide>();
 		
-		// make sure the file exists
-		if (Files.exists(path)) {
-			LOGGER.debug("Reading file: " + path.toAbsolutePath().toString());
-
-			// get the root folder by inspecting what's in the zip
-			// if there's a 'slides' folder then look there only, otherwise
-			// look in the root
-			String root = "";
-			try (FileInputStream fis = new FileInputStream(path.toFile());
-				 ZipInputStream zis = new ZipInputStream(fis)) {
-				ZipEntry entry = null;
-				while ((entry = zis.getNextEntry()) != null) {
-					if (entry.isDirectory() && SlideLibrary.ZIP_DIR.equals(entry.getName().toLowerCase())) {
-						root = entry.getName() + "/";
-						break;
-					}
-				}
-			} catch (Exception ex) { }
+		try {
+			// make a copy to ensure the id is changed
+			Slide slide = JsonIO.read(stream, Slide.class).copy(false);
 			
-			// try to read as zip
-			boolean read = false;
-			Throwable throwable = null;
-			// first try to open it as a zip
-			try (FileInputStream fis = new FileInputStream(path.toFile());
-				 BufferedInputStream bis = new BufferedInputStream(fis);
-				 ZipInputStream zis = new ZipInputStream(bis);) {
-				LOGGER.debug("Reading as zip file: " + path.toAbsolutePath().toString());
-				// read the entries
-				ZipEntry entry = null;
-				while ((entry = zis.getNextEntry()) != null) {
-					read = true;
-					if (!entry.isDirectory() && entry.getName().startsWith(root)) {
-						LOGGER.debug("Reading as '" + Constants.SLIDE_FILE_EXTENSION + "' file: " + entry.getName());
-						byte[] data = Streams.read(zis);
-						try {
-							// make a copy to ensure the id is changed
-							Slide slide = JsonIO.read(new ByteArrayInputStream(data), Slide.class);
-							slide.updatePlaceholders();
-							slides.add(slide);
-						} catch (Exception ex) {
-							throwable = ex;
-							LOGGER.warn("Failed to parse zip entry: " + entry.getName());
-						}
-					}
-				}
+			// update the import date
+			if (slide instanceof BasicSlide) {
+				((BasicSlide)slide).createdDate = Instant.now();
 			}
-			
-			// check if we read an entry
-			// if not, that may mean the file was not a zip so try it as a normal file
-			if (!read) {
-				LOGGER.debug("Reading as '" + Constants.SLIDE_FILE_EXTENSION + "' file: " + path.toAbsolutePath().toString());
-				// just read it
-				try (FileInputStream stream = new FileInputStream(path.toFile())) {
-					// make a copy to ensure the id is changed
-					Slide slide = JsonIO.read(stream, Slide.class);
-					slide.updatePlaceholders();
-					slides.add(slide);
-				}
-			}
-
-			// throw the exception stored during the unzip process
-			// only if we didn't find any slides (if we successfully read in
-			// a slide from the zip then we don't want to throw)
-			if (slides.size() == 0 && throwable != null) {
-				throw new InvalidFormatException(throwable.getMessage(), throwable);
-			}
-
-			return slides;
-		} else {
-			// throw an exception
-			throw new FileNotFoundException(path.toAbsolutePath().toString());
+			slides.add(slide);
+		} catch (JsonProcessingException ex) {
+			throw new InvalidFormatException("Failed to import file '" + fileName + "' as a Praisenter slide file.", ex);
 		}
+		
+		return slides;
 	}
 }

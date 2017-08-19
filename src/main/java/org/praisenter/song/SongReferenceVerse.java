@@ -2,51 +2,45 @@ package org.praisenter.song;
 
 import java.util.UUID;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-
 import org.praisenter.TextType;
 
-@XmlRootElement(name = "songReferenceVerse")
-@XmlAccessorType(XmlAccessType.NONE)
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public final class SongReferenceVerse {
-	@XmlElement(name = "songId", required = false)
+	@JsonProperty
 	private final UUID songId;
 	
-	@XmlElement(name = "title", required = false)
+	@JsonProperty
+	private final UUID lyricsId;
+	
+	@JsonProperty
 	private final String title;
 	
-	@XmlElement(name = "name", required = false)
+	@JsonProperty
 	private final String name;
 	
-	@XmlElement(name = "text", required = false)
+	@JsonProperty
 	private final String text;
 	
-	@XmlElement(name = "musicianText", required = false)
-	private final String musicianText;
-
-	@XmlElement(name = "fontSize", required = false)
+	@JsonProperty
 	private final int fontSize;
-	
+
 	SongReferenceVerse() {
-		// for jaxb
 		this.songId = null;
+		this.lyricsId = null;
 		this.title = null;
 		this.name = null;
 		this.text = null;
-		this.musicianText = null;
-		this.fontSize = -1;
+		this.fontSize = Verse.USE_TEMPLATE_FONT_SIZE;
 	}
 	
-	public SongReferenceVerse(UUID songId, String title, String name, int fontSize, String text, String musicianText) {
+	public SongReferenceVerse(UUID songId, UUID lyricsId, String title, Verse verse) {
 		this.songId = songId;
+		this.lyricsId = lyricsId;
 		this.title = title;
-		this.name = name;
-		this.fontSize = fontSize;
-		this.text = text;
-		this.musicianText = musicianText;
+		this.name = verse.name;
+		this.text = verse.text;
+		this.fontSize = verse.fontSize;
 	}
 	
 	public String getText(TextType type) {
@@ -65,6 +59,10 @@ public final class SongReferenceVerse {
 		return songId;
 	}
 
+	public UUID getLyricsId() {
+		return lyricsId;
+	}
+	
 	public String getTitle() {
 		return title;
 	}
@@ -73,15 +71,12 @@ public final class SongReferenceVerse {
 		return name;
 	}
 
-	public int getFontSize() {
-		return fontSize;
-	}
-
 	public String getText() {
 		return text;
 	}
 
-	public String getMusicianText() {
-		return musicianText;
+	public int getFontSize() {
+		return fontSize;
 	}
+
 }

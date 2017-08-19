@@ -39,16 +39,29 @@ public final class SongSearchResult {
 	/** The matched text */
 	final List<SongSearchMatch> matches;
 	
+	/** The matching score */
+	final float score;
+	
 	/**
 	 * Full constructor.
+	 * @param score the matching score
 	 * @param song the song
 	 * @param matches the matched text
 	 */
-	public SongSearchResult(Song song, List<SongSearchMatch> matches) {
+	public SongSearchResult(float score, Song song, List<SongSearchMatch> matches) {
 		this.song = song;
 		this.matches = Collections.unmodifiableList(matches);
+		this.score = score;
 	}
 
+	/**
+	 * Returns the score for this result.
+	 * @return float
+	 */
+	public float getScore() {
+		return this.score;
+	}
+	
 	/**
 	 * Returns the matched song.
 	 * @return {@link Song}

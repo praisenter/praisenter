@@ -29,14 +29,15 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Path;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
@@ -67,6 +68,8 @@ public final class JsonIO {
 		mapper.disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET);
 		return mapper;
 	}
+	
+	// read
 	
 	/**
 	 * Deserializes the given string into the given class.
@@ -104,6 +107,8 @@ public final class JsonIO {
 		return MAPPER.readerFor(clazz).readValue(path.toFile());
 	}
 	
+	// write
+	
 	/**
 	 * Serializes the given object to a JSON string.
 	 * @param object the object to serialize
@@ -136,5 +141,69 @@ public final class JsonIO {
 	 */
 	public static final void write(Path path, Object object) throws JsonGenerationException, JsonMappingException, IOException {
 		MAPPER.writerFor(object.getClass()).writeValue(path.toFile(), object);
+	}
+	
+	// identify
+	
+	/**
+	 * Returns a {@link PraisenterFormat} object for the given JSON or null if it's not a 
+	 * Praisenter file format.
+	 * @param json the json string
+	 * @return boolean
+	 * @throws JsonProcessingException if an error occurs while interpreting the json string
+	 * @throws IOException if and IO error occurs
+	 */
+	public static final PraisenterFormat getPraisenterFormat(String json) throws JsonProcessingException, IOException {
+		return getPraisenterFormat(MAPPER.readTree(json));
+	}
+
+	/**
+	 * Returns a {@link PraisenterFormat} object for the given JSON or null if it's not a 
+	 * Praisenter file format.
+	 * @param stream the stream
+	 * @return boolean
+	 * @throws JsonProcessingException if an error occurs while interpreting the stream as JSON
+	 * @throws IOException if and IO error occurs
+	 */
+	public static final PraisenterFormat getPraisenterFormat(InputStream stream) throws JsonProcessingException, IOException {
+		return getPraisenterFormat(MAPPER.readTree(stream));
+	}
+	
+	/**
+	 * Returns a {@link PraisenterFormat} object for the given JSON or null if it's not a 
+	 * Praisenter file format.
+	 * @param path the path
+	 * @return boolean
+	 * @throws JsonProcessingException if an error occurs while interpreting the file as JSON
+	 * @throws IOException if and IO error occurs
+	 */
+	public static final PraisenterFormat getPraisenterFormat(Path path) throws JsonProcessingException, IOException {
+		return getPraisenterFormat(MAPPER.readTree(path.toFile()));
+	}
+	
+	/**
+	 * Returns a {@link PraisenterFormat} object for the given JSON.
+	 * @param node the JSON
+	 * @return {@link PraisenterFormat}
+	 */
+	private static final PraisenterFormat getPraisenterFormat(JsonNode node) {
+		if (node == null) return null;
+		
+		// root level there should be a @type, @format, and @version
+		JsonNode tn = node.get("@type");
+		JsonNode fn = node.get("@format");
+		JsonNode vn = node.get("@version");
+		
+		// if we don't find @type and format then we don't think
+		// it's praisenter
+		if (tn == null || fn == null) {
+			return null;
+		}
+		
+		// the version is optional, but should be provided
+		return new PraisenterFormat(
+				tn.asText(), 
+				fn.asText(), 
+				vn != null ? vn.asText() : null);
 	}
 }

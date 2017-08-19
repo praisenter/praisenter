@@ -25,9 +25,11 @@
 package org.praisenter.song;
 
 import java.io.IOException;
-import java.nio.file.Path;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Locale;
+
+import org.praisenter.InvalidFormatException;
 
 /**
  * Represents an importer of songs in a specified format.
@@ -36,15 +38,15 @@ import java.util.Locale;
  */
 public interface SongImporter {
 	/**
-	 * Reads the given file and returns a list of songs in that file.
-	 * @param path the file containing the song(s)
+	 * Reads the given stream and returns a list of songs in that stream.
+	 * @param fileName the file name
+	 * @param stream the stream containing the song(s)
 	 * @return List&lt;{@link Song}&gt;
 	 * @throws IOException if an IO error occurs
-	 * @throws SongImportException if the file is in an unrecognized format
+	 * @throws InvalidFormatException if the file or files are not in the expected format
 	 */
-	public List<Song> read(Path path) throws IOException, SongImportException;
+	public abstract List<Song> execute(String fileName, InputStream stream) throws IOException, InvalidFormatException;
 	
-
 	/**
 	 * Returns the locale for the given language.
 	 * <p>

@@ -24,15 +24,18 @@
  */
 package org.praisenter.song;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.List;
-import java.util.UUID;
+import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
-import javax.xml.bind.JAXBException;
-
-import org.praisenter.xml.XmlIO;
+import org.praisenter.Constants;
+import org.praisenter.json.JsonIO;
+import org.praisenter.utility.StringManipulator;
 
 // FEATURE (L) Allow writing of a zip file with multiple songs in it
 
@@ -43,29 +46,56 @@ import org.praisenter.xml.XmlIO;
  */
 public final class PraisenterSongExporter implements SongExporter {
 	/* (non-Javadoc)
-	 * @see org.praisenter.song.SongExporter#write(java.nio.file.Path, java.util.List)
+	 * @see org.praisenter.song.SongExporter#execute(java.nio.file.Path, java.util.List)
 	 */
 	@Override
-	public void write(Path path, List<Song> songs) throws IOException, SongExportException {
+	public void execute(Path path, List<Song> songs) throws IOException {
+		Map<String, Integer> names = new HashMap<String, Integer>(); 
+		try (FileOutputStream fos = new FileOutputStream(path.toFile());
+			 ZipOutputStream zos = new ZipOutputStream(fos)) {
+			for (Song song : songs) {
+				int n = 1;
+				String fileName = StringManipulator.toFileName(song.getDefaultTitle(), song.getId());
+				// make sure it's unique
+				if (names.containsKey(fileName)) {
+					n = names.get(fileName);
+					fileName += String.valueOf(++n);
+				}
+				names.put(fileName, n);
+				Song copy = song.copy(true);
+				ZipEntry entry = new ZipEntry(fileName + Constants.SONG_FILE_EXTENSION);
+				zos.putNextEntry(entry);
+				JsonIO.write(zos, copy);
+				zos.closeEntry();
+			}
+		}
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.song.SongExporter#execute(java.util.zip.ZipOutputStream, java.lang.String, java.util.List)
+	 */
+	@Override
+	public void execute(ZipOutputStream stream, String folder, List<Song> songs) throws IOException {
+		String root = "";
+		if (folder != null) {
+			root = folder + "/";
+		}
+		
+		Map<String, Integer> names = new HashMap<String, Integer>();
 		for (Song song : songs) {
-			String title = song.getDefaultTitle();
-			String variant = song.variant;
-			
-			// replace any non-alpha-numeric characters that might not be valid for a file name
-			String name = title.replaceAll("\\W+", "") + "_" + variant.replaceAll("\\W+", "");
-			Path file = path.resolve(name + ".xml");
-			
-			// see if it exists
-			if (Files.exists(file)) {
-				// append a UUID to the name
-				file = path.resolve(name + "_" + UUID.randomUUID().toString().replaceAll("-", "") + ".xml");
+			int n = 1;
+			String fileName = StringManipulator.toFileName(song.getDefaultTitle(), song.getId());
+			// make sure it's unique
+			if (names.containsKey(fileName)) {
+				n = names.get(fileName);
+				fileName += String.valueOf(++n);
 			}
-			
-			try {
-				XmlIO.save(file, song);
-			} catch (JAXBException e) {
-				throw new SongExportException(e);
-			}
+			names.put(fileName, n);
+			Song copy = song.copy(true);
+			ZipEntry entry = new ZipEntry(root + fileName + Constants.SONG_FILE_EXTENSION);
+			stream.putNextEntry(entry);
+			JsonIO.write(stream, copy);
+			stream.closeEntry();
 		}
 	}
 }

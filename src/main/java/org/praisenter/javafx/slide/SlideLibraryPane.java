@@ -53,7 +53,6 @@ import org.praisenter.javafx.controls.SortGraphic;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.json.JsonIO;
 import org.praisenter.resources.translations.Translations;
-import org.praisenter.slide.BasicSlide;
 import org.praisenter.slide.Slide;
 
 import javafx.beans.InvalidationListener;

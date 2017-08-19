@@ -24,66 +24,52 @@
  */
 package org.praisenter.song;
 
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElementWrapper;
-import javax.xml.bind.annotation.XmlRootElement;
-
-import org.praisenter.Constants;
 import org.praisenter.Localized;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Represents a set of lyrics.
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlRootElement(name = "lyrics")
-@XmlAccessorType(XmlAccessType.NONE)
-public final class Lyrics implements SongOutput, Localized {
-	/** The edit format */
-	private static final String EDIT_FORMAT = "<verse name=\"{0}\" />";
-	
+public final class Lyrics implements Localized {
 	// for internal use
 	/** The id of the lyrics */
+	@JsonProperty
 	final UUID id;
 	
 	/** True if this set of lyrics are the original set */
-	@XmlAttribute(name = "original", required = false)
+	@JsonProperty
 	boolean original;
 	
 	/** The language */
-	@XmlAttribute(name = "language", required = false)
+	@JsonProperty
 	String language;
 
 	/** The transliteration */
-	@XmlAttribute(name = "transliteration", required = false)
+	@JsonProperty
 	String transliteration;
 
 	/** The title */
-	@XmlElement(name = "title", required = false)
+	@JsonProperty
 	String title;
 	
 	/** The authors */
-	@XmlElement(name = "author", required = false)
-	@XmlElementWrapper(name = "authors", required = false)
+	@JsonProperty
 	final List<Author> authors;
 
 	/** The song books that contain these lyrics */
-	@XmlElement(name = "songbook", required = false)
-	@XmlElementWrapper(name = "songbooks", required = false)
+	@JsonProperty
 	final List<Songbook> songbooks;
 	
 	/** The verses */
-	@XmlElement(name = "verse", required = false)
-	@XmlElementWrapper(name = "verses", required = false)
+	@JsonProperty
 	final List<Verse> verses;
 
 	/**
@@ -92,9 +78,52 @@ public final class Lyrics implements SongOutput, Localized {
 	public Lyrics() {
 		this.id = UUID.randomUUID();
 		this.original = false;
-		this.authors = new ArrayList<>();
-		this.songbooks = new ArrayList<>();
+		this.authors = new ArrayList<Author>();
+		this.songbooks = new ArrayList<Songbook>();
 		this.verses = new ArrayList<>();
+	}
+	
+	/**
+	 * Copy constructor.
+	 * @param lyrics the lyrics to copy
+	 * @param exact true if an exact copy should be made (same ids)
+	 */
+	public Lyrics(Lyrics lyrics, boolean exact) {
+		this.id = exact ? lyrics.id : UUID.randomUUID();
+		this.language = lyrics.language;
+		this.original = lyrics.original;
+		this.title = lyrics.title;
+		this.transliteration = lyrics.transliteration;
+		this.authors = new ArrayList<Author>();
+		this.songbooks = new ArrayList<Songbook>();
+		this.verses = new ArrayList<Verse>();
+		
+		for (Author author : lyrics.authors) {
+			this.authors.add(author.copy());
+		}
+		for (Songbook songbook : lyrics.songbooks) {
+			this.songbooks.add(songbook.copy());
+		}
+		for (Verse verse : lyrics.verses) {
+			this.verses.add(verse.copy());
+		}
+	}
+	
+	/**
+	 * Returns a deep copy of this lyrics.
+	 * @return {@link Lyrics}
+	 */
+	public Lyrics copy() {
+		return new Lyrics(this, false);
+	}
+	
+	/**
+	 * Returns a deep copy of this lyrics.
+	 * @param exact true if an exact copy should be made (same ids)
+	 * @return {@link Lyrics}
+	 */
+	public Lyrics copy(boolean exact) {
+		return new Lyrics(this, exact);
 	}
 	
 	/* (non-Javadoc)
@@ -108,31 +137,6 @@ public final class Lyrics implements SongOutput, Localized {
 		return null;
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.praisenter.DisplayText#getDisplayText(org.praisenter.DisplayType)
-	 */
-	@Override
-	public String getOutput(SongOutputType type) {
-		StringBuilder sb = new StringBuilder();
-		int size = this.verses.size();
-		for (int i = 0; i < size; i++) {
-			Verse verse = this.verses.get(i);
-			
-			if (i != 0) {
-				sb.append(Constants.NEW_LINE)
-				  .append(Constants.NEW_LINE);
-			}
-			
-			if (type == SongOutputType.EDIT) {
-				sb.append(MessageFormat.format(EDIT_FORMAT, verse.name))
-				  .append(Constants.NEW_LINE);
-			}
-			
-			sb.append(verse.getOutput(type));
-		}
-		return sb.toString();
-	}
-
 	/**
 	 * Returns the default author for the lyrics.
 	 * <br>
@@ -161,7 +165,7 @@ public final class Lyrics implements SongOutput, Localized {
 				if (auth.type == null || auth.type.length() == 0) {
 					return auth;
 				// otherwise its the first with type words
-				} else if (Author.TYPE_WORDS.equals(auth.type) && matchType < 1) {
+				} else if (Author.TYPE_LYRICS.equals(auth.type) && matchType < 1) {
 					auth = author;
 					matchType = 1;
 				// otherwise its the first with type music

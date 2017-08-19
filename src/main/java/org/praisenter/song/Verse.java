@@ -24,50 +24,54 @@
  */
 package org.praisenter.song;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlElementRef;
-import javax.xml.bind.annotation.XmlElementRefs;
-import javax.xml.bind.annotation.XmlElementWrapper;
-import javax.xml.bind.annotation.XmlRootElement;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Represents a verse of a song.
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlRootElement(name = "verse")
-@XmlAccessorType(XmlAccessType.NONE)
-public final class Verse implements SongOutput {
+public final class Verse {
+	/** Notifies that the font size is not overridden */
+	public static final int USE_TEMPLATE_FONT_SIZE = -1;
+	
 	/** The verse name */
-	@XmlElement(name = "name", required = false)
+	@JsonProperty
 	String name;
 	
-	/** The verse lines */
-	@XmlElementRefs({
-			@XmlElementRef(name = "text", type = TextFragment.class),
-			@XmlElementRef(name = "br", type = Br.class),
-			@XmlElementRef(name = "chord", type = Chord.class),
-			@XmlElementRef(name = "comment", type = Comment.class)
-	})
-	@XmlElementWrapper(name = "fragments", required = false)
-	List<VerseFragment> fragments;
-	
 	/** The verse font size */
-	@XmlElement(name = "fontSize", required = false)
+	@JsonProperty
 	int fontSize;
+
+	/** The verse text */
+	@JsonProperty
+	String text;
 	
 	/**
 	 * Default constructor.
 	 */
 	public Verse() {
 		this.name = "c1";
-		this.fragments = new ArrayList<VerseFragment>();
-		this.fontSize = -1;
+		this.text = null;
+		this.fontSize = USE_TEMPLATE_FONT_SIZE;
+	}
+	
+	/**
+	 * Copy constructor.
+	 * @param verse the verse to copy
+	 */
+	public Verse(Verse verse) {
+		this.fontSize = verse.fontSize;
+		this.name = verse.name;
+		this.text = verse.text;
+	}
+	
+	/**
+	 * Returns a deep copy of this verse.
+	 * @return {@link Verse}
+	 */
+	public Verse copy() {
+		return new Verse(this);
 	}
 	
 	/* (non-Javadoc)
@@ -75,19 +79,7 @@ public final class Verse implements SongOutput {
 	 */
 	@Override
 	public String toString() {
-		return this.getOutput(SongOutputType.TEXT);
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.praisenter.DisplayText#getDisplayText(org.praisenter.DisplayType)
-	 */
-	@Override
-	public String getOutput(SongOutputType type) {
-		StringBuilder sb = new StringBuilder();
-		for (VerseFragment fragment : this.fragments) {
-			sb.append(fragment.getOutput(type));
-		}
-		return sb.toString();
+		return this.text;
 	}
 	
 	/**
@@ -136,18 +128,18 @@ public final class Verse implements SongOutput {
 	}
 
 	/**
-	 * Returns the verse fragments.
-	 * @return List&tl;{@link VerseFragment}&gtl;
+	 * Returns the verse text.
+	 * @return String
 	 */
-	public List<VerseFragment> getFragments() {
-		return this.fragments;
+	public String getText() {
+		return this.text;
 	}
-
+	
 	/**
-	 * Sets the verse fragments.
-	 * @param fragments the verse fragments
+	 * Sets the verse text.
+	 * @param text the text
 	 */
-	public void setFragments(List<VerseFragment> fragments) {
-		this.fragments = fragments;
+	public void setText(String text) {
+		this.text = text;
 	}
 }

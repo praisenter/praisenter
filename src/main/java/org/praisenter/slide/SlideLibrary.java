@@ -538,8 +538,8 @@ public final class SlideLibrary {
 	 * @throws IOException if an IO error occurs
 	 */
 	public List<Slide> importSlides(Path path) throws FileNotFoundException, IOException, InvalidFormatException, UnknownFormatException {
-		FormatIdentifingSlideImporter importer = new FormatIdentifingSlideImporter();
-		List<Slide> slides = importer.execute(path);
+		SlideFormatDetector detector = new SlideFormatDetector();
+		List<Slide> slides = detector.execute(path);
 		
 		LOGGER.debug("'{}' slides found in '{}'.", slides.size(), path);
 		Iterator<Slide> it = slides.iterator();

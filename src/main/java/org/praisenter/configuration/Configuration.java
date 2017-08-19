@@ -43,16 +43,36 @@ import org.praisenter.json.JsonIO;
 import org.praisenter.media.VideoMediaLoader;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 /**
  * Represents the storage mechanism for application settings.
  * @author William Bittle
  * @version 3.0.0
  */
+@JsonTypeInfo(
+	use = JsonTypeInfo.Id.NAME,
+	include = JsonTypeInfo.As.PROPERTY)
+@JsonSubTypes({
+	@Type(value = Configuration.class, name = "configuration")
+})
 public final class Configuration extends SettingMap<Void> {
 	/** The class level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
 
+	/** The current format version */
+	private static final String CURRENT_VERSION = "1";
+	
+	/** The format */
+	@JsonProperty("@format")
+	private final String format;
+	
+	/** The version */
+	@JsonProperty("@version")
+	private final String version;
+	
 	/** The other settings */
 	@JsonProperty
 	private final Map<Setting, Object> settings;
@@ -61,6 +81,8 @@ public final class Configuration extends SettingMap<Void> {
 	 * Hidden constructor for new configuration.
 	 */
 	private Configuration() {
+		this.format = Constants.FORMAT_NAME;
+		this.version = CURRENT_VERSION;
 		this.settings = new ConcurrentHashMap<Setting, Object>();
 
 		// set default language/theme
@@ -177,5 +199,21 @@ public final class Configuration extends SettingMap<Void> {
 	@Override
 	public Map<Setting, Object> getAll() {
 		return Collections.unmodifiableMap(this.settings);
+	}
+
+	/**
+	 * Returns the format.
+	 * @return String
+	 */
+	public String getFormat() {
+		return this.format;
+	}
+	
+	/**
+	 * Returns the version.
+	 * @return String
+	 */
+	public String getVersion() {
+		return this.version;
 	}
 }

@@ -24,18 +24,11 @@
  */
 package org.praisenter.bible;
 
-import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
@@ -65,98 +58,47 @@ final class ZefaniaBibleImporter extends AbstractBibleImporter implements BibleI
 	private static final String SOURCE = "Zefania XML Bible (https://sourceforge.net/projects/zefania-sharp/files/Bibles/)";
 	
 	/* (non-Javadoc)
-	 * @see org.praisenter.bible.BibleImporter#execute(java.nio.file.Path)
+	 * @see org.praisenter.bible.BibleImporter#execute(java.lang.String, java.io.InputStream)
 	 */
 	@Override
-	public List<Bible> execute(Path path) throws IOException, FileNotFoundException, InvalidFormatException {
+	public List<Bible> execute(String fileName, InputStream stream) throws IOException, InvalidFormatException {
 		List<Bible> bibles = new ArrayList<Bible>();
-		
-		// make sure the file exists
-		if (Files.exists(path)) {
-			LOGGER.debug("Reading Zefania Bible file: " + path.toAbsolutePath().toString());
-
-			boolean read = false;
-			Throwable throwable = null;
-			// first try to open it as a zip
-			try (FileInputStream fis = new FileInputStream(path.toFile());
-				 BufferedInputStream bis = new BufferedInputStream(fis);
-				 ZipInputStream zis = new ZipInputStream(bis);) {
-				LOGGER.debug("Reading as zip file: " + path.toAbsolutePath().toString());
-				// read the entries (each should be a .xml file)
-				ZipEntry entry = null;
-				while ((entry = zis.getNextEntry()) != null) {
-					read = true;
-					if (!entry.isDirectory()) {
-						int i = entry.getName().lastIndexOf('.');
-						String name = entry.getName();
-						if (i >= 0) {
-							name = entry.getName().substring(0, i);
-						}
-						try {
-							Bible bible = this.parse(zis, name);
-							bibles.add(bible);
-						} catch (Exception ex) {
-							throwable = ex;
-							LOGGER.warn("Failed to parse zip entry: " + entry.getName());
-						}
-					}
-				}
-			}
-			
-			// check if we read an entry
-			// if not, that may mean the file was not a zip so try it as a normal flat file
-			if (!read) {
-				String name = path.getFileName().toString().toLowerCase();
-				LOGGER.debug("Reading as XML file: " + path.toAbsolutePath().toString());
-				if (!name.endsWith(".xml")) {
-					LOGGER.warn("File " + path.toAbsolutePath().toString() + " does not end with either .zip or .xml file extensions.  Attempting to read anyway.");
-				}
-				// this indicates the file is not a zip or invalid
-				name = path.getFileName().toString();
-				int i = name.lastIndexOf('.');
-				if (i >= 0) {
-					name = name.substring(0, i);
-				}
-				// hopefully its an .xml
-				// just read it
-				Bible bible = this.parse(new FileInputStream(path.toFile()), name);
-				bibles.add(bible);
-			}
-
-			// throw the exception stored during the unzip process
-			// only if we didn't find any bibles (if we successfully read in
-			// a bible from the zip then we don't want to throw)
-			if (bibles.size() == 0 && throwable != null) {
-				throw new InvalidFormatException(throwable.getMessage(), throwable);
-			}
-
-			return bibles;
-		} else {
-			// throw an exception
-			throw new FileNotFoundException(path.toAbsolutePath().toString());
+		String name = fileName;
+		int i = name.lastIndexOf('.');
+		if (i >= 0) {
+			name = name.substring(0, i);
 		}
+		try {
+			Bible bible = this.parse(stream, name);
+			bibles.add(bible);
+		} catch (ParserConfigurationException | SAXException ex) {
+			throw new InvalidFormatException("Failed to import file '" + fileName + "' as a Zefania bible file.", ex);
+		}
+		return bibles;
 	}
 	
 	/**
 	 * Attempts to parse the given input stream into the internal bible format.
 	 * @param stream the input stream
 	 * @param name the name
-	 * @throws IOException if an IO error occurs
-	 * @throws InvalidFormatException if the stream was not in the expected format
 	 * @return {@link Bible}
+	 * @throws IOException if an IO error occurs
+	 * @throws ParserConfigurationException
+	 * @throws SAXException 
 	 */
-	private Bible parse(InputStream stream, String name) throws IOException, InvalidFormatException {
-		try {
-			byte[] content = Streams.read(stream);
-			// read the bytes
-			SAXParserFactory factory = SAXParserFactory.newInstance();
-			SAXParser parser = factory.newSAXParser();
-			ZefaniaHandler handler = new ZefaniaHandler(name);
-			parser.parse(new ByteArrayInputStream(content), handler);
-			return handler.getBible();
-		} catch (SAXException | ParserConfigurationException e) {
-			throw new InvalidFormatException(e);
-		}
+	private Bible parse(InputStream stream, String name) throws ParserConfigurationException, SAXException, IOException {
+		byte[] content = Streams.read(stream);
+		// read the bytes
+		SAXParserFactory factory = SAXParserFactory.newInstance();
+		// prevent XXE attacks 
+		// https://www.owasp.org/index.php/XML_External_Entity_(XXE)_Prevention_Cheat_Sheet
+		factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+		factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+		factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+		SAXParser parser = factory.newSAXParser();
+		ZefaniaHandler handler = new ZefaniaHandler(name);
+		parser.parse(new ByteArrayInputStream(content), handler);
+		return handler.getBible();
 	}
 	
 	/**

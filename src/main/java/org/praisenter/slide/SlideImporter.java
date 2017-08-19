@@ -24,13 +24,11 @@
  */
 package org.praisenter.slide;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.file.Path;
+import java.io.InputStream;
 import java.util.List;
 
 import org.praisenter.InvalidFormatException;
-import org.praisenter.UnknownFormatException;
 
 /**
  * Represents a class that reads a given path for {@link Slide} information.
@@ -39,13 +37,12 @@ import org.praisenter.UnknownFormatException;
  */
 public interface SlideImporter {
 	/**
-	 * Imports the slide information located at the given path.
-	 * @param path the path
-	 * @return List&lt;{@link Slide}&gt; the slides that were imported
+	 * Reads the given stream and returns a list of slides in that stream.
+	 * @param fileName the file name
+	 * @param stream the stream containing the slide(s)
+	 * @return List&lt;{@link Slide}&gt;
 	 * @throws IOException if an IO error occurs
-	 * @throws FileNotFoundException if the given path doesn't exist
 	 * @throws InvalidFormatException if the file or files are not in the expected format
-	 * @throws UnknownFormatException if the file formats could not be determined
 	 */
-	public abstract List<Slide> execute(Path path) throws IOException, FileNotFoundException, InvalidFormatException, UnknownFormatException;
+	public abstract List<Slide> execute(String fileName, InputStream stream) throws IOException, InvalidFormatException;
 }

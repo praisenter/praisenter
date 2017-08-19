@@ -24,13 +24,11 @@
  */
 package org.praisenter.bible;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.file.Path;
+import java.io.InputStream;
 import java.util.List;
 
 import org.praisenter.InvalidFormatException;
-import org.praisenter.UnknownFormatException;
 
 /**
  * Represents a class that reads a given path for Bible information.
@@ -39,13 +37,15 @@ import org.praisenter.UnknownFormatException;
  */
 public interface BibleImporter {
 	/**
-	 * Imports the Bible information located at the given path.
-	 * @param path the path
+	 * Imports the Bible information contained in the given input stream.
+	 * <p>
+	 * The importer assumes that the input stream is of the type it's looking for. In other words,
+	 * one importer may be expecting a zip file and others will be expecting a single file.
+	 * @param fileName the file name
+	 * @param stream the input stream
 	 * @return List&lt;{@link Bible}&gt; the bibles that were imported
 	 * @throws IOException if an IO error occurs
-	 * @throws FileNotFoundException if the given path doesn't exist
 	 * @throws InvalidFormatException if the file or files are not in the expected format
-	 * @throws UnknownFormatException if the file formats could not be determined
 	 */
-	public abstract List<Bible> execute(Path path) throws IOException, FileNotFoundException, InvalidFormatException, UnknownFormatException;
+	public abstract List<Bible> execute(String fileName, InputStream stream) throws IOException, InvalidFormatException;
 }

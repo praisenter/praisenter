@@ -24,26 +24,52 @@
  */
 package org.praisenter.song;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Represents a song book entry.
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlRootElement(name = "songbook")
-@XmlAccessorType(XmlAccessType.NONE)
 public final class Songbook {
 	/** The book name */
-	@XmlElement(name = "name", required = false)
+	@JsonProperty
 	String name;
 	
 	/** The entry */
-	@XmlElement(name = "entry", required = false)
+	@JsonProperty
 	String entry;
+	
+	/**
+	 * Full constructor.
+	 * @param name the name of the song book
+	 * @param entry the entry in the song book
+	 */
+	@JsonCreator
+	public Songbook(
+			@JsonProperty("name") String name, 
+			@JsonProperty("entry") String entry) {
+		this.name = name;
+		this.entry = entry;
+	}
+	
+	/**
+	 * Copy constructor.
+	 * @param songbook the song book to copy
+	 */
+	public Songbook(Songbook songbook) {
+		this.name = songbook.name;
+		this.entry = songbook.entry;
+	}
+	
+	/**
+	 * Returns a deep copy of this song book.
+	 * @return {@link Songbook}
+	 */
+	public Songbook copy() {
+		return new Songbook(this);
+	}
 	
 	/**
 	 * Returns the book name.
