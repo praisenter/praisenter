@@ -36,8 +36,8 @@ import org.praisenter.slide.graphics.SlidePaint;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-// FEATURE (L) Add a repeat property that will tile an image
-// FEATURE (L) Evaluate supporting JavaFX http live streaming
+// FEATURE (L-L) Add a repeat property that will tile an image
+// FEATURE (L-M) Evaluate supporting JavaFX http live streaming
 
 /**
  * Represents a media object for audio, video, and images coming from the {@link MediaLibrary}.

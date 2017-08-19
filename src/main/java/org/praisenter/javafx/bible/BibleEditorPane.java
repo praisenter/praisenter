@@ -117,9 +117,9 @@ import javafx.stage.Modality;
 import javafx.util.Callback;
 import javafx.util.StringConverter;
 
-// FEATURE (L) Add glyphicons to nodes to help distinguish book & chapter
-// FEATURE (L) Add ability to create N number of books, chapters, verses with default text
-// FEATURE (H) Add ability to create the basic 66 book bible layout; all books, chapters and verses with numbers and maybe default or english names or empty text
+// FEATURE (L-L) Add glyphicons to nodes to help distinguish book & chapter
+// FEATURE (L-L) Add ability to create N number of books, chapters, verses with default text
+// FEATURE (H-L) Add ability to create the basic 66 book bible layout; all books, chapters and verses with numbers and maybe default or english names or empty text
 
 /**
  * A pane for editing {@link Bible}s.

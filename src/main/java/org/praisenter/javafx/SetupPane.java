@@ -67,8 +67,8 @@ import javafx.stage.StageStyle;
 import javafx.util.Duration;
 
 // TODO translate
-// FEATURE (M) Add options to remove themes or translations
-// FEATURE (L) Edit tags globally (like rename, remove)
+// FEATURE (M-L) Add options to remove themes or translations
+// FEATURE (L-M) Edit tags globally (like rename, remove)
 
 public final class SetupPane extends BorderPane {
 	/** The class level logger */

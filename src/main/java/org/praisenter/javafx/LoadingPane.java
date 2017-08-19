@@ -59,7 +59,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.util.Duration;
 
-// FEATURE (L) Replace the current loading background image
+// FEATURE (L-L) Replace the current loading background image
 
 /**
  * Pane for showing a loading indicator and other animations while building

@@ -37,8 +37,8 @@ public enum DisplayRole {
 	/** The main output */
 	MAIN,
 	
-	/** Specific screen showing song specialized slides */
-	MUSICIAN,
+	/** The teleprompt output */
+	TELEPROMPT,
 	
 	/** An alternate screen */
 	OTHER

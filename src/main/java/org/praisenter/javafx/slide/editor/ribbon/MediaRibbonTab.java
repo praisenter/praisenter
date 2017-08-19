@@ -129,7 +129,6 @@ class MediaRibbonTab extends ComponentEditorRibbonTab {
 			return null;
 		}
 		
-		// TODO allow coloradjust
 		return new MediaObject(media.getId(), media.getName(), media.getType(), scaleType, tglLoop.isSelected(), tglMute.isSelected(), this.pkrColorAdjust.getValue());
 	}
 	

@@ -37,8 +37,6 @@ import org.praisenter.Constants;
 import org.praisenter.json.JsonIO;
 import org.praisenter.utility.StringManipulator;
 
-// FEATURE (L) Allow writing of a zip file with multiple songs in it
-
 /**
  * Class used to export a listing of songs in the current praisenter format.
  * @author William Bittle

@@ -24,7 +24,7 @@
  */
 package org.praisenter.slide.animation;
 
-// FEATURE (L) Add corner directions
+// FEATURE (L-L) Add corner directions
 
 /**
  * Represents a transition direction.

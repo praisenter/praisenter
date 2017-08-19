@@ -15,7 +15,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
-// FEATURE (L) Add a button to pop out a big text area
+// FEATURE (L-L) Add a button to pop out a big text area
 
 class TextRibbonTab extends ComponentEditorRibbonTab {
 	private final TextArea text;

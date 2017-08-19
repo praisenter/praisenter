@@ -81,6 +81,10 @@ public enum SlideMode {
 	 */
 	PRESENT,
 
-	/** TODO not sure how this will be used just yet */
-	MUSICIAN
+	/**
+	 * This mode is specifically for teleprompt information.
+	 * <p>
+	 * For now, this means musician information about a song.
+	 */
+	TELEPROMPT
 }

@@ -28,7 +28,7 @@ import org.praisenter.slide.easing.Easing;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-//FEATURE (L) Add more shape types (Star, Rect, etc)
+//FEATURE (L-M) Add more shape types (Star, Rect, etc)
 
 /**
  * An animation where a shape is used to reveal or hide.

@@ -65,7 +65,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.util.Callback;
 
-// FEATURE (M) Show a timeline-view of the animations for a slide
+// FEATURE (M-H) Show a timeline-view of the animations for a slide
 
 /**
  * A pane used to list and edit the animations for an {@link ObservableSlide}.

@@ -72,7 +72,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 
-// FEATURE (M) add searching to the bible editor for finding and editing easily
+// FEATURE (M-M) add searching to the bible editor for finding and editing easily
 
 /**
  * A pane for searching for bible verses.

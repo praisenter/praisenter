@@ -87,7 +87,7 @@ import org.praisenter.json.JsonIO;
 import org.praisenter.utility.MimeType;
 import org.praisenter.utility.StringManipulator;
 
-// FEATURE (M) Add duplicate detection and merge features
+// FEATURE (M-M) Add duplicate detection and merge features
 
 /**
  * A collection of songs that has been loaded into a specific location and converted

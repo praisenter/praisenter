@@ -50,7 +50,6 @@ import org.praisenter.InvalidFormatException;
 import org.praisenter.UnknownFormatException;
 import org.praisenter.json.JsonIO;
 import org.praisenter.json.PraisenterFormat;
-import org.praisenter.song.openlyrics.OpenLyricsSongImporter;
 import org.praisenter.utility.MimeType;
 import org.praisenter.utility.Streams;
 

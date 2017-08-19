@@ -40,7 +40,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 
-// FEATURE (L) Add the ability to rotate components
+// FEATURE (L-M) Add the ability to rotate components
 
 /**
  * Base interface for both {@link Slide}s and {@link SlideComponent}s.

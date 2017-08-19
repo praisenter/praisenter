@@ -67,13 +67,12 @@ import javafx.util.Duration;
 // FIXME testing on High DPI screens
 // FIXME fix dark theme
 
-// FEATURE (L) Evaluate detecting text language for better indexing (a field per language) in lucene; Apache Tika or LangDetect; This would also be used in the searches to know what indexed fields to use
-// FEATURE (L) Use Apache POI to read powerpoint files
-// FEATURE (M) Evaluate alternate JavaFX styles here https://github.com/JFXtras/jfxtras-styles
-// FEATURE (H) Quick send to display - any place in the app when the context contains something that could be displayed offer a Quick Display button to allow the user to quickly get it shown - with configurable settings
-// FEATURE (L) Quick send any image/video from file system
-// FEATURE (M) From selected media items, generate slides or slide show
-// FEATURE (H) Auto-update feature
+// FEATURE (L-M) Evaluate detecting text language for better indexing (a field per language) in lucene; Apache Tika or LangDetect; This would also be used in the searches to know what indexed fields to use
+// FEATURE (L-M) Use Apache POI to read powerpoint files
+// FEATURE (M-L) Evaluate alternate JavaFX styles here https://github.com/JFXtras/jfxtras-styles
+// FEATURE (H-L) Quick send to display - any place in the app when the context contains something that could be displayed offer a Quick Display button to allow the user to quickly get it shown - with configurable settings
+// FEATURE (M-L) From selected media items, generate slides or slide show
+// FEATURE (H-H) Auto-update feature
 
 // a. Generate a self-signed public/private key pair
 // b. Generate a signature for the version-check.json and install.jar files
@@ -167,7 +166,7 @@ public final class Praisenter extends Application {
 		}
 	}
 
-	// FEATURE (L) We should look at making some of the Java FX features "optional" instead of required
+	// FEATURE (L-H) We should look at making some of the Java FX features "optional" instead of required
 	/** The array of Java FX features that Praisenter uses */
 	private static final ConditionalFeature[] REQUIRED_JAVAFX_FEATURES = new ConditionalFeature[] {
 		ConditionalFeature.TRANSPARENT_WINDOW,

@@ -55,7 +55,7 @@ import org.praisenter.utility.StringManipulator;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-// FEATURE (M) To reduce the size of Praisenter, maybe we can compress the binaries and decompress when we start
+// FEATURE (M-L) To reduce the size of Praisenter, maybe we can compress the binaries and decompress when we start
 
 /**
  * Helper class to perform operations supported by tools.

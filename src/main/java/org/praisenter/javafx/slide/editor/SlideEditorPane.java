@@ -97,7 +97,7 @@ import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
 import javafx.scene.shape.StrokeType;
 
-// FEATURE (L) Allow grouping of components to easily move them together
+// FEATURE (L-M) Allow grouping of components to easily move them together
 // JAVABUG (L) 06/30/16 [workaround] Text border really slow when the stroke style is INSIDE or OUTSIDE - https://bugs.openjdk.java.net/browse/JDK-8089081
 // JAVABUG (M) 02/04/17 DropShadow and Glow effects cannot be mouse transparent - https://bugs.openjdk.java.net/browse/JDK-8092268, https://bugs.openjdk.java.net/browse/JDK-8101376
 

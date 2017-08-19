@@ -204,7 +204,7 @@ public final class DisplayManager {
 				if (i == 0 && size == 1) role = DisplayRole.MAIN;
 				if (i == 0 && size == 2) role = DisplayRole.NONE;
 				if (i == 1 && size == 2) role = DisplayRole.MAIN;
-				if (i == 2 && size >= 3) role = DisplayRole.MUSICIAN;
+				if (i == 2 && size >= 3) role = DisplayRole.TELEPROMPT;
 				if (i > 2) role = DisplayRole.OTHER;
 				Rectangle2D bounds = screens.get(i).getBounds();
 				Display display = new Display(i, role, role == DisplayRole.OTHER ? role.toString() + (i - 2) : role.toString(), (int)bounds.getMinX(), (int)bounds.getMinY(), (int)bounds.getWidth(), (int)bounds.getHeight());
