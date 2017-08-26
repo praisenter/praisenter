@@ -24,6 +24,8 @@
  */
 package org.praisenter.javafx;
 
+import org.praisenter.javafx.async.AsyncTask;
+
 /**
  * Interface representing an {@link ApplicationPane} that's for editing.
  * <p>
@@ -41,8 +43,9 @@ public interface ApplicationEditorPane extends ApplicationPane {
 	
 	/**
 	 * Called if the user opts to save their changes.
+	 * @return {@link AsyncTask}&lt;?&gt;
 	 */
-	public void saveChanges();
+	public AsyncTask<?> saveChanges();
 	
 	/**
 	 * Returns the name of the document or object being edited for display

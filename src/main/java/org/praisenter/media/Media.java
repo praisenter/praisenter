@@ -41,8 +41,6 @@ import org.apache.logging.log4j.Logger;
 import org.praisenter.Constants;
 import org.praisenter.MediaType;
 import org.praisenter.Tag;
-import org.praisenter.json.BufferedImageJpegJsonDeserializer;
-import org.praisenter.json.BufferedImageJpegJsonSerializer;
 import org.praisenter.json.BufferedImagePngJsonDeserializer;
 import org.praisenter.json.BufferedImagePngJsonSerializer;
 import org.praisenter.json.InstantJsonDeserializer;
@@ -167,8 +165,8 @@ public final class Media implements Comparable<Media> {
  
 	/** The media frame (only for video) */
 	@JsonProperty
-	@JsonSerialize(using = BufferedImageJpegJsonSerializer.class)
-	@JsonDeserialize(using = BufferedImageJpegJsonDeserializer.class)
+	@JsonSerialize(using = BufferedImagePngJsonSerializer.class)
+	@JsonDeserialize(using = BufferedImagePngJsonDeserializer.class)
 	final BufferedImage frame;
 
 	/**

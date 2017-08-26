@@ -83,11 +83,17 @@ final class ShutdownDialog extends VBox {
 			Window owner,
 			ExecutorService threadService) {
 		this.workers = threadService;
+		final double width = 300;
 		
 		// build the dialog
 		this.dialog = new Stage();
 		if (owner != null) {
 			this.dialog.initOwner(owner);
+			
+			// center the dialog with the owner
+			this.dialog.setWidth(width);
+			this.dialog.setX(owner.getX() + owner.getWidth() / 2 - width / 2);
+	        this.dialog.setY(owner.getY() + owner.getHeight() / 2 - width / 2);
 		}
 		this.dialog.setTitle("Shutting down, please wait...");
 		this.dialog.initModality(Modality.APPLICATION_MODAL);

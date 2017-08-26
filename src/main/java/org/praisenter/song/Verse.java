@@ -79,7 +79,7 @@ public final class Verse {
 	 */
 	@Override
 	public String toString() {
-		return this.text;
+		return this.name + "=" + this.text;
 	}
 	
 	/**

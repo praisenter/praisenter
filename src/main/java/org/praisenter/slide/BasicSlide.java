@@ -134,7 +134,6 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 	private BasicSlide(
 			@JsonProperty("format") String format, 
 			@JsonProperty("version") String version) {
-		// JAXB should overwrite the id
 		this(format, version, UUID.randomUUID());
 	}
 

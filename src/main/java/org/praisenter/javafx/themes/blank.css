@@ -32,6 +32,7 @@
 .flow-list-view-cell {}
 .flow-list-view-cell:hover {}
 .flow-list-view-cell:selected {}
+.flow-list-view-drag-selection-area {}
 
 /* AutoCompleteComboBox */
 .auto-complete-combobox {}

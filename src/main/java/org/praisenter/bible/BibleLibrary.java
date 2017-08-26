@@ -250,7 +250,7 @@ public final class BibleLibrary {
 	
 	/**
 	 * Returns a list of lucene documents that contains the fields for the given bible.
-	 * @param bible the bible
+	 * @param fileData the bible
 	 */
 	private List<Document> createDocuments(FileData<Bible> fileData) {
 		List<Document> documents = new ArrayList<Document>();
@@ -361,9 +361,6 @@ public final class BibleLibrary {
 	 * @throws IOException if an IO error occurs
 	 */
 	public void save(Bible bible) throws JsonGenerationException, JsonMappingException, IOException {
-		// update the last modified date
-		bible.setModifiedDate(Instant.now());
-		
 		// calling this method could indicate one of the following:
 		// 1. New
 		// 2. Save Existing
@@ -374,6 +371,9 @@ public final class BibleLibrary {
 		// obtain the lock on the bible
 		synchronized (this.getBibleLock(bible)) {
 			LOGGER.debug("Saving bible '{}'.", bible.getName());
+			
+			// update the last modified date
+			bible.setModifiedDate(Instant.now());
 			
 			// get the current file reference
 			fileData = this.bibles.get(bible.getId());

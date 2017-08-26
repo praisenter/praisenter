@@ -45,6 +45,15 @@ public final class AsyncTaskFactory {
 	}
 	
 	/**
+	 * Returns a task that is effectively a no-op, returning the given data.
+	 * @param data the data to return
+	 * @return {@link AsyncTask}
+	 */
+	public static <T> AsyncTask<T> single(T data) {
+		return new CallableAsyncTask<T>(() -> { return data; });
+	}
+	
+	/**
 	 * Returns a task that executes the given lambda.
 	 * @param lambda the code to execute in the task
 	 * @return {@link AsyncTask}

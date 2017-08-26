@@ -97,6 +97,8 @@ import javafx.util.StringConverter;
 import javafx.util.converter.IntegerStringConverter;
 import javafx.util.converter.LongStringConverter;
 
+// FIXME for some reason the arrow key navigation on the FlowListViews in this class is not working; i think they are being intercepted by a different control
+
 /**
  * Represents a control to configure animations.
  * @author William Bittle
@@ -260,12 +262,16 @@ final class AnimationPickerPane extends BorderPane {
 		});
 		animationListPane.itemsProperty().set(animationOptions);
 		animationListPane.getSelectionModel().selectOnly(new AnimationOption(Swap.class, 0));
+		animationListPane.setMultipleSelectionEnabled(false);
+		animationListPane.setDragSelectionEnabled(false);
 				
 		easingListPane = new FlowListView<AnimationOption>(javafx.geometry.Orientation.HORIZONTAL, option -> {
 			return new AnimationOptionListCell(option);
 		});
 		easingListPane.itemsProperty().set(easingOptions);
 		easingListPane.getSelectionModel().selectOnly(new AnimationOption(Linear.class, 0));
+		easingListPane.setMultipleSelectionEnabled(false);
+		easingListPane.setDragSelectionEnabled(false);
 		
 		// setup the animation config
 		

@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
+import org.praisenter.Constants;
 import org.praisenter.Localized;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -135,6 +136,21 @@ public final class Lyrics implements Localized {
 			return Locale.forLanguageTag(this.language);
 		}
 		return null;
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		for (Verse verse : this.verses) {
+			String text = verse.getText();
+			if (text != null) {
+				sb.append(text).append(Constants.NEW_LINE);
+			}
+		}
+		return sb.toString();
 	}
 	
 	/**

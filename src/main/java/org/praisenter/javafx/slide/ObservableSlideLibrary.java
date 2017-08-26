@@ -189,11 +189,6 @@ public final class ObservableSlideLibrary {
 	 */
 	public AsyncTask<Slide> save(String action, Slide slide, boolean generateThumbnail) {
 		if (slide != null) {
-			if (generateThumbnail) {
-				// generate a thumbnail on the FX thread
-				final BufferedImage image = this.thumbnailGenerator.generate(slide);
-				slide.setThumbnail(image);
-			}
 			// synchronously make a copy
 			final Slide copy = slide.copy(true);
 			
@@ -202,6 +197,11 @@ public final class ObservableSlideLibrary {
 				@Override
 				protected Slide call() throws Exception {
 					this.updateProgress(-1, 0);
+					// generate a thumbnail
+					if (generateThumbnail) {
+						final BufferedImage image = thumbnailGenerator.generate(slide);
+						copy.setThumbnail(image);
+					}
 					library.save(copy);
 					return copy;
 				}

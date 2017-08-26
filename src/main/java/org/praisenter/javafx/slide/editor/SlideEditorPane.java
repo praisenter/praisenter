@@ -515,8 +515,9 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 	/**
 	 * Saves the slide.
 	 * @param saveAs true if a save as operation should be performed.
+	 * @return {@link AsyncTask}&lt;{@link Slide}&gt;
 	 */
-	private final void save(boolean saveAs) {
+	private final AsyncTask<Slide> save(boolean saveAs) {
 		ObservableSlide<?> os = this.context.getSlide();
 		Slide slide = os.getRegion();
 		PraisenterContext context = this.context.getPraisenterContext();
@@ -535,7 +536,7 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 		}
 		
 		this.context.getEditManager().mark();
-		task.addSuccessHandler(e -> {
+		return task.addSuccessHandler(e -> {
 			Slide saved = (Slide)e.getSource().getValue();
 			// we need to update the slide that is currently
 			// being edited to make sure that if the name changed
@@ -549,7 +550,7 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 		}).addCancelledOrFailedHandler(e -> {
 			// if the save fails, make sure it gets set back to it's original value
 			this.context.getEditManager().unmark();
-		}).execute(context.getExecutorService());
+		});
 	}
 	
 	/**
@@ -643,10 +644,10 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
 	private void handleApplicationEvent(ApplicationAction action) {
 		switch (action) {
 			case SAVE:
-				this.save(false);
+				this.save(false).execute(this.context.getPraisenterContext().getExecutorService());
 				break;
 			case SAVE_AS:
-				this.save(true);
+				this.save(true).execute(this.context.getPraisenterContext().getExecutorService());
 				break;
 			case CUT:
 				this.copy(true);
@@ -776,7 +777,7 @@ public final class SlideEditorPane extends BorderPane implements ApplicationPane
      * @see org.praisenter.javafx.ApplicationEditorPane#saveChanges()
      */
     @Override
-    public void saveChanges() {
-    	this.save(false);
+    public AsyncTask<?> saveChanges() {
+    	return this.save(false);
     }
 }

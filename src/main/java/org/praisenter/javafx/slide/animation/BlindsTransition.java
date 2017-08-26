@@ -97,10 +97,6 @@ public final class BlindsTransition extends CustomTransition<Blinds> {
 			rect.setWidth(w);
 			rect.setHeight(h);
 		}
-		// TODO for the OUT transition we will add areas
-		if (animation instanceof Blinds) {
-			
-		}
 		// compute the number of blinds
 		final int blinds = this.animation.getBlindCount();
 		double y = 0;

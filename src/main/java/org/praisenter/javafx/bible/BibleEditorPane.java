@@ -871,22 +871,25 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 	
 	/**
 	 * Saves the current bible.
+	 * @return {@link AsyncTask}&lt;{@link Bible}&gt;
 	 */
-	private void save() {
+	private AsyncTask<Bible> save() {
 		this.manager.mark();
 		Bible bible = this.getBible();
+		
 		AsyncTask<Bible> task = BibleActions.bibleSave(
 			this.context.getBibleLibrary(), 
 			this.getScene().getWindow(), 
 			bible);
-		task.addSuccessHandler(e -> {
+		
+		return task.addSuccessHandler(e -> {
 			Bible saved = task.getValue();
 			// make sure metadata in the currently being edited
 			// bible is updated on save
 			bible.as(saved);
 		}).addCancelledOrFailedHandler(e -> {
 			this.manager.unmark();
-		}).execute(this.context.getExecutorService());
+		});
 	}
 	
 	/**
@@ -1044,7 +1047,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 				}
 				break;
 			case SAVE:
-				this.save();
+				this.save().execute(this.context.getExecutorService());
 				break;
 			case SAVE_AS:
 				this.promptSaveAs();
@@ -1224,8 +1227,8 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 	 * @see org.praisenter.javafx.ApplicationEditorPane#saveChanges()
 	 */
 	@Override
-	public void saveChanges() {
-		this.save();
+	public AsyncTask<?> saveChanges() {
+		return this.save();
 	}
 
 	/* (non-Javadoc)

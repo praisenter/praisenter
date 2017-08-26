@@ -12,6 +12,8 @@ import org.apache.logging.log4j.Logger;
 import org.praisenter.Constants;
 import org.praisenter.bible.Bible;
 import org.praisenter.configuration.Display;
+import org.praisenter.javafx.async.AsyncTask;
+import org.praisenter.javafx.async.AsyncTaskFactory;
 import org.praisenter.javafx.bible.BibleActions;
 import org.praisenter.javafx.bible.BibleEditorPane;
 import org.praisenter.javafx.bible.BibleLibraryPane;
@@ -27,6 +29,7 @@ import org.praisenter.slide.Slide;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.concurrent.Worker.State;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
@@ -276,7 +279,7 @@ public final class MainPane extends BorderPane implements ApplicationPane {
      * current main content node is not an {@link ApplicationEditorPane}.
      * @return ButtonType
      */
-    public ButtonType checkForUnsavedChanges() {
+    public AsyncTask<ButtonType> checkForUnsavedChanges() {
     	Node current = this.getCenter();
     	if (current instanceof ApplicationEditorPane) {
     		ApplicationEditorPane aep = (ApplicationEditorPane)current;
@@ -294,41 +297,50 @@ public final class MainPane extends BorderPane implements ApplicationPane {
 				
 				if (result.get() == ButtonType.YES) {
 					LOGGER.info("The user requested that the changes to '{}' be saved.", target);
-					aep.saveChanges();
+					// get the save task
+					return aep.saveChanges().map(t -> {
+						if (t.getState() == State.FAILED || t.getState() == State.CANCELLED) {
+							return ButtonType.CANCEL;
+						}
+						return result.get();
+					});
+					
 				} else if (result.get() == ButtonType.NO) {
 					LOGGER.info("The user requested that the changes to '{}' be discarded.", target);
 				}
-				return result.get();
+				return AsyncTaskFactory.single(result.get());
     		}
 		}
-    	return null;
+    	return AsyncTaskFactory.single();
     }
     
 	private void navigate(Node node) { 
-		ButtonType result = checkForUnsavedChanges();
-		// if the user canceled, we need to stop the navigation
-		if (result == ButtonType.CANCEL) {
-			return;
-		}
-		
-		this.setCenter(null);
-		this.setCenter(node);
-		
-		// JAVABUG (M) 10/24/16 [workaround] Duplicated accelerators https://bugs.openjdk.java.net/browse/JDK-8088068
-		// we need to do this so that any accelerators on the content area (the center node) are overridden 
-		// by the accelerators in the menu
-		this.setTop(null);
-		this.setTop(this.menu);
-		
-		this.mainContent.set(node);
+		AsyncTask<ButtonType> task = checkForUnsavedChanges();
+		task.addCompletedHandler(e -> {
+			// if the user canceled, we need to stop the navigation
+			if (task.getValue() == ButtonType.CANCEL) {
+				return;
+			}
+			
+			this.setCenter(null);
+			this.setCenter(node);
+			
+			// JAVABUG (M) 10/24/16 [workaround] Duplicated accelerators https://bugs.openjdk.java.net/browse/JDK-8088068
+			// we need to do this so that any accelerators on the content area (the center node) are overridden 
+			// by the accelerators in the menu
+			this.setTop(null);
+			this.setTop(this.menu);
+			
+			this.mainContent.set(node);
 
-		if (node instanceof ApplicationPane) {
-			// when a pane is set as the current pane
-			// we may want to focus a particular part of the pane
-			((ApplicationPane)node).setDefaultFocus();
-		} else {
-			node.requestFocus();
-		}
+			if (node instanceof ApplicationPane) {
+				// when a pane is set as the current pane
+				// we may want to focus a particular part of the pane
+				((ApplicationPane)node).setDefaultFocus();
+			} else {
+				node.requestFocus();
+			}
+		}).execute(this.context.getExecutorService());
 	}
 	
 	/* (non-Javadoc)

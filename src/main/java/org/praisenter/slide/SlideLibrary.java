@@ -54,6 +54,8 @@ import org.praisenter.json.JsonIO;
 import org.praisenter.utility.MimeType;
 import org.praisenter.utility.StringManipulator;
 
+// FEATURE (L-M) Add the ability to export/import SlideShows
+
 /**
  * A collection of slides that has been created in Praisenter.
  * <p>
@@ -75,16 +77,25 @@ public final class SlideLibrary {
 	
 	// static
 
+	/** The directory used for slide shows */
+	private static final String SLIDE_SHOW_DIR = "shows";
+	
 	/** The directory used for slides when combined with other data */
-	static final String ZIP_DIR = "slides";
+	private static final String ZIP_DIR = "slides";
 	
 	// instance
 	
 	/** The root path to the slide library */
 	private final Path path;
+
+	/** The path to the slideshows in the library */
+	private final Path showPath;
 	
 	/** The slides */
 	private final Map<UUID, FileData<Slide>> slides;
+
+	/** The slides */
+	private final Map<UUID, FileData<SlideShow>> shows;
 
 	// locks
 	
@@ -106,11 +117,12 @@ public final class SlideLibrary {
 	/**
 	 * Full constructor.
 	 * @param path the path to maintain the slide library
-	 * @param thumbnailGenerator the class used to generate thumbnails for slides
 	 */
 	private SlideLibrary(Path path) {
 		this.path = path;
+		this.showPath = this.path.resolve(SLIDE_SHOW_DIR);
 		this.slides = new ConcurrentHashMap<UUID, FileData<Slide>>();
+		this.shows = new ConcurrentHashMap<UUID, FileData<SlideShow>>();
 		this.locks = new LockMap<String>();
 	}
 	
@@ -123,8 +135,9 @@ public final class SlideLibrary {
 		
 		// verify paths exist
 		Files.createDirectories(this.path);
-		
-		// index existing documents
+		Files.createDirectories(this.showPath);
+
+		// load slides
 		try (DirectoryStream<Path> stream = Files.newDirectoryStream(this.path)) {
 			for (Path file : stream) {
 				// only open files
@@ -152,6 +165,29 @@ public final class SlideLibrary {
 				}
 			}
 		}
+		
+		// load slideshows
+		try (DirectoryStream<Path> stream = Files.newDirectoryStream(this.showPath)) {
+			for (Path file : stream) {
+				// only open files
+				if (Files.isRegularFile(file)) {
+					// only open json files
+					if (MimeType.JSON.check(file)) {
+						try (InputStream is = Files.newInputStream(file)) {
+							try {
+								// read in the json
+								SlideShow show = JsonIO.read(is, SlideShow.class);
+								this.shows.put(show.getId(), new FileData<SlideShow>(show, file));
+							} catch (Exception e) {
+								LOGGER.warn("Failed to load slide show '" + file.toAbsolutePath().toString() + "'", e);
+							}
+						} catch (Exception ex) {
+							LOGGER.warn("Failed to load slide show '" + file.toAbsolutePath().toString() + "'", ex);
+						}
+					}
+				}
+			}
+		}
 	}
 
 	/**
@@ -163,6 +199,15 @@ public final class SlideLibrary {
 		return this.locks.get(slide.getId().toString());
 	}
 
+	/**
+	 * Returns a lock for the given slide show.
+	 * @param show the slide show
+	 * @return Object
+	 */
+	private Object getSlideShowLock(SlideShow show) {
+		return this.locks.get(show.getId().toString());
+	}
+	
 	/**
 	 * Returns a lock for the given path file name.
 	 * @param path the path
@@ -280,6 +325,86 @@ public final class SlideLibrary {
 			this.slides.put(slide.getId(), fileData);
 		}
 	}
+
+	/**
+	 * Saves the given slide show to the slide library.
+	 * @param show the slide show to save
+	 * @throws IOException if an IO error occurs
+	 */
+	public void save(SlideShow show) throws IOException {
+		// calling this method could indicate one of the following:
+		// 1. New
+		// 2. Save Existing
+		// 3. Save Existing + Rename
+		
+		FileData<SlideShow> fileData = null;
+		
+		// obtain the lock on the slideshow
+		synchronized (this.getSlideShowLock(show)) {
+			LOGGER.debug("Saving slide show '{}'.", show.getName());
+
+			fileData = this.shows.get(show.getId());
+			
+			// update the last modified date
+			show.setLastModifiedDate(Instant.now());
+			
+			// generate the file name and path
+			String name = StringManipulator.toFileName(show.getName(), show.getId());
+			Path path = this.showPath.resolve(name + Constants.SLIDE_SHOW_FILE_EXTENSION);
+			Path uuid = this.showPath.resolve(StringManipulator.toFileName(show.getId()) + Constants.SLIDE_SHOW_FILE_EXTENSION);
+			
+			// check for operation
+			if (fileData == null) {
+				LOGGER.debug("Adding slide show '{}'.", show.getName());
+				// then its a new
+				synchronized (this.getPathLock(path)) {
+					// check if the path exists once we obtain the lock
+					if (Files.exists(path)) {
+						// just use the UUID (which shouldn't need a lock since it's unique)
+						path = uuid;
+					}
+					JsonIO.write(path, show);
+					fileData = new FileData<SlideShow>(show, path);
+					LOGGER.debug("Slide show '{}' saved to '{}'.", show.getName(), path);
+				}
+			} else {
+				LOGGER.debug("Updating slide show '{}'.", show.getName());
+				// it's an existing one
+				Path original = fileData.getPath();
+				if (!original.equals(path)) {
+					// obtain the desired path lock
+					synchronized (this.getPathLock(path)) {
+						// check if the path exists once we obtain the lock
+						if (Files.exists(path)) {
+							// is the original path the UUID path (which indicates that when it was imported
+							// it had a file name conflict)
+							if (original.equals(uuid)) {
+								// if so, this isn't really a rename, just save it
+								JsonIO.write(original, show);
+							} else {
+								// if the path already exists and the current path isn't the uuid path
+								// then we know that this was a rename to a different name that already exists
+								LOGGER.warn("Unable to rename slide show '{}' to '{}' because a file with that name already exists.", show.getName(), path.getFileName());
+								throw new FileAlreadyExistsException(path.getFileName().toString());
+							}
+						} else {
+							LOGGER.debug("Renaming slide show '{}' to '{}'.", show.getName(), path.getFileName());
+							// otherwise rename the file
+							Files.move(original, path);
+							JsonIO.write(path, show);
+							fileData = new FileData<SlideShow>(show, path);
+						}
+					}
+				} else {
+					// it's a normal save
+					JsonIO.write(fileData.getPath(), show);
+				}
+			}
+			
+			// update the slide map
+			this.shows.put(show.getId(), fileData);
+		}
+	}
 	
 	/**
 	 * Removes the slide from the library.
@@ -301,6 +426,29 @@ public final class SlideLibrary {
 			}
 			// remove it from the map
 			this.slides.remove(id);
+		}
+	}
+
+	/**
+	 * Removes the slide show from the library.
+	 * @param show the slide show to remove
+	 * @throws IOException if and IO error occurs
+	 */
+	public void remove(SlideShow show) throws IOException {
+		if (show == null) return;
+		
+		UUID id = show.getId();
+		if (id == null) return;
+		
+		synchronized (this.getSlideShowLock(show)) {
+			LOGGER.debug("Removing slide show '{}'.", show.getName());
+			FileData<SlideShow> fileData = this.shows.get(id);
+			// delete the file
+			if (fileData != null && fileData.getPath() != null) {
+				Files.deleteIfExists(fileData.getPath());
+			}
+			// remove it from the map
+			this.shows.remove(id);
 		}
 	}
 
@@ -527,7 +675,7 @@ public final class SlideLibrary {
 		SlideExporter exporter = new PraisenterSlideExporter();
 		exporter.execute(stream, ZIP_DIR, slides);
 	}
-	
+
 	/**
 	 * Imports the given slides into the library.
 	 * @param path the path to a zip file

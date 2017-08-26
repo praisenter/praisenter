@@ -113,6 +113,8 @@ public final class OpenLyricsSongImporter implements SongImporter {
 		/** The verse currently being processed */
 		private Verse verse;
 		
+		private boolean inVerse = false;
+		
 		private List<Songbook> songbooks;
 		
 		/** Buffer for tag contents */
@@ -213,10 +215,30 @@ public final class OpenLyricsSongImporter implements SongImporter {
 				lyrics.setLanguage(language);
 				lyrics.setTransliteration(transliteration);
 				lyrics.getVerses().add(this.verse);
+				
+				this.inVerse = true;
 			} else if (qName.equalsIgnoreCase("br")) {
-				if (this.dataBuilder != null) {
-					this.dataBuilder.append(Constants.NEW_LINE);
+				if (this.dataBuilder == null) {
+					this.dataBuilder = new StringBuilder();
 				}
+				this.dataBuilder.append(Constants.NEW_LINE);
+			} else if (qName.equalsIgnoreCase("comment") && this.inVerse) {
+				// this begins a verse level comment
+				if (this.dataBuilder != null) {
+					String verse = this.verse.getText();
+					String text = this.dataBuilder.toString();
+					if (text != null) {
+						if (verse == null) {
+							verse = text;
+						} else {
+							verse += text;
+						}
+						this.verse.setText(verse);
+					}
+					this.dataBuilder = null;
+				}
+			} else if (qName.equalsIgnoreCase("lines")) {
+				this.dataBuilder = null;
 			}
 		}
 		
@@ -247,6 +269,9 @@ public final class OpenLyricsSongImporter implements SongImporter {
 						lyrics.getSongbooks().add(songbook.copy());
 					}
 				}
+				// set primary lyrics
+				Lyrics lyrics = this.song.getDefaultLyrics();
+				this.song.setPrimaryLyrics(lyrics.id);
 			} else if ("title".equalsIgnoreCase(qName)) {
 				if (this.dataBuilder != null) {
 					this.lyrics.setTitle(this.dataBuilder.toString().trim());
@@ -303,13 +328,7 @@ public final class OpenLyricsSongImporter implements SongImporter {
 				}
 			} else if (qName.equalsIgnoreCase("keywords")) {
 				if (this.dataBuilder != null) {
-					String text = this.dataBuilder.toString().trim();
-					if (!StringManipulator.isNullOrEmpty(text)) {
-						String[] keys = text.split("\\s+");
-						for (String key : keys) {
-							this.song.getTags().add(new Tag(key));
-						}
-					}
+					this.song.setKeywords(this.dataBuilder.toString().trim());
 				}
 			} else if (qName.equalsIgnoreCase("verseOrder")) {
 				if (this.dataBuilder != null) {
@@ -330,13 +349,34 @@ public final class OpenLyricsSongImporter implements SongImporter {
 				}
 			} else if (qName.equalsIgnoreCase("comment")) {
 				if (this.dataBuilder != null) {
-					this.song.setComments(this.song.getComments() + Constants.NEW_LINE + this.dataBuilder.toString().trim());
+					String comments = this.song.getComments();
+					String comment = this.dataBuilder.toString().trim();
+					if (comments == null) {
+						comments = comment;
+					} else {
+						comments = comments + Constants.NEW_LINE + comment;
+					}
+					this.song.setComments(comments);
+					if (this.inVerse) {
+						this.dataBuilder = null;
+					}
 				}
 			} else if (qName.equalsIgnoreCase("verse")) {
-				if (this.dataBuilder != null) {
-					this.verse.setText(this.dataBuilder.toString().trim());
-				}
+				this.inVerse = false;
 				this.verse = null;
+			} else if (qName.equalsIgnoreCase("lines")) {
+				if (this.dataBuilder != null) {
+					String verse = this.verse.getText();
+					String text = this.dataBuilder.toString();
+					if (text != null) {
+						if (verse == null) {
+							verse = text;
+						} else {
+							verse += text;
+						}
+						this.verse.setText(verse);
+					}
+				}
 			}
 			
 			if (this.verse == null) {

@@ -37,6 +37,7 @@ import org.controlsfx.glyphfont.GlyphFontRegistry;
 import org.praisenter.Constants;
 import org.praisenter.configuration.Configuration;
 import org.praisenter.configuration.Setting;
+import org.praisenter.javafx.async.AsyncTask;
 import org.praisenter.javafx.async.AsyncTaskExecutor;
 import org.praisenter.javafx.controls.Alerts;
 import org.praisenter.javafx.themes.Theme;
@@ -73,6 +74,7 @@ import javafx.util.Duration;
 // FEATURE (H-L) Quick send to display - any place in the app when the context contains something that could be displayed offer a Quick Display button to allow the user to quickly get it shown - with configurable settings
 // FEATURE (M-L) From selected media items, generate slides or slide show
 // FEATURE (H-H) Auto-update feature
+// FEATURE (H-M) For better memory consumption maybe we can store the frame for video as the base64 encoded string instead of the BufferedImage - need to test to make sure this would provide any benefit
 
 // a. Generate a self-signed public/private key pair
 // b. Generate a signature for the version-check.json and install.jar files
@@ -314,14 +316,17 @@ public final class Praisenter extends Application {
     		stack.getChildren().add(0, main);
     		
     		// set what to do when the app is closed
+    		stage.setOnHiding(this::onHiding);
     		stage.setOnCloseRequest(we -> {
     			// check for unsaved changes
-	    		ButtonType result = main.checkForUnsavedChanges();
-	    		if (result == ButtonType.CANCEL) {
-	    			we.consume();
-	    		}
+    			we.consume();
+	    		AsyncTask<ButtonType> task = main.checkForUnsavedChanges();
+	    		task.addCompletedHandler(te -> {
+	    			if (task.getValue() != ButtonType.CANCEL) {
+		    			this.waitForIncompleteTasks(stage);
+		    		}
+	    		}).execute(this.context.getExecutorService());
     		});
-    		stage.setOnHiding(this::onHiding);
     		
 			// fade out the loader
 			FadeTransition fade = new FadeTransition(Duration.millis(600), loading);
@@ -364,6 +369,38 @@ public final class Praisenter extends Application {
     	loading.start();
     }
     
+    private void waitForIncompleteTasks(Stage stage) {
+    	LOGGER.info("Checking for background threads that have not completed yet.");
+		// this stuff could be null if we blow up before its created
+		AsyncTaskExecutor executor = context != null ? context.getExecutorService() : null;
+		if (executor != null) {
+			// for testing shutdown waiting
+//			executor.submit(() -> { 
+//				try {
+//					Thread.sleep(5 * 1000);
+//				} catch (Exception e1) {
+//					e1.printStackTrace();
+//				} 
+//			});
+			
+			executor.shutdown();
+    		int activeThreads = executor.getActiveCount();
+    		if (activeThreads > 0) {
+    			LOGGER.info("{} background threads awaiting completion.", activeThreads);
+    			
+    			ShutdownDialog shutdown = new ShutdownDialog(stage, executor);
+    			shutdown.completeProperty().addListener((obs, ov, nv) -> {
+    				if (nv) {
+    					stage.close();
+    				}
+    			});
+    			shutdown.show();
+    		} else {
+    			stage.close();
+    		}
+		}
+    }
+    
     private void onHiding(WindowEvent e) {
     	Stage stage = this.context.getJavaFXContext().getStage();
     	
@@ -386,42 +423,8 @@ public final class Praisenter extends Application {
 		} catch (Exception ex) {
 			LOGGER.warn("Failed to save application x,y and width,height when the application closed.", ex);
 		}
-		
-		LOGGER.info("Checking for background threads that have not completed yet.");
-		// this stuff could be null if we blow up before its created
-		AsyncTaskExecutor executor = context != null ? context.getExecutorService() : null;
-		if (executor != null) {
-			
-			// for testing shutdown waiting
-//    	        		context.getWorkers().submit(() -> { 
-//    	        			try {
-//    	    					Thread.sleep(5 * 1000);
-//    	    				} catch (Exception e1) {
-//    	    					e1.printStackTrace();
-//    	    				} 
-//    	        		});
-			
-			executor.shutdown();
-    		int activeThreads = executor.getActiveCount();
-    		if (activeThreads > 0) {
-    			LOGGER.info("{} background threads awaiting completion.", activeThreads);
-    			e.consume();
-    			
-    			ShutdownDialog shutdown = new ShutdownDialog(stage, executor);
-    			shutdown.completeProperty().addListener((obs, ov, nv) -> {
-    				if (nv) {
-    					LOGGER.info("Shutdown complete. Exiting the platform.");
-    					Platform.exit();
-    				}
-    			});
-    			shutdown.show();
-    		} else {
-    			LOGGER.info("No active background threads running. Exiting the platform.");
-	    		Platform.exit();
-    		}
-		} else {
-			LOGGER.info("No active background threads running. Exiting the platform.");
-    		Platform.exit();
-		}
+
+		LOGGER.info("Shutdown complete. Exiting the platform.");
+		Platform.exit();
     }
 }

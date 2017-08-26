@@ -286,7 +286,7 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
         	this.selecting = true;
         	lstMedia.getSelectionModel().clear();
         	if (nv != null) {
-        		lstMedia.getSelectionModel().select(library.getListItem(nv.getId()));
+        		lstMedia.getSelectionModel().selectOnly(library.getListItem(nv.getId()));
         	}
         	this.selecting = false;
         	this.stateChanged(ApplicationPaneEvent.REASON_SELECTION_CHANGED);

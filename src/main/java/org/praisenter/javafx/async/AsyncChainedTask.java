@@ -103,9 +103,10 @@ public class AsyncChainedTask<T extends AsyncTask<?>> extends AsyncTask<List<T>>
 	 * @see org.praisenter.javafx.async.AsyncTask#execute(org.praisenter.javafx.async.AsyncTaskExecutor)
 	 */
 	@Override
-	public void execute(AsyncTaskExecutor service) {
+	public AsyncChainedTask<T> execute(AsyncTaskExecutor service) {
 		this.setupCompletionHandler(0, service);
 		// then execute this task (which will wait for the chained set to finish)
 		service.execute(this);
+		return this;
 	}
 }

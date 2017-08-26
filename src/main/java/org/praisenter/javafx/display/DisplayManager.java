@@ -73,6 +73,8 @@ public final class DisplayManager {
 	/** True if the screens are being mutated */
 	private boolean mutating = false;
 	
+	private Alert screenChangedWarning = null;
+	
 	/**
 	 * Minimal constructor.
 	 * @param configuration the configuration
@@ -128,13 +130,18 @@ public final class DisplayManager {
 	 * @param state the state
 	 */
 	private void notifyOfScreenAssignmentChange(Scene scene, DesktopState state) {
-		Alert a = Alerts.info(
+		// close it if there's already one showing
+		if (this.screenChangedWarning != null && this.screenChangedWarning.isShowing()) {
+			this.screenChangedWarning.close();
+		}
+		// show the new one
+		this.screenChangedWarning = Alerts.info(
 				scene.getWindow(),
 				Modality.WINDOW_MODAL,
 				state == DesktopState.NO_INITIAL_CONFIGURATION ? Translations.get("init.displaysSet.title") : Translations.get("init.displaysChanged.title"), 
 				state == DesktopState.NO_INITIAL_CONFIGURATION ? Translations.get("init.displaysSet.header") : Translations.get("init.displaysChanged.header"),
 				state == DesktopState.NO_INITIAL_CONFIGURATION ? Translations.get("init.displaysSet.content") : Translations.get("init.displaysChanged.content"));
-		a.show();
+		this.screenChangedWarning.show();
 	}
 	
 	/**

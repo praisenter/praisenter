@@ -167,6 +167,9 @@ public final class Constants {
 	/** The extension to use for the slide files */
 	public static final String SLIDE_FILE_EXTENSION = ".json";
 	
+	/** The extension to use for the slide show files */
+	public static final String SLIDE_SHOW_FILE_EXTENSION = ".json";
+	
 	/** The extension to use for the song files */
 	public static final String SONG_FILE_EXTENSION = ".json";	
 }

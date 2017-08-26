@@ -124,6 +124,9 @@ public final class SongLibrary {
 	
 	/** The lucene field to store the song's path */
 	private static final String FIELD_PATH = "path";
+
+	/** The lucene field to store the song's lyrics id */
+	private static final String FIELD_LYRICS_ID = "lyricsid";
 	
 	/** The lucene field that contains all the song searchable text */
 	private static final String FIELD_TEXT = "text";
@@ -236,31 +239,40 @@ public final class SongLibrary {
 	 * Returns a lucene document object that contains the fields for the given song.
 	 * @param song the song
 	 */
-	private Document createDocument(FileData<Song> fileData) {
+	private List<Document> createDocuments(FileData<Song> fileData) {
 		Song song = fileData.getData();
-		Document document = new Document();
-		// we store the path and id so we can lookup up songs by either
+		List<Document> documents = new ArrayList<Document>();
 		
-		// store the path so we know where to get the song
-		Field pathField = new StringField(FIELD_PATH, fileData.getPath().toAbsolutePath().toString(), Field.Store.YES);
-		document.add(pathField);
-		
-		// store the id so we can lookup the song in the cache
-		Field idField = new StringField(FIELD_ID, song.getId().toString(), Field.Store.YES);
-		document.add(idField);
-		
-		// search on keywords too
-		if (!StringManipulator.isNullOrEmpty(song.keywords)) {
-			Field keywordsField = new StringField(FIELD_TEXT, song.keywords, Field.Store.YES);
-			document.add(keywordsField);
-		}
-		
-		// iterate the lyrics
-		for (Lyrics lyrics : song.lyrics) {
+		for (Lyrics lyrics : song.getLyrics()) {
+			Document document = new Document();
+			
+			// store the path so we know where to get the song
+			Field pathField = new StringField(FIELD_PATH, fileData.getPath().toAbsolutePath().toString(), Field.Store.YES);
+			document.add(pathField);
+			
+			// store the id so we can lookup the song in the cache
+			Field idField = new StringField(FIELD_ID, song.getId().toString(), Field.Store.YES);
+			document.add(idField);
+			
+			// store the id so we can lookup the song in the cache
+			Field lyricsIdField = new StringField(FIELD_LYRICS_ID, lyrics.getId().toString(), Field.Store.YES);
+			document.add(lyricsIdField);
+			
+			// search on keywords too
+			if (!StringManipulator.isNullOrEmpty(song.keywords)) {
+				Field keywordsField = new StringField(FIELD_TEXT, song.keywords, Field.Store.YES);
+				document.add(keywordsField);
+			}
 			
 			// title fields
 			if (!StringManipulator.isNullOrEmpty(lyrics.title)) {
 				Field titleField = new TextField(FIELD_TEXT, lyrics.title, Field.Store.YES);
+				document.add(titleField);
+			}
+			
+			// key words
+			if (!StringManipulator.isNullOrEmpty(song.keywords)) {
+				Field titleField = new TextField(FIELD_TEXT, song.keywords, Field.Store.YES);
 				document.add(titleField);
 			}
 			
@@ -273,8 +285,7 @@ public final class SongLibrary {
 				}
 			}
 		}
-		
-		return document;
+		return documents;
 	}
 	
 	/**
@@ -288,10 +299,10 @@ public final class SongLibrary {
 			for (FileData<Song> fileData : this.songs.values()) {
 				Song song = fileData.getData();
 				try {
-					// add the data to the document
-					Document document = createDocument(fileData);
-					// update the document
-					writer.updateDocument(new Term(FIELD_ID, song.getId().toString()), document);
+					// add the data to the documents
+					List<Document> documents = createDocuments(fileData);
+					// update the documents
+					writer.updateDocuments(new Term(FIELD_ID, song.getId().toString()), documents);
 				} catch (Exception e) {
 					// make sure its not in the index
 					LOGGER.warn("Failed to update the song in the lucene index '" + fileData.getPath().toAbsolutePath().toString() + "'", e);
@@ -443,9 +454,9 @@ public final class SongLibrary {
 			config.setOpenMode(OpenMode.CREATE_OR_APPEND);
 			try (IndexWriter writer = new IndexWriter(this.directory, config)) {
 				// update the fields
-				Document document = createDocument(fileData);
-				// update the document
-				writer.updateDocument(new Term(FIELD_ID, song.getId().toString()), document);
+				List<Document> documents = createDocuments(fileData);
+				// update the documents
+				writer.updateDocuments(new Term(FIELD_ID, song.getId().toString()), documents);
 			} catch (Exception ex) {
 				// if this happens, the user should really just execute a reindex
 				// we don't know what to back out at this point

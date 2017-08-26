@@ -24,22 +24,23 @@
  */
 package org.praisenter.javafx.controls;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
+import java.util.stream.Collectors;
 
-import javafx.beans.InvalidationListener;
-import javafx.beans.Observable;
+import javafx.beans.binding.ObjectBinding;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyListProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
-import javafx.collections.ObservableSet;
-import javafx.collections.SetChangeListener;
+import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
 import javafx.scene.Node;
 import javafx.scene.input.MouseButton;
@@ -69,13 +70,19 @@ public final class FlowListSelectionModel<T> {
 	/** The list of selected items */
 	private final ListProperty<T> selections = new SimpleListProperty<T>();
 	
-	// state
+	/** True if multi-selection is enabled */
+	private final BooleanProperty multiselect = new SimpleBooleanProperty(true);
+	
+	// internal state
 	
 	/** The selected nodes */
-	private final ObservableSet<FlowListCell<T>> selected = FXCollections.observableSet(new HashSet<FlowListCell<T>>());
+	private final ObservableList<FlowListCell<T>> selected = FXCollections.observableArrayList();
 	
 	/** The last selected node */
 	private FlowListCell<T> last = null;
+	
+	/** The first selected node in a shift select */
+	private FlowListCell<T> first = null;
 	
 	/**
 	 * Minimal constructor.
@@ -91,40 +98,31 @@ public final class FlowListSelectionModel<T> {
 			public void onChanged(ListChangeListener.Change<? extends Node> changes) {
 				// iterate the changes
 				while (changes.next()) {
-                    for (Node remitem : changes.getRemoved()) {
-                        selected.remove(remitem);
-                    }
+                    selected.removeAll(changes.getRemoved());
 		        }
 			}
  		});
 		
 		// make sure we update the publicly facing selections when the 
 		// internal selections are changed
-		this.selected.addListener(new SetChangeListener<Node>() {
-			@Override
-			@SuppressWarnings("unchecked")
-			public void onChanged(SetChangeListener.Change<? extends Node> changes) {
-				if (changes.wasAdded()) {
-					FlowListCell<T> cell = (FlowListCell<T>)changes.getElementAdded();
-					selections.add(cell.getData());
-				}
-				if (changes.wasRemoved()) {
-					FlowListCell<T> cell = (FlowListCell<T>)changes.getElementRemoved();
-					selections.remove(cell.getData());
-				}
+		this.selected.addListener((ListChangeListener.Change<? extends FlowListCell<T>> change) -> {
+			while (change.next()) {
+				this.selections.setAll(change.getList().stream().map(c -> c.getData()).collect(Collectors.toList()));
 			}
- 		});
+		});
 		
 		// make sure the single selection property is updated when the
 		// multi-selection property is changed
-		this.selections.addListener(new InvalidationListener() {
+		this.selection.bind(new ObjectBinding<T>() {
+			{
+				bind(selections);
+			}
 			@Override
-			public void invalidated(Observable observable) {
+			protected T computeValue() {
 				if (selections.size() == 1) {
-					selection.set(selections.get(0));
-				} else {
-					selection.set(null);
+					return selections.get(0);
 				}
+				return null;
 			}
 		});
 	}
@@ -153,13 +151,21 @@ public final class FlowListSelectionModel<T> {
 	 */
 	@SuppressWarnings("unchecked")
 	public void select(T item) {
+		if (!this.multiselect.get() ) {
+			this.selectOnly(item);
+			return;
+		}
+		
 		if (item != null) {
+			List<FlowListCell<T>> cells = new ArrayList<FlowListCell<T>>();
 			for (Node node : this.view.getLayoutChildren()) {
 				FlowListCell<T> cell = (FlowListCell<T>)node;
 				if (item.equals(cell.getData())) {
-					this.select(cell);
-					break;
+					cells.add(cell);
 				}
+			}
+			if (cells.size() > 0) {
+				this.selectCells(cells);
 			}
 		}
 	}
@@ -168,9 +174,22 @@ public final class FlowListSelectionModel<T> {
 	 * Clears all selections and selects the given item only.
 	 * @param item the item to select
 	 */
+	@SuppressWarnings("unchecked")
 	public void selectOnly(T item) {
+		if (item != null) {
+			List<FlowListCell<T>> cells = new ArrayList<FlowListCell<T>>();
+			for (Node node : this.view.getLayoutChildren()) {
+				FlowListCell<T> cell = (FlowListCell<T>)node;
+				if (item.equals(cell.getData())) {
+					cells.add(cell);
+				}
+			}
+			if (cells.size() > 0) {
+				this.selectCellsOnly(cells);
+				return;
+			}
+		}
 		this.clear();
-		this.select(item);
 	}
 	
 	/**
@@ -179,15 +198,14 @@ public final class FlowListSelectionModel<T> {
 	 */
 	public void deselect(T item) {
 		if (item != null) {
-			FlowListCell<T> cell = null;
-			for (FlowListCell<T> test : this.selected) {
-				if (item.equals(test.getData())) {
-					cell = test;
-					break;
+			List<FlowListCell<T>> cells = new ArrayList<FlowListCell<T>>();
+			for (FlowListCell<T> cell : this.selected) {
+				if (item.equals(cell.getData())) {
+					cells.add(cell);
 				}
 			}
-			if (cell != null) {
-				this.deselect(cell);
+			if (cells.size() > 0) {
+				this.deselectCells(cells);
 			}
 		}
 	}
@@ -197,46 +215,46 @@ public final class FlowListSelectionModel<T> {
 	 * @param items the items to select
 	 */
 	@SuppressWarnings("unchecked")
-	public void selectAll(Collection<T> items) {
+	public void select(Collection<T> items) {
 		if (items != null && !items.isEmpty()) {
+			if (!this.multiselect.get()) {
+				this.selectOnly(items.stream().findFirst().get());
+				return;
+			}
+			List<FlowListCell<T>> cells = new ArrayList<FlowListCell<T>>();
 			for (T item : items) {
 				for (Node node : this.view.getLayoutChildren()) {
 					FlowListCell<T> cell = (FlowListCell<T>)node;
 					if (item.equals(cell.getData())) {
-						this.select(cell);
-						break;
+						cells.add(cell);
 					}
 				}
 			}
-			this.last = null;
+			this.selectCells(cells);
 		}
 	}
-	
-	/**
-	 * Clears all selections.
-	 */
-	public void clear() {
-		for (Node node : this.selected) {
-			node.pseudoClassStateChanged(SELECTED, false);
-		}
-		this.selected.clear();
-		this.last = null;
-	}
-	
+
 	/**
 	 * Selects the given items in the list of nodes only.
 	 * @param items the items
 	 */
 	@SuppressWarnings("unchecked")
-	public void selectOnly(List<T> items) {
-		this.clear();
-		if (items != null && items.size() > 0) {
+	public void selectOnly(Collection<T> items) {
+		if (items != null && !items.isEmpty()) {
+			if (!this.multiselect.get()) {
+				this.selectOnly(items.stream().findFirst().get());
+				return;
+			}
+			List<FlowListCell<T>> cells = new ArrayList<FlowListCell<T>>();
 			for (Node node : this.view.getLayoutChildren()) {
 				FlowListCell<T> cell = (FlowListCell<T>)node;
 				if (items.contains(cell.getData())) {
-					this.select(cell);
+					cells.add(cell);
 				}
 			}
+			this.selectCellsOnly(cells);
+		} else {
+			this.clear();
 		}
 	}
 	
@@ -245,10 +263,15 @@ public final class FlowListSelectionModel<T> {
 	 */
 	@SuppressWarnings("unchecked")
 	public void selectAll() {
+		if (!this.multiselect.get()) {
+			return;
+		}
+		List<FlowListCell<T>> cells = new ArrayList<FlowListCell<T>>();
 		for (Node node : this.view.getLayoutChildren()) {
 			FlowListCell<T> cell = (FlowListCell<T>)node;
-			this.select(cell);
+			cells.add(cell);
 		}
+		this.selectCells(cells);
 	}
 	
 	/**
@@ -256,14 +279,29 @@ public final class FlowListSelectionModel<T> {
 	 */
 	@SuppressWarnings("unchecked")
 	public void invert() {
+		if (!this.multiselect.get()) {
+			return;
+		}
+		List<FlowListCell<T>> cells = new ArrayList<FlowListCell<T>>();
 		for (Node node : this.view.getLayoutChildren()) {
 			FlowListCell<T> cell = (FlowListCell<T>)node;
-			if (this.selected.contains(cell)) {
-				this.deselect(cell);
-			} else {
-				this.select(cell);
+			if (!this.selected.contains(cell)) {
+				cells.add(cell);
 			}
 		}
+		this.selectCellsOnly(cells);
+	}
+
+	/**
+	 * Clears all selections.
+	 */
+	public void clear() {
+		for (Node node : this.selected) {
+			node.pseudoClassStateChanged(SELECTED, false);
+		}
+		this.selected.clear();
+		this.selections.clear();
+		this.last = null;
 	}
 	
 	// INTERNAL
@@ -273,7 +311,7 @@ public final class FlowListSelectionModel<T> {
 	 * @param cell the cell to test
 	 * @return boolean
 	 */
-	boolean isSelected(FlowListCell<T> cell) {
+	boolean isCellSelected(FlowListCell<T> cell) {
 		return this.selected.contains(cell);
 	}
 	
@@ -281,16 +319,11 @@ public final class FlowListSelectionModel<T> {
 	 * Selects the given cell.
 	 * @param cell the cell to select
 	 */
-	@SuppressWarnings("unchecked")
-	void select(Node cell) {
-		this.select((FlowListCell<T>)cell);
-	}
-	
-	/**
-	 * Selects the given cell.
-	 * @param cell the cell to select
-	 */
-	void select(FlowListCell<T> cell) {
+	void selectCell(FlowListCell<T> cell) {
+		if (!this.multiselect.get()) {
+			this.selectCellOnly(cell);
+			return;
+		}
 		if (cell != null) {
 			cell.pseudoClassStateChanged(SELECTED, true);
 			this.selected.add(cell);
@@ -299,10 +332,72 @@ public final class FlowListSelectionModel<T> {
 	}
 	
 	/**
+	 * Selects the given cell.
+	 * @param cell the cell to select
+	 */
+	@SuppressWarnings("unchecked")
+	void selectCellOnly(FlowListCell<T> cell) {
+		for (FlowListCell<T> c : this.selected) {
+			c.pseudoClassStateChanged(SELECTED, false);
+		}
+		if (cell != null) {
+			cell.pseudoClassStateChanged(SELECTED, true);
+			this.selected.setAll(cell);
+			this.last = cell;
+		} else {
+			this.selected.clear();
+			this.last = null;
+		}
+	}
+	
+	/**
+	 * Selects all the given cells.
+	 * @param cells the cells to select
+	 */
+	void selectCells(Collection<FlowListCell<T>> cells) {
+		if (cells != null && !cells.isEmpty()) {
+			if (!this.multiselect.get()) {
+				this.selectCellOnly(cells.stream().findFirst().get());
+				return;
+			}
+			List<FlowListCell<T>> toAdd = new ArrayList<FlowListCell<T>>();
+			for (FlowListCell<T> cell : cells) {
+				cell.pseudoClassStateChanged(SELECTED, true);
+				if (!this.selected.contains(cell)) {
+					toAdd.add(cell);
+				}
+			}
+			this.selected.addAll(toAdd);
+		}
+	}
+	
+	/**
+	 * Selects only the given cells.
+	 * @param cells the cells to select
+	 */
+	void selectCellsOnly(Collection<FlowListCell<T>> cells) {
+		if (cells != null && !cells.isEmpty()) {
+			if (!this.multiselect.get()) {
+				this.selectCellOnly(cells.stream().findFirst().get());
+				return;
+			}
+			for (FlowListCell<T> cell : this.selected) {
+				cell.pseudoClassStateChanged(SELECTED, false);
+			}
+			for (FlowListCell<T> cell : cells) {
+				cell.pseudoClassStateChanged(SELECTED, true);
+			}
+			this.selected.setAll(cells);
+		} else {
+			this.clear();
+		}
+	}
+	
+	/**
 	 * Deselects the given cell.
 	 * @param cell the cell to deselect
 	 */
-	void deselect(FlowListCell<T> cell) {
+	void deselectCell(FlowListCell<T> cell) {
 		if (cell != null) {
 			cell.pseudoClassStateChanged(SELECTED, false);
 			this.selected.remove(cell);
@@ -311,12 +406,26 @@ public final class FlowListSelectionModel<T> {
 			}
 		}
 	}
+
+	/**
+	 * Deselects the given cells.
+	 * @param cells the cells to deselect
+	 */
+	void deselectCells(Collection<FlowListCell<T>> cells) {
+		if (cells != null && !cells.isEmpty()) {
+			for (FlowListCell<T> cell : this.selected) {
+				cell.pseudoClassStateChanged(SELECTED, false);
+			}
+			this.selected.removeAll(cells);
+		}
+	}
 	
 	/**
 	 * Event handler for the click event.
 	 * @param cell the cell that was clicked
 	 * @param event the mouse event
 	 */
+	@SuppressWarnings("unchecked")
 	final void handle(FlowListCell<T> cell, MouseEvent event) {
 		boolean isPrimary = event.getButton() == MouseButton.PRIMARY;
 		boolean isSecondary = event.getButton() == MouseButton.SECONDARY;
@@ -327,11 +436,11 @@ public final class FlowListSelectionModel<T> {
 			event.consume();
 
 			// are we being selected?
-			boolean selected = this.isSelected(cell);
+			boolean selected = this.isCellSelected(cell);
 			boolean select = !selected;
 			
 			// check for double click
-			if (isPrimary && event.getClickCount() == 2) {
+			if (isPrimary && event.getClickCount() == 2 && !event.isShiftDown() && !event.isShortcutDown()) {
 				// make sure this cell is selected
 				// NOTE: this is the best we can do since we can't wait
 				// on the first click to see if there will be a second
@@ -356,39 +465,50 @@ public final class FlowListSelectionModel<T> {
 				select = true;
 			}
 			
+			// record what the first item selected was so that
+			// we can do a shift select properly
+			if (!event.isShiftDown()) {
+				// shift isn't down, so clear the first selected item
+				this.first = null;
+			} else if (this.first == null && this.last != null) {
+				// shift is down and first is null, so set it to the last item selected
+				this.first = this.last;
+			}
+			
 			// CTRL + click
-			if (isPrimary && event.isShortcutDown()) {
+			if (this.multiselect.get() && isPrimary && event.isShortcutDown()) {
 				// then its a multi-(de)select
 				if (select) {
-					select(cell);
+					selectCell(cell);
 				} else {
-					deselect(cell);
+					deselectCell(cell);
 				}
 			// SHIFT + click
-			} else if (isPrimary && event.isShiftDown()) {
+			} else if (this.multiselect.get() && isPrimary && event.isShiftDown()) {
 				int start = 0;
 				int end = this.view.getLayoutChildren().indexOf(cell);
 				// select from the currently selected cell to the this cell
-				if (this.last != null) {
+				if (this.first != null) {
 					// select from last to this cell
-					start = this.view.getLayoutChildren().indexOf(this.last);
+					start = this.view.getLayoutChildren().indexOf(this.first);
 				}
 				if (end < start) {
 					int temp = end;
 					end = start;
 					start = temp;
 				}
+				List<FlowListCell<T>> cells = new ArrayList<FlowListCell<T>>();
 				for (Node node : this.view.getLayoutChildren().subList(start, end + 1)) {
-					this.select(node);
+					cells.add((FlowListCell<T>)node);
 				}
+				this.selectCellsOnly(cells);
 			// just click
 			} else {
 				// then its a single select
 				if (select) {
-					this.clear();
-					this.select(cell);
+					this.selectCellOnly(cell);
 				} else {
-					this.deselect(cell);
+					this.deselectCell(cell);
 				}
 			}
 		}
@@ -411,5 +531,13 @@ public final class FlowListSelectionModel<T> {
 	 */
 	public ReadOnlyObjectProperty<T> selectionProperty() {
 		return this.selection;
+	}
+	
+	/**
+	 * Returns the multiselect property.
+	 * @return BooleanProperty
+	 */
+	public BooleanProperty multiselectProperty() {
+		return this.multiselect;
 	}
 }

@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.List;
 
+import javax.imageio.ImageIO;
+
 import org.apache.pdfbox.cos.COSString;
 import org.apache.pdfbox.pdfparser.PDFStreamParser;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -53,6 +55,9 @@ public class PDFTest extends Application {
     	
     	System.out.println(image.getWidth());
     	System.out.println(image.getHeight());
+    	
+    	ImageIO.write(image, "png", Paths.get("C:\\Users\\wbittle\\Desktop\\test.png").toFile());
+    	
         
     	// extract all text from PDF
     	PDFTextStripper stripper = new PDFTextStripper();

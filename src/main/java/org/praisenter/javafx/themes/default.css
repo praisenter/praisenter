@@ -83,10 +83,16 @@
 	-fx-background-color: rgba(153, 209, 255, 0.5);
 }
 .flow-list-view-cell:selected {
-	-fx-background-color: rgba(204, 232, 255);
+	-fx-background-color: rgb(204, 232, 255);
 	-fx-border-color: rgb(153, 209, 255);
 	-fx-border-width: 1;
 	-fx-border-style: solid;
+}
+.flow-list-view-drag-selection-area {
+	-fx-fill: rgba(255, 204, 204, 0.5);
+	-fx-stroke: rgb(255, 153, 153);
+	-fx-smooth: false;
+	-fx-stroke-width: 1;
 }
 
 /* AutoCompleteComboBox */

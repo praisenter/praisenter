@@ -72,6 +72,14 @@ public final class Author {
 		this.type = author.type;
 	}
 	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return this.name;
+	}
+	
 	/**
 	 * Returns a deep copy of this author.
 	 * @return {@link Author}

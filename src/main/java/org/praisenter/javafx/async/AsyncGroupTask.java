@@ -89,7 +89,7 @@ public class AsyncGroupTask<T extends AsyncTask<?>> extends AsyncTask<List<T>> {
 	 * @see org.praisenter.javafx.async.AsyncTask#execute(org.praisenter.javafx.async.AsyncTaskExecutor)
 	 */
 	@Override
-	public void execute(AsyncTaskExecutor service) {
+	public AsyncGroupTask<T> execute(AsyncTaskExecutor service) {
 		// execute the sub tasks
 		if (this.tasks != null) {
 			for (AsyncTask<?> t : this.tasks) {
@@ -98,5 +98,6 @@ public class AsyncGroupTask<T extends AsyncTask<?>> extends AsyncTask<List<T>> {
 		}
 		// then execute this task
 		service.execute(this);
+		return this;
 	}
 }

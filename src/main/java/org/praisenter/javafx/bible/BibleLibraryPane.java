@@ -193,8 +193,8 @@ public final class BibleLibraryPane extends BorderPane implements ApplicationPan
 			}
 		});
 		this.lstBibles.itemsProperty().bindContent(sorted);
-        this.lstBibles.setOnDragOver(this::onBibleDragOver);
-        this.lstBibles.setOnDragDropped(this::onBibleDragDropped);
+        this.lstBibles.addEventHandler(DragEvent.DRAG_OVER, this::onBibleDragOver);
+        this.lstBibles.addEventHandler(DragEvent.DRAG_DROPPED, this::onBibleDragDropped);
 
 		VBox right = new VBox();
 		VBox importSteps = new VBox();
