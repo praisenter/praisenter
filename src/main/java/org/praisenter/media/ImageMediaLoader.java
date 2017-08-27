@@ -73,7 +73,7 @@ public final class ImageMediaLoader extends AbstractMediaLoader implements Media
 	 * @see org.praisenter.media.MediaLoader#load(java.nio.file.Path)
 	 */
 	@Override
-	public Media load(Path path) throws MediaImportException {
+	public MediaLoadResult load(Path path) throws MediaImportException {
 		LOGGER.debug("Image media '{}' loading", path);
 		if (Files.exists(path) && Files.isRegularFile(path)) {
 			// read the image
@@ -93,7 +93,7 @@ public final class ImageMediaLoader extends AbstractMediaLoader implements Media
 						Media media = Media.forImage(path, format, (int)image.getWidth(), (int)image.getHeight(), null, thumb);
 						
 						LOGGER.debug("Image media '{}' loaded", path);
-						return media;
+						return new MediaLoadResult(media);
 					} finally {
 						reader.dispose();
 					}

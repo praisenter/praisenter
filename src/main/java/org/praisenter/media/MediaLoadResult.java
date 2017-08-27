@@ -24,30 +24,53 @@
  */
 package org.praisenter.media;
 
-import java.nio.file.Path;
+import java.awt.image.BufferedImage;
 
 /**
- * Interface for loading media.
+ * The results of loading a media item.
  * @author William Bittle
  * @version 3.0.0
  */
-public interface MediaLoader {
-	/**
-	 * Returns true if the given mime type is supported by this
-	 * media loader.
-	 * <p>
-	 * It's possible that this method may return true and the media
-	 * be formatted in such a way that cannot be read.
-	 * @param mimeType the mime type
-	 * @return boolean
-	 */
-	public abstract boolean isSupported(String mimeType);
+final class MediaLoadResult {
+	/** The loaded media */
+	final Media media;
+	
+	/** The video frame */
+	final BufferedImage frame;
 	
 	/**
-	 * Loads the media from the media library.
-	 * @param path the path
-	 * @return {@link MediaLoadResult}
-	 * @throws MediaImportException if the media failed to be loaded
+	 * Minimal constructor.
+	 * @param media the loaded media
 	 */
-	public abstract MediaLoadResult load(Path path) throws MediaImportException;
+	public MediaLoadResult(Media media) {
+		this.media = media;
+		this.frame = null;
+	}
+	
+	/**
+	 * Optional constructor (primarily for video).
+	 * @param media the loaded media
+	 * @param frame the video frame
+	 */
+	public MediaLoadResult(Media media, BufferedImage frame) {
+		this.media = media;
+		this.frame = frame;
+	}
+
+	/**
+	 * Returns the loaded media.
+	 * @return {@link Media}
+	 */
+	public Media getMedia() {
+		return this.media;
+	}
+
+	/**
+	 * Returns the video frame.
+	 * @return BufferedImage
+	 */
+	public BufferedImage getFrame() {
+		return frame;
+	}
+	
 }

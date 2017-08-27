@@ -89,11 +89,11 @@ public final class Media implements Comparable<Media> {
 	public static final String CURRENT_VERSION = "1";
 	
 	/** The format (for format identification only) */
-	@JsonProperty("@format")
+	@JsonProperty(Constants.FORMAT_PROPERTY_NAME)
 	private final String format;
 	
 	/** The version number */
-	@JsonProperty("@version")
+	@JsonProperty(Constants.VERSION_PROPERTY_NAME)
 	private final String version;
 	
 	/** The media's unique id */
@@ -162,12 +162,6 @@ public final class Media implements Comparable<Media> {
 	@JsonSerialize(using = BufferedImagePngJsonSerializer.class)
 	@JsonDeserialize(using = BufferedImagePngJsonDeserializer.class)
 	final BufferedImage thumbnail;
- 
-	/** The media frame (only for video) */
-	@JsonProperty
-	@JsonSerialize(using = BufferedImagePngJsonSerializer.class)
-	@JsonDeserialize(using = BufferedImagePngJsonDeserializer.class)
-	final BufferedImage frame;
 
 	/**
 	 * Returns a new {@link Media} for an image.
@@ -180,7 +174,7 @@ public final class Media implements Comparable<Media> {
 	 * @return {@link Media}
 	 */
 	static final Media forImage(Path path, MediaFormat format, int width, int height, Set<Tag> tags, BufferedImage thumbnail) {
-		return new Media(null, path, format, width, height, UNKNOWN, false, null, tags, thumbnail, null);
+		return new Media(null, path, format, width, height, UNKNOWN, false, null, tags, thumbnail);
 	}
 	
 	/**
@@ -192,7 +186,7 @@ public final class Media implements Comparable<Media> {
 	 * @return {@link Media}
 	 */
 	static final Media forAudio(Path path, MediaFormat format, long length, Set<Tag> tags) {
-		return new Media(null, path, format, UNKNOWN, UNKNOWN, length, true, null, tags, null, null);
+		return new Media(null, path, format, UNKNOWN, UNKNOWN, length, true, null, tags, null);
 	}
 
 	/**
@@ -205,11 +199,10 @@ public final class Media implements Comparable<Media> {
 	 * @param audio if the video contains audio
 	 * @param tags the tags; can be null
 	 * @param thumbnail the video thumbnail
-	 * @param frame the video frame
 	 * @return {@link Media}
 	 */
-	static final Media forVideo(Path path, MediaFormat format, int width, int height, long length, boolean audio, Set<Tag> tags, BufferedImage thumbnail, BufferedImage frame) {
-		return new Media(null, path, format, width, height, length, audio, null, tags, thumbnail, frame);
+	static final Media forVideo(Path path, MediaFormat format, int width, int height, long length, boolean audio, Set<Tag> tags, BufferedImage thumbnail) {
+		return new Media(null, path, format, width, height, length, audio, null, tags, thumbnail);
 	}
 	
 	/**
@@ -219,7 +212,7 @@ public final class Media implements Comparable<Media> {
 	 * @return {@link Media}
 	 */
 	final static Media forRenamed(Path path, Media media) {
-		return new Media(media.id, path, media.mediaFormat, media.width, media.height, media.length, media.audio, media.dateAdded, new TreeSet<Tag>(media.tags), media.thumbnail, media.frame);
+		return new Media(media.id, path, media.mediaFormat, media.width, media.height, media.length, media.audio, media.dateAdded, new TreeSet<Tag>(media.tags), media.thumbnail);
 	}
 	
 	/**
@@ -230,7 +223,7 @@ public final class Media implements Comparable<Media> {
 	 * @return {@link Media}
 	 */
 	final static Media forUpdated(Instant dateAdded, Set<Tag> tags, Media media) {
-		return new Media(media.id, media.path, media.mediaFormat, media.width, media.height, media.length, media.audio, dateAdded, tags, media.thumbnail, media.frame);
+		return new Media(media.id, media.path, media.mediaFormat, media.width, media.height, media.length, media.audio, dateAdded, tags, media.thumbnail);
 	}
 	
 	/**
@@ -255,7 +248,6 @@ public final class Media implements Comparable<Media> {
 		this.audio = false;
 		this.tags = new TreeSet<Tag>();
 		this.thumbnail = null;
-		this.frame = null;
 	}
 	
 	/**
@@ -270,9 +262,8 @@ public final class Media implements Comparable<Media> {
 	 * @param dateAdded the date the media was added to the library
 	 * @param tags the tags; can be null
 	 * @param thumbnail the media thumbnail
-	 * @param frame the media frame
 	 */
-	private Media(UUID id, Path path, MediaFormat mediaFormat, int width, int height, long length, boolean audio, Instant dateAdded, Set<Tag> tags, BufferedImage thumbnail, BufferedImage frame) {
+	private Media(UUID id, Path path, MediaFormat mediaFormat, int width, int height, long length, boolean audio, Instant dateAdded, Set<Tag> tags, BufferedImage thumbnail) {
 		this.id = id == null ? UUID.randomUUID() : id;
 		this.format = Constants.FORMAT_NAME;
 		this.version = CURRENT_VERSION;
@@ -321,7 +312,6 @@ public final class Media implements Comparable<Media> {
 		this.tags = (tags == null ? new TreeSet<Tag>() : tags);
 		
 		this.thumbnail = thumbnail;
-		this.frame = frame;
 	}
 
 	/* (non-Javadoc)
@@ -379,6 +369,19 @@ public final class Media implements Comparable<Media> {
 	 */
 	public Path getPath() {
 		return this.path;
+	}
+	
+	/**
+	 * Returns the path to the frame for this (video) media.
+	 * <p>
+	 * Returns null if this media is audio or an image.
+	 * @return Path
+	 */
+	public Path getFramePath() {
+		if (this.type == MediaType.VIDEO) {
+			return MediaLibrary.getFramePath(this.path);
+		}
+		return null;
 	}
 
 	/**
@@ -495,14 +498,6 @@ public final class Media implements Comparable<Media> {
 	 */
 	public BufferedImage getThumbnail() {
 		return this.thumbnail;
-	}
-
-	/**
-	 * Returns the frame for this media.
-	 * @return BufferedImage
-	 */
-	public BufferedImage getFrame() {
-		return this.frame;
 	}
 
 	/**

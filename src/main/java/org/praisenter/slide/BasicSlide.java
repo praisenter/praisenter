@@ -68,11 +68,11 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
  */
 public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegion, Comparable<Slide> {
 	/** The format (for format identification only) */
-	@JsonProperty("@format")
+	@JsonProperty(Constants.FORMAT_PROPERTY_NAME)
 	final String format;
 	
 	/** The slide format version */
-	@JsonProperty("@version")
+	@JsonProperty(Constants.VERSION_PROPERTY_NAME)
 	final String version;
 
 	/** The slide name */

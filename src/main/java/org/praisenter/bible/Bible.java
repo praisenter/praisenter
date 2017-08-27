@@ -65,11 +65,11 @@ public final class Bible implements Comparable<Bible>, Serializable, Localized {
 	// final
 	
 	/** The format (for format identification only) */
-	@JsonProperty("@format")
+	@JsonProperty(Constants.FORMAT_PROPERTY_NAME)
 	private final String format;
 	
 	/** The version number */
-	@JsonProperty("@version")
+	@JsonProperty(Constants.VERSION_PROPERTY_NAME)
 	private final String version;
 	
 	// internally modifiable

@@ -71,7 +71,7 @@ public final class AudioMediaLoader extends AbstractMediaLoader implements Media
 	 * @see org.praisenter.media.MediaLoader#load(java.nio.file.Path)
 	 */
 	@Override
-	public Media load(Path path) throws MediaImportException {
+	public MediaLoadResult load(Path path) throws MediaImportException {
 		if (Files.exists(path) && Files.isRegularFile(path)) {
 			// get the metadata
 			try {
@@ -89,7 +89,7 @@ public final class AudioMediaLoader extends AbstractMediaLoader implements Media
 						null);
 				
 				LOGGER.debug("Audio media '{}' loaded", path);
-				return media;
+				return new MediaLoadResult(media);
 			} catch (InterruptedException e) {
 				LOGGER.error("The process to extract metadata from '" + path.toAbsolutePath().toString() + "' was interrupted.", e);
 				throw new MediaImportException("The process to extract metadata from '" + path.toAbsolutePath().toString() + "' was interrupted.", e);

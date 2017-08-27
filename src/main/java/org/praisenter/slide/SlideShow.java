@@ -19,13 +19,15 @@ public final class SlideShow {
 	public static final String CURRENT_VERSION = "1";
 	
 	/** The format (for format identification only) */
-	@JsonProperty("@format")
+	@JsonProperty(Constants.FORMAT_PROPERTY_NAME)
 	final String format;
 	
 	/** The slide format version */
-	@JsonProperty("@version")
+	@JsonProperty(Constants.VERSION_PROPERTY_NAME)
 	final String version;
 
+	/** The slide show id */
+	@JsonProperty
 	private UUID id;
 	
 	/** The date the slide show was created */

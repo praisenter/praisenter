@@ -66,11 +66,11 @@ public final class Configuration extends SettingMap<Void> {
 	private static final String CURRENT_VERSION = "1";
 	
 	/** The format */
-	@JsonProperty("@format")
+	@JsonProperty(Constants.FORMAT_PROPERTY_NAME)
 	private final String format;
 	
 	/** The version */
-	@JsonProperty("@version")
+	@JsonProperty(Constants.VERSION_PROPERTY_NAME)
 	private final String version;
 	
 	/** The other settings */

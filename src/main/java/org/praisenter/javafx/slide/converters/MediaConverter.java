@@ -140,7 +140,7 @@ public final class MediaConverter {
 			// check the media type
 			if (media.getType() == MediaType.VIDEO) {
 				// for video's we just need to show a single frame
-				return imageCache.getOrLoadVideoMediaFrame(media.getId(), media.getFrame());
+				return imageCache.getOrLoadVideoMediaFrame(media.getId(), media.getFramePath());
 			} else if (media.getType() == MediaType.IMAGE) {
 				// image itself
 				return imageCache.getOrLoadImageMediaImage(media.getId(), media.getPath());

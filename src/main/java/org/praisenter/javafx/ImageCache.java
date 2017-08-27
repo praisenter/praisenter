@@ -24,7 +24,6 @@
  */
 package org.praisenter.javafx;
 
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.lang.ref.SoftReference;
 import java.nio.file.Path;
@@ -130,15 +129,21 @@ public final class ImageCache {
 	}
 	
 	/**
-	 * Returns the cached video frame for the given video media or converts the given image to a Java FX image.
+	 * Returns the cached video frame for the given video media or loads the video frame from the given path
+	 * if the frame is not in the cache.
 	 * @param id the id
-	 * @param image the image
+	 * @param path the video frame path
 	 * @return Image
 	 */
-	public synchronized Image getOrLoadVideoMediaFrame(UUID id, BufferedImage image) {
+	public synchronized Image getOrLoadVideoMediaFrame(UUID id, Path path) {
 		ImageCacheKey key = new ImageCacheKey(ImageCacheKeyType.MEDIA_VIDEO, id.toString());
 		return getOrLoad(key, () -> {
-			return SwingFXUtils.toFXImage(image, null);
+			try {
+				return this.load(path);
+			} catch (Exception ex) {
+				LOGGER.error("Failed to load video frame from path '" + path.toAbsolutePath().toString() + "'", ex);
+			}
+			return null;
 		});
 	}
 	

@@ -49,6 +49,7 @@ import java.util.zip.ZipException;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
+import javax.imageio.ImageIO;
 import javax.xml.bind.JAXBException;
 
 import org.apache.logging.log4j.LogManager;
@@ -100,6 +101,12 @@ public final class MediaLibrary {
 	/** The directory to store media when exported with other data */
 	private static final String ZIP_DIR = "media";
 
+	/** The directory to store video frames */
+	private static final String FRAME_DIR = "_frames";
+	
+	/** The video frame file format */
+	private static final String FRAME_FORMAT = "png";
+	
 	// instance variables
 	
 	/** The root path to the media library */
@@ -107,6 +114,9 @@ public final class MediaLibrary {
 	
 	/** The full path to the metatdata */
 	private final Path metadataPath;
+	
+	/** The pull path to the frames */
+	private final Path framePath;
 	
 	/** The context */
 	private final MediaLibraryContext context;
@@ -146,6 +156,24 @@ public final class MediaLibrary {
 	}
 	
 	/**
+	 * Returns the frame path for the given media.
+	 * @param media the path to the media
+	 * @return Path
+	 */
+	static final Path getFramePath(Path media) {
+		return media.getParent().resolve(FRAME_DIR).resolve(getFrameFileName(media.getFileName().toString()));
+	}
+	
+	/**
+	 * Returns the frame file name for the given media file name.
+	 * @param mediaFileName the media file name (with extension)
+	 * @return String
+	 */
+	private static final String getFrameFileName(String mediaFileName) {
+		return mediaFileName + "." + FRAME_FORMAT;
+	}
+	
+	/**
 	 * Private constructor.
 	 * @param path the path to initialize in
 	 * @param importFilter the import filter
@@ -154,6 +182,7 @@ public final class MediaLibrary {
 	private MediaLibrary(Path path, MediaLibraryContext context, MediaImportProcessor processor) {
 		this.path = path;
 		this.metadataPath = path.resolve(METADATA_DIR);
+		this.framePath = path.resolve(FRAME_DIR);
 		this.context = context;
 		this.importFilter = processor == null ? new DefaultMediaImportProcessor() : processor;
 		
@@ -176,8 +205,9 @@ public final class MediaLibrary {
 		LOGGER.debug("Initializing media library at '{}'.", this.path);
 		// make sure the paths exist
 		Files.createDirectories(this.path);
-		// for metadata and thumbnails
+		// for metadata and frames
 		Files.createDirectories(this.metadataPath);
+		Files.createDirectories(this.framePath);
 		
 		// load existing meta data into a temporary map for verification
 		LOGGER.debug("Reading media metadata.");
@@ -188,6 +218,7 @@ public final class MediaLibrary {
 					if (MimeType.JSON.check(path)) {
 						try {
 							Media media = JsonIO.read(path, Media.class);
+							
 							// when we read the metadata we need to update it with
 							// the path to the media file since we don't store it
 							media.path = this.path.resolve(media.fileName);
@@ -256,7 +287,7 @@ public final class MediaLibrary {
 					}
 					
 					// verify existence of frame for videos
-					if (media != null && media.frame == null) {
+					if (media != null && Files.exists(this.framePath.resolve(media.getId().toString() + ".png"))) {
 						if (media.type == MediaType.VIDEO) {
 							update = true;
 						}
@@ -375,7 +406,8 @@ public final class MediaLibrary {
 	 */
 	private final Media update(Path path, Media media) throws InvalidFormatException, IOException {
 		// reload the media
-		Media newMedia = this.load(path);
+		MediaLoadResult result = this.load(path);
+		Media newMedia = result.media;
 		
 		// check for existing metadata
 		if (media != null) {
@@ -392,6 +424,15 @@ public final class MediaLibrary {
 			LOGGER.warn("Failed to save metadata for '" + path.toAbsolutePath().toString() + "'", e);
 		}
 		
+		// save the video frame
+		if (result.media.type == MediaType.VIDEO && result.frame != null) {
+			try {
+				ImageIO.write(result.frame, FRAME_FORMAT, newMedia.getFramePath().toFile());
+			} catch (IOException ex) {
+				LOGGER.warn("Failed to save frame of video media '" + result.media.getFileName() + "'.", ex);
+			}
+		}
+		
 		// we loaded the media, so add it to the map
 		this.media.put(newMedia.id, newMedia);
 		
@@ -405,7 +446,7 @@ public final class MediaLibrary {
 	 * @throws InvalidFormatException if the media format isn't something recognized or readable
 	 * @throws IOException if an IO error occurs
 	 */
-	private final Media load(Path path) throws InvalidFormatException, IOException {
+	private final MediaLoadResult load(Path path) throws InvalidFormatException, IOException {
 		List<MediaLoader> loaders = this.getLoaders(path);
 		
 		// any supporting media loaders?
@@ -416,7 +457,7 @@ public final class MediaLibrary {
 			throw new UnsupportedMediaException(new UnknownMediaTypeException(path.toAbsolutePath().toString()));
 		}
 		
-		Media media = null;
+		MediaLoadResult result = null;
 		
 		// iterate through the loaders
 		int n = loaders.size();
@@ -427,21 +468,21 @@ public final class MediaLibrary {
 			try {
 				LOGGER.debug("Attempting to use " + loader.getClass().getName() + " to load '" + path.toAbsolutePath().toString() + "'");
 				// the first successful loader wins
-				media = loader.load(path);
+				result = loader.load(path);
 				break;
 			} catch (MediaImportException e) {
 				errors.add(e.getMessage());
 			}
 		}
 		
-		if (media == null) {
+		if (result == null) {
 			// remove it from the library
 			Files.delete(path);
 			LOGGER.warn("The supporting media loaders couldn't load '" + path.toAbsolutePath().toString() + "'.");
 			throw new UnsupportedMediaException(path.toAbsolutePath().toString() + Constants.NEW_LINE + String.join(", ", errors));
 		}
 		
-		return media;
+		return result;
 	}
 	
 	/**
@@ -529,7 +570,7 @@ public final class MediaLibrary {
 			this.media.remove(media.getId());
 			
 			// delete the metadata
-			try  {
+			try {
 				// deleting the metadata second is better since the media will
 				// not be shown in the library if the metadata is missing
 				LOGGER.debug("Deleting media metadata '{}'.", mPath);
@@ -539,6 +580,22 @@ public final class MediaLibrary {
 				// that the media is actually gone (since the media itself is gone
 				// even though the metadata isn't)
 				LOGGER.warn("Failed to delete metadata '" + mPath + "'. This should be cleaned up upon the next initialization of the media library.", ex);
+			}
+			
+			// delete the frame
+			if (media.type == MediaType.VIDEO) {
+				Path fPath = media.getFramePath();
+				try {
+					// deleting the video frame after the deletion of the media
+					// is the safest
+					LOGGER.debug("Deleting media video frame '{}'.", fPath);
+					Files.deleteIfExists(fPath);
+				} catch (Exception ex) {
+					// we only want to log the message here and return back to the caller
+					// that the media is actually gone (since the media itself is gone
+					// even though the frame isn't)
+					LOGGER.warn("Failed to delete video frame '" + fPath + "'.", ex);
+				}
 			}
 			
 			// it all worked
@@ -596,11 +653,23 @@ public final class MediaLibrary {
 					Files.move(target, source);
 					LOGGER.info("Successfully recovered from failed rename operation.");
 				} catch (Exception e1) {
-					LOGGER.fatal("Failed to recover from failed rename operation. This should be fixed on the next initialization of the media library.");
+					LOGGER.fatal("Failed to recover from failed rename operation.");
 				}
 				throw ex;
 			}
 
+			// move the video frame
+			if (media.type == MediaType.VIDEO) {
+				Path sfPath = media.getFramePath();
+				Path tfPath = sfPath.getParent().resolve(name1 + "." + FRAME_FORMAT);
+				try {
+					LOGGER.debug("Moving video frame '{}' to '{}'.", sfPath, tfPath);
+					Files.move(sfPath, tfPath);
+				} catch (Exception ex) {
+					LOGGER.warn("Failed to move video frame '" + sfPath + "' to '" + tfPath + "'. This should be cleaned up upon the next initialization of the media library.", ex);
+				}
+			}
+			
 			// remove old metadata
 			Path smPath = this.metadataPath.resolve(name0 + Constants.MEDIA_METADATA_FILE_EXTENSION);
 			try {
@@ -680,7 +749,16 @@ public final class MediaLibrary {
 	public int size() {
 		return this.media.size();
 	}
-	
+
+
+	/**
+	 * Returns the thumbnail settings.
+	 * @return {@link ThumbnailSettings}
+	 */
+	public ThumbnailSettings getThumbnailSettings() {
+		return this.context.getThumbnailSettings();
+	}
+
 	/**
 	 * Adds the media at the given path to the library.
 	 * @param path the path
@@ -754,9 +832,11 @@ public final class MediaLibrary {
 		// and then transfer to the primary
 		
 		String metadataRoot = root + METADATA_DIR;
+		String framesRoot = root + FRAME_DIR;
 		
 		// read all metadata in the zip first
 		Map<String, Media> metadata = new HashMap<String, Media>();
+		Map<String, String> frames = new HashMap<String, String>();
 		try (FileInputStream fis = new FileInputStream(path.toFile());
 			 ZipInputStream zis = new ZipInputStream(fis)) {
 			ZipEntry entry = null;
@@ -779,24 +859,44 @@ public final class MediaLibrary {
 								LOGGER.warn("Failed to read '" + name + "' as media metadata.", ex);
 							}
 						}
+					} else if (name.toLowerCase().startsWith(framesRoot)) {
+						frames.put(name, name);
 					}
 				}
 			}
 		}
 		
 		// then read all media with metadata
+		Map<String, Media> framesToImport = new HashMap<String, Media>();
 		try (FileInputStream fis = new FileInputStream(path.toFile());
 			 ZipInputStream zis = new ZipInputStream(fis)) {
 			ZipEntry entry = null;
 			while ((entry = zis.getNextEntry()) != null) {
-				// make sure it's not a directory and not a JSON file
-				if (!entry.isDirectory() && !MimeType.JSON.check(entry.getName())) {
-					String name = entry.getName();
+				String name = entry.getName();
+				// make sure it's not a directory and not in the frames or metadata folders
+				if (!entry.isDirectory() && !name.toLowerCase().startsWith(metadataRoot) && !name.toLowerCase().startsWith(framesRoot)) {
 					// verify that the media is in the correct folder
 					if (name.toLowerCase().startsWith(root)) {
 						// does it have associated metadata?
 						Media media = metadata.get(name);
 						if (media != null) {
+							// check if this media already exists
+							if (this.media.containsKey(media.id)) {
+								LOGGER.info("Media '{}' '{}' already exists.", media.fileName, media.id);
+								continue;
+							}
+							
+							// before we import the media make sure we have a video frame for it
+							// if it's a video media item
+							String frameDir = framesRoot + "/" + getFrameFileName(media.fileName);
+							if (media.type == MediaType.VIDEO) {
+								if (!frames.containsKey(frameDir)) {
+									// if not, then don't import it
+									LOGGER.info("Video media '{}' doesn't have a related video frame so cannot be imported. Please unzip and import this file manually.", name);
+									continue;
+								}
+							}
+							
 							try {
 								// get a lock for the source file name
 								synchronized (this.locks.get(name)) {
@@ -838,13 +938,45 @@ public final class MediaLibrary {
 										this.media.put(media.getId(), media);
 									}
 								}
+								
+								// add it to the imported list
 								imported.add(media);
+								
+								// we have to add the media at this time so that we get the fully updated
+								// media metadata (the file name may have changed because of name collisions)
+								if (media.type == MediaType.VIDEO) {
+									framesToImport.put(frameDir, media);
+								}
 							} catch (Exception ex) {
 								// it failed to write either the media or the metadata
 								LOGGER.error("Failed to write the media or metadata to the library for '" + name + "'.", ex);
 							}
 						} else {
 							LOGGER.info("Media '{}' doesn't have related metadata so cannot be imported. Please unzip and import this file manually.", name);
+						}
+					}
+				}
+			}
+		}
+		
+		// now import any video frames
+		try (FileInputStream fis = new FileInputStream(path.toFile());
+			 ZipInputStream zis = new ZipInputStream(fis)) {
+			ZipEntry entry = null;
+			while ((entry = zis.getNextEntry()) != null) {
+				if (!entry.isDirectory()) {
+					String name = entry.getName();
+					// verify that the media is in the correct folder
+					if (name.toLowerCase().startsWith(framesRoot)) {
+						Media media = framesToImport.get(name);
+						if (media != null) {
+							// copy the media to the library
+							try (FileOutputStream fos = new FileOutputStream(this.framePath.resolve(getFrameFileName(media.fileName)).toFile())) {
+								length = 0;
+								while ((length = zis.read(buffer)) > 0) {
+									fos.write(buffer, 0, length);
+								}
+							}
 						}
 					}
 				}
@@ -928,6 +1060,21 @@ public final class MediaLibrary {
 						stream.write(buffer, 0, length);
 					}
 					stream.closeEntry();
+				}
+				
+				// the frames
+				if (m.type == MediaType.VIDEO) {
+					Path framePath = m.getFramePath();
+					String frameFileName = framePath.getFileName().toString();
+					try (FileInputStream fis = new FileInputStream(framePath.toFile())) {
+						ZipEntry entry = new ZipEntry(root + FRAME_DIR + "/" + frameFileName);
+						stream.putNextEntry(entry);
+						length = 0;
+						while ((length = fis.read(buffer)) > 0) {
+							stream.write(buffer, 0, length);
+						}
+						stream.closeEntry();
+					}
 				}
 			}
 			LOGGER.debug("Export completed successfully.");
@@ -1192,13 +1339,5 @@ public final class MediaLibrary {
 			}
 			return false;
 		}
-	}
-
-	/**
-	 * Returns the thumbnail settings.
-	 * @return {@link ThumbnailSettings}
-	 */
-	public ThumbnailSettings getThumbnailSettings() {
-		return this.context.getThumbnailSettings();
 	}
 }

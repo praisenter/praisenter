@@ -29,6 +29,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Path;
 
+import org.praisenter.Constants;
+
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
@@ -191,8 +193,8 @@ public final class JsonIO {
 		
 		// root level there should be a @type, @format, and @version
 		JsonNode tn = node.get("@type");
-		JsonNode fn = node.get("@format");
-		JsonNode vn = node.get("@version");
+		JsonNode fn = node.get(Constants.FORMAT_PROPERTY_NAME);
+		JsonNode vn = node.get(Constants.VERSION_PROPERTY_NAME);
 		
 		// if we don't find @type and format then we don't think
 		// it's praisenter

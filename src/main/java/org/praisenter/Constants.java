@@ -158,6 +158,12 @@ public final class Constants {
 	/** Format name for use in any save-able format in the application to differentiate between other formats */
 	public static final String FORMAT_NAME = "praisenter";
 
+	/** The format property name in praisenter formats */
+	public static final String FORMAT_PROPERTY_NAME = "@format";
+	
+	/** The version property name in praisenter formats */
+	public static final String VERSION_PROPERTY_NAME = "@version";
+	
 	/** The extension to use for the bible files */
 	public static final String BIBLE_FILE_EXTENSION = ".json";
 	

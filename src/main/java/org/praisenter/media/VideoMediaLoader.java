@@ -74,7 +74,7 @@ public final class VideoMediaLoader extends AbstractMediaLoader implements Media
 	 * @see org.praisenter.media.MediaLoader#load(java.nio.file.Path)
 	 */
 	@Override
-	public Media load(Path path) throws MediaImportException {
+	public MediaLoadResult load(Path path) throws MediaImportException {
 		LOGGER.debug("Video media '{}' loading", path);
 		if (Files.exists(path) && Files.isRegularFile(path)) {
 			BufferedImage frame = null;
@@ -115,11 +115,10 @@ public final class VideoMediaLoader extends AbstractMediaLoader implements Media
 						metadata.getLength(), 
 						metadata.hasAudio(), 
 						null, 
-						thumb, 
-						frame);
+						thumb);
 				
 				LOGGER.debug("Video media '{}' loaded", path);
-				return media;
+				return new MediaLoadResult(media, frame);
 			} catch (InterruptedException e) {
 				LOGGER.error("The process to extract metadata from '" + path.toAbsolutePath().toString() + "' was interrupted.", e);
 				throw new MediaImportException("The process to extract metadata from '" + path.toAbsolutePath().toString() + "' was interrupted.", e);
