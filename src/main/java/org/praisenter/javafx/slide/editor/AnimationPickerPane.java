@@ -97,8 +97,6 @@ import javafx.util.StringConverter;
 import javafx.util.converter.IntegerStringConverter;
 import javafx.util.converter.LongStringConverter;
 
-// FIXME for some reason the arrow key navigation on the FlowListViews in this class is not working; i think they are being intercepted by a different control
-
 /**
  * Represents a control to configure animations.
  * @author William Bittle
@@ -396,13 +394,14 @@ final class AnimationPickerPane extends BorderPane {
 		right.getChildren().addAll(ttlProperties, ttlPreview);
 		VBox.setVgrow(ttlProperties, Priority.ALWAYS);
 		
-		TitledPane ttlAnimations = new TitledPane("Animation", animationListPane);
-		TitledPane ttlEasings = new TitledPane("Easing", easingListPane);
-		ttlAnimations.setCollapsible(false);
-		ttlEasings.setCollapsible(false);
+		// NOTE: removed from TitledPanes since the keyboard navigation is overriden by it
+//		TitledPane ttlAnimations = new TitledPane("Animation", animationListPane);
+//		TitledPane ttlEasings = new TitledPane("Easing", easingListPane);
+//		ttlAnimations.setCollapsible(false);
+//		ttlEasings.setCollapsible(false);
 		
-		HBox columns = new HBox(ttlAnimations, ttlEasings, right);
-		HBox.setHgrow(ttlAnimations, Priority.ALWAYS);
+		HBox columns = new HBox(animationListPane, easingListPane, right);
+		HBox.setHgrow(animationListPane, Priority.ALWAYS);
 		
 		this.setCenter(columns);
 		
@@ -413,8 +412,8 @@ final class AnimationPickerPane extends BorderPane {
 		easingListPane.setMinWidth(130);
 		easingListPane.setMaxHeight(Double.MAX_VALUE);
 		
-		ttlAnimations.setMaxHeight(Double.MAX_VALUE);
-		ttlEasings.setMaxHeight(Double.MAX_VALUE);
+		animationListPane.setMaxHeight(Double.MAX_VALUE);
+		easingListPane.setMaxHeight(Double.MAX_VALUE);
 		
 		// value bindings
 

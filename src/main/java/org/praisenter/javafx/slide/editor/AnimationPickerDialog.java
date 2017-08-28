@@ -116,6 +116,8 @@ final class AnimationPickerDialog extends BorderPane {
 	public void show(Consumer<Animation> callback) {
 		this.callback = callback;
 		this.dialog.show();
+		
+		Fx.centerOnParent(this.dialog);
 	}
 	
 	/**

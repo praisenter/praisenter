@@ -70,7 +70,7 @@ final class SlideGradientPickerDialog extends BorderPane {
 		if (owner != null) {
 			this.dialog.initOwner(owner);
 		}
-		this.dialog.setTitle(Translations.get(""));
+		this.dialog.setTitle(Translations.get("gradient.picker.title"));
 		this.dialog.initModality(Modality.WINDOW_MODAL);
 		this.dialog.initStyle(StageStyle.UTILITY);
 		// NOTE: this makes the title portion of the modal shorter
@@ -78,10 +78,9 @@ final class SlideGradientPickerDialog extends BorderPane {
 		
 		// build the media library pane
 		this.gradientPane = new SlideGradientPickerPane();
-
-		// TODO translate
-		Button btnAccept = new Button("OK");
-		Button btnCancel = new Button("Cancel");
+		
+		Button btnAccept = new Button(Translations.get("ok"));
+		Button btnCancel = new Button(Translations.get("cancel"));
 		
 		// when our value changes, update the media pane
 		this.value.addListener((obs, ov, nv) -> {

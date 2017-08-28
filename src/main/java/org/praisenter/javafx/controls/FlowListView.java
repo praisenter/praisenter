@@ -107,7 +107,10 @@ public class FlowListView<T> extends ScrollPane {
 
 	// focus
 	
+	/** Keyboard shift-select */
 	private FlowListCell<T> startCell = null;
+	
+	/** The current focused cell */
 	private FlowListCell<T> currentCell = null;
 	
 	// properties
@@ -294,7 +297,7 @@ public class FlowListView<T> extends ScrollPane {
  		});
  		
  		// keyboard navigation
- 		this.layout.addEventHandler(KeyEvent.KEY_RELEASED, e -> {
+ 		this.layout.addEventHandler(KeyEvent.KEY_PRESSED, e -> {
  			if (!e.isConsumed()) {
  				this.handleKeyEvent(e);
  			}
@@ -307,7 +310,7 @@ public class FlowListView<T> extends ScrollPane {
  				code != KeyCode.UP && code != KeyCode.DOWN) {
  				return;
  			}
- 			if (e.getEventType() == KeyEvent.KEY_RELEASED) {
+ 			if (e.getEventType() == KeyEvent.KEY_PRESSED) {
  				this.handleKeyEvent(e);
  			}
  			e.consume();

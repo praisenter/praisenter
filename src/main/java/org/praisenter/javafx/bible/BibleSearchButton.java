@@ -93,6 +93,8 @@ public final class BibleSearchButton extends Button {
 			}
 			// show the dialog
 			dialog.show();
+			
+			Fx.centerOnParent(dialog);
 		});
 	}
 	

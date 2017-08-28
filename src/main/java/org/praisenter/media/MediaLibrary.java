@@ -235,6 +235,18 @@ public final class MediaLibrary {
 									} catch (Exception e2) {
 										LOGGER.error("Failed to remove metadata '" + path + "' after detecting the media it refers to doesn't exist.", e2);
 									}
+									
+									// check for frames
+									if (media.type == MediaType.VIDEO) {
+										try {
+											LOGGER.warn("Media '{}' doesn't exist for metadata '{}'. Deleting video frame (if it exists).", media.path, path);
+											// then delete the metadata
+											Files.deleteIfExists(media.getFramePath());
+										} catch (Exception e2) {
+											LOGGER.error("Failed to remove video frame '" + media.getFramePath() + "' after detecting the media it refers to doesn't exist.", e2);
+										}
+									}
+									
 									// and move onto the next item
 									continue;
 								}

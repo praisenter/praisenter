@@ -38,6 +38,7 @@ import javafx.scene.layout.BorderStrokeStyle;
 import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
+import javafx.stage.Stage;
 import javafx.stage.Window;
 
 /**
@@ -163,6 +164,21 @@ public final class Fx {
 			return Cursor.S_RESIZE;
 		} else {
 			return Cursor.MOVE;
+		}
+	}
+	
+	/**
+	 * Center's the given dialog relative to it's parent (if present), otherwise it
+	 * is centered on the screen.
+	 * @param dialog the dialog to center
+	 */
+	public static void centerOnParent(Stage dialog) {
+		Window parent = dialog.getOwner();
+		if (parent != null) {
+			dialog.setX(parent.getX() + parent.getWidth() / 2 - dialog.getWidth() / 2);
+	        dialog.setY(parent.getY() + parent.getHeight() / 2 - dialog.getHeight() / 2);
+		} else {
+			dialog.centerOnScreen();
 		}
 	}
 }

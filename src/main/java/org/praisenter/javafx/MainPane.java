@@ -36,6 +36,8 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Modality;
+import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 
 public final class MainPane extends BorderPane implements ApplicationPane {
 	private static final Logger LOGGER = LogManager.getLogger();
@@ -167,7 +169,10 @@ public final class MainPane extends BorderPane implements ApplicationPane {
 				break;
 			case EXIT:
 				// close the application
-				this.context.getJavaFXContext().getStage().close();
+				// NOTE: we execute a close request so that we can stop the request if
+				// there's unsaved changes or background processes still working
+				Stage stage = this.context.getJavaFXContext().getStage();
+				stage.fireEvent(new WindowEvent(stage, WindowEvent.WINDOW_CLOSE_REQUEST));
 				break;
 			case LOGS:
 				// open the log directory

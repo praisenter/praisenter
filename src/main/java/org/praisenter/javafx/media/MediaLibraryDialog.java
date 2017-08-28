@@ -128,6 +128,8 @@ public final class MediaLibraryDialog extends BorderPane {
 	public void show(Consumer<Media> callback) {
 		this.callback = callback;
 		this.dialog.show();
+		
+		Fx.centerOnParent(this.dialog);
 	}
 	
 	/**

@@ -74,7 +74,6 @@ import javafx.util.Duration;
 // FEATURE (H-L) Quick send to display - any place in the app when the context contains something that could be displayed offer a Quick Display button to allow the user to quickly get it shown - with configurable settings
 // FEATURE (M-L) From selected media items, generate slides or slide show
 // FEATURE (H-H) Auto-update feature
-// FEATURE (H-M) For better memory consumption maybe we can store the frame for video as the base64 encoded string instead of the BufferedImage - need to test to make sure this would provide any benefit
 
 // a. Generate a self-signed public/private key pair
 // b. Generate a signature for the version-check.json and install.jar files
@@ -320,6 +319,7 @@ public final class Praisenter extends Application {
     		stage.setOnCloseRequest(we -> {
     			// check for unsaved changes
     			we.consume();
+    			LOGGER.info("Checking for any unsaved changes.");
 	    		AsyncTask<ButtonType> task = main.checkForUnsavedChanges();
 	    		task.addCompletedHandler(te -> {
 	    			if (task.getValue() != ButtonType.CANCEL) {
@@ -391,11 +391,13 @@ public final class Praisenter extends Application {
     			ShutdownDialog shutdown = new ShutdownDialog(stage, executor);
     			shutdown.completeProperty().addListener((obs, ov, nv) -> {
     				if (nv) {
+    					LOGGER.info("Background threads complete. Closing main window.");
     					stage.close();
     				}
     			});
     			shutdown.show();
     		} else {
+    			LOGGER.info("No background threads awaiting completion. Closing main window.");
     			stage.close();
     		}
 		}
