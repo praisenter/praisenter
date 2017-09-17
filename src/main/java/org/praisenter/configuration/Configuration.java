@@ -32,6 +32,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Locale;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.logging.log4j.LogManager;
@@ -75,6 +76,14 @@ public final class Configuration extends SettingMap<Void> {
 	
 	/** The other settings */
 	@JsonProperty
+	@JsonTypeInfo(
+		use = JsonTypeInfo.Id.NAME,
+		include = JsonTypeInfo.As.PROPERTY)
+	@JsonSubTypes({
+		@Type(value = DisplayList.class, name = "DisplayList"),
+		@Type(value = ResolutionSet.class, name = "ResolutionSet"),
+		@Type(value = UUID.class, name = "UUID")
+	})
 	private final Map<Setting, Object> settings;
 	
 	/**
@@ -98,6 +107,8 @@ public final class Configuration extends SettingMap<Void> {
 		this.settings.put(Setting.MEDIA_TRANSCODING_VIDEO_COMMAND, JavaFXMediaImportProcessor.DEFAULT_TRANSCODE_COMMAND);
 		this.settings.put(Setting.MEDIA_TRANSCODING_AUDIO_COMMAND, JavaFXMediaImportProcessor.DEFAULT_TRANSCODE_COMMAND);
 		this.settings.put(Setting.MEDIA_VIDEO_FRAME_EXTRACT_COMMAND, VideoMediaLoader.DEFAULT_VIDEO_FRAME_EXTRACT_COMMAND);
+		
+		this.settings.put(Setting.PRESENT_WAIT_FOR_TRANSITIONS_TO_COMPLETE, true);
 		
 		ResolutionSet resolutions = new ResolutionSet();
 		resolutions.addAll(Arrays.asList(Resolution.DEFAULT_RESOLUTIONS));

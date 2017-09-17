@@ -16,8 +16,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.Constants;
 import org.praisenter.configuration.Display;
-import org.praisenter.configuration.DisplayRole;
 import org.praisenter.configuration.DisplayList;
+import org.praisenter.configuration.DisplayRole;
 import org.praisenter.configuration.Setting;
 import org.praisenter.javafx.configuration.ObservableConfiguration;
 import org.praisenter.javafx.controls.MessageLabel;
@@ -26,6 +26,7 @@ import org.praisenter.javafx.controls.WellLabel;
 import org.praisenter.javafx.display.DisplayView;
 import org.praisenter.javafx.media.JavaFXMediaImportProcessor;
 import org.praisenter.javafx.themes.Theme;
+import org.praisenter.media.VideoMediaLoader;
 import org.praisenter.resources.translations.Translations;
 
 import javafx.animation.KeyFrame;
@@ -125,9 +126,9 @@ public final class SetupPane extends BorderPane {
 			theme = Theme.DEFAULT;
 		}
 		
-		GridPane gridGeneral = new GridPane();
-		gridGeneral.setHgap(5);
-		gridGeneral.setVgap(5);
+		GridPane gridLangTheme = new GridPane();
+		gridLangTheme.setHgap(5);
+		gridLangTheme.setVgap(5);
 		
 		// language
 		Label lblLocale = new Label("Language");
@@ -136,11 +137,11 @@ public final class SetupPane extends BorderPane {
 		Button btnRefreshLocales = new Button("", ApplicationGlyphs.REFRESH.duplicate());
 		Button btnDownloadLocale = new Button("", ApplicationGlyphs.EXPORT.duplicate());
 		Button btnUploadLocale = new Button("", ApplicationGlyphs.IMPORT.duplicate());
-		gridGeneral.add(lblLocale, 0, 0);
-		gridGeneral.add(cmbLocale, 1, 0);
-		gridGeneral.add(btnRefreshLocales, 2, 0);
-		gridGeneral.add(btnDownloadLocale, 3, 0);
-		gridGeneral.add(btnUploadLocale, 4, 0);
+		gridLangTheme.add(lblLocale, 0, 0);
+		gridLangTheme.add(cmbLocale, 1, 0);
+		gridLangTheme.add(btnRefreshLocales, 2, 0);
+		gridLangTheme.add(btnDownloadLocale, 3, 0);
+		gridLangTheme.add(btnUploadLocale, 4, 0);
 		cmbLocale.setMaxWidth(Double.MAX_VALUE);
 		GridPane.setFillWidth(cmbLocale, true);
 		
@@ -151,25 +152,38 @@ public final class SetupPane extends BorderPane {
 		Button btnRefreshThemes = new Button("", ApplicationGlyphs.REFRESH.duplicate());
 		Button btnDownloadTheme = new Button("", ApplicationGlyphs.EXPORT.duplicate());
 		Button btnUploadTheme = new Button("", ApplicationGlyphs.IMPORT.duplicate());
-		gridGeneral.add(lblTheme, 0, 1);
-		gridGeneral.add(cmbTheme, 1, 1);
-		gridGeneral.add(btnRefreshThemes, 2, 1);
-		gridGeneral.add(btnDownloadTheme, 3, 1);
-		gridGeneral.add(btnUploadTheme, 4, 1);
+		gridLangTheme.add(lblTheme, 0, 1);
+		gridLangTheme.add(cmbTheme, 1, 1);
+		gridLangTheme.add(btnRefreshThemes, 2, 1);
+		gridLangTheme.add(btnDownloadTheme, 3, 1);
+		gridLangTheme.add(btnUploadTheme, 4, 1);
 		cmbTheme.setMaxWidth(Double.MAX_VALUE);
 		GridPane.setFillWidth(cmbTheme, true);
+
+		GridPane gridOther = new GridPane();
+		gridOther.setHgap(5);
+		gridOther.setVgap(5);
+		
+		// wait for transitions
+		Label lblWaitTransitions = new Label("Wait for transitions to complete");
+		CheckBox chkWaitTransitions = new CheckBox();
+		chkWaitTransitions.setSelected(context.getConfiguration().getBoolean(Setting.PRESENT_WAIT_FOR_TRANSITIONS_TO_COMPLETE, false));
+		gridOther.add(lblWaitTransitions, 0, 0);
+		gridOther.add(chkWaitTransitions, 1, 0);
 		
 		// debug mode
 		Label lblDebugMode = new Label("Debug Mode");
 		CheckBox chkDebugMode = new CheckBox();
 		chkDebugMode.setSelected(context.getConfiguration().getBoolean(Setting.APP_DEBUG_MODE, false));
-		gridGeneral.add(lblDebugMode, 0, 2);
-		gridGeneral.add(chkDebugMode, 1, 2);
-
+		gridOther.add(lblDebugMode, 0, 1);
+		gridOther.add(chkDebugMode, 1, 1);
+		
 		VBox vboxGeneral = new VBox(
 				new SectionHeader("Language & Theme"),
-				new MessageLabel("Changing the Theme, Language, or Debug Mode requires the application to be restarted to take effect.", AlertType.INFORMATION, false),
-				gridGeneral);
+				new MessageLabel("Changing the Theme or Language requires the application to be restarted to take effect.", AlertType.INFORMATION, false),
+				gridLangTheme,
+				new SectionHeader("Other"),
+				gridOther);
 		vboxGeneral.setPadding(new Insets(10));
 		vboxGeneral.setSpacing(10);
 		
@@ -206,10 +220,23 @@ public final class SetupPane extends BorderPane {
 		gridMedia.add(txtAudioExtension, 1, 2);
 		gridMedia.add(txtAudioCommand, 2, 2);
 		
+		GridPane gridFrameExtraction = new GridPane();
+		gridFrameExtraction.setHgap(5);
+		gridFrameExtraction.setVgap(7);
+		
+		Label lblFrameExtraction = new Label("Command");
+		TextField txtFrameExtraction = new TextField(context.getConfiguration().getString(Setting.MEDIA_VIDEO_FRAME_EXTRACT_COMMAND, VideoMediaLoader.DEFAULT_VIDEO_FRAME_EXTRACT_COMMAND));
+		txtFrameExtraction.setPrefWidth(600);
+		gridFrameExtraction.add(lblFrameExtraction, 0, 0);
+		gridFrameExtraction.add(txtFrameExtraction, 1, 0);
+		
 		VBox vboxMedia = new VBox(
 				new SectionHeader("Transcoding", "Audio and video media is transcoded into a common format that is supported by Praisenter. Transcoding is the process of converting one media file format to another. You can turn off transcoding if your media is already in the set of supported media formats."),
-				new MessageLabel("The commands below are used to perform the transcoding. The {ffmpeg}, {source}, {target} should not be changed, but all other command text can be. The command should be a valid FFmpeg command line command.", AlertType.INFORMATION, true),
-				gridMedia);
+				new MessageLabel("The commands below are used to perform transcoding audio and video media. The {ffmpeg}, {source}, and {target} tokens should not be changed, but all other command text can. The command should be a valid FFmpeg command line command.", AlertType.INFORMATION, true),
+				gridMedia,
+				new SectionHeader("Video Thumbnails", "This controls the extraction of a frames from video media. The frames are used to generate thumbnails and during editing of slides. The frame selected is determined by the frame's Log Average Luminance that's closest to 0.5."),
+				new MessageLabel("The command below is used to extract individual frames from a video. The {ffmpeg}, {media}, and {frame} tokens should not be changed, but all other command text can. The command should be a valid FFmpeg command line command.", AlertType.INFORMATION, true),
+				gridFrameExtraction);
 		vboxMedia.setPadding(new Insets(10));
 		vboxMedia.setSpacing(10);
 		
@@ -375,6 +402,18 @@ public final class SetupPane extends BorderPane {
 			}
 		});
 		
+		chkWaitTransitions.selectedProperty().addListener((obs, ov, nv) -> {
+			if (nv) {
+				context.getConfiguration()
+					.setBoolean(Setting.PRESENT_WAIT_FOR_TRANSITIONS_TO_COMPLETE, true)
+					.execute(context.getExecutorService());
+			} else {
+				context.getConfiguration()
+					.remove(Setting.PRESENT_WAIT_FOR_TRANSITIONS_TO_COMPLETE)
+					.execute(context.getExecutorService());
+			}
+		});
+		
 		btnIdentify.setOnAction(e -> {
 			// show a window for each screen with a number on it
 			List<Screen> screens = Screen.getScreens();
@@ -429,6 +468,43 @@ public final class SetupPane extends BorderPane {
 			}
 			
 			identifierClose.play();
+		});
+		
+		chkTranscodeAudioVideo.selectedProperty().addListener((obs, ov, nv) -> {
+			if (nv) {
+				context.getConfiguration()
+					.setBoolean(Setting.MEDIA_TRANSCODING_ENABLED, true)
+					.execute(context.getExecutorService());
+			} else {
+				context.getConfiguration()
+					.remove(Setting.MEDIA_TRANSCODING_ENABLED)
+					.execute(context.getExecutorService());
+			}
+		});
+		
+		txtAudioExtension.textProperty().addListener((obs, ov, nv) -> {
+			context.getConfiguration().setString(Setting.MEDIA_TRANSCODING_AUDIO_EXTENSION, nv)
+				.execute(context.getExecutorService());
+		});
+		
+		txtAudioCommand.textProperty().addListener((obs, ov, nv) -> {
+			context.getConfiguration().setString(Setting.MEDIA_TRANSCODING_AUDIO_COMMAND, nv)
+				.execute(context.getExecutorService());
+		});
+		
+		txtVideoExtension.textProperty().addListener((obs, ov, nv) -> {
+			context.getConfiguration().setString(Setting.MEDIA_TRANSCODING_VIDEO_EXTENSION, nv)
+				.execute(context.getExecutorService());
+		});
+		
+		txtVideoCommand.textProperty().addListener((obs, ov, nv) -> {
+			context.getConfiguration().setString(Setting.MEDIA_TRANSCODING_VIDEO_COMMAND, nv)
+				.execute(context.getExecutorService());
+		});
+		
+		txtFrameExtraction.textProperty().addListener((obs, ov, nv) -> {
+			context.getConfiguration().setString(Setting.MEDIA_VIDEO_FRAME_EXTRACT_COMMAND, nv)
+				.execute(context.getExecutorService());
 		});
 		
 		// listener for updating the screen views when the 
@@ -511,16 +587,14 @@ public final class SetupPane extends BorderPane {
 			}
 		});
 		
-		// update when the parent changes
+		// only attach the screen listener when this pane is attached to the scene
 		parentProperty().addListener((obs, ov, nv) -> {
-			TreeItem<SetupTreeData> selected = this.setupTree.getSelectionModel().getSelectedItem();
-			if (nv != null && selected != null && selected.getValue().getName() == DISPLAYS) {
-				screenListener.invalidated(obs);
+			if (nv == null) {
+				Screen.getScreens().removeListener(screenListener);
+			} else if (nv != null) {
+				Screen.getScreens().addListener(screenListener);
 			}
 		});
-		
-		// update when the screens change
-		Screen.getScreens().addListener(screenListener);
 	}
 	
 	private ObservableList<Option<Locale>> refreshLocales() {

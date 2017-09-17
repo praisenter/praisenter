@@ -83,7 +83,7 @@ class MainMenu extends HBox implements EventHandler<ActionEvent> {
 		// File
 		Menu fNew = new Menu("New");
 		MenuItem fNewSlide = createMenuItem(ApplicationAction.NEW_SLIDE);
-		MenuItem fNewSlideShow = new MenuItem("Slide Show");
+		MenuItem fNewSlideShow = createMenuItem(ApplicationAction.NEW_SLIDE_SHOW);
 		MenuItem fNewSong = new MenuItem("Song");
 		Menu fNewBibleRoot = new Menu("Bible");
 		MenuItem fNewBible = createMenuItem(ApplicationAction.NEW_BIBLE);

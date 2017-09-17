@@ -22,9 +22,9 @@
         </RollingFile>
     </Appenders>
     <Loggers>
-        <Root level="debug">
-            <AppenderRef ref="file" level="info" />
-            <AppenderRef ref="console" level="debug" />
+        <Root level="info">
+            <AppenderRef ref="file" level="trace" />
+            <AppenderRef ref="console" level="trace" />
         </Root>
     </Loggers>
 </Configuration>

@@ -24,61 +24,95 @@
  */
 package org.praisenter.javafx.slide;
 
+import java.util.function.BiConsumer;
+
 import org.praisenter.javafx.MappedList;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.slide.Slide;
+import org.praisenter.slide.SlideAssignment;
 
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
+import javafx.scene.control.SelectionMode;
+import javafx.scene.input.MouseEvent;
 
 /**
  * A combobox that shows a list of slides that contain placeholders.
  * @author William Bittle
  * @version 3.0.0
  */
-public final class PlaceholderSlideComboBox extends ComboBox<Slide> {
+public final class SlideLibrarySlideListView extends ListView<Slide> {
+	protected final PraisenterContext context;
+
+	protected final ObjectProperty<BiConsumer<MouseEvent, Slide>> onCellClick = new SimpleObjectProperty<>();
+	
 	/**
 	 * Minimal constructor.
 	 * @param context the praisenter context
 	 */
-	public PlaceholderSlideComboBox(PraisenterContext context) {
-		this.getStyleClass().add("placeholder-slide-combobox");
+	public SlideLibrarySlideListView(PraisenterContext context) {
+		this.context = context;
 		
-		ObservableList<SlideListItem> theList = context.getSlideLibrary().getItems();
-        FilteredList<SlideListItem> filtered = theList.filtered(p -> {
+		this.getStyleClass().add("slide-library-slide-list-view");
+		
+		ObservableList<Slide> items = this.createList();
+        
+		this.setItems(items);
+		this.setCellFactory((view) -> {
+			SlideListCell cell = new SlideListCell();
+			
+			cell.prefWidthProperty().bind(this.widthProperty().subtract(2));
+			
+			// cell click
+			cell.setOnMouseClicked(e -> {
+				BiConsumer<MouseEvent, Slide> func = this.onCellClick.get();
+				if (func != null) {
+					func.accept(e, cell.getItem());
+				}
+			});
+						
+			return cell;
+		});
+		this.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+	}
+	
+	/**
+	 * Creates the source list for the list view.
+	 * @return ObservableList&lt;{@link SlideListItem}&gt;
+	 */
+	private ObservableList<Slide> createList() {
+		ObservableList<SlideListItem> items = this.context.getSlideLibrary().getItems();
+		
+        FilteredList<SlideListItem> filtered = items.filtered(p -> {
         	return  p.isLoaded() && 
-        			p.getSlide() != null && 
-        			p.getSlide().hasPlaceholders();
+        			p.getSlide() != null;
         });
+        
         SortedList<SlideListItem> sorted = filtered.sorted((a, b) -> {
         	if (a == b) return 0;
         	if (a == null && b != null) return 1;
         	if (a != null && b == null) return -1;
         	return a.compareTo(b);
         });
-        this.setItems(new MappedList<>(sorted, (i, s) -> {
-        	return s.getSlide();
-        }));
         
-        // JAVABUG (L) 09/16/17 [workaround] The combobox's drop down goes off screen - I've mitigated by reducing the number of items visible at one time
-        this.setVisibleRowCount(6);
-		this.setCellFactory((view) -> {
-			return new SlideListCell();
-		});
-		this.setButtonCell(new ListCell<Slide>() {
-			@Override
-			protected void updateItem(Slide item, boolean empty) {
-				super.updateItem(item, empty);
+        return new MappedList<>(sorted, (i, s) -> {
+        	return s.getSlide();
+        });
+	}
 
-				if (item == null || empty) {
-					setText(null);
-				} else {
-					setText(item.getName());
-				}
-			}
-		});
+	public void setOnCellClick(BiConsumer<MouseEvent, Slide> handler) {
+		this.onCellClick.set(handler);
+	}
+	
+	public BiConsumer<MouseEvent, Slide> getOnCellClick() {
+		return this.onCellClick.get();
+	}
+	
+	public ObjectProperty<BiConsumer<MouseEvent, Slide>> onCellClickProperty() {
+		return this.onCellClick;
 	}
 }

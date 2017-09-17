@@ -43,7 +43,7 @@ import javafx.scene.layout.VBox;
  * @author William Bittle
  * @version 3.0.0
  */
-final class MediaListCell extends FlowListCell<MediaListItem> {
+final class MediaFlowListCell extends FlowListCell<MediaListItem> {
 	/** The media */
 	private final ObjectProperty<Media> media = new SimpleObjectProperty<Media>(null);
 	
@@ -53,7 +53,7 @@ final class MediaListCell extends FlowListCell<MediaListItem> {
 	 * @param thumbnailSettings the thumbnail settings
 	 * @param defaultThumbnails the default thumbnails
 	 */
-	public MediaListCell(MediaListItem item, ThumbnailSettings thumbnailSettings, DefaultMediaThumbnails defaultThumbnails) {
+	public MediaFlowListCell(MediaListItem item, ThumbnailSettings thumbnailSettings, DefaultMediaThumbnails defaultThumbnails) {
 		super(item);
 		
 		final int maxHeight = thumbnailSettings.getHeight();

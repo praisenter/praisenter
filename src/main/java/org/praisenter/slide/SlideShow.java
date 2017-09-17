@@ -11,9 +11,18 @@ import org.praisenter.json.InstantJsonSerializer;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
+@JsonTypeInfo(
+	use = JsonTypeInfo.Id.NAME,
+	include = JsonTypeInfo.As.PROPERTY)
+@JsonSubTypes({
+	@Type(value = SlideShow.class, name = "show")
+})
 public final class SlideShow {
 	/** The version of the slideshow format */
 	public static final String CURRENT_VERSION = "1";
@@ -49,7 +58,7 @@ public final class SlideShow {
 	boolean loop;
 
 	@JsonProperty
-	final List<UUID> slides;
+	final List<SlideAssignment> slides;
 	
 	public SlideShow() {
 		this(Constants.FORMAT_NAME, SlideShow.CURRENT_VERSION);
@@ -64,14 +73,35 @@ public final class SlideShow {
 		this.id = UUID.randomUUID();
 		this.name = null;
 		this.loop = true;
-		this.slides = new ArrayList<UUID>();
+		this.slides = new ArrayList<SlideAssignment>();
+	}
+	
+	private SlideShow(SlideShow show, boolean exact) {
+		this.createdDate = show.createdDate;
+		this.format = show.format;
+		this.lastModifiedDate = show.lastModifiedDate;
+		this.loop = show.loop;
+		this.name = show.name;
+		this.slides = new ArrayList<>(show.getSlides());
+		this.version = show.version;
+		if (exact) {
+			this.id = show.id;
+		}
+	}
+	
+	public SlideShow copy() {
+		return new SlideShow(this, false);
+	}
+	
+	public SlideShow copy(boolean exact) {
+		return new SlideShow(this, exact);
 	}
 	
 	public UUID getId() {
 		return this.id;
 	}
 	
-	public List<UUID> getSlides() {
+	public List<SlideAssignment> getSlides() {
 		return this.slides;
 	}
 	

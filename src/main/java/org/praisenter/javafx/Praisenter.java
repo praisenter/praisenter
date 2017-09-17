@@ -52,6 +52,7 @@ import javafx.animation.SequentialTransition;
 import javafx.application.Application;
 import javafx.application.ConditionalFeature;
 import javafx.application.Platform;
+import javafx.collections.MapChangeListener;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -304,6 +305,27 @@ public final class Praisenter extends Application {
     		
     		// get the context
     		this.context = e.data;
+    		
+    		// wire up debug mode for logging
+    		this.context.getConfiguration().getSettings().addListener((MapChangeListener.Change<? extends Setting, ? extends Object> c) -> {
+    			if (c.getKey() == Setting.APP_DEBUG_MODE) {
+    				LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
+	    			org.apache.logging.log4j.core.config.Configuration config = ctx.getConfiguration();
+	    			LoggerConfig loggerConfig = config.getLoggerConfig(LogManager.ROOT_LOGGER_NAME);
+	    			Object value = c.getValueAdded();
+	    			if (c.wasAdded() && value != null) {
+	    				boolean on = (boolean)value;
+	    				if (on) {
+	    	    			loggerConfig.setLevel(Level.TRACE);
+	    				} else {
+	    					loggerConfig.setLevel(Level.INFO);
+	    				}
+	    			} else if (c.wasRemoved()) {
+	    				loggerConfig.setLevel(Level.INFO);
+	    			}
+	    			ctx.updateLoggers();
+    			}
+    		});
     		
     		LOGGER.info("Creating the UI.");
     		t0 = System.nanoTime();

@@ -149,29 +149,42 @@ public final class Animations {
 		ParallelTransition inTransitions = new ParallelTransition();
 		ParallelTransition outTransitions = new ParallelTransition();
 		
+		// It's possible that either the incoming or outgoing slides are null. If the incoming
+		// slide is null, this indicates a "clear" action. If the outgoing slide is null, this
+		// indicates nothing is currently being shown.
+		
 		if (in != null) {
+			// get the slide id so we know what animations are for the slide itself
+			UUID slideId = in.getId();
+			
+			// map the incoming slide's nodes
 			Map<UUID, Node> inNodes = mapNodes(in);
+			// map the incoming slide's animations
+			Map<UUID, List<Animation>> inAnimations = mapAnimations(in);
 			
 			// check if we need to animate the slide itself
 			transitionBackground = out == null ? true : in.getRegion().isBackgroundTransitionRequired(out.getRegion());
-			UUID slideId = in.getId();
 			
-			Map<UUID, List<Animation>> inAnimations = mapAnimations(in);
+			// iterate all the animation groups
 			for (UUID key : inAnimations.keySet()) {
 				List<Animation> animations = inAnimations.get(key);
+				
+				// make sure there are some animations for this component
 				if (animations == null || animations.isEmpty()) {
 					continue;
 				}
 				
-				// find the first animation for this region based on the delay
-				long first = Long.MAX_VALUE;
-				for (Animation animation: animations) {
-					if (animation.getDelay() < first) {
-						first = animation.getDelay();
-					}
-				}
+//				// find the first animation for this region based on the delay
+//				long first = Long.MAX_VALUE;
+//				for (Animation animation: animations) {
+//					if (animation.getDelay() < first) {
+//						first = animation.getDelay();
+//					}
+//				}
 				
+				// iterate all the animations
 				for (Animation animation: animations) {
+					// make sure that the node exists for this animation
 					if (animation != null && inNodes.containsKey(key)) {
 						// if we are not transitioning the background, then don't add any
 						// animations that are associated with the background to the transition
@@ -190,9 +203,11 @@ public final class Animations {
 							inTransitions.getChildren().add(transition);
 						} else {
 							// NOTE: this is a hack in my eyes. Basically, I couldn't find any other way to make the
-							//       animation delay entirely until a certain time unless I used a SequentialTransition
+							//       animation delay entirely until a certain time unless I used a SequentialTransition with
 							//		 a delay of it's own. Other attempts always had the animation run the first iteration
-							// 		 regardless of the delay. This can cause problems when chaining animations together
+							// 		 regardless of the delay. This can cause problems when chaining animations together like
+							//		 hiding a node at the beginning of the animation sequence even though it shouldn't occur
+							//		 until the delay
 							SequentialTransition sq = new SequentialTransition(transition);
 							sq.setDelay(Duration.millis(animation.getDelay()));
 							inTransitions.getChildren().add(sq);
@@ -223,6 +238,9 @@ public final class Animations {
 		if (out != null) {
 			UUID slideId = out.getId();
 			List<SlideAnimation> animations = out.getAnimations();
+			
+			// if the incoming slide is non-null, then use it's
+			// animations on the outgoing slide
 			if (in != null) {
 				slideId = in.getId();
 				animations = in.getAnimations();
@@ -233,6 +251,7 @@ public final class Animations {
 				if (animation != null && 
 					animation.getAnimation() != null && 
 					animation.getId() != null &&
+					// we only apply the slide level animation to the outgoing slide
 					animation.getId().equals(slideId)) {
 					
 					// create the transition
@@ -245,13 +264,12 @@ public final class Animations {
 						continue;
 					}
 					
-					// else take the inverse of the animation
-					CustomTransition<?> transition = createCustomTransition(animation.getAnimation().copy(AnimationType.OUT));
-					
 					// if we are transitioning the background, then all we need to do is
 					// use the slide animations to animate the slide's node, the components
 					// will flow with it
 					if (transitionBackground) {
+						// else take the inverse of the animation
+						CustomTransition<?> transition = createCustomTransition(animation.getAnimation().copy(AnimationType.OUT));
 						// set the node
 						transition.setNode(out.getDisplayPane());
 						// add it to the parallel transition
@@ -261,6 +279,8 @@ public final class Animations {
 						// all the components of the out-going slide individually with all the animations
 						// that are for the slide
 						for (ObservableSlideComponent<?> component : out.getComponents()) {
+							// else take the inverse of the animation
+							CustomTransition<?> transition = createCustomTransition(animation.getAnimation().copy(AnimationType.OUT));
 							// set the node
 							transition.setNode(component.getDisplayPane());
 							// add it to the parallel transition
@@ -289,6 +309,11 @@ public final class Animations {
 		return nodes;
 	}
 	
+	/**
+	 * Creates a map of {@link SlideRegion} id to list of animations.
+	 * @param slide the slide
+	 * @return Map&lt;UUID, List&lt;{@link Animation}&gt;&gt;
+	 */
 	private static final Map<UUID, List<Animation>> mapAnimations(ObservableSlide<?> slide) {
 		Map<UUID, List<Animation>> map = new HashMap<>();
 		for (SlideAnimation animation : slide.getAnimations()) {

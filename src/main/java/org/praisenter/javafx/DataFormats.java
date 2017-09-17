@@ -1,5 +1,7 @@
 package org.praisenter.javafx;
 
+import java.util.UUID;
+
 import org.praisenter.bible.Bible;
 import org.praisenter.bible.Book;
 import org.praisenter.bible.Chapter;
@@ -20,6 +22,10 @@ public final class DataFormats {
 	public static final DataFormat SLIDES = DataFormats.forJsonSerializedList(Slide.class);
 	public static final DataFormat SLIDE_COMPONENT = DataFormats.forJsonSerializedClass(SlideComponent.class);
 
+	public static final DataFormat getUniqueFormat() {
+		return new DataFormat("application/x-praisenter-" + UUID.randomUUID().toString().replaceAll("-", ""));
+	}
+	
 	private static final DataFormat forJsonSerializedClass(Class<?> clazz) {
 		return new DataFormat("application/x-praisenter-json;class=" + clazz.getName());
 	}

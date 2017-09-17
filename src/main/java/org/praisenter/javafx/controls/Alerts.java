@@ -181,7 +181,45 @@ public final class Alerts {
 			String title, 
 			String header, 
 			String content) {
-		Alert alert = new Alert(AlertType.INFORMATION);
+		return alert(owner, modality, AlertType.INFORMATION, title, header, content);
+	}
+	
+	/**
+	 * Creates a new info dialog.
+	 * @param owner the owner of this alert
+	 * @param modality the modality of the alert
+	 * @param title the alert window title
+	 * @param header the alert's header section
+	 * @param content the alert's content section
+	 * @return Alert
+	 */
+	public static final Alert warn(
+			Window owner,
+			Modality modality,
+			String title, 
+			String header, 
+			String content) {
+		return alert(owner, modality, AlertType.WARNING, title, header, content);
+	}
+	
+	/**
+	 * Creates a new alert dialog.
+	 * @param owner the owner of this alert
+	 * @param modality the modality of the alert
+	 * @param type the alert type
+	 * @param title the alert window title
+	 * @param header the alert's header section
+	 * @param content the alert's content section
+	 * @return Alert
+	 */
+	private static final Alert alert(
+			Window owner,
+			Modality modality,
+			AlertType type,
+			String title, 
+			String header, 
+			String content) {
+		Alert alert = new Alert(type);
 		alert.setContentText(content);
 		alert.setTitle(title);
 		alert.setHeaderText(header);

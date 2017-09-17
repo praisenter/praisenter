@@ -231,4 +231,7 @@ public final class ApplicationGlyphs {
 	
 	/** Text wrapping toggle icon */
 	public static final Glyph WRAP_TEXT = FONT_AWESOME.create(FontAwesome.Glyph.PARAGRAPH);
+	
+	public static final Glyph ADD_RIGHT = FONT_AWESOME.create(FontAwesome.Glyph.LONG_ARROW_RIGHT);
+	public static final Glyph REMOVE_LEFT = FONT_AWESOME.create(FontAwesome.Glyph.LONG_ARROW_LEFT);
 }

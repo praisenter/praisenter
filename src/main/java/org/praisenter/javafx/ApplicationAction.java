@@ -193,7 +193,9 @@ public enum ApplicationAction {
 	// slide
 	
 	/** Create a new slide */
-	NEW_SLIDE(Translations.get("action.slide.newslide"))
+	NEW_SLIDE(Translations.get("action.slide.newslide")),
+	
+	NEW_SLIDE_SHOW(Translations.get("action.slide.newslideshow"))
 	
 	;
 	

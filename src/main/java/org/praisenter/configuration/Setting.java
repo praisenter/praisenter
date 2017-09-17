@@ -98,4 +98,9 @@ public enum Setting {
 	
 	/** The set of resolutions */
 	DISPLAY_RESOLUTIONS,
+	
+	// other
+	
+	/** Determines if the application should wait until the current transition completes before showing the next slide */
+	PRESENT_WAIT_FOR_TRANSITIONS_TO_COMPLETE,
 }

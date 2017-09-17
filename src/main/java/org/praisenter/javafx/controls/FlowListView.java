@@ -26,8 +26,9 @@ package org.praisenter.javafx.controls;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
+
+import org.praisenter.javafx.DataFormats;
 
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
@@ -55,6 +56,8 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.TilePane;
 import javafx.scene.shape.Rectangle;
 import javafx.util.Callback;
+
+// FEATURE (L-M) Allow reorder of multiple items instead of just one at a time
 
 /**
  * Represents a list view whose items are laid out vertically or horizontally
@@ -100,7 +103,7 @@ public class FlowListView<T> extends ScrollPane {
 	// drag reorder
 
 	/** A special data format for this instance of flow list only */
-	private final DataFormat REORDER = new DataFormat("application/x-praisenter-reorder-" + UUID.randomUUID());
+	private final DataFormat REORDER = DataFormats.getUniqueFormat();
 	
 	/** The cell being dragged */
 	private FlowListCell<T> dragReorderCell = null;

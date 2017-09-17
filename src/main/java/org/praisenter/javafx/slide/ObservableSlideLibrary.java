@@ -393,6 +393,15 @@ public final class ObservableSlideLibrary {
 	public boolean isMediaReferenced(List<UUID> ids) {
 		return this.library.isMediaReferenced(ids.toArray(new UUID[0]));
 	}
+
+	/**
+	 * Returns true if any of the given slides are referenced in a show.
+	 * @param ids the slide ids
+	 * @return boolean
+	 */
+	public boolean isSlideReferenced(List<UUID> ids) {
+		return this.library.isSlideReferenced(ids.toArray(new UUID[0]));
+	}
 	
 	// mutators
 

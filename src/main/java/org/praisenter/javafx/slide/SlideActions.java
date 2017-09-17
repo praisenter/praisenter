@@ -444,13 +444,16 @@ public final class SlideActions {
 	 */
 	public static final AsyncGroupTask<AsyncTask<Void>> slidePromptDelete(ObservableSlideLibrary library, Window owner, List<Slide> slides) {
 		if (slides != null) {
+			// is it used in a show?
+			boolean isReferenced = library.isSlideReferenced(slides.stream().map(s -> s.getId()).collect(Collectors.toList()));
+			
 			// attempt to delete the selected slide
 			Alert alert = Alerts.confirm(
 					owner, 
 					Modality.WINDOW_MODAL, 
 					Translations.get("slide.delete.title"), 
 					null, 
-					Translations.get("slide.delete.content"));
+					isReferenced ? Translations.get("slide.delete.referenced") : Translations.get("slide.delete.content"));
 			
 			Optional<ButtonType> result = alert.showAndWait();
 			if (result.get() == ButtonType.OK) {

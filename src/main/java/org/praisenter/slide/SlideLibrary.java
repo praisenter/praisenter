@@ -231,6 +231,19 @@ public final class SlideLibrary {
 	}
 	
 	/**
+	 * Returns the slide show for the given id.
+	 * <p>
+	 * Returns null if not found or id is null.
+	 * @param id the slide show id
+	 * @return {@link SlideShow}
+	 */
+	public SlideShow getSlideShow(UUID id) {
+		if (id == null) return null;
+		if (!this.shows.containsKey(id)) return null;
+		return this.shows.get(id).getData();
+	}
+	
+	/**
 	 * Returns all the slides in the library.
 	 * @return List&lt;{@link Slide}&gt;
 	 */
@@ -239,11 +252,27 @@ public final class SlideLibrary {
 	}
 	
 	/**
+	 * Returns all the slides in the library.
+	 * @return List&lt;{@link Slide}&gt;
+	 */
+	public List<SlideShow> allSlideShows() {
+		return this.shows.values().stream().map(f -> f.getData()).collect(Collectors.toList());
+	}
+	
+	/**
 	 * Returns the number of slides in the library.
 	 * @return int
 	 */
 	public int size() {
 		return this.slides.size();
+	}
+	
+	/**
+	 * Returns the number of slide shows in the library.
+	 * @return int
+	 */
+	public int slideShowsSize() {
+		return this.shows.size();
 	}
 	
 	/**
@@ -331,7 +360,7 @@ public final class SlideLibrary {
 	 * @param show the slide show to save
 	 * @throws IOException if an IO error occurs
 	 */
-	public void save(SlideShow show) throws IOException {
+	public void saveSlideShow(SlideShow show) throws IOException {
 		// calling this method could indicate one of the following:
 		// 1. New
 		// 2. Save Existing
@@ -434,7 +463,7 @@ public final class SlideLibrary {
 	 * @param show the slide show to remove
 	 * @throws IOException if and IO error occurs
 	 */
-	public void remove(SlideShow show) throws IOException {
+	public void removeSlideShow(SlideShow show) throws IOException {
 		if (show == null) return;
 		
 		UUID id = show.getId();
@@ -709,7 +738,7 @@ public final class SlideLibrary {
 	}
 	
 	/**
-	 * Returns true if any of the given media is in use on a slide.
+	 * Returns true if any of the given media are in use on a slide.
 	 * @param ids the media ids
 	 * @return boolean
 	 */
@@ -717,6 +746,22 @@ public final class SlideLibrary {
 		for (FileData<Slide> fileData : this.slides.values()) {
 			if (fileData.getData().isMediaReferenced(ids)) {
 				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Returns true if any of the given slides are in use on a slide show.
+	 * @param ids the slide ids
+	 * @return boolean
+	 */
+	public boolean isSlideReferenced(UUID... ids) {
+		for (FileData<SlideShow> fileData : this.shows.values()) {
+			for (UUID id : ids) {
+				if (fileData.getData().slides.contains(id)) {
+					return true;
+				}
 			}
 		}
 		return false;

@@ -263,7 +263,7 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
         this.lstMedia = new FlowListView<MediaListItem>(orientation, new Callback<MediaListItem, FlowListCell<MediaListItem>>() {
         	@Override
         	public FlowListCell<MediaListItem> call(MediaListItem item) {
-				return new MediaListCell(item, thumbnailSettings, defaultThumbnails);
+				return new MediaFlowListCell(item, thumbnailSettings, defaultThumbnails);
 			}
         });
         this.lstMedia.itemsProperty().bindContent(sorted);

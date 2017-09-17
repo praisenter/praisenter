@@ -31,15 +31,17 @@ import java.util.Optional;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.configuration.Display;
-import org.praisenter.configuration.DisplayRole;
 import org.praisenter.configuration.DisplayList;
+import org.praisenter.configuration.DisplayRole;
 import org.praisenter.configuration.Setting;
 import org.praisenter.javafx.async.AsyncTaskExecutor;
 import org.praisenter.javafx.configuration.ObservableConfiguration;
 import org.praisenter.javafx.controls.Alerts;
 import org.praisenter.resources.translations.Translations;
 
+import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -63,16 +65,15 @@ public final class DisplayManager {
 	/** The global executor */
 	private final AsyncTaskExecutor executor;
 	
-	/** True if debug mode is enabled */
-	private final boolean debugMode;
-	
 	// data (for now, only to outputs)
 	
-	private final List<DisplayTarget> screens;
+	/** The generated display targets */
+	private final ObservableList<DisplayTarget> targets = FXCollections.observableArrayList();
 	
 	/** True if the screens are being mutated */
 	private boolean mutating = false;
 	
+	/** The alert for notifying of screen changes */
 	private Alert screenChangedWarning = null;
 	
 	/**
@@ -83,8 +84,6 @@ public final class DisplayManager {
 	public DisplayManager(ObservableConfiguration configuration, AsyncTaskExecutor executor) {
 		this.configuration = configuration;
 		this.executor = executor;
-		this.debugMode = configuration.getBoolean(Setting.APP_DEBUG_MODE, false);
-		this.screens = new ArrayList<>();
 	}
 	
 	/**
@@ -135,7 +134,7 @@ public final class DisplayManager {
 			this.screenChangedWarning.close();
 		}
 		// show the new one
-		this.screenChangedWarning = Alerts.info(
+		this.screenChangedWarning = Alerts.warn(
 				scene.getWindow(),
 				Modality.WINDOW_MODAL,
 				state == DesktopState.NO_INITIAL_CONFIGURATION ? Translations.get("init.displaysSet.title") : Translations.get("init.displaysChanged.title"), 
@@ -149,10 +148,10 @@ public final class DisplayManager {
 	 */
 	public void release() {
 		LOGGER.info("Releasing existing displays.");
-		for (DisplayTarget screen : this.screens) {
+		for (DisplayTarget screen : this.targets) {
 			screen.release();
 		}
-		this.screens.clear();
+		this.targets.clear();
 	}
 
 	/**
@@ -217,7 +216,7 @@ public final class DisplayManager {
 				Display display = new Display(i, role, role == DisplayRole.OTHER ? role.toString() + (i - 2) : role.toString(), (int)bounds.getMinX(), (int)bounds.getMinY(), (int)bounds.getWidth(), (int)bounds.getHeight());
 				ds.add(display);
 				if (role != DisplayRole.NONE) {
-					this.screens.add(new DisplayTarget(display, this.debugMode));
+					this.targets.add(new DisplayTarget(this.configuration, display));
 				}
 			}
 			whatHappened = DesktopState.NO_INITIAL_CONFIGURATION;
@@ -227,12 +226,12 @@ public final class DisplayManager {
 				Display newDisplay = display;
 				LOGGER.debug("Before: " + display);
 				DisplayState state = this.getDisplayState(display, screens);
-				Optional<DisplayTarget> screen = this.screens.stream().filter(s -> s.getDisplay().getId() == display.getId()).findFirst();
+				Optional<DisplayTarget> screen = this.targets.stream().filter(s -> s.getDisplay().getId() == display.getId()).findFirst();
 				if (state == DisplayState.SCREEN_INDEX_DOESNT_EXIST) {
 					// then remove the display
 					ds.remove(display);
 					whatHappened = DesktopState.DISPLAY_COUNT_DECREASED;
-					this.screens.removeIf(s -> s.getDisplay().getId() == display.getId());
+					this.targets.removeIf(s -> s.getDisplay().getId() == display.getId());
 					newDisplay = null;
 				} else if (state == DisplayState.POSITION_CHANGED) {
 					// update the display screen
@@ -254,14 +253,14 @@ public final class DisplayManager {
 						if (screen.isPresent()) {
 							screen.get().setDisplay(newDisplay);
 						} else {
-							this.screens.add(new DisplayTarget(newDisplay, this.debugMode));
+							this.targets.add(new DisplayTarget(this.configuration, display));
 						}
 					}
 				} else {
 					if (screen.isPresent()) {
 						DisplayTarget s = screen.get();
 						s.release();
-						this.screens.remove(s);
+						this.targets.remove(s);
 					}
 				}
 			}
@@ -319,5 +318,13 @@ public final class DisplayManager {
 		}
 		
 		return DisplayState.VALID;
+	}
+	
+	/**
+	 * Returns a readonly list of display targets.
+	 * @return {@link ObservableList}&lt;{@link DisplayTarget}&gt;
+	 */
+	public ObservableList<DisplayTarget> getDisplayTargets() {
+		return FXCollections.unmodifiableObservableList(this.targets);
 	}
 }

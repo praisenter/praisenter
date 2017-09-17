@@ -140,7 +140,7 @@ public final class SlideLibraryPane extends BorderPane implements ApplicationPan
 	 * Minimal constructor.
 	 * @param context the context
 	 */
-	public SlideLibraryPane(PraisenterContext context) {
+	public SlideLibraryPane(PraisenterContext context, Orientation orientation) {
 		this.getStyleClass().add("slide-library-pane");
 		
 		this.context = context;
@@ -203,10 +203,10 @@ public final class SlideLibraryPane extends BorderPane implements ApplicationPan
 		this.sortDescending.addListener(filterListener);
 		filterListener.invalidated(null);
 		
-		this.lstSlides = new FlowListView<SlideListItem>(Orientation.HORIZONTAL, new Callback<SlideListItem, FlowListCell<SlideListItem>>() {
+		this.lstSlides = new FlowListView<SlideListItem>(orientation, new Callback<SlideListItem, FlowListCell<SlideListItem>>() {
         	@Override
         	public FlowListCell<SlideListItem> call(SlideListItem item) {
-				return new SlideListCell(item, 100);
+				return new SlideFlowListCell(item, 100);
 			}
         });
 		this.lstSlides.itemsProperty().bindContent(sorted);

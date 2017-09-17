@@ -28,6 +28,7 @@ import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.Robot;
 import java.awt.image.BufferedImage;
+import java.util.Objects;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -181,8 +182,8 @@ public final class DisplayView extends VBox {
 		
 		// on focus lost
 		this.txtName.focusedProperty().addListener((obs, ov, nv) -> {
-			if (!nv) {
-				Display d = this.display.get();
+			Display d = this.display.get();
+			if (!nv && !Objects.equals(d.getName(), this.txtName.getText())) {
 				this.display.set(null);
 				this.display.set(d.withName(this.txtName.getText()));
 			}
@@ -191,8 +192,10 @@ public final class DisplayView extends VBox {
 		// on ENTER key
 		this.txtName.setOnAction(e -> {
 			Display d = this.display.get();
-			this.display.set(null);
-			this.display.set(d.withName(this.txtName.getText()));
+			if (!Objects.equals(d.getName(), this.txtName.getText())) {
+				this.display.set(null);
+				this.display.set(d.withName(this.txtName.getText()));
+			}
 		});
 	}
 	

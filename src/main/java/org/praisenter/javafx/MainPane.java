@@ -23,20 +23,26 @@ import org.praisenter.javafx.media.MediaLibraryPane;
 import org.praisenter.javafx.slide.SlideActions;
 import org.praisenter.javafx.slide.SlideLibraryPane;
 import org.praisenter.javafx.slide.editor.SlideEditorPane;
+import org.praisenter.javafx.slide.editor.SlideShowEditorDialog;
+import org.praisenter.javafx.slide.editor.SlideShowEditorPane;
 import org.praisenter.resources.translations.Translations;
 import org.praisenter.slide.BasicSlide;
 import org.praisenter.slide.Slide;
+import org.praisenter.slide.SlideShow;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.concurrent.Worker.State;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.Dialog;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
 
 public final class MainPane extends BorderPane implements ApplicationPane {
@@ -54,6 +60,8 @@ public final class MainPane extends BorderPane implements ApplicationPane {
 	private final MediaLibraryPane mediaLibraryPane;
 	private final SlideLibraryPane slideLibraryPane;
 	private final SlideEditorPane slideEditorPane;
+	
+	private SlideShowEditorDialog slideShowEditorDialog;
 	
 	private final ObjectProperty<Node> mainContent = new SimpleObjectProperty<Node>();
 
@@ -74,7 +82,7 @@ public final class MainPane extends BorderPane implements ApplicationPane {
 		this.bibleLibraryPane = new BibleLibraryPane(context);
 		this.bibleEditorPane = new BibleEditorPane(context);
 		this.mediaLibraryPane = new MediaLibraryPane(context, Orientation.HORIZONTAL);
-		this.slideLibraryPane = new SlideLibraryPane(context);
+		this.slideLibraryPane = new SlideLibraryPane(context, Orientation.HORIZONTAL);
 		this.slideEditorPane = new SlideEditorPane(context);
 		
 		this.addEventHandler(ApplicationEvent.ALL, e -> {
@@ -161,6 +169,17 @@ public final class MainPane extends BorderPane implements ApplicationPane {
 				this.slideEditorPane.setSlide(slide);
 				this.navigate(this.slideEditorPane);
 				break;
+			case NEW_SLIDE_SHOW:
+				if (this.slideShowEditorDialog == null) {
+					this.slideShowEditorDialog = new SlideShowEditorDialog(this.getScene().getWindow(), this.context);
+				}
+				this.slideShowEditorDialog.setValue(new SlideShow());
+				this.slideShowEditorDialog.show(s -> {
+					if (s != null) {
+						// TODO save the show
+					}
+				});
+				break;
 			case MANAGE_MEDIA:
 				this.navigate(this.mediaLibraryPane);
 				break;
@@ -202,6 +221,7 @@ public final class MainPane extends BorderPane implements ApplicationPane {
 			case IMPORT_BIBLES:
 			case NEW_BIBLE:
 			case NEW_SLIDE:
+			case NEW_SLIDE_SHOW:
 			case IMPORT_MEDIA:
 			case IMPORT_SLIDES:
 			case IMPORT_SONGS:

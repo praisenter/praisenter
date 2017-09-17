@@ -2,15 +2,20 @@ package org.praisenter.javafx.display;
 
 import java.util.ArrayList;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.praisenter.Constants;
 import org.praisenter.configuration.Display;
+import org.praisenter.configuration.Setting;
+import org.praisenter.javafx.configuration.ObservableConfiguration;
 import org.praisenter.javafx.slide.ObservableSlide;
+import org.praisenter.javafx.slide.animation.Animations;
 
 import javafx.animation.Animation.Status;
-import javafx.animation.ParallelTransition;
 import javafx.animation.Transition;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.MapChangeListener;
 import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
@@ -28,9 +33,14 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
 
+// FIXME we need a solution to retain the currently animating background in the video background case...
+
 public final class DisplayTarget {
+	private static final Logger LOGGER = LogManager.getLogger();
+	
+	private final ObservableConfiguration configuration;
+	
 	private final ObjectProperty<Display> display = new SimpleObjectProperty<>();
-	private final boolean debugMode;
 	
 	private final Stage stage;
 	private final Pane surface;
@@ -42,7 +52,8 @@ public final class DisplayTarget {
 	
 	private ObservableSlide<?> slide;
 	
-	public DisplayTarget(Display display, boolean debug) {
+	public DisplayTarget(ObservableConfiguration configuration, Display display) {
+		this.configuration = configuration;
 		this.stage = new Stage(StageStyle.TRANSPARENT);
 
     	// icons
@@ -55,8 +66,6 @@ public final class DisplayTarget {
 		this.stage.getIcons().add(new Image("org/praisenter/resources/logo/icon256x256.png"));
 		this.stage.getIcons().add(new Image("org/praisenter/resources/logo/icon512x512.png"));
     	
-		this.debugMode = debug;
-		
 		this.stage.initModality(Modality.NONE);
 		this.stage.setResizable(false);
 		
@@ -73,15 +82,27 @@ public final class DisplayTarget {
 		
 		this.surface = new Pane();
 		this.surface.setBackground(null);
-		if (this.debugMode) {
-			this.surface.setBorder(new Border(new BorderStroke(
-					Color.RED, 
-					new BorderStrokeStyle(StrokeType.INSIDE, StrokeLineJoin.MITER, StrokeLineCap.SQUARE, 10, 0, new ArrayList<Double>()), 
-					null, 
-					new BorderWidths(10))));
-		}
 		this.stage.setScene(new Scene(this.surface, Color.TRANSPARENT));
 		this.stage.show();
+		
+		// setup debug mode notification
+		this.configuration.getSettings().addListener((MapChangeListener.Change<? extends Setting, ? extends Object> c) -> {
+			if (c.getKey() == Setting.APP_DEBUG_MODE) {
+				Object value = c.getValueAdded();
+				if (c.wasAdded() && value != null) {
+					boolean on = (boolean)value;
+					if (on) {
+						this.surface.setBorder(new Border(new BorderStroke(
+								Color.RED, 
+								new BorderStrokeStyle(StrokeType.INSIDE, StrokeLineJoin.MITER, StrokeLineCap.SQUARE, 10, 0, new ArrayList<Double>()), 
+								null, 
+								new BorderWidths(10))));
+						return;
+					}
+				}
+				this.surface.setBorder(null);
+			}
+		});
 		
 		this.slideSurface0 = new Pane();
 		this.slideSurface1 = new Pane();
@@ -109,6 +130,13 @@ public final class DisplayTarget {
 		this.display.set(display);
 	}
 	
+	@Override
+	public String toString() {
+		return this.display.get().getName();
+	}
+	
+	// the display
+	
 	public Display getDisplay() {
 		return this.display.get();
 	}
@@ -121,12 +149,17 @@ public final class DisplayTarget {
 		return this.display;
 	}
 	
+	// helpers
+	
 	public synchronized void send(final ObservableSlide<?> slide) {
 		// an item was placed on the queue
 		// whats the status of the current transition?
 		if (transition != null) {
-			if (transition.getStatus() == Status.RUNNING) {
+			if (transition.getStatus() == Status.RUNNING && this.configuration.getBoolean(Setting.PRESENT_WAIT_FOR_TRANSITIONS_TO_COMPLETE, true)) {
 				transition.setOnFinished((e) -> {
+					// perform clean up first
+					this.cleanup(this.slide);
+					LOGGER.debug("Transition complete. Showing next slide.");
 					this.display(slide);
 				});
 			} else {
@@ -145,28 +178,15 @@ public final class DisplayTarget {
 		
 		// the master transition will hold the transitions for both
 		// slides, the out-going and the in-coming slides.
-		ParallelTransition master = new ParallelTransition();
+		Transition master = Animations.buildSlideTransition(this.slide, slide);
 		
 		// this transition will contain all the transitions for the slide including
 		// the transition for the slide itself and all its components
-		ParallelTransition incoming = new ParallelTransition();
-		
-		master.getChildren().add(incoming);
+//		ParallelTransition incoming = new ParallelTransition();
+//		
+//		master.getChildren().add(incoming);
 		master.setOnFinished((e) -> {
-			// when this transition is done we need to:
-			// 1. stop all of slide0's media players
-			this.slide.stop();
-			this.slide.dispose();
-			// 2. remove slide0 from the surface
-			this.surface.getChildren().remove(this.slideSurface0);
-			// 3. remove all of slide0's children
-			this.slideSurface0.getChildren().clear();
-			// 4. reassign slide1 to slide0
-			Pane temp = this.slideSurface0;
-			this.slideSurface0 = this.slideSurface1;
-			this.slideSurface1 = temp;
-			// 5. set the current slide
-			this.slide = slide;
+			this.cleanup(slide);
 		});
 		
 		// add the new slide to the surface
@@ -178,11 +198,36 @@ public final class DisplayTarget {
 		this.stage.toFront();
 		
 		// start the media players for this slide (if any)
-		this.slide.play();
+		slide.play();
 		
 		this.transition.play();
 	}
-
+	
+	private void cleanup(ObservableSlide<?> slide) {
+		LOGGER.debug("Transition complete. Performing house cleaning to prepare for next slide.");
+		
+		// when this transition is done we need to:
+		// 1. stop all of slide0's media players
+		if (this.slide != null) {
+			this.slide.stop();
+			this.slide.dispose();
+		}
+		
+		// 2. remove slide0 from the surface
+		this.surface.getChildren().remove(this.slideSurface0);
+		
+		// 3. remove all of slide0's children
+		this.slideSurface0.getChildren().clear();
+		
+		// 4. reassign slide1 to slide0
+		Pane temp = this.slideSurface0;
+		this.slideSurface0 = this.slideSurface1;
+		this.slideSurface1 = temp;
+		
+		// 5. set the current slide
+		this.slide = slide;
+	}
+	
 	public synchronized void release() {
 		if (this.transition != null) {
 			this.transition.stop();
