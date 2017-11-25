@@ -153,6 +153,9 @@ public enum ApplicationAction {
 	/** Show the slides list view */
 	MANAGE_SLIDES(Translations.get("action.manage.slides")),
 	
+	/** Show the slide shows list view */
+	MANAGE_SHOWS(Translations.get("action.manage.shows")),
+	
 	/** Show the songs list view */
 	MANAGE_SONGS(Translations.get("action.manage.songs")),
 	

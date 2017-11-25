@@ -24,6 +24,7 @@
  */
 package org.praisenter.javafx;
 
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.lang.ref.SoftReference;
 import java.nio.file.Path;
@@ -88,22 +89,43 @@ public final class ImageCache {
 	}
 	
 	// helpers
-
+	
 	/**
-	 * Returns the cached image for the given image or loads the image given the path
-	 * if the image is not in the cache.
-	 * <p>
-	 * This should be used for application images.
-	 * @param path the path to the image
+	 * Returns the cached image for the given buffered image or converts the
+	 * given image to a Java FX image.
+	 * @param id the unique identifer
+	 * @param thumbnail the image
 	 * @return Image
 	 */
-	public synchronized Image getOrLoadApplicationImage(Path path) {
-		ImageCacheKey key = new ImageCacheKey(ImageCacheKeyType.APPLICATION_IMAGE, path.toAbsolutePath().toString());
+	public synchronized Image getOrLoadThumbnail(UUID id, BufferedImage thumbnail) {
+		ImageCacheKey key = new ImageCacheKey(ImageCacheKeyType.THUMBNAIL, id.toString());
 		return getOrLoad(key, () -> {
 			try {
-				return this.load(path);
+				LOGGER.debug("Converting BufferedImage into Image.");
+				return SwingFXUtils.toFXImage(thumbnail, null);
 			} catch (Exception ex) {
-				LOGGER.error("Failed to load image from path '" + path.toAbsolutePath().toString() + "'", ex);
+				LOGGER.error("Failed to convert buffered image for '" + id + "'", ex);
+			}
+			return null;
+		});
+	}
+	
+	/**
+	 * Returns the cached image for the given image or loads the image given the classpath
+	 * path if the image is not in the cache.
+	 * <p>
+	 * This should be used for application images.
+	 * @param classpath the classpath path to the image
+	 * @return Image
+	 */
+	public synchronized Image getOrLoadApplicationImage(String classpath) {
+		ImageCacheKey key = new ImageCacheKey(ImageCacheKeyType.APPLICATION_IMAGE, classpath);
+		return getOrLoad(key, () -> {
+			try {
+				LOGGER.debug("Loading image from classpath '{}'.", classpath);
+				return new Image(classpath);
+			} catch (Exception ex) {
+				LOGGER.error("Failed to load image from path '" + classpath + "'", ex);
 			}
 			return null;
 		});
@@ -156,6 +178,7 @@ public final class ImageCache {
 			SoftReference<Image> ref = it.next();
 			if (ref.get() == null) {
 				it.remove();
+				LOGGER.debug("Image with key '{}' has been evicted from the image cache.");
 			}
 		}
 	}
@@ -167,6 +190,7 @@ public final class ImageCache {
 	 * @throws IOException 
 	 */
 	private Image load(Path path) throws IOException {
+		LOGGER.debug("Loading image at path '{}'", path.toAbsolutePath().toString());
 		// using ImageIO and twelvemonkeys lib allows for more supported formats
 		return SwingFXUtils.toFXImage(ImageIO.read(path.toFile()), null);
 	}

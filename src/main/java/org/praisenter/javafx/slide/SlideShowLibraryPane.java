@@ -54,6 +54,7 @@ import org.praisenter.javafx.utility.Fx;
 import org.praisenter.json.JsonIO;
 import org.praisenter.resources.translations.Translations;
 import org.praisenter.slide.Slide;
+import org.praisenter.slide.SlideShow;
 
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
@@ -98,7 +99,7 @@ import javafx.util.Callback;
  * @author William Bittle
  * @version 3.0.0
  */
-public final class SlideLibraryPane extends BorderPane implements ApplicationPane {
+public final class SlideShowLibraryPane extends BorderPane implements ApplicationPane {
 	/** The class-level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
 	
@@ -108,7 +109,7 @@ public final class SlideLibraryPane extends BorderPane implements ApplicationPan
 	// selection
 	
 	/** The selected slide */
-	private final ObjectProperty<Slide> selected = new SimpleObjectProperty<Slide>();
+	private final ObjectProperty<SlideShow> selected = new SimpleObjectProperty<SlideShow>();
 	
 	/** True if the selection is being changed */
 	private boolean selecting = false;
@@ -121,7 +122,7 @@ public final class SlideLibraryPane extends BorderPane implements ApplicationPan
 	// nodes
 	
 	/** The slide listing */
-	private final FlowListView<SlideListItem> lstSlides;
+	private final FlowListView<SlideShowListItem> lstSlideShows;
 
 	// filtering
 
@@ -139,18 +140,19 @@ public final class SlideLibraryPane extends BorderPane implements ApplicationPan
 	/**
 	 * Minimal constructor.
 	 * @param context the context
+	 * @param orientation the orientation
 	 */
-	public SlideLibraryPane(PraisenterContext context, Orientation orientation) {
-		this.getStyleClass().add("slide-library-pane");
+	public SlideShowLibraryPane(PraisenterContext context, Orientation orientation) {
+		this.getStyleClass().add("slide-show-library-pane");
 		
 		this.context = context;
 
 		final ObservableSet<Tag> tags = context.getTags();
 		
         // add sorting and filtering capabilities
-		ObservableList<SlideListItem> theList = context.getSlideLibrary().getSlideItems();
-        FilteredList<SlideListItem> filtered = theList.filtered(p -> true);
-        SortedList<SlideListItem> sorted = filtered.sorted();
+		ObservableList<SlideShowListItem> theList = context.getSlideLibrary().getSlideShowItems();
+        FilteredList<SlideShowListItem> filtered = theList.filtered(p -> true);
+        SortedList<SlideShowListItem> sorted = filtered.sorted();
         
         // define a general listener for all the filters and sorting
         InvalidationListener filterListener = new InvalidationListener() {
@@ -168,29 +170,28 @@ public final class SlideLibraryPane extends BorderPane implements ApplicationPan
 							return true;
 						} else if (s.getName().toLowerCase().contains(text.toLowerCase())) { // search name
 							return true;
-						} else if (s.getTags().stream().anyMatch(t -> t.getName().toLowerCase().contains(text))) { // search tags
-							return true;
 						}
+						// TODO search other stuff?
 					}
 					return false;
 				});
-				sorted.setComparator(new Comparator<SlideListItem>() {
+				sorted.setComparator(new Comparator<SlideShowListItem>() {
 					@Override
-					public int compare(SlideListItem o1, SlideListItem o2) {
+					public int compare(SlideShowListItem o1, SlideShowListItem o2) {
 						int value = 0;
 						if (field == SlideSortField.NAME) {
 							value = COLLATOR.compare(o1.getName(), o2.getName());
 						} else {
 							// check for loaded vs. not loaded slides
 							// sort non-loaded slides to the end
-							if (o1.getSlide() == null && o2.getSlide() == null) return 0;
-							if (o1.getSlide() == null && o2.getSlide() != null) return 1;
-							if (o1.getSlide() != null && o2.getSlide() == null) return -1;
+							if (o1.getSlideShow() == null && o2.getSlideShow() == null) return 0;
+							if (o1.getSlideShow() == null && o2.getSlideShow() != null) return 1;
+							if (o1.getSlideShow() != null && o2.getSlideShow() == null) return -1;
 							
 							if (field == SlideSortField.LAST_MODIFIED_DATE) {
-								value = -1 * (o1.getSlide().getLastModifiedDate().compareTo(o2.getSlide().getLastModifiedDate()));
+								value = -1 * (o1.getSlideShow().getLastModifiedDate().compareTo(o2.getSlideShow().getLastModifiedDate()));
 							} else if (field == SlideSortField.CREATED_DATE) {
-								value = -1 * (o1.getSlide().getCreatedDate().compareTo(o2.getSlide().getCreatedDate()));
+								value = -1 * (o1.getSlideShow().getCreatedDate().compareTo(o2.getSlideShow().getCreatedDate()));
 							}
 						}
 						return (desc ? 1 : -1) * value;
@@ -203,15 +204,15 @@ public final class SlideLibraryPane extends BorderPane implements ApplicationPan
 		this.sortDescending.addListener(filterListener);
 		filterListener.invalidated(null);
 		
-		this.lstSlides = new FlowListView<SlideListItem>(orientation, new Callback<SlideListItem, FlowListCell<SlideListItem>>() {
+		this.lstSlideShows = new FlowListView<SlideShowListItem>(orientation, new Callback<SlideShowListItem, FlowListCell<SlideShowListItem>>() {
         	@Override
-        	public FlowListCell<SlideListItem> call(SlideListItem item) {
-				return new SlideFlowListCell(item, context.getImageCache(), 100);
+        	public FlowListCell<SlideShowListItem> call(SlideShowListItem item) {
+				return new SlideShowFlowListCell(context, item, 100);
 			}
         });
-		this.lstSlides.itemsProperty().bindContent(sorted);
-        this.lstSlides.setOnDragOver(this::onDragOver);
-        this.lstSlides.setOnDragDropped(this::onDragDropped);
+		this.lstSlideShows.itemsProperty().bindContent(sorted);
+        this.lstSlideShows.setOnDragOver(this::onDragOver);
+        this.lstSlideShows.setOnDragDropped(this::onDragDropped);
 
 		VBox right = new VBox();
 		VBox importSteps = new VBox();
@@ -250,10 +251,10 @@ public final class SlideLibraryPane extends BorderPane implements ApplicationPan
 //				new HBox(lblOpenSong),
 //				new HBox(lblStep2, lblStep2Text));
 
-		SlidePropertiesPane sip = new SlidePropertiesPane(context.getTags());
+		SlideShowPropertiesPane ssip = new SlideShowPropertiesPane(context);
 
 		//TitledPane ttlImport = new TitledPane(Translations.get("slide.import.howto.title"), importSteps);
-		TitledPane ttlMetadata = new TitledPane(Translations.get("slide.properties.title"), sip);
+		TitledPane ttlMetadata = new TitledPane(Translations.get("slide.properties.title"), ssip);
 		
 		right.getChildren().addAll(/*ttlImport, */ttlMetadata);
 		
@@ -321,7 +322,7 @@ public final class SlideLibraryPane extends BorderPane implements ApplicationPan
         
         top.getChildren().addAll(pFilter, pSort);
 
-		SplitPane split = new SplitPane(this.lstSlides, rightScroller);
+		SplitPane split = new SplitPane(this.lstSlideShows, rightScroller);
 		split.setDividerPositions(0.75);
 		SplitPane.setResizableWithParent(rightScroller, false);
 		
@@ -331,13 +332,13 @@ public final class SlideLibraryPane extends BorderPane implements ApplicationPan
         // BINDINGS & EVENTS
 
 		// update the local selection
-		this.lstSlides.getSelectionModel().selectionsProperty().addListener((obs, ov, nv) -> {
+		this.lstSlideShows.getSelectionModel().selectionsProperty().addListener((obs, ov, nv) -> {
 			if (selecting) return;
 			selecting = true;
         	if (nv == null || nv.size() != 1) {
         		this.selected.set(null);
         	} else {
-        		this.selected.set(nv.get(0).getSlide());
+        		this.selected.set(nv.get(0).getSlideShow());
         	}
         	selecting = false;
         	this.stateChanged(ApplicationPaneEvent.REASON_SELECTION_CHANGED);
@@ -346,32 +347,29 @@ public final class SlideLibraryPane extends BorderPane implements ApplicationPan
         	if (selecting) return;
         	selecting = true;
         	if (nv == null) {
-        		lstSlides.getSelectionModel().clear();
+        		lstSlideShows.getSelectionModel().clear();
         	} else {
-        		lstSlides.getSelectionModel().selectOnly(context.getSlideLibrary().getSlideListItem(nv.getId()));
+        		lstSlideShows.getSelectionModel().selectOnly(context.getSlideLibrary().getSlideShowListItem(nv.getId()));
         	}
         	selecting = false;
         	this.stateChanged(ApplicationPaneEvent.REASON_SELECTION_CHANGED);
         });
         
-		this.lstSlides.addEventHandler(SelectionEvent.DOUBLE_CLICK, (e) -> {
+		this.lstSlideShows.addEventHandler(SelectionEvent.DOUBLE_CLICK, (e) -> {
 			@SuppressWarnings("unchecked")
-			FlowListCell<SlideListItem> view = (FlowListCell<SlideListItem>)e.getTarget();
-			SlideListItem item = view.getData();
+			FlowListCell<SlideShowListItem> view = (FlowListCell<SlideShowListItem>)e.getTarget();
+			SlideShowListItem item = view.getData();
 			if (item.isLoaded()) {
-	    		fireEvent(new ApplicationEvent(e.getSource(), e.getTarget(), ApplicationEvent.ALL, ApplicationAction.EDIT, item.getSlide()));
+	    		fireEvent(new ApplicationEvent(e.getSource(), e.getTarget(), ApplicationEvent.ALL, ApplicationAction.EDIT, item.getSlideShow()));
 	    	}
 		});
-		
-		sip.addEventHandler(SlideMetadataEvent.ADD_TAG, this::onSlideTagAdded);
-        sip.addEventHandler(SlideMetadataEvent.REMOVE_TAG, this::onSlideTagRemoved);
 		
 		// setup the context menu
 		ApplicationContextMenu menu = new ApplicationContextMenu(this);
 		menu.getItems().addAll(
 				menu.createMenuItem(ApplicationAction.OPEN),
 				new SeparatorMenuItem(),
-				menu.createMenuItem(ApplicationAction.NEW_SLIDE, Translations.get("action.new")),
+				menu.createMenuItem(ApplicationAction.NEW_SLIDE_SHOW, Translations.get("action.new")),
 				menu.createMenuItem(ApplicationAction.COPY),
 				menu.createMenuItem(ApplicationAction.PASTE),
 				new SeparatorMenuItem(),
@@ -384,10 +382,10 @@ public final class SlideLibraryPane extends BorderPane implements ApplicationPan
 				menu.createMenuItem(ApplicationAction.SELECT_ALL),
 				menu.createMenuItem(ApplicationAction.SELECT_NONE),
 				menu.createMenuItem(ApplicationAction.SELECT_INVERT));
-		this.lstSlides.setContextMenu(menu);
+		this.lstSlideShows.setContextMenu(menu);
 
         // wire up the selected slide to the slide info view with a unidirectional binding
-        sip.slideProperty().bind(this.lstSlides.getSelectionModel().selectionProperty());
+        ssip.slideShowProperty().bind(this.lstSlideShows.getSelectionModel().selectionProperty());
         
         // setup the event handler for application events
         this.addEventHandler(ApplicationEvent.ALL, this::onApplicationEvent);
@@ -424,87 +422,48 @@ public final class SlideLibraryPane extends BorderPane implements ApplicationPan
 				paths.add(file.toPath());
 			}
 			
-			SlideActions.slideImport(
-					this.context, 
-					this.getScene().getWindow(), 
-					paths)
-			.execute(this.context.getExecutorService());
+			// TODO implement
+//			SlideActions.slideImport(
+//					this.context, 
+//					this.getScene().getWindow(), 
+//					paths)
+//			.execute(this.context.getExecutorService());
 		}
 		event.setDropCompleted(true);
 		event.consume();
 	}
 	
 	/**
-	 * Handles the tag added event for a slide.
-	 * @param event the event
-	 */
-	private void onSlideTagAdded(SlideTagEvent event) {
-		SlideListItem item = event.getSlideListItem();
-    	Slide slide = item.getSlide();
-    	Tag tag = event.getTag();
-    	
-    	AsyncTask<Void> task = SlideActions.slideAddTag(
-			this.context.getSlideLibrary(), 
-			this.getScene().getWindow(), 
-			slide,
-			tag);
-    	task.addSuccessHandler((e) -> {
-			this.context.getTags().add(tag);
-		}).addCancelledOrFailedHandler((e) -> {
-			// remove it from the tags
-			item.getTags().remove(tag);
-		}).execute(this.context.getExecutorService());
-	}
-	
-	/**
-	 * Handles the tag removed event for a slide.
-	 * @param event the event
-	 */
-	private void onSlideTagRemoved(SlideTagEvent event) {
-		SlideListItem item = event.getSlideListItem();
-    	Slide slide = item.getSlide();
-    	Tag tag = event.getTag();
-    	
-		AsyncTask<Void> task = SlideActions.slideRemoveTag(
-    			this.context.getSlideLibrary(), 
-    			this.getScene().getWindow(), 
-    			slide, 
-    			tag);
-		task.addCancelledOrFailedHandler((e) -> {
-			// add it back to the item
-			item.getTags().add(tag);
-		}).execute(this.context.getExecutorService());
-	}
-	
-	/**
 	 * Handler for when slides are deleted.
 	 */
 	private void promptDelete() {
-		List<Slide> slides = new ArrayList<Slide>();
-		for (SlideListItem item : this.lstSlides.getSelectionModel().selectionsProperty().get()) {
+		List<SlideShow> shows = new ArrayList<SlideShow>();
+		for (SlideShowListItem item : this.lstSlideShows.getSelectionModel().selectionsProperty().get()) {
 			// can't delete items that are still being imported
 			if (item.isLoaded()) {
-				slides.add(item.getSlide());
+				shows.add(item.getSlideShow());
 			}
 		}
 		
-		SlideActions.slidePromptDelete(
-				this.context.getSlideLibrary(), 
-				this.getScene().getWindow(), 
-				slides)
-		.execute(this.context.getExecutorService());
+		// TODO implement
+//		SlideActions.slidePromptDelete(
+//				this.context.getSlideLibrary(), 
+//				this.getScene().getWindow(), 
+//				slides)
+//		.execute(this.context.getExecutorService());
 	}
 
     /**
      * Event handler for renaming slides.
      * @param event the event
      */
-    private final void promptRename(Slide slide) {
-    	SlideActions.slidePromptRename(
-    			this.context.getSlideLibrary(), 
-    			this.getScene().getWindow(), 
-    			slide)
-    	.execute(this.context.getExecutorService());
+    private final void promptRename(SlideShow show) {
+    	// TODO implement
+//    	SlideActions.slidePromptRename(
+//    			this.context.getSlideLibrary(), 
+//    			this.getScene().getWindow(), 
+//    			slide)
+//    	.execute(this.context.getExecutorService());
     }
     
     /**
@@ -515,10 +474,10 @@ public final class SlideLibraryPane extends BorderPane implements ApplicationPan
 		ClipboardContent content = new ClipboardContent();
 		List<String> names = new ArrayList<String>();
 		List<String> data = new ArrayList<String>();
-		for (SlideListItem item : this.lstSlides.getSelectionModel().selectionsProperty()) {
+		for (SlideShowListItem item : this.lstSlideShows.getSelectionModel().selectionsProperty()) {
 			if (item.isLoaded()) {
 				try {
-					data.add(JsonIO.write(item.getSlide()));
+					data.add(JsonIO.write(item.getSlideShow()));
 					names.add(item.getName());
 				} catch (Exception ex) {
 					LOGGER.warn("Failed to copy slide '" + item.getName() + "' to clipboard.", ex);
@@ -526,7 +485,7 @@ public final class SlideLibraryPane extends BorderPane implements ApplicationPan
 			}
 		}
 		content.putString(String.join(", ", names));
-		content.put(DataFormats.SLIDES, data);
+		content.put(DataFormats.SLIDE_SHOWS, data);
 		cb.setContent(content);
 		this.stateChanged(ApplicationPaneEvent.REASON_DATA_COPIED);
     }
@@ -536,22 +495,22 @@ public final class SlideLibraryPane extends BorderPane implements ApplicationPan
      */
     private final void paste() {
     	Clipboard cb = Clipboard.getSystemClipboard();
-		Object data = cb.getContent(DataFormats.SLIDES);
+		Object data = cb.getContent(DataFormats.SLIDE_SHOWS);
 		if (data != null && data instanceof List) {
 			// make a copy
-			List<?> slides = (List<?>)data;
-			for (Object slide : slides) {
-				if (slide instanceof String) {
+			List<?> shows = (List<?>)data;
+			for (Object show : shows) {
+				if (show instanceof String) {
 					try {
-						Slide copy = JsonIO.read((String)slide, Slide.class);
-						copy.updatePlaceholders();
-						SlideActions.slideCopy(
-								this.context.getSlideLibrary(),
-								this.getScene().getWindow(),
-								copy)
-						.execute(this.context.getExecutorService());
+						SlideShow copy = JsonIO.read((String)show, SlideShow.class);
+						// TODO implement
+//						SlideActions.slideCopy(
+//								this.context.getSlideLibrary(),
+//								this.getScene().getWindow(),
+//								copy)
+//						.execute(this.context.getExecutorService());
 					} catch (Exception ex) {
-						LOGGER.warn("Failed to paste slide '" + slide + "' from clipboard.", ex);
+						LOGGER.warn("Failed to paste slide show '" + show + "' from clipboard.", ex);
 					}
 				}
 			}
@@ -562,30 +521,31 @@ public final class SlideLibraryPane extends BorderPane implements ApplicationPan
      * Event handler for exporting slides.
      */
     private final void promptExport() {
-    	List<SlideListItem> items = this.lstSlides.getSelectionModel().selectionsProperty().get();
-		List<Slide> slides = new ArrayList<Slide>();
-		for (SlideListItem item : items) {
+    	List<SlideShowListItem> items = this.lstSlideShows.getSelectionModel().selectionsProperty().get();
+		List<SlideShow> shows = new ArrayList<SlideShow>();
+		for (SlideShowListItem item : items) {
 			if (item.isLoaded()) {
-				slides.add(item.getSlide());
+				shows.add(item.getSlideShow());
 			}
 		}
     	
-    	SlideActions.slidePromptExport(
-    			this.context, 
-    			this.getScene().getWindow(), 
-    			slides,
-    			// TODO do we need to export shows too?
-    			null)
-    	.execute(this.context.getExecutorService());
+		// TODO implement
+//    	SlideActions.slidePromptExport(
+//    			this.context, 
+//    			this.getScene().getWindow(), 
+//    			slides,
+//    			// TODO do we need to export shows too?
+//    			null)
+//    	.execute(this.context.getExecutorService());
     }
     
     /**
      * Event handler for editing the selected item.
      */
     private void editSelected() {
-    	SlideListItem item = this.lstSlides.getSelectionModel().selectionProperty().get();
+    	SlideShowListItem item = this.lstSlideShows.getSelectionModel().selectionProperty().get();
     	if (item != null && item.isLoaded()) {
-    		fireEvent(new ApplicationEvent(this, this, ApplicationEvent.ALL, ApplicationAction.EDIT, item.getSlide()));
+    		fireEvent(new ApplicationEvent(this, this, ApplicationEvent.ALL, ApplicationAction.EDIT, item.getSlideShow()));
     	}
     }
     
@@ -595,10 +555,10 @@ public final class SlideLibraryPane extends BorderPane implements ApplicationPan
      */
     private final void onApplicationEvent(ApplicationEvent event) {
     	Node focused = this.getScene().getFocusOwner();
-    	boolean isFocused = focused == this || Fx.isNodeInFocusChain(focused, this.lstSlides);
+    	boolean isFocused = focused == this || Fx.isNodeInFocusChain(focused, this.lstSlideShows);
     	
     	ApplicationAction action = event.getAction();
-    	Slide selected = this.selected.get();
+    	SlideShow selected = this.selected.get();
     	
     	switch (action) {
     		case RENAME:
@@ -626,16 +586,16 @@ public final class SlideLibraryPane extends BorderPane implements ApplicationPan
     			break;
     		case SELECT_ALL:
 				if (isFocused) {
-	    			this.lstSlides.getSelectionModel().selectAll();
+	    			this.lstSlideShows.getSelectionModel().selectAll();
 	    			this.stateChanged(ApplicationPaneEvent.REASON_SELECTION_CHANGED);
 				}
     			break;
     		case SELECT_NONE:
-    			this.lstSlides.getSelectionModel().clear();
+    			this.lstSlideShows.getSelectionModel().clear();
     			this.stateChanged(ApplicationPaneEvent.REASON_SELECTION_CHANGED);
     			break;
     		case SELECT_INVERT:
-    			this.lstSlides.getSelectionModel().invert();
+    			this.lstSlideShows.getSelectionModel().invert();
     			this.stateChanged(ApplicationPaneEvent.REASON_SELECTION_CHANGED);
     			break;
     		case EXPORT:
@@ -654,7 +614,7 @@ public final class SlideLibraryPane extends BorderPane implements ApplicationPan
     	Scene scene = this.getScene();
     	// don't bother if there's no place to send the event to
     	if (scene != null) {
-    		fireEvent(new ApplicationPaneEvent(this.lstSlides, SlideLibraryPane.this, ApplicationPaneEvent.STATE_CHANGED, SlideLibraryPane.this, reason));
+    		fireEvent(new ApplicationPaneEvent(this.lstSlideShows, SlideShowLibraryPane.this, ApplicationPaneEvent.STATE_CHANGED, SlideShowLibraryPane.this, reason));
     	}
     }
     
@@ -665,11 +625,11 @@ public final class SlideLibraryPane extends BorderPane implements ApplicationPan
 	public boolean isApplicationActionEnabled(ApplicationAction action) {
     	Node focused = this.getScene().getFocusOwner();
 		
-		List<SlideListItem> selected = this.lstSlides.getSelectionModel().selectionsProperty().get();
+		List<SlideShowListItem> selected = this.lstSlideShows.getSelectionModel().selectionsProperty().get();
 		
 		boolean isSingleSelected = selected.size() == 1;
     	boolean isMultiSelected = selected.size() > 0;
-    	boolean isFocused = focused == this || Fx.isNodeInFocusChain(focused, this.lstSlides);
+    	boolean isFocused = focused == this || Fx.isNodeInFocusChain(focused, this.lstSlideShows);
     	boolean isLoaded = selected.stream().allMatch(b -> b.isLoaded());
 		
 		switch (action) {
@@ -726,7 +686,7 @@ public final class SlideLibraryPane extends BorderPane implements ApplicationPan
 	@Override
 	public void cleanup() {
 		// clear the selection
-		this.lstSlides.getSelectionModel().clear();
+		this.lstSlideShows.getSelectionModel().clear();
 		
 		// reset sort/filter
 		this.textFilter.set(null);

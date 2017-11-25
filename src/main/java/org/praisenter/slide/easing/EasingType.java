@@ -24,14 +24,11 @@
  */
 package org.praisenter.slide.easing;
 
-import javax.xml.bind.annotation.XmlEnum;
-
 /**
  * Enumeration of easing types.
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlEnum
 public enum EasingType {
 	/** in */
 	IN,

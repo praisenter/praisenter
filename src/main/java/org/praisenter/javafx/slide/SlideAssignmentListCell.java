@@ -42,9 +42,9 @@ final class SlideAssignmentListCell extends ListCell<SlideAssignment> {
 			setText(null);
 		} else {
 			// use the context to get the appropriate SlideListItem for this assignment
-			SlideListItem sli = this.context.getSlideLibrary().getListItem(item.getSlideId());
+			SlideListItem sli = this.context.getSlideLibrary().getSlideListItem(item.getSlideId());
 			if (sli != null) {
-				this.graphic.setImage(SwingFXUtils.toFXImage(sli.getSlide().getThumbnail(), null));
+				this.graphic.setImage(this.context.getImageCache().getOrLoadThumbnail(sli.getSlide().getId(), sli.getSlide().getThumbnail()));
 				this.pane.setVisible(true);
 				setText(sli.getName());
 			} else {

@@ -51,6 +51,7 @@ import org.praisenter.javafx.media.ObservableMediaLibrary;
 import org.praisenter.media.Media;
 import org.praisenter.resources.translations.Translations;
 import org.praisenter.slide.Slide;
+import org.praisenter.slide.SlideShow;
 import org.praisenter.utility.MimeType;
 import org.praisenter.utility.StringManipulator;
 
@@ -99,7 +100,7 @@ public final class SlideActions {
 						tasks.add(mediaLibrary.importMedia(path));
 					}
 					// import the slides
-					tasks.add(library.add(path));
+					tasks.add(library.importSlidesAndShows(path));
 				}
 			}
 			// wrap the tasks in a multi-task wait task
@@ -221,10 +222,11 @@ public final class SlideActions {
 	 * Returns a task that will prompt the user to select a file name to export the given slides to.
 	 * @param context the context
 	 * @param owner the window owner
-	 * @param slides the slides to export
+	 * @param slides the slides to export; can be null
+	 * @param shows the slide shows to export; can be null
 	 * @return {@link AsyncTask}&lt;Void&gt;
 	 */
-	public static final AsyncChainedTask<AsyncTask<Void>> slidePromptExport(PraisenterContext context, Window owner, List<Slide> slides) {
+	public static final AsyncChainedTask<AsyncTask<Void>> slidePromptExport(PraisenterContext context, Window owner, List<Slide> slides, List<SlideShow> shows) {
 		// sanity check
 		if (slides != null && !slides.isEmpty()) {
 			String name = Translations.get("slide.export.multiple.filename"); 
@@ -269,7 +271,7 @@ public final class SlideActions {
 		    		
 		    		List<AsyncTask<Void>> tasks = new ArrayList<AsyncTask<Void>>();
 		    		// export the slides
-	    			tasks.add(slideLibrary.exportSlides(zos, path.getFileName().toString(), slides));
+	    			tasks.add(slideLibrary.exportSlidesAndShows(zos, path.getFileName().toString(), slides, shows));
 	    			// export the media
 	    			if (!media.isEmpty()) {
 	    				tasks.add(mediaLibrary.exportMedia(zos, media));

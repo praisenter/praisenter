@@ -41,7 +41,9 @@ import org.praisenter.javafx.async.AsyncTaskFactory;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.resources.translations.Translations;
 import org.praisenter.slide.Slide;
+import org.praisenter.slide.SlideImportResult;
 import org.praisenter.slide.SlideLibrary;
+import org.praisenter.slide.SlideShow;
 
 import javafx.beans.Observable;
 import javafx.collections.FXCollections;
@@ -55,7 +57,7 @@ import javafx.collections.ObservableList;
  * This wrapper allows Java FX controls to bind to the list of slide items
  * to allow updating of the view from wherever the view is changed.
  * <p>
- * NOTE: modifications to the {@link #getItems()} and success and error handlers
+ * NOTE: modifications to the {@link #getSlideItems()} and success and error handlers
  * will always be performed on the FX UI thread.
  * @author William Bittle
  * @version 3.0.0
@@ -73,7 +75,10 @@ public final class ObservableSlideLibrary {
 	
 	/** The observable list of slides */
 	private final ObservableList<SlideListItem> items;
-
+	
+	/** The observable list of slide shows */
+	private final ObservableList<SlideShowListItem> shows;
+	
 	/**
 	 * Minimal constructor.
 	 * @param library the slide library
@@ -83,7 +88,7 @@ public final class ObservableSlideLibrary {
 		this.library = library;
 		this.thumbnailGenerator = thumbnailGenerator;
 		
-		items = FXCollections.observableArrayList((sli) -> {
+		this.items = FXCollections.observableArrayList((sli) -> {
 			return new Observable[] {
 				sli.slideProperty(),
 				sli.nameProperty(),
@@ -91,21 +96,42 @@ public final class ObservableSlideLibrary {
 			};
 		});
 		
+		this.shows = FXCollections.observableArrayList((ssli) -> {
+			return new Observable[] {
+				ssli.slideShowProperty(),
+				ssli.nameProperty(),
+				ssli.loadedProperty()
+			};
+		});
+		
 		List<Slide> slides = null;
+		List<SlideShow> shows = null;
 		if (library != null) {
 			try {
-				slides = library.all();
+				slides = library.allSlides();
 			} catch (Exception ex) {
 				LOGGER.error("Failed to load slides.", ex);
+			}
+			
+			try {
+				shows = library.allSlideShows();
+			} catch (Exception ex) {
+				LOGGER.error("Failed to load slide shows.", ex);
 			}
 		}
 		
 		if (slides != null) {
-			// add all the current media to the observable list
 			for (Slide slide : slides) {
 				this.items.add(new SlideListItem(slide));
 	        }
 		}
+		
+		if (shows != null) {
+			for (SlideShow show : shows ) {
+				this.shows.add(new SlideShowListItem(show));
+			}
+		}
+		
 	}
 
 	/**
@@ -113,7 +139,7 @@ public final class ObservableSlideLibrary {
 	 * @param slide the slide
 	 * @return {@link SlideListItem}
 	 */
-	private SlideListItem getListItem(Slide slide) {
+	private SlideListItem getSlideListItem(Slide slide) {
 		if (slide == null) return null;
 		SlideListItem si = null;
     	for (int i = 0; i < this.items.size(); i++) {
@@ -130,11 +156,32 @@ public final class ObservableSlideLibrary {
 	}
 	
 	/**
+	 * Returns the slide show list item for the given slide show or null if not found.
+	 * @param show the slide show
+	 * @return {@link SlideShowListItem}
+	 */
+	private SlideShowListItem getSlideShowListItem(SlideShow show) {
+		if (show == null) return null;
+		SlideShowListItem si = null;
+    	for (int i = 0; i < this.shows.size(); i++) {
+    		SlideShowListItem item = this.shows.get(i);
+    		if (item != null &&
+    			item.isLoaded() &&
+    			item.getSlideShow() != null &&
+    			item.getSlideShow().getId().equals(show.getId())) {
+    			si = item;
+    			break;
+    		}
+    	}
+    	return si;
+	}
+	
+	/**
 	 * Attempts to add the given path to the slide library.
 	 * @param path the path to the slide
 	 * @return {@link AsyncTask}&lt;List&lt;{@link Slide}&gt;&gt;
 	 */
-	public AsyncTask<List<Slide>> add(Path path) {
+	public AsyncTask<SlideImportResult> importSlidesAndShows(Path path) {
 		if (path != null) {
 			// create a "loading" item
 			final SlideListItem loading = new SlideListItem(path.getFileName().toString());
@@ -146,18 +193,21 @@ public final class ObservableSlideLibrary {
 			});
 			
 			// execute the add on a different thread
-			AsyncTask<List<Slide>> task = new AsyncTask<List<Slide>>(MessageFormat.format(Translations.get("task.import"), path.getFileName())) {
+			AsyncTask<SlideImportResult> task = new AsyncTask<SlideImportResult>(MessageFormat.format(Translations.get("task.import"), path.getFileName())) {
 				@Override
-				protected List<Slide> call() throws Exception {
+				protected SlideImportResult call() throws Exception {
 					updateProgress(-1, 0);
-					return library.importSlides(path);
+					return library.importSlidesAndShows(path);
 				}
 			};
 			task.setOnSucceeded((e) -> {
-				List<Slide> slides = task.getValue();
+				SlideImportResult result = task.getValue();
 				items.remove(loading);
-				for (Slide slide : slides) {
+				for (Slide slide : result.getSlides()) {
 					items.add(new SlideListItem(slide));
+				}
+				for (SlideShow show : result.getSlideShows()) {
+					shows.add(new SlideShowListItem(show));
 				}
 			});
 			task.setOnFailed((e) -> {
@@ -202,13 +252,13 @@ public final class ObservableSlideLibrary {
 						final BufferedImage image = thumbnailGenerator.generate(slide);
 						copy.setThumbnail(image);
 					}
-					library.save(copy);
+					library.saveSlide(copy);
 					return copy;
 				}
 			};
 			task.setOnSucceeded((e) -> {
 				// find the item
-				SlideListItem si = this.getListItem(slide);
+				SlideListItem si = this.getSlideListItem(slide);
 				// check if new
 				if (si != null) {
 					si.setSlide(copy);
@@ -227,13 +277,62 @@ public final class ObservableSlideLibrary {
 	}
 	
 	/**
+	 * Attempts to save the given slide show  in this slide library.
+	 * @param show the show
+	 * @return {@link AsyncTask}&lt;{@link SlideShow}&gt;
+	 */
+	public AsyncTask<SlideShow> save(SlideShow show) {
+		return this.save(MessageFormat.format(Translations.get("task.save"), show.getName()), show);
+	}
+	
+	/**
+	 * Attempts to save the given slide show in this slide library.
+	 * @param action a simple string describing the save action if it's something more specific than "Save"
+	 * @param show the show
+	 * @return {@link AsyncTask}&lt;{@link SlideShow}&gt;
+	 */
+	public AsyncTask<SlideShow> save(String action, SlideShow show) {
+		if (show != null) {
+			// synchronously make a copy
+			final SlideShow copy = show.copy(true);
+			
+			// execute the add on a different thread
+			AsyncTask<SlideShow> task = new AsyncTask<SlideShow>(action) {
+				@Override
+				protected SlideShow call() throws Exception {
+					this.updateProgress(-1, 0);
+					library.saveSlideShow(copy);
+					return copy;
+				}
+			};
+			task.setOnSucceeded((e) -> {
+				// find the item
+				SlideShowListItem ss = this.getSlideShowListItem(show);
+				// check if new
+				if (ss != null) {
+					ss.setSlideShow(copy);
+					ss.setName(copy.getName());
+				} else {
+					this.shows.add(new SlideShowListItem(copy));
+				}
+			});
+			task.setOnFailed((e) -> {
+				Throwable ex = task.getException();
+				LOGGER.error("Failed to save slide show " + copy.getName(), ex);
+			});
+			return task;
+		}
+		return AsyncTaskFactory.single();
+	}
+	
+	/**
 	 * Attempts to remove the given slide from the slide library.
 	 * @param slide the slide to remove
 	 * @return {@link AsyncTask}&lt;Void&gt;
 	 */
 	public AsyncTask<Void> remove(Slide slide) {
 		if (slide != null) {
-			final SlideListItem si = this.getListItem(slide);
+			final SlideListItem si = this.getSlideListItem(slide);
 			
 			// changes to the list should be done on the FX UI Thread
 			Fx.runOnFxThead(() -> {
@@ -246,7 +345,7 @@ public final class ObservableSlideLibrary {
 				@Override
 				protected Void call() throws Exception {
 					this.updateProgress(-1, 0);
-					library.remove(slide);
+					library.removeSlide(slide);
 					return null;
 				}
 			};
@@ -255,6 +354,41 @@ public final class ObservableSlideLibrary {
 				LOGGER.error("Failed to remove slide " + slide.getName(), ex);
 				// add the item back
 				items.add(si);
+			});
+			return task;
+		}
+		return AsyncTaskFactory.single();
+	}
+
+	/**
+	 * Attempts to remove the given slide show from the slide library.
+	 * @param show the show to remove
+	 * @return {@link AsyncTask}&lt;Void&gt;
+	 */
+	public AsyncTask<Void> remove(SlideShow show) {
+		if (show != null) {
+			final SlideShowListItem ss = this.getSlideShowListItem(show);
+			
+			// changes to the list should be done on the FX UI Thread
+			Fx.runOnFxThead(() -> {
+				// go ahead and remove it
+				shows.remove(ss);
+			});
+			
+			// execute the add on a different thread
+			AsyncTask<Void> task = new AsyncTask<Void>(MessageFormat.format(Translations.get("task.delete"), show.getName())) {
+				@Override
+				protected Void call() throws Exception {
+					this.updateProgress(-1, 0);
+					library.removeSlideShow(show);
+					return null;
+				}
+			};
+			task.setOnFailed((e) -> {
+				Throwable ex = task.getException();
+				LOGGER.error("Failed to remove slide show " + show.getName(), ex);
+				// add the item back
+				shows.add(ss);
 			});
 			return task;
 		}
@@ -316,15 +450,16 @@ public final class ObservableSlideLibrary {
 	/**
 	 * Exports the given slides to the given file.
 	 * @param path the file
-	 * @param slides the slides to export
+	 * @param slides the slides to export; can be null
+	 * @param shows the slide shows to export; can be null
 	 * @return {@link AsyncTask}&lt;Void&gt;
 	 */
-	public AsyncTask<Void> exportSlides(Path path, List<Slide> slides) {
+	public AsyncTask<Void> exportSlidesAndShows(Path path, List<Slide> slides, List<SlideShow> shows) {
 		AsyncTask<Void> task = new AsyncTask<Void>(MessageFormat.format(Translations.get("task.export"), path.getFileName())) {
 			@Override
 			protected Void call() throws Exception {
 				this.updateProgress(-1, 0);
-				library.exportSlides(path, slides);
+				library.exportSlidesAndShows(path, slides, shows);
 				return null;
 			}
 		};
@@ -335,15 +470,16 @@ public final class ObservableSlideLibrary {
 	 * Exports the given slides to the given file.
 	 * @param stream the stream to export to
 	 * @param fileName the file name to export to
-	 * @param slides the slides to export
+	 * @param slides the slides to export; can be null
+	 * @param shows the slide shows to export; can be null
 	 * @return {@link AsyncTask}&lt;Void&gt;
 	 */
-	public AsyncTask<Void> exportSlides(ZipOutputStream stream, String fileName, List<Slide> slides) {
+	public AsyncTask<Void> exportSlidesAndShows(ZipOutputStream stream, String fileName, List<Slide> slides, List<SlideShow> shows) {
 		AsyncTask<Void> task = new AsyncTask<Void>(MessageFormat.format(Translations.get("task.export"), fileName)) {
 			@Override
 			protected Void call() throws Exception {
 				this.updateProgress(-1, 0);
-				library.exportSlides(stream, slides);
+				library.exportSlidesAndShows(stream, slides, shows);
 				return null;
 			}
 		};
@@ -359,7 +495,7 @@ public final class ObservableSlideLibrary {
 	public void generateMissingThumbnails() {
 		int generated = 0;
 		LOGGER.debug("Checking for slides without thumbnails.");
-		for (Slide slide : this.library.all()) {
+		for (Slide slide : this.library.allSlides()) {
 			if (slide.getThumbnail() == null) {
 				try {
 					LOGGER.debug("Generating thumbnail for '{}'.", slide.getName());
@@ -371,7 +507,7 @@ public final class ObservableSlideLibrary {
 						try {
 							LOGGER.debug("Saving slide '{}' with thumbnail.", slide.getName());
 							// save it to disk
-							library.save(slide);
+							library.saveSlide(slide);
 							generated++;
 						} catch (Exception e) {
 							LOGGER.warn("Failed to save slide after generating thumbnail: " + e.getMessage(), e);
@@ -424,8 +560,8 @@ public final class ObservableSlideLibrary {
 	 * @param id the id
 	 * @return {@link Slide}
 	 */
-	public Slide get(UUID id) {
-		return this.library.get(id);
+	public Slide getSlide(UUID id) {
+		return this.library.getSlide(id);
 	}
 
 	/**
@@ -433,16 +569,34 @@ public final class ObservableSlideLibrary {
 	 * @param id the id
 	 * @return {@link SlideListItem}
 	 */
-	SlideListItem getListItem(UUID id) {
-		Slide slide = this.library.get(id);
-		return this.getListItem(slide);
+	SlideListItem getSlideListItem(UUID id) {
+		Slide slide = this.library.getSlide(id);
+		return this.getSlideListItem(slide);
 	}
 	
 	/**
 	 * Returns the observable list of slides.
 	 * @return ObservableList&lt;{@link SlideListItem}&gt;
 	 */
-	ObservableList<SlideListItem> getItems() {
+	ObservableList<SlideListItem> getSlideItems() {
 		return this.items;
+	}
+
+	/**
+	 * Returns the slide show for the given id.
+	 * @param id the id
+	 * @return {@link SlideShow}
+	 */
+	public SlideShow getSlideShow(UUID id) {
+		return this.library.getSlideShow(id);
+	}
+
+	SlideShowListItem getSlideShowListItem(UUID id) {
+		SlideShow show = this.library.getSlideShow(id);
+		return this.getSlideShowListItem(show);
+	}
+	
+	ObservableList<SlideShowListItem> getSlideShowItems() {
+		return this.shows;
 	}
 }

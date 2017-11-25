@@ -24,8 +24,6 @@
  */
 package org.praisenter.javafx.slide.converters;
 
-import java.nio.file.Paths;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.MediaType;
@@ -146,7 +144,7 @@ public final class MediaConverter {
 				return imageCache.getOrLoadImageMediaImage(media.getId(), media.getPath());
 			} else if (media.getType() == MediaType.AUDIO) {
 				// a default image of sorts
-				return imageCache.getOrLoadApplicationImage(Paths.get("/org/praisenter/resources/music-default-thumbnail.png"));
+				return imageCache.getOrLoadApplicationImage("/org/praisenter/resources/music-default-thumbnail.png");
 			} else {
 				LOGGER.error("Unknown media type " + media.getType());
 			}

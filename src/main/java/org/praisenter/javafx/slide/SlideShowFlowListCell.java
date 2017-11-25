@@ -24,9 +24,13 @@
  */
 package org.praisenter.javafx.slide;
 
-import org.praisenter.javafx.ImageCache;
+import java.awt.image.BufferedImage;
+import java.util.UUID;
+
+import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.controls.FlowListCell;
 import org.praisenter.slide.Slide;
+import org.praisenter.slide.SlideShow;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -38,35 +42,49 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 
 /**
- * Custom list cell for {@link SlideListItem}s.
+ * Custom list cell for {@link SlideShowListItem}s.
  * @author William Bittle
  * @version 3.0.0
  * @since 3.0.0
  */
-final class SlideFlowListCell extends FlowListCell<SlideListItem> {
+final class SlideShowFlowListCell extends FlowListCell<SlideShowListItem> {
 	/** The slide for this cell */
-	private final ObjectProperty<Slide> slide = new SimpleObjectProperty<Slide>(null);
+	private final ObjectProperty<SlideShow> show = new SimpleObjectProperty<SlideShow>(null);
 	
 	/**
 	 * Minimal constructor.
+	 * @param context the praisenter context
 	 * @param item the slide item
-	 * @param imageCache the image cache
 	 * @param maxHeight the max height for the cell
 	 */
-	public SlideFlowListCell(SlideListItem item, ImageCache imageCache, int maxHeight) {
+	public SlideShowFlowListCell(PraisenterContext context, SlideShowListItem item, int maxHeight) {
 		super(item);
 		
-		this.getStyleClass().add("slide-list-cell");
+		this.getStyleClass().add("slide-show-list-cell");
 		
 		final Pane pane = new Pane();
-		pane.getStyleClass().add("slide-list-cell-thumbnail");
 		
-    	final ImageView thumb = new ImageView();
-    	pane.getChildren().add(thumb);
+    	final ImageView thumb1 = new ImageView();
+    	final ImageView thumb2 = new ImageView();
+    	final ImageView thumb3 = new ImageView();
+    	final Pane pane1 = new Pane(thumb1);
+    	final Pane pane2 = new Pane(thumb2);
+    	final Pane pane3 = new Pane(thumb3);
+    	pane3.setLayoutY(-10);
+    	pane3.setLayoutX(0);
+    	pane2.setLayoutY(0);
+    	pane2.setLayoutX(10);
+    	pane1.setLayoutY(10);
+    	pane1.setLayoutX(20);
+    	
+		pane1.getStyleClass().add("slide-show-list-cell-thumbnail");
+		pane2.getStyleClass().add("slide-show-list-cell-thumbnail");
+		pane3.getStyleClass().add("slide-show-list-cell-thumbnail");
+    	pane.getChildren().addAll(pane3, pane2, pane1);
     	
     	// place it in a VBox for good positioning
     	final VBox wrapper = new VBox(pane);
-    	wrapper.getStyleClass().add("slide-list-cell-wrapper");
+    	wrapper.getStyleClass().add("slide-show-list-cell-wrapper");
     	wrapper.setPrefHeight(maxHeight);
     	wrapper.setMaxHeight(maxHeight);
     	wrapper.setMinHeight(maxHeight);
@@ -75,30 +93,40 @@ final class SlideFlowListCell extends FlowListCell<SlideListItem> {
 
 		// setup an indeterminant progress bar
 		ProgressIndicator progress = new ProgressIndicator();
-		progress.getStyleClass().add("slide-list-cell-progress");
+		progress.getStyleClass().add("slide-show-list-cell-progress");
 		progress.managedProperty().bind(progress.visibleProperty());
 		this.getChildren().add(progress);
 		
-		this.slide.addListener((obs, ov, nv) -> {
-			// setup the thumbnail image
-			Image image = null;
+		this.show.addListener((obs, ov, nv) -> {
+			// setup the thumbnail images
+			Image image1 = null;
+			Image image2 = null;
+			Image image3 = null;
 			if (nv != null) {
-				if (nv.getThumbnail() != null) {
-					image = imageCache.getOrLoadThumbnail(nv.getId(), nv.getThumbnail());
+				int size = nv.getSlides().size();
+				for (int i = 0; i < size; i++) {
+					if (i >= 3) break;
+					UUID slideId = nv.getSlides().get(i).getSlideId();
+					Slide slide = context.getSlideLibrary().getSlide(slideId);
+					BufferedImage image = slide != null ? slide.getThumbnail() : null;
+					if (i == 0) image1 = context.getImageCache().getOrLoadThumbnail(slideId, image);
+					if (i == 1) image2 = context.getImageCache().getOrLoadThumbnail(slideId, image);
+					if (i == 2) image3 = context.getImageCache().getOrLoadThumbnail(slideId, image);
 				}
 			}
 			
-			thumb.setImage(image);
-    		pane.setMaxWidth(image.getWidth());
+			thumb1.setImage(image1);
+			thumb2.setImage(image2);
+			thumb3.setImage(image3);
 		});
 		
 		wrapper.visibleProperty().bind(item.loadedProperty());
 		progress.visibleProperty().bind(item.loadedProperty().not());
-		this.slide.bind(item.slideProperty());
+		this.show.bind(item.slideShowProperty());
 		
     	// setup the slide name label
     	final Label label = new Label();
-    	label.getStyleClass().add("slide-list-cell-name");
+    	label.getStyleClass().add("slide-show-list-cell-name");
     	label.textProperty().bind(item.nameProperty());
 		
     	// add the image and label to the cell

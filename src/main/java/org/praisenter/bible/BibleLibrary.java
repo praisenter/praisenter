@@ -503,7 +503,7 @@ public final class BibleLibrary {
 	 */
 	public void exportBibles(Path path, List<Bible> bibles) throws IOException {
 		final PraisenterBibleExporter exporter = new PraisenterBibleExporter();
-		exporter.execute(path, bibles);
+		exporter.execute(path, ZIP_DIR, bibles);
 	}
 
 	/**

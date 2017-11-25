@@ -133,7 +133,8 @@ class MainMenu extends HBox implements EventHandler<ActionEvent> {
 
 		// Slides
 		MenuItem slManage = createMenuItem(ApplicationAction.MANAGE_SLIDES);
-		slides.getItems().addAll(slManage);
+		MenuItem slsManage = createMenuItem(ApplicationAction.MANAGE_SHOWS);
+		slides.getItems().addAll(slManage, slsManage);
 		
 		// Bibles
 		MenuItem blManage = createMenuItem(ApplicationAction.MANAGE_BIBLES);

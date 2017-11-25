@@ -41,17 +41,20 @@ public interface SlideExporter {
 	 * <p>
 	 * The given path should be a normal file and preferably with a .zip extension.
 	 * @param path the path to export to
+	 * @param folder the folder in the zip to place the exported slides
 	 * @param slides the slides to export
+	 * @param shows the slide shows to export
 	 * @throws IOException if an IO error occurs
 	 */
-	public abstract void execute(Path path, List<Slide> slides) throws IOException;
+	public abstract void execute(Path path, String folder, List<Slide> slides, List<SlideShow> shows) throws IOException;
 	
 	/**
 	 * Exports the given slides to the given zip stream.
 	 * @param stream the zip stream to export to
 	 * @param folder the folder in the zip to place the exported slides
 	 * @param slides the slides to export
+	 * @param shows the slide shows to export
 	 * @throws IOException if an IO error occurs
 	 */
-	public abstract void execute(ZipOutputStream stream, String folder, List<Slide> slides) throws IOException;
+	public abstract void execute(ZipOutputStream stream, String folder, List<Slide> slides, List<SlideShow> shows) throws IOException;
 }

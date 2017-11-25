@@ -24,17 +24,11 @@
  */
 package org.praisenter.slide.easing;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
-
 /**
  * Represents a circular easing.
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlRootElement(name = "circular")
-@XmlAccessorType(XmlAccessType.NONE)
 public final class Circular extends Easing {
 	/**
 	 * Default constructor for JAXB.

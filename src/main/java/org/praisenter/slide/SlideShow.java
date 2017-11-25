@@ -1,5 +1,6 @@
 package org.praisenter.slide;
 
+import java.text.Collator;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,9 +24,12 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 @JsonSubTypes({
 	@Type(value = SlideShow.class, name = "show")
 })
-public final class SlideShow {
+public final class SlideShow implements Comparable<SlideShow> {
 	/** The version of the slideshow format */
 	public static final String CURRENT_VERSION = "1";
+
+	/** The collator for locale dependent sorting */
+	private static final Collator COLLATOR = Collator.getInstance();
 	
 	/** The format (for format identification only) */
 	@JsonProperty(Constants.FORMAT_PROPERTY_NAME)
@@ -73,6 +77,8 @@ public final class SlideShow {
 		this.id = UUID.randomUUID();
 		this.name = null;
 		this.loop = true;
+		this.createdDate = Instant.now();
+		this.lastModifiedDate = this.createdDate;
 		this.slides = new ArrayList<SlideAssignment>();
 	}
 	
@@ -86,7 +92,18 @@ public final class SlideShow {
 		this.version = show.version;
 		if (exact) {
 			this.id = show.id;
+		} else {
+			this.id = UUID.randomUUID();
 		}
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Comparable#compareTo(java.lang.Object)
+	 */
+	@Override
+	public int compareTo(SlideShow o) {
+		if (o == null) return -1;
+		return COLLATOR.compare(this.name, o.name);
 	}
 	
 	public SlideShow copy() {

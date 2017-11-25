@@ -32,7 +32,9 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -53,8 +55,6 @@ import org.praisenter.UnknownFormatException;
 import org.praisenter.json.JsonIO;
 import org.praisenter.utility.MimeType;
 import org.praisenter.utility.StringManipulator;
-
-// FEATURE (L-M) Add the ability to export/import SlideShows
 
 /**
  * A collection of slides that has been created in Praisenter.
@@ -78,7 +78,7 @@ public final class SlideLibrary {
 	// static
 
 	/** The directory used for slide shows */
-	private static final String SLIDE_SHOW_DIR = "shows";
+	static final String SLIDE_SHOW_DIR = "shows";
 	
 	/** The directory used for slides when combined with other data */
 	private static final String ZIP_DIR = "slides";
@@ -94,7 +94,7 @@ public final class SlideLibrary {
 	/** The slides */
 	private final Map<UUID, FileData<Slide>> slides;
 
-	/** The slides */
+	/** The slide shows */
 	private final Map<UUID, FileData<SlideShow>> shows;
 
 	// locks
@@ -224,7 +224,7 @@ public final class SlideLibrary {
 	 * @param id the slide id
 	 * @return {@link Slide}
 	 */
-	public Slide get(UUID id) {
+	public Slide getSlide(UUID id) {
 		if (id == null) return null;
 		if (!this.slides.containsKey(id)) return null;
 		return this.slides.get(id).getData();
@@ -247,7 +247,7 @@ public final class SlideLibrary {
 	 * Returns all the slides in the library.
 	 * @return List&lt;{@link Slide}&gt;
 	 */
-	public List<Slide> all() {
+	public List<Slide> allSlides() {
 		return this.slides.values().stream().map(f -> f.getData()).collect(Collectors.toList());
 	}
 	
@@ -263,7 +263,7 @@ public final class SlideLibrary {
 	 * Returns the number of slides in the library.
 	 * @return int
 	 */
-	public int size() {
+	public int slidesSize() {
 		return this.slides.size();
 	}
 	
@@ -280,7 +280,7 @@ public final class SlideLibrary {
 	 * @param slide the slide to save
 	 * @throws IOException if an IO error occurs
 	 */
-	public void save(Slide slide) throws IOException {
+	public void saveSlide(Slide slide) throws IOException {
 		// calling this method could indicate one of the following:
 		// 1. New
 		// 2. Save Existing
@@ -440,7 +440,7 @@ public final class SlideLibrary {
 	 * @param slide the slide to remove
 	 * @throws IOException if and IO error occurs
 	 */
-	public void remove(Slide slide) throws IOException {
+	public void removeSlide(Slide slide) throws IOException {
 		if (slide == null) return;
 		
 		UUID id = slide.getId();
@@ -686,23 +686,77 @@ public final class SlideLibrary {
 	/**
 	 * Exports the given slides to the given file.
 	 * @param path the file
-	 * @param slides the slides to export
+	 * @param slides the slides to export; can be null
+	 * @param shows the slide shows to export; can be null
 	 * @throws IOException if an IO error occurs
 	 */
-	public void exportSlides(Path path, List<Slide> slides) throws IOException {
+	public void exportSlidesAndShows(Path path, List<Slide> slides, List<SlideShow> shows) throws IOException {
+		List<Slide> allSlides = new ArrayList<Slide>();
+		Map<UUID, Slide> added = new HashMap<UUID, Slide>();
+		
+		// we need to make sure we don't have duplicate slides in the list
+		if (slides != null) {
+			for (Slide slide : slides) {
+				if (!added.containsKey(slide.getId())) {
+					allSlides.add(slide);
+					added.put(slide.getId(), slide);
+				}
+			}
+		}
+		
+		// we need to make sure all slides from the given shows are present
+		if (shows != null) {
+			for (SlideShow show : shows) {
+				for (SlideAssignment assignment : show.slides) {
+					Slide slide = this.getSlide(assignment.getSlideId());
+					if (slide != null && !added.containsKey(slide.getId())) {
+						allSlides.add(slide);
+						added.put(slide.getId(), slide);
+					}
+				}
+			}
+		}
+		
 		SlideExporter exporter = new PraisenterSlideExporter();
-		exporter.execute(path, slides);
+		exporter.execute(path, ZIP_DIR, slides, shows);
 	}
 
 	/**
 	 * Exports the given slides to the given stream.
 	 * @param stream the stream to write to
-	 * @param slides the slides to export
+	 * @param slides the slides to export; can be null
+	 * @param shows the slide shows to export; can be null
 	 * @throws IOException if an IO error occurs
 	 */
-	public void exportSlides(ZipOutputStream stream, List<Slide> slides) throws IOException {
+	public void exportSlidesAndShows(ZipOutputStream stream, List<Slide> slides, List<SlideShow> shows) throws IOException {
+		List<Slide> allSlides = new ArrayList<Slide>();
+		Map<UUID, Slide> added = new HashMap<UUID, Slide>();
+		
+		// we need to make sure we don't have duplicate slides in the list
+		if (slides != null) {
+			for (Slide slide : slides) {
+				if (!added.containsKey(slide.getId())) {
+					allSlides.add(slide);
+					added.put(slide.getId(), slide);
+				}
+			}
+		}
+		
+		// we need to make sure all slides from the given shows are present
+		if (shows != null) {
+			for (SlideShow show : shows) {
+				for (SlideAssignment assignment : show.slides) {
+					Slide slide = this.getSlide(assignment.getSlideId());
+					if (slide != null && !added.containsKey(slide.getId())) {
+						allSlides.add(slide);
+						added.put(slide.getId(), slide);
+					}
+				}
+			}
+		}
+		
 		SlideExporter exporter = new PraisenterSlideExporter();
-		exporter.execute(stream, ZIP_DIR, slides);
+		exporter.execute(stream, ZIP_DIR, slides, shows);
 	}
 
 	/**
@@ -714,27 +768,38 @@ public final class SlideLibrary {
 	 * @throws UnknownFormatException if the format of the file couldn't be determined
 	 * @throws IOException if an IO error occurs
 	 */
-	public List<Slide> importSlides(Path path) throws FileNotFoundException, IOException, InvalidFormatException, UnknownFormatException {
+	public SlideImportResult importSlidesAndShows(Path path) throws FileNotFoundException, IOException, InvalidFormatException, UnknownFormatException {
 		SlideFormatDetector detector = new SlideFormatDetector();
-		List<Slide> slides = detector.execute(path);
+		SlideImportResult result = detector.execute(path);
+		
+		List<Slide> slides = result.getSlides();
+		List<SlideShow> shows = result.getSlideShows();
 		
 		LOGGER.debug("'{}' slides found in '{}'.", slides.size(), path);
 		Iterator<Slide> it = slides.iterator();
 		while (it.hasNext()) {
 			Slide slide = it.next();
-			// update the import date
-			if (slide instanceof BasicSlide) {
-				BasicSlide s = (BasicSlide)slide;
-				s.createdDate = Instant.now();
-			}
 			try {
-				this.save(slide);
+				this.saveSlide(slide);
 			} catch (Exception ex) {
 				LOGGER.error("Failed to save the slide '" + slide.getName() + "'", ex);
 				it.remove();
 			}
 		}
-		return slides;
+		
+		LOGGER.debug("'{}' slide shows found in '{}'.", shows.size(), path);
+		Iterator<SlideShow> its = shows.iterator();
+		while (its.hasNext()) {
+			SlideShow show = its.next();
+			try {
+				this.saveSlideShow(show);
+			} catch (Exception ex) {
+				LOGGER.error("Failed to save the slide show '" + show.getName() + "'", ex);
+				its.remove();
+			}
+		}
+		
+		return result;
 	}
 	
 	/**
@@ -759,8 +824,10 @@ public final class SlideLibrary {
 	public boolean isSlideReferenced(UUID... ids) {
 		for (FileData<SlideShow> fileData : this.shows.values()) {
 			for (UUID id : ids) {
-				if (fileData.getData().slides.contains(id)) {
-					return true;
+				for (SlideAssignment assignment : fileData.getData().slides) {
+					if (assignment.getSlideId().equals(id)) {
+						return true;
+					}
 				}
 			}
 		}

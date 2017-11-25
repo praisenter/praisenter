@@ -26,7 +26,6 @@ package org.praisenter.slide;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
 
 import org.praisenter.InvalidFormatException;
 
@@ -40,9 +39,9 @@ public interface SlideImporter {
 	 * Reads the given stream and returns a list of slides in that stream.
 	 * @param fileName the file name
 	 * @param stream the stream containing the slide(s)
-	 * @return List&lt;{@link Slide}&gt;
+	 * @return {@link SlideImportResult}
 	 * @throws IOException if an IO error occurs
 	 * @throws InvalidFormatException if the file or files are not in the expected format
 	 */
-	public abstract List<Slide> execute(String fileName, InputStream stream) throws IOException, InvalidFormatException;
+	public abstract SlideImportResult execute(String fileName, InputStream stream) throws IOException, InvalidFormatException;
 }

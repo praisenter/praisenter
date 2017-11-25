@@ -143,8 +143,22 @@ public enum MimeType {
 	 * @return String
 	 */
 	public static final String get(InputStream stream) {
+		return MimeType.get(stream, null);
+	}
+	
+	/**
+	 * Returns the mime-type for the given stream.
+	 * @param stream the stream
+	 * @param fileName the file name; can be null
+	 * @return String
+	 */
+	public static final String get(InputStream stream, String fileName) {
 		try {
-			return TIKA.detect(stream);
+			if (StringManipulator.isNullOrEmpty(fileName)) {
+				return TIKA.detect(stream);
+			} else {
+				return TIKA.detect(stream, fileName);
+			}
 		} catch (Exception ex) {
 			LOGGER.warn("Failed to detect mime type of input stream using Tika.", ex);
 		}
@@ -179,7 +193,17 @@ public enum MimeType {
 	 * @return boolean
 	 */
 	public final boolean check(InputStream stream) {
-		String mimeType = get(stream);
+		return this.check(stream, null);
+	}
+	
+	/**
+	 * Returns true if the given stream matches this mime-type.
+	 * @param stream the stream
+	 * @param fileName the file name
+	 * @return boolean
+	 */
+	public final boolean check(InputStream stream, String fileName) {
+		String mimeType = get(stream, fileName);
 		if (mimeType == null) return false;
 		return this.mimeType.equalsIgnoreCase(mimeType);
 	}

@@ -25,6 +25,7 @@
 package org.praisenter.slide;
 
 import java.awt.image.BufferedImage;
+import java.text.Collator;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -67,6 +68,9 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
  * @version 3.0.0
  */
 public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegion, Comparable<Slide> {
+	/** The collator for locale dependent sorting */
+	private static final Collator COLLATOR = Collator.getInstance();
+	
 	/** The format (for format identification only) */
 	@JsonProperty(Constants.FORMAT_PROPERTY_NAME)
 	final String format;
@@ -258,7 +262,7 @@ public class BasicSlide extends AbstractSlideRegion implements Slide, SlideRegio
 		} else if (this.name == null) {
 			return 1;
 		} else {
-			return this.name.compareTo(other.getName());
+			return COLLATOR.compare(this.name, other.getName());
 		}
 	}
 	

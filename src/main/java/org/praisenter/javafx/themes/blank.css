@@ -139,15 +139,28 @@
 /* SlideLibraryPane */
 .slide-library-pane {}
 
-/* SlideListCell */
+/* SlideFlowListCell */
 .slide-list-cell {}
 .slide-list-cell-thumbnail {}
 .slide-list-cell-progress {}
 .slide-list-cell-wrapper {}
 .slide-list-cell-name {}
 
+/* SlideShowLibraryPane */
+.slide-show-library-pane {}
+
+/* SlideShowFlowListCell */
+.slide-show-list-cell {}
+.slide-show-list-cell-thumbnails {}
+.slide-show-list-cell-progress {}
+.slide-show-list-cell-wrapper {}
+.slide-show-list-cell-name {}
+
 /* SlidePropertiesPane */
 .slide-properties-pane {}
+
+/* SlideShowPropertiesPane */
+.slide-show-properties-pane {}
 
 /* SlideEditorPane */
 .slide-editor-pane {}

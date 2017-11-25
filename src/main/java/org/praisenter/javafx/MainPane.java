@@ -22,6 +22,7 @@ import org.praisenter.javafx.media.MediaActions;
 import org.praisenter.javafx.media.MediaLibraryPane;
 import org.praisenter.javafx.slide.SlideActions;
 import org.praisenter.javafx.slide.SlideLibraryPane;
+import org.praisenter.javafx.slide.SlideShowLibraryPane;
 import org.praisenter.javafx.slide.editor.SlideEditorPane;
 import org.praisenter.javafx.slide.editor.SlideShowEditorDialog;
 import org.praisenter.javafx.slide.editor.SlideShowEditorPane;
@@ -60,6 +61,7 @@ public final class MainPane extends BorderPane implements ApplicationPane {
 	private final MediaLibraryPane mediaLibraryPane;
 	private final SlideLibraryPane slideLibraryPane;
 	private final SlideEditorPane slideEditorPane;
+	private final SlideShowLibraryPane slideShowLibraryPane;
 	
 	private SlideShowEditorDialog slideShowEditorDialog;
 	
@@ -84,6 +86,7 @@ public final class MainPane extends BorderPane implements ApplicationPane {
 		this.mediaLibraryPane = new MediaLibraryPane(context, Orientation.HORIZONTAL);
 		this.slideLibraryPane = new SlideLibraryPane(context, Orientation.HORIZONTAL);
 		this.slideEditorPane = new SlideEditorPane(context);
+		this.slideShowLibraryPane = new SlideShowLibraryPane(context, Orientation.HORIZONTAL);
 		
 		this.addEventHandler(ApplicationEvent.ALL, e -> {
 			handleApplicationEvent(e);
@@ -148,6 +151,20 @@ public final class MainPane extends BorderPane implements ApplicationPane {
 					this.slideEditorPane.setSlide(((Slide)data).copy(true));
 					this.navigate(this.slideEditorPane);
 				}
+				if (data instanceof SlideShow) {
+					if (this.slideShowEditorDialog == null) {
+						this.slideShowEditorDialog = new SlideShowEditorDialog(this.getScene().getWindow(), this.context);
+					}
+					this.slideShowEditorDialog.setValue(null);
+					this.slideShowEditorDialog.setValue(((SlideShow) data).copy(true));
+					this.slideShowEditorDialog.show(s -> {
+						if (s != null) {
+							// TODO save the show
+							this.context.getSlideLibrary().save(s)
+								.execute(this.context.getExecutorService());
+						}
+					});
+				}
 				break;
 			case NEW_BIBLE:
 				Bible bible = new Bible();
@@ -177,6 +194,8 @@ public final class MainPane extends BorderPane implements ApplicationPane {
 				this.slideShowEditorDialog.show(s -> {
 					if (s != null) {
 						// TODO save the show
+						this.context.getSlideLibrary().save(s)
+							.execute(this.context.getExecutorService());
 					}
 				});
 				break;
@@ -185,6 +204,9 @@ public final class MainPane extends BorderPane implements ApplicationPane {
 				break;
 			case MANAGE_SLIDES:
 				this.navigate(this.slideLibraryPane);
+				break;
+			case MANAGE_SHOWS:
+				this.navigate(this.slideShowLibraryPane);
 				break;
 			case EXIT:
 				// close the application
@@ -229,6 +251,7 @@ public final class MainPane extends BorderPane implements ApplicationPane {
 			case REINDEX_BIBLES:
 			case MANAGE_MEDIA:
 			case MANAGE_SLIDES:
+			case MANAGE_SHOWS:
 			case MANAGE_SONGS:
 			case PREFERENCES:
 			case LOGS:

@@ -8,6 +8,7 @@ import org.praisenter.bible.Chapter;
 import org.praisenter.bible.Verse;
 import org.praisenter.slide.Slide;
 import org.praisenter.slide.SlideComponent;
+import org.praisenter.slide.SlideShow;
 
 import javafx.scene.input.DataFormat;
 
@@ -20,6 +21,7 @@ public final class DataFormats {
 	public static final DataFormat VERSES = DataFormats.forJsonSerializedList(Verse.class);
 	
 	public static final DataFormat SLIDES = DataFormats.forJsonSerializedList(Slide.class);
+	public static final DataFormat SLIDE_SHOWS = DataFormats.forJsonSerializedList(SlideShow.class);
 	public static final DataFormat SLIDE_COMPONENT = DataFormats.forJsonSerializedClass(SlideComponent.class);
 
 	public static final DataFormat getUniqueFormat() {

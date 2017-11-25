@@ -259,11 +259,13 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
         
         // the right side of the split pane
         ThumbnailSettings thumbnailSettings = context.getMediaLibrary().getThumbnailSettings();
-        DefaultMediaThumbnails defaultThumbnails = new DefaultMediaThumbnails(thumbnailSettings);
         this.lstMedia = new FlowListView<MediaListItem>(orientation, new Callback<MediaListItem, FlowListCell<MediaListItem>>() {
         	@Override
         	public FlowListCell<MediaListItem> call(MediaListItem item) {
-				return new MediaFlowListCell(item, thumbnailSettings, defaultThumbnails);
+				return new MediaFlowListCell(
+						item, 
+						context.getImageCache(),
+						thumbnailSettings);
 			}
         });
         this.lstMedia.itemsProperty().bindContent(sorted);

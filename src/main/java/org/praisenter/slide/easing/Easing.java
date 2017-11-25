@@ -24,12 +24,6 @@
  */
 package org.praisenter.slide.easing;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlSeeAlso;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
@@ -56,25 +50,9 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 	@Type(value = Quintic.class, name = "quintic"),
 	@Type(value = Sinusoidal.class, name = "sinusoidal")
 })
-@XmlRootElement(name = "easing")
-@XmlAccessorType(XmlAccessType.NONE)
-@XmlSeeAlso(value = {
-	Back.class,
-	Bounce.class,
-	Circular.class,
-	Cubic.class,
-	Elastic.class,
-	Exponential.class,
-	Linear.class,
-	Quadratic.class,
-	Quartic.class,
-	Quintic.class,
-	Sinusoidal.class
-})
 public abstract class Easing {
 	/** The easing type */
 	@JsonProperty
-	@XmlElement(name = "type", required = false)
 	final EasingType type;
 
 	/**

@@ -32,6 +32,11 @@ public final class MappedList<E, F> extends TransformationList<E, F> {
 	public int size() {
 		return getSource().size();
 	}
+	
+	@Override
+	public int getViewIndex(int index) {
+		return index;
+	}
 
 	@Override
 	protected void sourceChanged(Change<? extends F> c) {

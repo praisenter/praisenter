@@ -25,7 +25,6 @@
 package org.praisenter.javafx.slide;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -36,10 +35,8 @@ import org.praisenter.javafx.DataFormats;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.slide.SlideAssignment;
 
-import javafx.beans.binding.ObjectBinding;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.scene.control.Label;
@@ -48,7 +45,6 @@ import javafx.scene.control.SelectionMode;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DataFormat;
 import javafx.scene.input.Dragboard;
-import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 
@@ -154,7 +150,7 @@ public final class SlideShowSlideListView extends ListView<SlideAssignment> {
 			}
 		});
 		
-		context.getSlideLibrary().getItems().addListener((ListChangeListener.Change<? extends SlideListItem> change) -> {
+		context.getSlideLibrary().getSlideItems().addListener((ListChangeListener.Change<? extends SlideListItem> change) -> {
 			ObservableSlideShow show = value.get();
 			while (change.next()) {
 				if (change.wasRemoved() && show != null) {

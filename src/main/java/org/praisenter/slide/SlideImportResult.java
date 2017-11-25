@@ -22,61 +22,46 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.javafx.media;
+package org.praisenter.slide;
 
-import org.praisenter.ThumbnailSettings;
-
-import javafx.scene.image.Image;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * Represents a class that stores default thumbnails for media items
- * that failed to generate a thumbnail or cannot (audio or streaming video).
+ * Represents the result of an import.
  * @author William Bittle
  * @version 3.0.0
  */
-final class DefaultMediaThumbnails {
-	/** The default image thumbnail */
-	private final Image defaultImageThumbnail;
+public final class SlideImportResult {
+	/** The slides */
+	private final List<Slide> slides;
 	
-	/** The default video thumbnail */
-	private final Image defaultVideoThumbnail;
-	
-	/** The default audio thumbnail */
-	private final Image defaultAudioThumbnail;
+	/** The shows */
+	private final List<SlideShow> shows;
 	
 	/**
-	 * Creates a set of default thumbnails based on the given settings.
-	 * @param thumbnailSettings the thumbnail settings
+	 * Constructor.
+	 * @param slides the slides that were imported
+	 * @param shows the slide shows that were imported
 	 */
-	public DefaultMediaThumbnails(ThumbnailSettings thumbnailSettings) {
-		final int w = thumbnailSettings.getWidth();
-		final int h = thumbnailSettings.getHeight();
-		this.defaultImageThumbnail = new Image("/org/praisenter/resources/image-default-thumbnail.png", w, h, true, true, false);
-		this.defaultVideoThumbnail = new Image("/org/praisenter/resources/video-default-thumbnail.png", w, h, true, true, false);
-		this.defaultAudioThumbnail = new Image("/org/praisenter/resources/music-default-thumbnail.png", w, h, true, true, false);
+	public SlideImportResult(List<Slide> slides, List<SlideShow> shows) {
+		this.slides = slides == null ? new ArrayList<Slide>() : slides;
+		this.shows = shows == null ? new ArrayList<SlideShow>() : shows;
 	}
 	
 	/**
-	 * Returns the default image thumbnail.
-	 * @return Image
+	 * Returns the slides that were imported.
+	 * @return List&lt;{@link Slide}&gt;
 	 */
-	public Image getDefaultImageThumbnail() {
-		return this.defaultImageThumbnail;
+	public List<Slide> getSlides() {
+		return this.slides;
 	}
 	
 	/**
-	 * Returns the default video thumbnail.
-	 * @return Image
+	 * Returns the slide shows that were imported.
+	 * @return List&lt;{@link SlideShow}&gt;
 	 */
-	public Image getDefaultVideoThumbnail() {
-		return this.defaultVideoThumbnail;
-	}
-	
-	/**
-	 * Returns the default audio thumbnail.
-	 * @return Image
-	 */
-	public Image getDefaultAudioThumbnail() {
-		return this.defaultAudioThumbnail;
+	public List<SlideShow> getSlideShows() {
+		return this.shows;
 	}
 }

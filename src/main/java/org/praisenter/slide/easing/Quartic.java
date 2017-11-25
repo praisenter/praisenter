@@ -24,17 +24,11 @@
  */
 package org.praisenter.slide.easing;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
-
 /**
  * Represents an quartic easing.
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlRootElement(name = "quartic")
-@XmlAccessorType(XmlAccessType.NONE)
 public final class Quartic extends Easing {
 	/**
 	 * Default constructor for JAXB.

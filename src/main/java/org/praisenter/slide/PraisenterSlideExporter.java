@@ -45,13 +45,69 @@ import org.praisenter.utility.StringManipulator;
  */
 public final class PraisenterSlideExporter implements SlideExporter {
 	/* (non-Javadoc)
-	 * @see org.praisenter.slide.SlideExporter#execute(java.nio.file.Path, java.util.List)
+	 * @see org.praisenter.slide.SlideExporter#execute(java.nio.file.Path, java.lang.String, java.util.List, java.util.List)
 	 */
 	@Override
-	public void execute(Path path, List<Slide> slides) throws IOException {
-		Map<String, Integer> names = new HashMap<String, Integer>();
+	public void execute(Path path, String folder, List<Slide> slides, List<SlideShow> shows) throws IOException {
+		String root = "";
+		if (folder != null) {
+			root = folder + "/";
+		}
+		
+		Map<String, Integer> names = null;
 		try (FileOutputStream fos = new FileOutputStream(path.toFile());
 			 ZipOutputStream zos = new ZipOutputStream(fos)) {
+			if (slides != null) {
+				names = new HashMap<String, Integer>();
+				for (Slide slide : slides) {
+					int n = 1;
+					String fileName = StringManipulator.toFileName(slide.getName(), slide.getId());
+					// make sure it's unique
+					if (names.containsKey(fileName)) {
+						n = names.get(fileName);
+						fileName += String.valueOf(++n);
+					}
+					Slide copy = slide.copy(true);
+					ZipEntry entry = new ZipEntry(root + fileName + Constants.SLIDE_FILE_EXTENSION);
+					zos.putNextEntry(entry);
+					JsonIO.write(zos, copy);
+					zos.closeEntry();
+				}
+			}
+			
+			if (shows != null) {
+				names = new HashMap<String, Integer>();
+				for (SlideShow show : shows) {
+					int n = 1;
+					String fileName = StringManipulator.toFileName(show.getName(), show.getId());
+					// make sure it's unique
+					if (names.containsKey(fileName)) {
+						n = names.get(fileName);
+						fileName += String.valueOf(++n);
+					}
+					SlideShow copy = show.copy(true);
+					ZipEntry entry = new ZipEntry(root + SlideLibrary.SLIDE_SHOW_DIR + "/" + fileName + Constants.SLIDE_FILE_EXTENSION);
+					zos.putNextEntry(entry);
+					JsonIO.write(zos, copy);
+					zos.closeEntry();
+				}
+			}
+		}
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.praisenter.slide.SlideExporter#execute(java.util.zip.ZipOutputStream, java.lang.String, java.util.List, java.util.List)
+	 */
+	@Override
+	public void execute(ZipOutputStream stream, String folder, List<Slide> slides, List<SlideShow> shows) throws IOException {
+		String root = "";
+		if (folder != null) {
+			root = folder + "/";
+		}
+		
+		Map<String, Integer> names = null;
+		if (slides != null) {
+			names = new HashMap<String, Integer>();
 			for (Slide slide : slides) {
 				int n = 1;
 				String fileName = StringManipulator.toFileName(slide.getName(), slide.getId());
@@ -61,38 +117,29 @@ public final class PraisenterSlideExporter implements SlideExporter {
 					fileName += String.valueOf(++n);
 				}
 				Slide copy = slide.copy(true);
-				ZipEntry entry = new ZipEntry(fileName + Constants.SLIDE_FILE_EXTENSION);
-				zos.putNextEntry(entry);
-				JsonIO.write(zos, copy);
-				zos.closeEntry();
+				ZipEntry entry = new ZipEntry(root + fileName + Constants.SLIDE_FILE_EXTENSION);
+				stream.putNextEntry(entry);
+				JsonIO.write(stream, copy);
+				stream.closeEntry();
 			}
-		}
-	}
-	
-	/* (non-Javadoc)
-	 * @see org.praisenter.slide.SlideExporter#execute(java.util.zip.ZipOutputStream, java.lang.String, java.util.List)
-	 */
-	@Override
-	public void execute(ZipOutputStream stream, String folder, List<Slide> slides) throws IOException {
-		String root = "";
-		if (folder != null) {
-			root = folder + "/";
 		}
 		
-		Map<String, Integer> names = new HashMap<String, Integer>();
-		for (Slide slide : slides) {
-			int n = 1;
-			String fileName = StringManipulator.toFileName(slide.getName(), slide.getId());
-			// make sure it's unique
-			if (names.containsKey(fileName)) {
-				n = names.get(fileName);
-				fileName += String.valueOf(++n);
+		if (shows != null) {
+			names = new HashMap<String, Integer>();
+			for (SlideShow show : shows) {
+				int n = 1;
+				String fileName = StringManipulator.toFileName(show.getName(), show.getId());
+				// make sure it's unique
+				if (names.containsKey(fileName)) {
+					n = names.get(fileName);
+					fileName += String.valueOf(++n);
+				}
+				SlideShow copy = show.copy(true);
+				ZipEntry entry = new ZipEntry(root + SlideLibrary.SLIDE_SHOW_DIR + "/" + fileName + Constants.SLIDE_FILE_EXTENSION);
+				stream.putNextEntry(entry);
+				JsonIO.write(stream, copy);
+				stream.closeEntry();
 			}
-			Slide copy = slide.copy(true);
-			ZipEntry entry = new ZipEntry(root + fileName + Constants.SLIDE_FILE_EXTENSION);
-			stream.putNextEntry(entry);
-			JsonIO.write(stream, copy);
-			stream.closeEntry();
 		}
 	}
 }

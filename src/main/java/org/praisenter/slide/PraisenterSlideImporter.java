@@ -32,6 +32,7 @@ import java.util.List;
 
 import org.praisenter.InvalidFormatException;
 import org.praisenter.json.JsonIO;
+import org.praisenter.json.PraisenterFormat;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 
@@ -45,22 +46,32 @@ public final class PraisenterSlideImporter implements SlideImporter {
 	 * @see org.praisenter.bible.BibleImporter#execute(java.lang.String, java.io.InputStream)
 	 */
 	@Override
-	public List<Slide> execute(String fileName, InputStream stream) throws IOException, InvalidFormatException {
+	public SlideImportResult execute(String fileName, InputStream stream) throws IOException, InvalidFormatException {
 		List<Slide> slides = new ArrayList<Slide>();
+		List<SlideShow> shows = new ArrayList<SlideShow>();
 		
 		try {
-			// make a copy to ensure the id is changed
-			Slide slide = JsonIO.read(stream, Slide.class).copy(false);
-			
-			// update the import date
-			if (slide instanceof BasicSlide) {
-				((BasicSlide)slide).createdDate = Instant.now();
+			PraisenterFormat format = JsonIO.getPraisenterFormat(stream);
+			if (format != null) {
+				stream.reset();
+				if (format.is(Slide.class)) {
+					// make a copy to ensure the id is changed
+					Slide slide = JsonIO.read(stream, Slide.class).copy(false);
+					if (slide instanceof BasicSlide) {
+						((BasicSlide) slide).createdDate = Instant.now();
+					}
+					slides.add(slide);
+				} else if (format.is(SlideShow.class)) {
+					// make a copy to ensure the id is changed
+					SlideShow show = JsonIO.read(stream, SlideShow.class).copy(false);
+					show.createdDate = Instant.now();
+					shows.add(show);
+				}
 			}
-			slides.add(slide);
 		} catch (JsonProcessingException ex) {
 			throw new InvalidFormatException("Failed to import file '" + fileName + "' as a Praisenter slide file.", ex);
 		}
 		
-		return slides;
+		return new SlideImportResult(slides, shows);
 	}
 }

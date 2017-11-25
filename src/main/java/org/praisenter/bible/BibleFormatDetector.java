@@ -161,7 +161,7 @@ final class BibleFormatDetector {
 	 */
 	private BibleImporter getImporter(String fileName, InputStream stream) {
 		// get it based on the stream data
-		String mimeType = MimeType.get(stream);
+		String mimeType = MimeType.get(stream, fileName);
 		
 		// check for null
 		if (mimeType == null) {

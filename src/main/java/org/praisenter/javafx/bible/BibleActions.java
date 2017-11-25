@@ -80,7 +80,7 @@ public final class BibleActions {
 			List<AsyncTask<List<Bible>>> tasks = new ArrayList<AsyncTask<List<Bible>>>();
 			for (Path path : paths) {
 				if (path != null) {
-					tasks.add(library.add(path));
+					tasks.add(library.importBibles(path));
 				}
 			}
 			// wrap the tasks in a multi-task wait task

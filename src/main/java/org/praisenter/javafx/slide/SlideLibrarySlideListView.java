@@ -29,7 +29,6 @@ import java.util.function.BiConsumer;
 import org.praisenter.javafx.MappedList;
 import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.slide.Slide;
-import org.praisenter.slide.SlideAssignment;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -63,7 +62,7 @@ public final class SlideLibrarySlideListView extends ListView<Slide> {
         
 		this.setItems(items);
 		this.setCellFactory((view) -> {
-			SlideListCell cell = new SlideListCell();
+			SlideListCell cell = new SlideListCell(context);
 			
 			cell.prefWidthProperty().bind(this.widthProperty().subtract(2));
 			
@@ -85,7 +84,7 @@ public final class SlideLibrarySlideListView extends ListView<Slide> {
 	 * @return ObservableList&lt;{@link SlideListItem}&gt;
 	 */
 	private ObservableList<Slide> createList() {
-		ObservableList<SlideListItem> items = this.context.getSlideLibrary().getItems();
+		ObservableList<SlideListItem> items = this.context.getSlideLibrary().getSlideItems();
 		
         FilteredList<SlideListItem> filtered = items.filtered(p -> {
         	return  p.isLoaded() && 

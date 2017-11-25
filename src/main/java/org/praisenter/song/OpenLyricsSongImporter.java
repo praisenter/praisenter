@@ -27,11 +27,10 @@ package org.praisenter.song;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 
-import javax.xml.bind.DatatypeConverter;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -141,8 +140,7 @@ public final class OpenLyricsSongImporter implements SongImporter {
 				this.song.setSource(!StringManipulator.isNullOrEmpty(createdIn) ? createdIn : modifiedIn);
 				if (!StringManipulator.isNullOrEmpty(modifiedDate)) {
 					try {
-						Calendar cal = DatatypeConverter.parseDateTime(modifiedDate);
-						this.song.setModifiedDate(cal.getTime().toInstant());
+						this.song.setModifiedDate(Instant.parse(modifiedDate));
 					} catch (Exception ex) {
 						LOGGER.warn("Failed to parse modifiedDate '" + modifiedDate + "' as a datetime.");
 					}
@@ -166,7 +164,7 @@ public final class OpenLyricsSongImporter implements SongImporter {
 				lyrics.setTransliteration(transliteration);
 				if (!StringManipulator.isNullOrEmpty(original)) {
 					try {
-						lyrics.setOriginal(DatatypeConverter.parseBoolean(original));
+						lyrics.setOriginal(Boolean.parseBoolean(original));
 					} catch (Exception ex) {
 						LOGGER.warn("Failed to parse original flag '" + original + "' as a boolean.");
 					}

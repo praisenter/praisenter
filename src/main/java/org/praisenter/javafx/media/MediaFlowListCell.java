@@ -26,12 +26,12 @@ package org.praisenter.javafx.media;
 
 import org.praisenter.MediaType;
 import org.praisenter.ThumbnailSettings;
+import org.praisenter.javafx.ImageCache;
 import org.praisenter.javafx.controls.FlowListCell;
 import org.praisenter.media.Media;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.image.Image;
@@ -50,10 +50,13 @@ final class MediaFlowListCell extends FlowListCell<MediaListItem> {
 	/**
 	 * Minimal constructor.
 	 * @param item the media list item
+	 * @param imageCache the image cache
 	 * @param thumbnailSettings the thumbnail settings
-	 * @param defaultThumbnails the default thumbnails
 	 */
-	public MediaFlowListCell(MediaListItem item, ThumbnailSettings thumbnailSettings, DefaultMediaThumbnails defaultThumbnails) {
+	public MediaFlowListCell(
+			MediaListItem item, 
+			ImageCache imageCache,
+			ThumbnailSettings thumbnailSettings) {
 		super(item);
 		
 		final int maxHeight = thumbnailSettings.getHeight();
@@ -92,14 +95,14 @@ final class MediaFlowListCell extends FlowListCell<MediaListItem> {
 				}
 				if (nv.getThumbnail() == null) {
 					if (nv.getType() == MediaType.IMAGE) {
-						image = defaultThumbnails.getDefaultImageThumbnail();
+						image = imageCache.getOrLoadApplicationImage("/org/praisenter/resources/image-default-thumbnail.png");
 					} else if (nv.getType() == MediaType.VIDEO) {
-						image = defaultThumbnails.getDefaultVideoThumbnail();
+						image = imageCache.getOrLoadApplicationImage("/org/praisenter/resources/video-default-thumbnail.png");
 					} else if (nv.getType() == MediaType.AUDIO) {
-						image = defaultThumbnails.getDefaultAudioThumbnail();
+						image = imageCache.getOrLoadApplicationImage("/org/praisenter/resources/audio-default-thumbnail.png");
 					}
 				} else {
-					image = SwingFXUtils.toFXImage(nv.getThumbnail(), null);
+					image = imageCache.getOrLoadThumbnail(nv.getId(), nv.getThumbnail());
 				}
 			}
 			

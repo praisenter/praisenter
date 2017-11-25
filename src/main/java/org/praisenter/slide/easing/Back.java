@@ -24,17 +24,11 @@
  */
 package org.praisenter.slide.easing;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
-
 /**
  * Represents a back easing.
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlRootElement(name = "back")
-@XmlAccessorType(XmlAccessType.NONE)
 public final class Back extends Easing {
 	/** The over-shoot factor */
 	private static final double s = 1.70158;

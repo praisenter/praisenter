@@ -24,17 +24,11 @@
  */
 package org.praisenter.slide.easing;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
-
 /**
  * Represents an linear easing.
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlRootElement(name = "linear")
-@XmlAccessorType(XmlAccessType.NONE)
 public final class Linear extends Easing {
 	/**
 	 * Minimal constructor.

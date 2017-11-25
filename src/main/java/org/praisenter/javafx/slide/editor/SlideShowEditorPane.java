@@ -141,7 +141,7 @@ public final class SlideShowEditorPane extends BorderPane {
 	}
 	
 	public void setSlideShow(SlideShow show) {
-		this.show.set(new ObservableSlideShow(show));
+		this.show.set(show == null ? null : new ObservableSlideShow(show));
 	}
 	
 	public SlideShow getSlideShow() {

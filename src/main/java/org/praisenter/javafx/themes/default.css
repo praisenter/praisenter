@@ -287,7 +287,7 @@
 /* SlideLibraryPane */
 .slide-library-pane {}
 
-/* SlideListCell */
+/* SlideFlowListCell */
 .slide-list-cell {
 	-fx-alignment: top-center;
 	-fx-pref-width: 110;
@@ -307,8 +307,34 @@
 	-fx-wrap-text: true;
 }
 
+/* SlideShowLibraryPane */
+.slide-show-library-pane {}
+
+/* SlideShowFlowListCell */
+.slide-show-list-cell {
+	-fx-alignment: top-center;
+	-fx-pref-width: 130;
+}
+.slide-show-list-cell-thumbnail {
+	-fx-background-image: url("/org/praisenter/resources/transparent.png");
+	-fx-background-repeat: repeat;
+	-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 0, 0, 2, 2);
+}
+.slide-show-list-cell-progress {}
+.slide-show-list-cell-wrapper {
+	-fx-alignment: bottom-center;
+}
+.slide-show-list-cell-name {
+	-fx-text-alignment: center;
+	-fx-padding: 5 0 0 0;
+	-fx-wrap-text: true;
+}
+
 /* SlidePropertiesPane */
 .slide-properties-pane {}
+
+/* SlideShowPropertiesPane */
+.slide-show-properties-pane {}
 
 /* SlideEditorPane */
 .slide-editor-pane {}

@@ -37,5 +37,8 @@ public enum ImageCacheKeyType {
 	MEDIA_IMAGE,
 	
 	/** A video frame image from the media library */
-	MEDIA_VIDEO
+	MEDIA_VIDEO,
+	
+	/** A thumbnail */
+	THUMBNAIL
 }

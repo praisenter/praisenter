@@ -72,10 +72,11 @@ final class SlideFormatDetector {
 	 * @throws InvalidFormatException if the format detected is invalid
 	 * @throws UnknownFormatException if the format could not be detected
 	 */
-	public List<Slide> execute(Path path) throws IOException, FileNotFoundException, InvalidFormatException, UnknownFormatException {
+	public SlideImportResult execute(Path path) throws IOException, FileNotFoundException, InvalidFormatException, UnknownFormatException {
 		if (!Files.exists(path)) throw new FileNotFoundException(path.toAbsolutePath().toString());
 		
 		List<Slide> slides = new ArrayList<Slide>();
+		List<SlideShow> shows = new ArrayList<SlideShow>();
 		boolean isZip = false;
 		
 		// we'll try by the file extension first
@@ -96,7 +97,9 @@ final class SlideFormatDetector {
 						if (importer != null) {
 							String name = Paths.get(entry.getName()).getFileName().toString();
 							try {
-								slides.addAll(importer.execute(name, bais));
+								SlideImportResult sir = importer.execute(name, bais);
+								slides.addAll(sir.getSlides());
+								shows.addAll(sir.getSlideShows());
 							} catch (Exception ex) {
 								LOGGER.warn("Failed to import file '" + entry.getName() + "' using importer '" + importer.getClass().getName() + "'.", ex);
 							}
@@ -122,11 +125,11 @@ final class SlideFormatDetector {
 		}
 		
 		// check for some slides
-		if (slides.isEmpty()) {
+		if (slides.isEmpty() && shows.isEmpty()) {
 			throw new UnknownFormatException("The file '" + path.toAbsolutePath().toString() + "' was not in a recognized slide file format.");
 		}
 		
-		return slides;
+		return new SlideImportResult(slides, shows);
 	}
 	
 	/**
@@ -139,7 +142,7 @@ final class SlideFormatDetector {
 	 */
 	private SlideImporter getImporter(String fileName, InputStream stream) {
 		// get it based on the stream data
-		String mimeType = MimeType.get(stream);
+		String mimeType = MimeType.get(stream, fileName);
 		
 		// check for null
 		if (mimeType == null) {
@@ -154,7 +157,7 @@ final class SlideFormatDetector {
 			// Praisenter or Unknown
 			try {
 				PraisenterFormat format = JsonIO.getPraisenterFormat(stream);
-				if (format != null && format.is(Slide.class)) {
+				if (format != null && (format.is(Slide.class) || format.is(SlideShow.class))) {
 					stream.reset();
 					return new PraisenterSlideImporter();
 				} else {
@@ -173,7 +176,7 @@ final class SlideFormatDetector {
 		if (fileName.endsWith(Constants.SLIDE_FILE_EXTENSION)) {
 			try {
 				PraisenterFormat format = JsonIO.getPraisenterFormat(stream);
-				if (format != null && format.is(Slide.class)) {
+				if (format != null && (format.is(Slide.class) || format.is(SlideShow.class))) {
 					stream.reset();
 					return new PraisenterSlideImporter();
 				} else {
@@ -197,7 +200,7 @@ final class SlideFormatDetector {
 			if (line.startsWith("{")) {
 				// check for Praisenter
 				PraisenterFormat format = JsonIO.getPraisenterFormat(stream);
-				if (format != null && format.is(Slide.class)) {
+				if (format != null && (format.is(Slide.class) || format.is(SlideShow.class))) {
 					stream.reset();
 					return new PraisenterSlideImporter();
 				}

@@ -72,7 +72,7 @@ public final class PraisenterFormat {
 				Type[] types = subTypes.value();
 				if (types != null) {
 					for (Type type : types) {
-						if (clazz.equals(type.value())) {
+						if (clazz.isAssignableFrom(type.value())) {
 							typeNames.add(type.name());
 						}
 					}

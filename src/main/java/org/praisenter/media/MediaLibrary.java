@@ -50,7 +50,6 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 import javax.imageio.ImageIO;
-import javax.xml.bind.JAXBException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -61,6 +60,7 @@ import org.praisenter.MediaType;
 import org.praisenter.Tag;
 import org.praisenter.ThumbnailSettings;
 import org.praisenter.json.JsonIO;
+import org.praisenter.json.PraisenterFormat;
 import org.praisenter.tools.ToolExecutionException;
 import org.praisenter.utility.MimeType;
 import org.praisenter.utility.Streams;
@@ -818,22 +818,7 @@ public final class MediaLibrary {
 		
 		// keep track of successfully imported media
 		List<Media> imported = new ArrayList<Media>();
-		
-		// get the root folder by inspecting what's in the zip
-		// if there's a media folder then look there only, otherwise
-		// look in the root
-		String root = "";
-		try (FileInputStream fis = new FileInputStream(path.toFile());
-			 ZipInputStream zis = new ZipInputStream(fis)) {
-			ZipEntry entry = null;
-			while ((entry = zis.getNextEntry()) != null) {
-				// does any entry start with the ZIP_DIR
-				if (entry.getName().toLowerCase().startsWith(ZIP_DIR)) {
-					root = ZIP_DIR + "/";
-					break;
-				}
-			}
-		}
+		String root = ZIP_DIR + "/";
 		
 		// for an import, we verify that it's a zip file
 		// and then import whatever media has metadata as is 
@@ -860,12 +845,18 @@ public final class MediaLibrary {
 						// check for (metadata) entries
 						// this is the best we can do here since ZipInputStream doesn't
 						// support mark/reset; looking at the file name is the best we can do
+						
 						if (MimeType.JSON.check(name)) {
 							// its a metadata file, try to read and parse it
 							try {
 								byte[] data = Streams.read(zis);
-								Media media = JsonIO.read(new ByteArrayInputStream(data), Media.class);
-								metadata.put(root + media.fileName, media);
+								ByteArrayInputStream bais = new ByteArrayInputStream(data);
+								PraisenterFormat format = JsonIO.getPraisenterFormat(bais);
+								if (format != null && format.is(Media.class)) {
+									bais.reset();
+									Media media = JsonIO.read(bais, Media.class);
+									metadata.put(root + media.fileName, media);
+								}
 							} catch (Exception ex) {
 								// it failed, might be some other type of json file
 								LOGGER.warn("Failed to read '" + name + "' as media metadata.", ex);
@@ -894,7 +885,7 @@ public final class MediaLibrary {
 						if (media != null) {
 							// check if this media already exists
 							if (this.media.containsKey(media.id)) {
-								LOGGER.info("Media '{}' '{}' already exists.", media.fileName, media.id);
+								LOGGER.warn("Media '{}' '{}' already exists.", media.fileName, media.id);
 								continue;
 							}
 							
@@ -904,7 +895,7 @@ public final class MediaLibrary {
 							if (media.type == MediaType.VIDEO) {
 								if (!frames.containsKey(frameDir)) {
 									// if not, then don't import it
-									LOGGER.info("Video media '{}' doesn't have a related video frame so cannot be imported. Please unzip and import this file manually.", name);
+									LOGGER.warn("Video media '{}' doesn't have a related video frame so cannot be imported. Please unzip and import this file manually.", name);
 									continue;
 								}
 							}
@@ -964,7 +955,13 @@ public final class MediaLibrary {
 								LOGGER.error("Failed to write the media or metadata to the library for '" + name + "'.", ex);
 							}
 						} else {
-							LOGGER.info("Media '{}' doesn't have related metadata so cannot be imported. Please unzip and import this file manually.", name);
+							// get the mime type
+							MediaType type = MediaType.getMediaTypeFromMimeType(MimeType.get(name));
+							if (type != null) {
+								LOGGER.warn("Media '{}' doesn't have related metadata so cannot be imported. Please unzip and import this file manually.", name);
+							} else {
+								LOGGER.warn("Unable to import file '{}' due to it being an unknown media type or missing metadata.", name);
+							}
 						}
 					}
 				}
@@ -1009,7 +1006,7 @@ public final class MediaLibrary {
 	public void exportMedia(Path path, List<Media> media) throws FileNotFoundException, ZipException, IOException {
 		try (FileOutputStream fos = new FileOutputStream(path.toFile());
 			 ZipOutputStream zos = new ZipOutputStream(fos)) {
-			this.exportMedia(zos, null, media);
+			this.exportMedia(zos, MediaLibrary.ZIP_DIR, media);
 		}
 	}
 	

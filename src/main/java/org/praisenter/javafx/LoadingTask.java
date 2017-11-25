@@ -139,7 +139,7 @@ final class LoadingTask extends Task<PraisenterContext> {
 		SlideLibrary slides = SlideLibrary.open(Paths.get(Constants.SLIDES_ABSOLUTE_PATH));
 		t1 = System.nanoTime();
 		updateProgress(i++, n);
-		LOGGER.info("Slide library loaded in {} seconds with {} slides", (t1 - t0) / 1e9, slides.size());
+		LOGGER.info("Slide library loaded in {} seconds with {} slides", (t1 - t0) / 1e9, slides.slidesSize());
 		
 		LOGGER.info("Building the application context.");
 		// build the context

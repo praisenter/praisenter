@@ -41,10 +41,11 @@ public interface BibleExporter {
 	 * <p>
 	 * The given path should be a normal file and preferably with a .zip extension.
 	 * @param path the path to export to
+	 * @param folder the folder in the stream to export to
 	 * @param bibles the bibles to export
 	 * @throws IOException if an IO error occurs
 	 */
-	public abstract void execute(Path path, List<Bible> bibles) throws IOException;
+	public abstract void execute(Path path, String folder, List<Bible> bibles) throws IOException;
 	
 	/**
 	 * Exports the given bibles to the given zip stream.

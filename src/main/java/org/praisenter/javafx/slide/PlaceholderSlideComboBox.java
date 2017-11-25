@@ -47,7 +47,7 @@ public final class PlaceholderSlideComboBox extends ComboBox<Slide> {
 	public PlaceholderSlideComboBox(PraisenterContext context) {
 		this.getStyleClass().add("placeholder-slide-combobox");
 		
-		ObservableList<SlideListItem> theList = context.getSlideLibrary().getItems();
+		ObservableList<SlideListItem> theList = context.getSlideLibrary().getSlideItems();
         FilteredList<SlideListItem> filtered = theList.filtered(p -> {
         	return  p.isLoaded() && 
         			p.getSlide() != null && 
@@ -66,7 +66,7 @@ public final class PlaceholderSlideComboBox extends ComboBox<Slide> {
         // JAVABUG (L) 09/16/17 [workaround] The combobox's drop down goes off screen - I've mitigated by reducing the number of items visible at one time
         this.setVisibleRowCount(6);
 		this.setCellFactory((view) -> {
-			return new SlideListCell();
+			return new SlideListCell(context);
 		});
 		this.setButtonCell(new ListCell<Slide>() {
 			@Override

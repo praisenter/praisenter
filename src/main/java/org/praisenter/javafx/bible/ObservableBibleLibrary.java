@@ -126,7 +126,7 @@ public final class ObservableBibleLibrary {
 	 * @param path the path to the bible
 	 * @return {@link AsyncTask}&lt;List&lt;{@link Bible}&gt;&gt;
 	 */
-	public AsyncTask<List<Bible>> add(Path path) {
+	public AsyncTask<List<Bible>> importBibles(Path path) {
 		if (path != null) {
 			// create a "loading" item
 			final BibleListItem loading = new BibleListItem(path.getFileName().toString());

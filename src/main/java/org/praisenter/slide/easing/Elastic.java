@@ -24,17 +24,11 @@
  */
 package org.praisenter.slide.easing;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
-
 /**
  * Represents an elastic easing.
  * @author William Bittle
  * @version 3.0.0
  */
-@XmlRootElement(name = "elastic")
-@XmlAccessorType(XmlAccessType.NONE)
 public final class Elastic extends Easing {
 	/** The overshoot factor */
 	private static final double s = 1;

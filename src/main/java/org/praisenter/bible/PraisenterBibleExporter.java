@@ -45,10 +45,15 @@ import org.praisenter.utility.StringManipulator;
  */
 final class PraisenterBibleExporter implements BibleExporter {
 	/* (non-Javadoc)
-	 * @see org.praisenter.bible.BibleExporter#execute(java.nio.file.Path, java.util.List)
+	 * @see org.praisenter.bible.BibleExporter#execute(java.nio.file.Path, java.lang.String, java.util.List)
 	 */
 	@Override
-	public void execute(Path path, List<Bible> bibles) throws IOException {
+	public void execute(Path path, String folder, List<Bible> bibles) throws IOException {
+		String root = "";
+		if (folder != null) {
+			root = folder + "/";
+		}
+		
 		Map<String, Integer> names = new HashMap<String, Integer>(); 
 		try (FileOutputStream fos = new FileOutputStream(path.toFile());
 			 ZipOutputStream zos = new ZipOutputStream(fos)) {
@@ -62,7 +67,7 @@ final class PraisenterBibleExporter implements BibleExporter {
 				}
 				names.put(fileName, n);
 				Bible copy = bible.copy(true);
-				ZipEntry entry = new ZipEntry(fileName + Constants.BIBLE_FILE_EXTENSION);
+				ZipEntry entry = new ZipEntry(root + fileName + Constants.BIBLE_FILE_EXTENSION);
 				zos.putNextEntry(entry);
 				JsonIO.write(zos, copy);
 				zos.closeEntry();
