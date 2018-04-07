@@ -4,6 +4,8 @@ import java.awt.Desktop;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
@@ -25,7 +27,6 @@ import org.praisenter.javafx.slide.SlideLibraryPane;
 import org.praisenter.javafx.slide.SlideShowLibraryPane;
 import org.praisenter.javafx.slide.editor.SlideEditorPane;
 import org.praisenter.javafx.slide.editor.SlideShowEditorDialog;
-import org.praisenter.javafx.slide.editor.SlideShowEditorPane;
 import org.praisenter.resources.translations.Translations;
 import org.praisenter.slide.BasicSlide;
 import org.praisenter.slide.Slide;
@@ -36,14 +37,12 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.concurrent.Worker.State;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
-import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
-import javafx.scene.control.Dialog;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
 
 public final class MainPane extends BorderPane implements ApplicationPane {
@@ -94,8 +93,30 @@ public final class MainPane extends BorderPane implements ApplicationPane {
 		
 		this.presentPane = new SlideDataPane(context);
 		
-		this.setCenter(this.presentPane);
+		//this.setCenter(this.presentPane);
+		
+		List<Node> items = new ArrayList<Node>();
+		items.add(this.setupPane);
+		items.add(this.presentPane);
+		items.add(this.bibleLibraryPane);
+		items.add(this.bibleEditorPane);
+		items.add(this.mediaLibraryPane);
+		items.add(this.slideLibraryPane);
+		items.add(this.slideEditorPane);
+		items.add(this.slideShowLibraryPane);
+		
+		for (Node node : items) {
+			setVisible(node, false);
+		}
+		
+		StackPane views = new StackPane();
+		views.getChildren().addAll(items);
 
+		this.setCenter(views);
+		
+		setVisible(this.presentPane, true);
+		this.mainContent.set(this.presentPane);
+		
 		this.mainContent.addListener((obs, ov, nv) -> {
 			if (ov != null && ov instanceof ApplicationPane) {
 				((ApplicationPane)ov).cleanup();
@@ -362,6 +383,12 @@ public final class MainPane extends BorderPane implements ApplicationPane {
     	return AsyncTaskFactory.single();
     }
     
+    private void setVisible(Node node, boolean visible) {
+		node.setVisible(visible);
+		node.setManaged(visible);
+		node.setDisable(!visible);
+    }
+    
 	private void navigate(Node node) { 
 		AsyncTask<ButtonType> task = checkForUnsavedChanges();
 		task.addCompletedHandler(e -> {
@@ -370,8 +397,15 @@ public final class MainPane extends BorderPane implements ApplicationPane {
 				return;
 			}
 			
-			this.setCenter(null);
-			this.setCenter(node);
+//			this.setCenter(null);
+//			this.setCenter(node);
+			
+			Node current = this.mainContent.get();
+			if (current != null)  {
+				this.setVisible(current, false);
+			}
+			
+			this.setVisible(node, true);
 			
 			// JAVABUG (M) 10/24/16 [workaround] Duplicated accelerators https://bugs.openjdk.java.net/browse/JDK-8088068
 			// we need to do this so that any accelerators on the content area (the center node) are overridden 

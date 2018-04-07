@@ -45,7 +45,6 @@ import org.praisenter.javafx.ApplicationPaneEvent;
 import org.praisenter.javafx.DataFormats;
 import org.praisenter.javafx.Option;
 import org.praisenter.javafx.PraisenterContext;
-import org.praisenter.javafx.async.AsyncTask;
 import org.praisenter.javafx.controls.FlowListCell;
 import org.praisenter.javafx.controls.FlowListView;
 import org.praisenter.javafx.controls.SelectionEvent;
@@ -53,7 +52,6 @@ import org.praisenter.javafx.controls.SortGraphic;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.json.JsonIO;
 import org.praisenter.resources.translations.Translations;
-import org.praisenter.slide.Slide;
 import org.praisenter.slide.SlideShow;
 
 import javafx.beans.InvalidationListener;
@@ -422,12 +420,11 @@ public final class SlideShowLibraryPane extends BorderPane implements Applicatio
 				paths.add(file.toPath());
 			}
 			
-			// TODO implement
-//			SlideActions.slideImport(
-//					this.context, 
-//					this.getScene().getWindow(), 
-//					paths)
-//			.execute(this.context.getExecutorService());
+			SlideActions.slideImport(
+					this.context, 
+					this.getScene().getWindow(), 
+					paths)
+			.execute(this.context.getExecutorService());
 		}
 		event.setDropCompleted(true);
 		event.consume();
@@ -445,12 +442,11 @@ public final class SlideShowLibraryPane extends BorderPane implements Applicatio
 			}
 		}
 		
-		// TODO implement
-//		SlideActions.slidePromptDelete(
-//				this.context.getSlideLibrary(), 
-//				this.getScene().getWindow(), 
-//				slides)
-//		.execute(this.context.getExecutorService());
+		SlideActions.showPromptDelete(
+				this.context.getSlideLibrary(), 
+				this.getScene().getWindow(), 
+				shows)
+		.execute(this.context.getExecutorService());
 	}
 
     /**
@@ -458,12 +454,11 @@ public final class SlideShowLibraryPane extends BorderPane implements Applicatio
      * @param event the event
      */
     private final void promptRename(SlideShow show) {
-    	// TODO implement
-//    	SlideActions.slidePromptRename(
-//    			this.context.getSlideLibrary(), 
-//    			this.getScene().getWindow(), 
-//    			slide)
-//    	.execute(this.context.getExecutorService());
+    	SlideActions.showPromptRename(
+    			this.context.getSlideLibrary(), 
+    			this.getScene().getWindow(), 
+    			show)
+    	.execute(this.context.getExecutorService());
     }
     
     /**
@@ -503,12 +498,11 @@ public final class SlideShowLibraryPane extends BorderPane implements Applicatio
 				if (show instanceof String) {
 					try {
 						SlideShow copy = JsonIO.read((String)show, SlideShow.class);
-						// TODO implement
-//						SlideActions.slideCopy(
-//								this.context.getSlideLibrary(),
-//								this.getScene().getWindow(),
-//								copy)
-//						.execute(this.context.getExecutorService());
+						SlideActions.showCopy(
+								this.context.getSlideLibrary(),
+								this.getScene().getWindow(),
+								copy)
+						.execute(this.context.getExecutorService());
 					} catch (Exception ex) {
 						LOGGER.warn("Failed to paste slide show '" + show + "' from clipboard.", ex);
 					}
@@ -529,14 +523,12 @@ public final class SlideShowLibraryPane extends BorderPane implements Applicatio
 			}
 		}
     	
-		// TODO implement
-//    	SlideActions.slidePromptExport(
-//    			this.context, 
-//    			this.getScene().getWindow(), 
-//    			slides,
-//    			// TODO do we need to export shows too?
-//    			null)
-//    	.execute(this.context.getExecutorService());
+    	SlideActions.slidePromptExport(
+    			this.context, 
+    			this.getScene().getWindow(), 
+    			null,
+    			shows)
+    	.execute(this.context.getExecutorService());
     }
     
     /**
@@ -645,7 +637,7 @@ public final class SlideShowLibraryPane extends BorderPane implements Applicatio
 				// check for focused text input first
 				if (isFocused) {
 					Clipboard cb = Clipboard.getSystemClipboard();
-					return cb.hasContent(DataFormats.SLIDES);
+					return cb.hasContent(DataFormats.SLIDE_SHOWS);
 				}
 				break;
 			case SELECT_ALL:

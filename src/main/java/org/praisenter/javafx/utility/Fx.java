@@ -181,4 +181,29 @@ public final class Fx {
 			dialog.centerOnScreen();
 		}
 	}
+	
+	public static void printNodes(Node node, int depth) {
+		StringBuilder sb = new StringBuilder();
+		for (String clazz : node.getStyleClass()) {
+			sb.append(clazz).append(", ");
+		}
+		
+		StringBuilder pad = new StringBuilder();
+		for (int i = 0; i < depth; i++) {
+			pad.append("\t");
+		}
+		
+		double pw = -1;
+		if (node instanceof Region) {
+			pw = ((Region) node).getPrefWidth();
+		}
+		
+		System.out.println(pad.toString() + node.getClass().getName() + " " + pw + " [" + sb.toString() + "]");
+		
+		if (node instanceof Parent) {
+			for (Node child : ((Parent) node).getChildrenUnmodifiable()) {
+				printNodes(child, depth + 1);
+			}
+		}
+	}
 }

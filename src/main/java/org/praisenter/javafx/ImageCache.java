@@ -81,9 +81,11 @@ public final class ImageCache {
 		}
 		LOGGER.debug("Image for key: {} was not found in the cache. Loading...", key);
 		Image image = supplier.get();
-		LOGGER.debug("Image loaded for key: {}", key);
 		if (image != null) {
+			LOGGER.debug("Image loaded for key: {}", key);
 			this.images.put(key, new SoftReference<Image>(image));
+		} else {
+			LOGGER.debug("Image was loaded but was null.", key);
 		}
 		return image;
 	}

@@ -73,6 +73,7 @@ import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -421,7 +422,12 @@ public final class MediaLibraryPane extends BorderPane implements ApplicationPan
         top.setPadding(new Insets(5));
         top.setPrefWrapLength(0);
         
-        top.getChildren().addAll(pFilter, pSort);
+        Button btnTest = new Button("test");
+        btnTest.setOnAction(e -> {
+        	Fx.printNodes(this, 0);
+        });
+        
+        top.getChildren().addAll(pFilter, pSort, btnTest);
         
         this.setTop(top);
         this.setCenter(split);

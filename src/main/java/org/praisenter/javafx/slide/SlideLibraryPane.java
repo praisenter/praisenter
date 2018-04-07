@@ -574,7 +574,6 @@ public final class SlideLibraryPane extends BorderPane implements ApplicationPan
     			this.context, 
     			this.getScene().getWindow(), 
     			slides,
-    			// TODO do we need to export shows too?
     			null)
     	.execute(this.context.getExecutorService());
     }

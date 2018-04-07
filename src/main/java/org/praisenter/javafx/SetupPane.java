@@ -265,7 +265,7 @@ public final class SetupPane extends BorderPane {
 		
 		SplitPane split = new SplitPane(this.setupTree, right);
 		split.setOrientation(Orientation.HORIZONTAL);
-		split.setDividerPositions(0.15);
+		split.setDividerPositions(0.25);
 		SplitPane.setResizableWithParent(this.setupTree, false);
 		
 		this.setCenter(split);
@@ -366,6 +366,7 @@ public final class SetupPane extends BorderPane {
 		    		LOGGER.error("Failed to export theme", ex);
 		    	}
 	    	} else {
+	    		// TODO throws exception if user cancels
 	    		try (InputStream def = SetupPane.class.getResourceAsStream("/org/praisenter/javafx/themes/" + selected.getName() + ".css")) {
 	    			Files.copy(def, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
 	    		} catch (Exception ex) {

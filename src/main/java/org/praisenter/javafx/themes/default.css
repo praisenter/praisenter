@@ -163,7 +163,9 @@
 
 /* SetupPane */
 .setup-pane {}
-.setup-pane-list {}
+.setup-pane-list {
+	-fx-min-width: 200;
+}
 .display-view {
 	-fx-alignment: top-center;
 	-fx-spacing: 5;

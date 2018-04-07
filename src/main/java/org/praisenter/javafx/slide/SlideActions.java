@@ -29,8 +29,10 @@ import java.io.FileOutputStream;
 import java.nio.file.Path;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -51,6 +53,7 @@ import org.praisenter.javafx.media.ObservableMediaLibrary;
 import org.praisenter.media.Media;
 import org.praisenter.resources.translations.Translations;
 import org.praisenter.slide.Slide;
+import org.praisenter.slide.SlideAssignment;
 import org.praisenter.slide.SlideShow;
 import org.praisenter.utility.MimeType;
 import org.praisenter.utility.StringManipulator;
@@ -219,6 +222,60 @@ public final class SlideActions {
 	}
 
 	/**
+	 * Returns a task that will prompt the user for a new name for the given slide show and save it with
+	 * that new name.
+	 * <p>
+	 * Returns the slide with the new name.
+	 * @param library the library to save to
+	 * @param owner the window owner
+	 * @param show the show to rename
+	 * @return {@link AsyncTask}&lt;{@link SlideShow}&gt;
+	 */
+	public static final AsyncTask<SlideShow> showPromptRename(ObservableSlideLibrary library, Window owner, SlideShow show) {
+		// sanity check
+		if (show != null) {
+			String old = show.getName();
+	    	TextInputDialog prompt = new TextInputDialog(old);
+	    	prompt.initOwner(owner);
+	    	prompt.initModality(Modality.WINDOW_MODAL);
+	    	prompt.setTitle(Translations.get("rename"));
+	    	prompt.setHeaderText(Translations.get("name.new"));
+	    	prompt.setContentText(Translations.get("name"));
+	    	Optional<String> result = prompt.showAndWait();
+	    	// check for the "OK" button
+	    	if (result.isPresent()) {
+	    		// actually rename it?
+	    		String name = result.get();
+	    		if (!Objects.equals(old, name)) {
+		        	// update the slide's name
+	    			show.setName(name);
+		    		AsyncTask<SlideShow> task = library.save(MessageFormat.format(Translations.get("task.rename"), old, name), show);
+		        	task.addCancelledOrFailedHandler((e) -> {
+		        		Throwable error = task.getException();
+		        		show.setName(old);
+						// log the error
+						LOGGER.error("Failed to rename slide from '{}' to '{}': {}", old, name, error.getMessage());
+						// show an error to the user
+						Alert alert = Alerts.exception(
+								owner,
+								null, 
+								null, 
+								MessageFormat.format(Translations.get("task.rename.error"), old, name), 
+								error);
+						alert.show();
+					});
+		        	return task;
+	        	}
+	    		// names were the same
+	    	}
+	    	// user cancellation
+		}
+		AsyncTask<SlideShow> task = AsyncTaskFactory.single();
+		task.cancel();
+		return task;
+	}
+
+	/**
 	 * Returns a task that will prompt the user to select a file name to export the given slides to.
 	 * @param context the context
 	 * @param owner the window owner
@@ -228,12 +285,15 @@ public final class SlideActions {
 	 */
 	public static final AsyncChainedTask<AsyncTask<Void>> slidePromptExport(PraisenterContext context, Window owner, List<Slide> slides, List<SlideShow> shows) {
 		// sanity check
-		if (slides != null && !slides.isEmpty()) {
+		if ((slides != null && !slides.isEmpty()) ||
+			(shows != null && !shows.isEmpty())) {
 			String name = Translations.get("slide.export.multiple.filename"); 
-	    	if (slides.size() == 1) {
+	    	if (slides != null && slides.size() == 1) {
 	    		Slide slide = slides.get(0);
-	    		// make sure the file name doesn't have bad characters in it
 	    		name = StringManipulator.toFileName(slide.getName(), slide.getId());
+	    	} else if (shows != null && shows.size() == 1) {
+	    		SlideShow show = shows.get(0);
+	    		name = StringManipulator.toFileName(show.getName(), show.getId());
 	    	}
 	    	FileChooser chooser = new FileChooser();
 	    	chooser.setInitialFileName(name + ".zip");
@@ -247,12 +307,41 @@ public final class SlideActions {
 	    		final ObservableMediaLibrary mediaLibrary = context.getMediaLibrary();
 	    		final ObservableSlideLibrary slideLibrary = context.getSlideLibrary();
 	    		
+	    		Map<UUID, Slide> added = new HashMap<UUID, Slide>();
+	    		List<Slide> allSlides = new ArrayList<Slide>();
+	    		
+	    		// we need to make sure we don't have duplicate slides in the list
+    			if (slides != null) {
+    				for (Slide slide : slides) {
+    					if (!added.containsKey(slide.getId())) {
+    						allSlides.add(slide);
+    						added.put(slide.getId(), slide);
+    					}
+    				}
+    			}
+	    		
+	    		// get any slides for the slide shows
+	    		if (shows != null && !shows.isEmpty()) {
+	    			// we need to make sure all slides from the given shows are present
+    				for (SlideShow show : shows) {
+    					for (SlideAssignment assignment : show.getSlides()) {
+    						Slide slide = slideLibrary.getSlide(assignment.getSlideId());
+    						if (slide != null && !added.containsKey(slide.getId())) {
+    							allSlides.add(slide);
+    							added.put(slide.getId(), slide);
+    						}
+    					}
+    				}
+	    		}
+	    		
 	    		// get the dependent media
 	    		final List<Media> media = new ArrayList<Media>();
 	    		final Set<UUID> ids = new HashSet<UUID>();
-	    		for (Slide slide : slides) {
+	    		
+	    		for (Slide slide : allSlides) {
 	    			ids.addAll(slide.getReferencedMedia());
 	    		}
+	    		
 	    		for (UUID id : ids) {
 	    			if (id != null) {
 	    				Media m = mediaLibrary.get(id);
@@ -271,7 +360,7 @@ public final class SlideActions {
 		    		
 		    		List<AsyncTask<Void>> tasks = new ArrayList<AsyncTask<Void>>();
 		    		// export the slides
-	    			tasks.add(slideLibrary.exportSlidesAndShows(zos, path.getFileName().toString(), slides, shows));
+	    			tasks.add(slideLibrary.exportSlidesAndShows(zos, path.getFileName().toString(), allSlides, shows));
 	    			// export the media
 	    			if (!media.isEmpty()) {
 	    				tasks.add(mediaLibrary.exportMedia(zos, media));
@@ -388,6 +477,43 @@ public final class SlideActions {
 	}
 
 	/**
+	 * Returns a task that will make a copy of the given slide show.
+	 * <p>
+	 * Returns the copy.
+	 * @param library the library to save to
+	 * @param owner the window owner
+	 * @param show the slide show to copy
+	 * @return {@link AsyncTask}&lt;{@link SlideShow}&gt;
+	 */
+	public static final AsyncTask<SlideShow> showCopy(ObservableSlideLibrary library, Window owner, SlideShow show) {
+		if (show != null) {
+			// make a copy
+			SlideShow copy = show.copy(false);
+			// set the name to something else
+			copy.setName(MessageFormat.format(Translations.get("copyof"), show.getName()));
+			// save it
+			AsyncTask<SlideShow> task = library.save(copy);
+	    	task.addCancelledOrFailedHandler((e) -> {
+	    		Throwable error = task.getException();
+	    		// log the error
+				LOGGER.error("Failed to copy slide show.", error);
+				// present message to user
+				Alert alert = Alerts.exception(
+						owner,
+						null, 
+						null, 
+						MessageFormat.format(Translations.get("slide.copy.error"), show.getName()), 
+						error);
+				alert.show();
+			});
+	    	return task;
+		}
+		AsyncTask<SlideShow> task = AsyncTaskFactory.single();
+		task.cancel();
+		return task;
+	}
+
+	/**
 	 * Returns a task that will prompt the user for a new name for the given slide and save a new
 	 * slide with that new name.
 	 * <p>
@@ -437,6 +563,62 @@ public final class SlideActions {
 		return task;
 	}
 
+	/**
+	 * Returns a task that will prompt the user for for confirmation to delete the given slide shows.
+	 * @param library the library to import into
+	 * @param owner the window owner
+	 * @param shows the slide shows to delete
+	 * @return {@link AsyncGroupTask}&lt;{@link AsyncTask}&lt;Void&gt;&gt;
+	 */
+	public static final AsyncGroupTask<AsyncTask<Void>> showPromptDelete(ObservableSlideLibrary library, Window owner, List<SlideShow> shows) {
+		if (shows != null) {
+			// attempt to delete the selected slide
+			Alert alert = Alerts.confirm(
+					owner, 
+					Modality.WINDOW_MODAL, 
+					Translations.get("slide.delete.title"), 
+					null, 
+					Translations.get("slide.delete.content"));
+			
+			Optional<ButtonType> result = alert.showAndWait();
+			if (result.get() == ButtonType.OK) {
+				List<AsyncTask<Void>> tasks = new ArrayList<AsyncTask<Void>>();
+				for (SlideShow b : shows) {
+					if (b != null) {
+						tasks.add(library.remove(b));
+					}
+				}
+				// wrap the tasks in a multi-task wait task
+				AsyncGroupTask<AsyncTask<Void>> task = new AsyncGroupTask<AsyncTask<Void>>(tasks);
+				// define a listener to be called when the wrapper task completes
+				task.addCompletedHandler((e) -> {
+					// get the exceptions
+					Exception[] exceptions = tasks
+							.stream()
+							.filter(t -> t.getException() != null)
+							.map(t -> t.getException())
+							.collect(Collectors.toList())
+							.toArray(new Exception[0]);
+					// did we have any errors?
+					if (exceptions.length > 0) {
+						Alert fAlert = Alerts.exception(
+								owner,
+								null, 
+								null, 
+								null, 
+								exceptions);
+						fAlert.show();
+					}
+				});
+				// return the 
+				return task;
+			}
+		}
+		AsyncGroupTask<AsyncTask<Void>> task = AsyncTaskFactory.group();
+		task.cancel();
+		return task;
+	}
+	
 	/**
 	 * Returns a task that will prompt the user for for confirmation to delete the given slides.
 	 * @param library the library to import into

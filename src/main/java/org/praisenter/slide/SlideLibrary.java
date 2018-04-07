@@ -729,32 +729,6 @@ public final class SlideLibrary {
 	 * @throws IOException if an IO error occurs
 	 */
 	public void exportSlidesAndShows(ZipOutputStream stream, List<Slide> slides, List<SlideShow> shows) throws IOException {
-		List<Slide> allSlides = new ArrayList<Slide>();
-		Map<UUID, Slide> added = new HashMap<UUID, Slide>();
-		
-		// we need to make sure we don't have duplicate slides in the list
-		if (slides != null) {
-			for (Slide slide : slides) {
-				if (!added.containsKey(slide.getId())) {
-					allSlides.add(slide);
-					added.put(slide.getId(), slide);
-				}
-			}
-		}
-		
-		// we need to make sure all slides from the given shows are present
-		if (shows != null) {
-			for (SlideShow show : shows) {
-				for (SlideAssignment assignment : show.slides) {
-					Slide slide = this.getSlide(assignment.getSlideId());
-					if (slide != null && !added.containsKey(slide.getId())) {
-						allSlides.add(slide);
-						added.put(slide.getId(), slide);
-					}
-				}
-			}
-		}
-		
 		SlideExporter exporter = new PraisenterSlideExporter();
 		exporter.execute(stream, ZIP_DIR, slides, shows);
 	}

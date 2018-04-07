@@ -83,9 +83,11 @@ final class MediaFlowListCell extends FlowListCell<MediaListItem> {
 		
 		this.media.addListener((obs, ov, nv) -> {
 			// setup the thumbnail image
-			String clazz = null;
 			Image image = null;
 			if (nv != null) {
+				// set the class based on media type
+				String clazz = null;
+				thumb.getStyleClass().removeAll("media-list-cell-thumbnail-image", "media-list-cell-thumbnail-video", "media-list-cell-thumbnail-audio");
 				if (nv.getType() == MediaType.IMAGE) {
 					clazz = "media-list-cell-thumbnail-image";
 				} else if (nv.getType() == MediaType.VIDEO) {
@@ -93,6 +95,10 @@ final class MediaFlowListCell extends FlowListCell<MediaListItem> {
 				} else if (nv.getType() == MediaType.AUDIO) {
 					clazz = "media-list-cell-thumbnail-audio";
 				}
+				if (clazz != null) {
+					thumb.getStyleClass().add(clazz);
+				}
+				
 				if (nv.getThumbnail() == null) {
 					if (nv.getType() == MediaType.IMAGE) {
 						image = imageCache.getOrLoadApplicationImage("/org/praisenter/resources/image-default-thumbnail.png");
@@ -106,10 +112,6 @@ final class MediaFlowListCell extends FlowListCell<MediaListItem> {
 				}
 			}
 			
-			thumb.getStyleClass().setAll("media-list-cell-thumbnail");
-			if (clazz != null) {
-				thumb.getStyleClass().add(clazz);
-			}
 			thumb.setImage(image);
 		});
 		

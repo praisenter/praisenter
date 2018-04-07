@@ -159,7 +159,6 @@ public abstract class ObservableSlideRegion<T extends SlideRegion> implements Pl
 		} else if (this.mode == SlideMode.SNAPSHOT) {
 			// CacheHint.QUALITY didn't seem to make any difference when saving
 			// screenshots so we'll just go with default
-//			this.container.setCacheHint(CacheHint.QUALITY);
 			this.container.setCacheHint(CacheHint.DEFAULT);
 		} else {
 			this.container.setCacheHint(CacheHint.DEFAULT);
