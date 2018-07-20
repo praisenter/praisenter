@@ -10,12 +10,12 @@ import java.util.List;
 import java.util.UUID;
 import java.util.zip.ZipException;
 
-import org.praisenter.InvalidFormatException;
-import org.praisenter.SearchType;
 import org.praisenter.bible.BibleLibrary;
 import org.praisenter.bible.BibleSearchCriteria;
 import org.praisenter.bible.BibleSearchMatch;
 import org.praisenter.bible.BibleSearchResult;
+import org.praisenter.data.InvalidFormatException;
+import org.praisenter.data.search.SearchType;
 import org.praisenter.song.OpenLyricsSongImporter;
 import org.praisenter.song.Song;
 

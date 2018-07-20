@@ -32,7 +32,7 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.Constants;
-import org.praisenter.tools.ToolExecutionException;
+import org.praisenter.data.media.tools.MediaToolExecutionException;
 
 /**
  * Helper class for dealing with command line tools.
@@ -52,9 +52,9 @@ public final class CommandLine {
 	 * @return String
 	 * @throws IOException if an IO error occurs
 	 * @throws InterruptedException if the waiting is interrupted
-	 * @throws ToolExecutionException if the tool returned an exit code of something other than zero
+	 * @throws MediaToolExecutionException if the tool returned an exit code of something other than zero
 	 */
-	public static final String execute(List<String> command) throws IOException, InterruptedException, ToolExecutionException {
+	public static final String execute(List<String> command) throws IOException, InterruptedException, MediaToolExecutionException {
 		// run the command
 		ProcessBuilder pb = new ProcessBuilder(command);
 		pb.redirectErrorStream(true);
@@ -91,7 +91,7 @@ public final class CommandLine {
         	if (exitCode != 0) {
         		String message = s.toString();
         		LOGGER.error(message);
-    			throw new ToolExecutionException(message);
+    			throw new MediaToolExecutionException(message);
     		}
         	
         	return s.toString();

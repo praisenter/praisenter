@@ -1,0 +1,208 @@
+/*******************
+ * JavaFX Styles
+ *******************/
+
+/** tree cell drag n drop styles */
+.tree-cell:drag-over-parent {}
+.tree-cell:drag-over-sibling-top {}
+.tree-cell:drag-over-sibling-bottom {}
+
+/*******************
+ * Praisenter Styles
+ *******************/
+
+/* SectionHeader */
+.section-header {}
+.section-header-title {}
+.section-header-divider {}
+.section-header-description {}
+
+/* WellLabel */
+.well {}
+
+/* MessageLabel */
+.message-label {}
+.message-label-wrapped {}
+.message-label-message {}
+.message-label-graphic {}
+
+/* FlowListView */
+.flow-list-view {}
+.flow-list-view-tiles {}
+.flow-list-view-cell {}
+.flow-list-view-cell:hover {}
+.flow-list-view-cell:selected {}
+.flow-list-view-drag-selection-area {}
+
+/* AutoCompleteComboBox */
+.auto-complete-combobox {}
+
+/* TagListView */
+.tag {}
+.tag-list-view {}
+.tag-list-view-tags {}
+.tag-list-view-tag-x {}
+
+/* SortGraphic */
+.sort-graphic {}
+.sort-graphic-line {}
+
+/* ProgressOverlay */
+.progress-overlay {}
+.progress-overlay-indicator {}
+
+/* ValueLabel */
+.value-label {}
+
+/* MonitoredTaskListCell */
+.monitored-task-list-popover {}
+.monitored-task-list {}
+.monitored-task-list-placeholder {}
+.monitored-task-list-cell {}
+.monitored-task-list-cell-indicator {}
+
+/* MainStatusBar */
+.main-status-bar {}
+.main-status-bar-task-button {}
+.main-status-bar-task-progress {}
+
+/* SetupPane */
+.setup-pane {}
+.setup-pane-list {}
+.display-view {}
+.display-view-number {}
+.display-view-monitor {}
+
+/* ShutdownDialog */
+.shutdown-dialog {}
+.shutdown-dialog-progress {}
+.shutdown-dialog-message {}
+
+/* SlideDataPane */
+.slide-data-pane {}
+
+/* BibleEditorPane */
+.bible-editor-pane {}
+.bible-editor-pane-tree {}
+.bible-tree-cell {}
+.bible-tree-cell-verse-number {}
+
+/* BibleLibraryPane */
+.bible-library-pane {}
+
+/* BibleListCell */
+.bible-list-cell {}
+.bible-list-cell-thumbnail {}
+.bible-list-cell-progress {}
+.bible-list-cell-wrapper {}
+.bible-list-cell-name {}
+
+/* BibleNavigationPane */
+.bible-navigation-pane {}
+
+/* BiblePropertiesPane */
+.bible-properties-pane {}
+
+/* BibleSearchPane */
+.bible-search-pane {}
+
+/* MediaLibraryPane */
+.media-library-pane {}
+
+/* MediaListCell */
+.media-list-cell {}
+.media-list-cell-thumbnail {}
+.media-list-cell-thumbnail-image {}
+.media-list-cell-thumbnail-video {}
+.media-list-cell-thumbnail-audio {}
+.media-list-cell-progress {}
+.media-list-cell-wrapper {}
+.media-list-cell-name {}
+
+/* MediaPlayerPane */
+.media-player-pane {}
+
+/* MediaPropertiesPane */
+.media-properties-pane {}
+
+/* SlideEditorRibbon */
+.slide-editor-ribbon {}
+.slide-editor-ribbon-content {}
+
+/* PlaceholderSlideComboBox */
+.placeholder-slide-combobox {}
+
+/* SingleSlidePreviewPane */
+.single-slide-preview-pane {}
+.slide-preview-container {}
+
+/* SlideLibraryPane */
+.slide-library-pane {}
+
+/* SlideFlowListCell */
+.slide-list-cell {}
+.slide-list-cell-thumbnail {}
+.slide-list-cell-progress {}
+.slide-list-cell-wrapper {}
+.slide-list-cell-name {}
+
+/* SlideShowLibraryPane */
+.slide-show-library-pane {}
+
+/* SlideShowFlowListCell */
+.slide-show-list-cell {}
+.slide-show-list-cell-thumbnails {}
+.slide-show-list-cell-progress {}
+.slide-show-list-cell-wrapper {}
+.slide-show-list-cell-name {}
+
+/* SlidePropertiesPane */
+.slide-properties-pane {}
+
+/* SlideShowPropertiesPane */
+.slide-show-properties-pane {}
+
+/* SlideEditorPane */
+.slide-editor-pane {}
+
+/* AnimationListCell */
+.animation-list-cell {}
+
+/* AnimationListPane */
+.animation-list-pane {}
+.animation-list-pane-top {}
+.animation-list-pane-list {}
+.animation-list-pane-title {}
+
+/* AnimationOptionListCell */
+.animation-option-list-cell {}
+.animation-option-list-cell-thumbnail {}
+.animation-option-list-cell-name {}
+
+/* AnimationOption */
+.animation-option-animation-Swap {}
+.animation-option-animation-Fade {}
+.animation-option-animation-Swipe {}
+.animation-option-animation-Push {}
+.animation-option-animation-Split {}
+.animation-option-animation-Shaped {}
+.animation-option-animation-Blinds {}
+.animation-option-animation-Zoom {}
+.animation-option-easing-Linear {}
+.animation-option-easing-Quadratic {}
+.animation-option-easing-Cubic {}
+.animation-option-easing-Quartic {}
+.animation-option-easing-Quintic {}
+.animation-option-easing-Exponential {}
+.animation-option-easing-Circular {}
+.animation-option-easing-Sinusoidal {}
+.animation-option-easing-Back {}
+.animation-option-easing-Bounce {}
+.animation-option-easing-Elastic {}
+
+/* Slide editing */
+.slide-edit-region:edit-hover {}
+.slide-edit-region:edit-selected {}
+.slide-edit-region:animation-hovered {}
+
+
