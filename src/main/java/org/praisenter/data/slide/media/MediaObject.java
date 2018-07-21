@@ -95,22 +95,14 @@ public final class MediaObject implements ReadonlyMediaObject, SlidePaint, Copya
 	 */
 	@Override
 	public int hashCode() {
-		UUID id = this.mediaId.get();
-		String mn = this.mediaName.get();
-		MediaType mt = this.mediaType.get();
-		ScaleType st = this.scaleType.get();
-		SlideColorAdjust ca = this.colorAdjust.get();
-		
-		int hash = 37;
-		if (id != null) hash = 31 * hash + id.hashCode();
-		if (mn != null) hash = 31 * hash + mn.hashCode();
-		if (mt != null) hash = 31 * hash + mt.hashCode();
-		if (st != null) hash = 31 * hash + st.hashCode();
-		hash = 31 * hash + (this.loopEnabled.get() ? 1 : 0);
-		hash = 31 * hash + (this.muted.get() ? 1 : 0);
-		if (ca != null) hash = 31 * hash + ca.hashCode();
-		
-		return hash;
+		return Objects.hash(
+				this.mediaId.get(),
+				this.mediaName.get(),
+				this.mediaType.get(),
+				this.scaleType.get(),
+				this.colorAdjust.get(),
+				this.loopEnabled.get(),
+				this.muted.get());
 	}
 	
 	/* (non-Javadoc)

@@ -61,6 +61,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
@@ -83,6 +84,7 @@ import javafx.collections.ObservableSet;
 @JsonTypeInfo(
 	use = JsonTypeInfo.Id.NAME,
 	include = JsonTypeInfo.As.PROPERTY)
+@JsonTypeName(value = "slide")
 public final class Slide extends SlideRegion implements ReadonlySlide, ReadonlySlideRegion, Indexable, Persistable, Copyable, Identifiable {
 	/** Value indicating a slide should show forever */
 	public static final long TIME_FOREVER = -1;

@@ -16,6 +16,7 @@ import org.praisenter.data.search.Indexable;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
@@ -35,6 +36,7 @@ import javafx.collections.ObservableList;
 @JsonTypeInfo(
 		use = JsonTypeInfo.Id.NAME,
 		include = JsonTypeInfo.As.PROPERTY)
+@JsonTypeName(value = "configuration")
 public final class Configuration implements ReadonlyConfiguration, MediaConfiguration, Indexable, Persistable, Copyable, Identifiable {
 	public static final double POSITION_SIZE_UNSET = -1;
 	
@@ -99,7 +101,7 @@ public final class Configuration implements ReadonlyConfiguration, MediaConfigur
 		
 		this.waitForTransitionsToCompleteEnabled = new SimpleBooleanProperty(true);
 		
-		this.languageTag = new SimpleStringProperty("en-US");
+		this.languageTag = new SimpleStringProperty(null);
 		this.themeName = new SimpleStringProperty("default");
 		this.applicationX = new SimpleDoubleProperty(POSITION_SIZE_UNSET);
 		this.applicationY = new SimpleDoubleProperty(POSITION_SIZE_UNSET);

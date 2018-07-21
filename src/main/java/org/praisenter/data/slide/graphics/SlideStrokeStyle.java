@@ -24,6 +24,8 @@
  */
 package org.praisenter.data.slide.graphics;
 
+import java.util.Objects;
+
 import org.praisenter.data.Copyable;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -88,15 +90,13 @@ public final class SlideStrokeStyle implements ReadonlySlideStrokeStyle, Copyabl
 	 */
 	@Override
 	public int hashCode() {
-		SlideStrokeType type = this.type.get();
-		SlideStrokeJoin join = this.join.get();
-		SlideStrokeCap cap = this.cap.get();
 		Double[] dashes = this.dashes.get();
 		
 		int hash = 37;
-		if (type != null) hash = 31 * hash + type.hashCode();
-		if (join != null) hash = 31 * hash + join.hashCode();
-		if (cap != null) hash = 31 * hash + cap.hashCode();
+		hash = hash * 31 + Objects.hash(
+				this.type.get(),
+				this.join.get(),
+				this.cap.get());
 		if (dashes != null) {
 			for (int i = 0; i < dashes.length; i++) {
 				Double d = dashes[i];

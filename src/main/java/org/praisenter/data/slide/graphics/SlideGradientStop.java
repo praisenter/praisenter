@@ -88,13 +88,7 @@ public final class SlideGradientStop implements ReadonlySlideGradientStop, Copya
 	 */
 	@Override
 	public int hashCode() {
-		SlideColor color = this.color.get();
-		
-		int hash = 37;
-		if (color != null) hash = 31 * hash + color.hashCode();
-		long v = Double.doubleToLongBits(this.offset.get());
-		hash = 31 * hash + (int)(v ^ (v >>> 32));
-		return hash;
+		return Objects.hash(this.color.get(), this.offset.get());
 	}
 	
 	/* (non-Javadoc)

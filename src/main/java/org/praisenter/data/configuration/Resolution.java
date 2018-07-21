@@ -24,6 +24,8 @@
  */
 package org.praisenter.data.configuration;
 
+import java.util.Objects;
+
 import org.praisenter.data.Copyable;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -86,10 +88,7 @@ public final class Resolution implements ReadonlyResolution, Copyable, Comparabl
 	
 	@Override
 	public int hashCode() {
-		int hash = 31;
-		hash = hash * 39 + this.width.get();
-		hash = hash * 39 + this.height.get();
-		return hash;
+		return Objects.hash(this.width.get(), this.height.get());
 	}
 	
 	@Override

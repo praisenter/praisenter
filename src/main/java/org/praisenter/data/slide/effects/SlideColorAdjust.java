@@ -24,6 +24,8 @@
  */
 package org.praisenter.data.slide.effects;
 
+import java.util.Objects;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import javafx.beans.property.DoubleProperty;
@@ -75,12 +77,11 @@ public final class SlideColorAdjust implements ReadonlySlideColorAdjust {
 	 */
 	@Override
 	public int hashCode() {
-		int hash = 23;
-		hash = 31 * hash + Double.hashCode(this.hue.get());
-		hash = 31 * hash + Double.hashCode(this.saturation.get());
-		hash = 31 * hash + Double.hashCode(this.brightness.get());
-		hash = 31 * hash + Double.hashCode(this.contrast.get());
-		return hash;
+		return Objects.hash(
+				this.hue.get(),
+				this.saturation.get(),
+				this.brightness.get(),
+				this.contrast.get());
 	}
 	
 	/* (non-Javadoc)
