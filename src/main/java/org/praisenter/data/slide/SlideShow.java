@@ -19,6 +19,7 @@ import org.praisenter.data.search.Indexable;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
@@ -34,6 +35,7 @@ import javafx.collections.ObservableList;
 @JsonTypeInfo(
 	use = JsonTypeInfo.Id.NAME,
 	include = JsonTypeInfo.As.PROPERTY)
+@JsonTypeName(value = "slideshow")
 public final class SlideShow implements ReadonlySlideShow, Indexable, Persistable, Copyable, Identifiable {
 
 	public static final String DATA_TYPE_SLIDE_SHOW = "show";

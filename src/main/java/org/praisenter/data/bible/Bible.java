@@ -24,6 +24,7 @@ import org.praisenter.utility.StringManipulator;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
@@ -37,6 +38,7 @@ import javafx.collections.ObservableList;
 @JsonTypeInfo(
 	use = JsonTypeInfo.Id.NAME,
 	include = JsonTypeInfo.As.PROPERTY)
+@JsonTypeName(value = "bible")
 public final class Bible implements ReadonlyBible, Indexable, Persistable, Copyable, Identifiable, Localized {
 	/** The lucene field to store the book number as a searchable value */
 	public static final String FIELD_BOOK_ID = "bookid";

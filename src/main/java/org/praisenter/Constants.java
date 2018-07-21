@@ -36,6 +36,7 @@ public final class Constants {
 	private Constants() {}
 	
 	/** The version string */
+	// TODO change to version class
 	public static final String VERSION = "3.0.0";
 	
 	/** The application name */
@@ -44,9 +45,6 @@ public final class Constants {
 	/** The new line character should be consistent to avoid issues cross-platform */
 	public static final String NEW_LINE = "\n";
 
-	/** The maximum number of codepoints (extended set of characters) in a file name */
-	public static final int MAX_FILE_NAME_CODEPOINTS = 50;
-	
 	/** The relative path to the root of all the Praisenter files */
 	public static final String ROOT_RELATIVE_PATH = "Praisenter3" + RuntimeProperties.PATH_SEPARATOR;
 	
@@ -67,15 +65,26 @@ public final class Constants {
 	public static final String LOGS_ABSOLUTE_PATH = Constants.ROOT_PATH + "logs";
 	
 	///////////////////////////
+	// SEARCH INDEX
+	
+	// /_index
+	/** The relative path to the search index directory */
+	public static final String SEARCH_INDEX_RELATIVE_PATH = "_index";
+	
+	// /user/home/dir/Praisenter3/_index
+	/** The absolute path to the search index directory */
+	public static final String SEARCH_INDEX_ABSOLUTE_PATH = Constants.ROOT_PATH + SEARCH_INDEX_RELATIVE_PATH;
+	
+	///////////////////////////
 	// CONFIGURATION
 	
-	// /configuration
+	// /config
 	/** The relative path to the configuration file */
-	public static final String CONFIG_RELATIVE_FILE_PATH = "configuration.json";
+	public static final String CONFIG_RELATIVE_PATH = "config";
 	
-	// /user/home/dir/Praisenter3/configuration
+	// /user/home/dir/Praisenter3/config
 	/** The absolute path to the configuration file */
-	public static final String CONFIG_ABSOLUTE_FILE_PATH = Constants.ROOT_PATH + CONFIG_RELATIVE_FILE_PATH;
+	public static final String CONFIG_ABSOLUTE_PATH = Constants.ROOT_PATH + CONFIG_RELATIVE_PATH;
 
 	// /locales
 	/** The relative path to the locales directory */

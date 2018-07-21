@@ -24,6 +24,8 @@
  */
 package org.praisenter.data.slide.graphics;
 
+import java.util.Objects;
+
 import org.praisenter.data.Copyable;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -92,14 +94,11 @@ public final class SlideLinearGradient extends SlideGradient implements Readonly
 	public int hashCode() {
 		int hash = 37;
 		hash = hash * 31 + super.hashCode();
-		long v = Double.doubleToLongBits(this.startX.get());
-		hash = hash * 31 + (int)(v ^ (v >>> 32));
-		v = Double.doubleToLongBits(this.startY.get());
-		hash = hash * 31 + (int)(v ^ (v >>> 32));
-		v = Double.doubleToLongBits(this.endX.get());
-		hash = hash * 31 + (int)(v ^ (v >>> 32));
-		v = Double.doubleToLongBits(this.endY.get());
-		hash = hash * 31 + (int)(v ^ (v >>> 32));
+		hash = hash * 31 + Objects.hash(
+				this.startX.get(),
+				this.startY.get(),
+				this.endX.get(),
+				this.endY.get());
 		return hash;
 	}
 	

@@ -24,6 +24,7 @@
  */
 package org.praisenter.data.bible;
 
+import java.util.Objects;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -53,15 +54,15 @@ public final class BibleReferenceVerse implements Comparable<BibleReferenceVerse
 	
 	/** The book number */
 	@JsonProperty
-	private final short bookNumber;
+	private final int bookNumber;
 	
 	/** The chapter number */
 	@JsonProperty
-	private final short chapterNumber;
+	private final int chapterNumber;
 	
 	/** The verse number */
 	@JsonProperty
-	private final short verseNumber;
+	private final int verseNumber;
 	
 	/** The verse text */
 	@JsonProperty
@@ -91,7 +92,7 @@ public final class BibleReferenceVerse implements Comparable<BibleReferenceVerse
 	 * @param verseNumber the verse number
 	 * @param text the verse text
 	 */
-	public BibleReferenceVerse(UUID bibleId, String bibleName, String bookName, short bookNumber, short chapterNumber, short verseNumber, String text) {
+	public BibleReferenceVerse(UUID bibleId, String bibleName, String bookName, int bookNumber, int chapterNumber, int verseNumber, String text) {
 		this.bibleId = bibleId;
 		this.bibleName = bibleName;
 		this.bookName = bookName;
@@ -144,12 +145,11 @@ public final class BibleReferenceVerse implements Comparable<BibleReferenceVerse
 	 */
 	@Override
 	public int hashCode() {
-		int hash = 37;
-		hash = hash * 13 + this.bibleId.hashCode();
-		hash = hash * 13 + this.bookNumber;
-		hash = hash * 13 + this.chapterNumber;
-		hash = hash * 13 + this.verseNumber;
-		return hash;
+		return Objects.hash(
+				this.bibleId, 
+				this.bookNumber, 
+				this.chapterNumber, 
+				this.verseNumber);
 	}
 	
 	/**
@@ -180,7 +180,7 @@ public final class BibleReferenceVerse implements Comparable<BibleReferenceVerse
 	 * Returns the book number.
 	 * @return short
 	 */
-	public short getBookNumber() {
+	public int getBookNumber() {
 		return this.bookNumber;
 	}
 
@@ -188,7 +188,7 @@ public final class BibleReferenceVerse implements Comparable<BibleReferenceVerse
 	 * Returns the chapter number.
 	 * @return short
 	 */
-	public short getChapterNumber() {
+	public int getChapterNumber() {
 		return this.chapterNumber;
 	}
 
@@ -196,7 +196,7 @@ public final class BibleReferenceVerse implements Comparable<BibleReferenceVerse
 	 * Returns the verse number.
 	 * @return short
 	 */
-	public short getVerseNumber() {
+	public int getVerseNumber() {
 		return this.verseNumber;
 	}
 	

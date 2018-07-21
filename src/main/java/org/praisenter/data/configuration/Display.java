@@ -96,15 +96,14 @@ public final class Display implements ReadonlyDisplay, Copyable, Comparable<Disp
 	
 	@Override
 	public int hashCode() {
-		int hash = 37;
-		hash = 31 * hash + this.id.get();
-		hash = 31 * hash + this.role.get().hashCode();
-		hash = 31 * hash + this.name.get().hashCode();
-		hash = 31 * hash + this.x.get();
-		hash = 31 * hash + this.y.get();
-		hash = 31 * hash + this.width.get();
-		hash = 31 * hash + this.height.get();
-		return hash;
+		return Objects.hash(
+				this.id.get(), 
+				this.role.get(), 
+				this.name.get(), 
+				this.x.get(), 
+				this.y.get(), 
+				this.width.get(),
+				this.height.get());
 	}
 	
 	@Override

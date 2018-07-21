@@ -47,6 +47,7 @@ import org.praisenter.data.search.Indexable;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
@@ -82,6 +83,7 @@ import javafx.collections.ObservableSet;
 @JsonTypeInfo(
 	use = JsonTypeInfo.Id.NAME,
 	include = JsonTypeInfo.As.PROPERTY)
+@JsonTypeName(value = "media")
 public final class Media implements ReadonlyMedia, Indexable, Persistable, Copyable, Identifiable {
 	/** Represents an unknown or not-applicable quantity */
 	public static final int UNKNOWN = -1;

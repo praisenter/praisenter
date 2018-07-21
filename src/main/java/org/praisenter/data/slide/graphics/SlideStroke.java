@@ -93,17 +93,11 @@ public final class SlideStroke implements ReadonlySlideStroke, Copyable {
 	 */
 	@Override
 	public int hashCode() {
-		SlidePaint paint = this.paint.get();
-		SlideStrokeStyle style = this.style.get();
-		
-		int hash = 37;
-		if (paint != null) hash = 31 * hash + paint.hashCode();
-		if (style != null) hash = 31 * hash + style.hashCode();
-		long v = Double.doubleToLongBits(this.width.get());
-		hash = 31 * hash + (int)(v ^ (v >>> 32));
-		v = Double.doubleToLongBits(this.radius.get());
-		hash = 31 * hash + (int)(v ^ (v >>> 32));
-		return hash;
+		return Objects.hash(
+				this.paint.get(),
+				this.style.get(),
+				this.width.get(),
+				this.radius.get());
 	}
 	
 	/* (non-Javadoc)

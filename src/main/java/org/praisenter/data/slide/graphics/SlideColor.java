@@ -24,6 +24,8 @@
  */
 package org.praisenter.data.slide.graphics;
 
+import java.util.Objects;
+
 import org.praisenter.data.Copyable;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -87,17 +89,11 @@ public final class SlideColor implements ReadonlySlideColor, SlidePaint, Copyabl
 	 */
 	@Override
 	public int hashCode() {
-		int hash = 37;
-		// see http://stackoverflow.com/a/31220250
-		long v = Double.doubleToLongBits(this.red.get());
-		hash = 31 * hash + (int)(v ^ (v >>> 32));
-		v = Double.doubleToLongBits(this.green.get());
-		hash = 31 * hash + (int)(v ^ (v >>> 32));
-		v = Double.doubleToLongBits(this.blue.get());
-		hash = 31 * hash + (int)(v ^ (v >>> 32));
-		v = Double.doubleToLongBits(this.alpha.get());
-		hash = 31 * hash + (int)(v ^ (v >>> 32));
-		return hash;
+		return Objects.hash(
+				this.red.get(),
+				this.green.get(),
+				this.blue.get(),
+				this.alpha.get());
 	}
 	
 	/* (non-Javadoc)

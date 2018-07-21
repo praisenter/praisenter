@@ -24,6 +24,8 @@
  */
 package org.praisenter.data.slide.graphics;
 
+import java.util.Objects;
+
 import org.praisenter.data.Copyable;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -92,17 +94,11 @@ public final class SlidePadding implements ReadonlySlidePadding, Copyable {
 	 */
 	@Override
 	public int hashCode() {
-		int hash = 37;
-		// see http://stackoverflow.com/a/31220250
-		long v = Double.doubleToLongBits(this.top.get());
-		hash = 31 * hash + (int)(v ^ (v >>> 32));
-		v = Double.doubleToLongBits(this.right.get());
-		hash = 31 * hash + (int)(v ^ (v >>> 32));
-		v = Double.doubleToLongBits(this.bottom.get());
-		hash = 31 * hash + (int)(v ^ (v >>> 32));
-		v = Double.doubleToLongBits(this.left.get());
-		hash = 31 * hash + (int)(v ^ (v >>> 32));
-		return hash;
+		return Objects.hash(
+				this.top.get(),
+				this.right.get(),
+				this.bottom.get(),
+				this.left.get());
 	}
 	
 	/* (non-Javadoc)

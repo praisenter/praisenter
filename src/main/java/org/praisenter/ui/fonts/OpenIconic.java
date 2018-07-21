@@ -41,7 +41,6 @@ public final class OpenIconic extends GlyphFont {
 	/** The font name */
     public static final String FONT_NAME = "Icons";
 
-	@SuppressWarnings("javadoc")
 	public static enum Glyph implements INamedCharacter {
 		ACCOUNT_LOGIN('\ue000'),
 		ACCOUNT_LOGOUT('\ue001'),

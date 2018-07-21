@@ -108,17 +108,13 @@ public final class SlideShadow implements ReadonlySlideShadow, Copyable {
 	
 	@Override
 	public int hashCode() {
-		ShadowType type = this.type.get();
-		SlideColor color = this.color.get();
-		
-		int hash = 23;
-		if (type != null) hash = 31 * hash + type.hashCode();
-		if (color != null) hash = 31 * hash + color.hashCode();
-		hash = 31 * hash + Double.hashCode(this.offsetX.get());
-		hash = 31 * hash + Double.hashCode(this.offsetY.get());
-		hash = 31 * hash + Double.hashCode(this.radius.get());
-		hash = 31 * hash + Double.hashCode(this.spread.get());
-		return hash;
+		return Objects.hash(
+				this.type.get(),
+				this.color.get(),
+				this.offsetX.get(),
+				this.offsetY.get(),
+				this.radius.get(),
+				this.spread.get());
 	}
 
 	@Override
