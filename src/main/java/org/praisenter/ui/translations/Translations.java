@@ -64,29 +64,23 @@ public final class Translations {
 	private static final ResourceBundle.Control DEFAULT_CONTROL = new FileSystemControl();
 	
 	/** The default locale neutral bundle (in our case english) */
-	private static final ResourceBundle DEFAULT_BUNDLE = ResourceBundle.getBundle(BUNDLE_BASE_NAME, Locale.ROOT);
-	
-	/** The default locale bundle */
-	private static final ResourceBundle LOCALE_BUNDLE;
+//	private static final ResourceBundle DEFAULT_BUNDLE = ResourceBundle.getBundle(BUNDLE_BASE_NAME, Locale.ROOT);
 	
 	static {
-		try {
-			Files.createDirectories(Paths.get(Constants.LOCALES_ABSOLUTE_FILE_PATH));
-		} catch (Exception ex) {
-			LOGGER.warn("Failed to create translations directory.", ex);
-		}
-		
-		// set the default locale bundle
-		Locale defaultLocale = Locale.getDefault();
-		ResourceBundle bundle = DEFAULT_BUNDLE;
-		try {
-			bundle = ResourceBundle.getBundle(BUNDLE_BASE_NAME, defaultLocale, DEFAULT_CONTROL);
-		} catch (MissingResourceException ex) {
-			LOGGER.warn("Couldn't find messages.properties file for locale '{}', using default.", defaultLocale.toString());
-		}
-		
-		// set the locale bundle
-		LOCALE_BUNDLE = bundle;
+//		try {
+//			Files.createDirectories(Paths.get(Constants.LOCALES_ABSOLUTE_FILE_PATH));
+//		} catch (Exception ex) {
+//			LOGGER.warn("Failed to create translations directory.", ex);
+//		}
+//		
+//		// set the default locale bundle
+//		Locale defaultLocale = Locale.getDefault();
+//		ResourceBundle bundle = DEFAULT_BUNDLE;
+//		try {
+//			bundle = ResourceBundle.getBundle(BUNDLE_BASE_NAME, defaultLocale, DEFAULT_CONTROL);
+//		} catch (MissingResourceException ex) {
+//			LOGGER.warn("Couldn't find messages.properties file for locale '{}', using default.", defaultLocale.toString());
+//		}
 	}
 
 	/**
@@ -153,7 +147,7 @@ public final class Translations {
 		Locale locale = Locale.getDefault();
 		try {
 			// this bundle will fallback to the default bundle when the key is not found
-			return LOCALE_BUNDLE.getString(key);
+			return ResourceBundle.getBundle(BUNDLE_BASE_NAME, locale, DEFAULT_CONTROL).getString(key);
 		} catch (MissingResourceException ex) {
 			LOGGER.warn("Failed to find key '" + key + "' for locale '" + locale.toString() + "' and in the default translation.");
 		}

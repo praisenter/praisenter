@@ -29,8 +29,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 
-import javax.naming.Context;
-
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -49,10 +47,7 @@ import org.praisenter.data.DataManager;
 import org.praisenter.data.configuration.Configuration;
 import org.praisenter.data.configuration.ConfigurationPersistAdapter;
 import org.praisenter.data.search.SearchIndex;
-import org.praisenter.javafx.async.AsyncTask;
-import org.praisenter.javafx.async.AsyncTaskExecutor;
 import org.praisenter.javafx.controls.Alerts;
-import org.praisenter.javafx.themes.Theme;
 import org.praisenter.ui.fonts.OpenIconic;
 import org.praisenter.ui.translations.Translations;
 import org.praisenter.utility.RuntimeProperties;
@@ -64,18 +59,14 @@ import javafx.animation.SequentialTransition;
 import javafx.application.Application;
 import javafx.application.ConditionalFeature;
 import javafx.application.Platform;
-import javafx.beans.binding.Bindings;
-import javafx.collections.MapChangeListener;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.layout.StackPane;
+import javafx.scene.text.Font;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
-import javafx.stage.WindowEvent;
 import javafx.util.Duration;
 
 // FIXME fix the manifest
@@ -226,9 +217,8 @@ public final class Praisenter extends Application {
 		GlyphFontRegistry.register(new OpenIconic(Praisenter.class.getResourceAsStream("/org/praisenter/fonts/open-iconic.ttf")));
 
     	// start building the context
-    	final PraisenterContext context = new PraisenterContext();
-    	context.application = this;
-    	context.stage = stage;
+		final ApplicationState applicationState = new ApplicationState(this, stage);
+    	final PraisenterContext context = new PraisenterContext(applicationState);
 		
     	// initialize lucene
 		final FSDirectory directory = FSDirectory.open(Paths.get(Constants.SEARCH_INDEX_ABSOLUTE_PATH));
@@ -327,125 +317,109 @@ public final class Praisenter extends Application {
 				}
     			ctx.updateLoggers();
     		});
+    		    		
+    		// build the loading UI
+    		LoadingPane loadingPane = new LoadingPane(context);
+    		StackPane layout = new StackPane(loadingPane);
     		
-    		Label label = new Label();
-    		label.textProperty().bind(Bindings.createStringBinding(() -> {
-    			StringBuilder sb = new StringBuilder();
-    			sb.append("(").append(context.configuration.getApplicationX()).append(", ").append(context.configuration.getApplicationY()).append(") ")
-    			  .append(context.configuration.getApplicationWidth()).append("x").append(context.configuration.getApplicationHeight());
-    			return sb.toString();
-    		}, context.configuration.applicationXProperty(),
-				context.configuration.applicationYProperty(),
-				context.configuration.applicationWidthProperty(),
-				context.configuration.applicationHeightProperty()));
-    		
-    		Scene scene = new Scene(new StackPane(label));
+    		Scene scene = new Scene(layout);
     		stage.setScene(scene);
     		stage.show();
-    	}));
-    	
-    	
-    	
-
-    	
-    	
-		
-//    	// we'll have a stack of the main pane and the loading pane
-//    	StackPane stack = new StackPane();
-//    	
-//    	// create the loading scene
-//    	LoadingPane loading = new LoadingPane(MIN_WIDTH, MIN_HEIGHT, new JavaFXContext(this, stage), CONFIGURATION);
-//    	loading.setOnComplete((e) -> {
-//    		long t0 = 0;
-//    		long t1 = 0;
-//    		
-//    		// get the context
-//    		this.context = e.data;
-//    		
-//    		// wire up debug mode for logging
-//    		this.context.getConfiguration().getSettings().addListener((MapChangeListener.Change<? extends Setting, ? extends Object> c) -> {
-//    			if (c.getKey() == Setting.APP_DEBUG_MODE) {
-//    				LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
-//	    			org.apache.logging.log4j.core.config.Configuration config = ctx.getConfiguration();
-//	    			LoggerConfig loggerConfig = config.getLoggerConfig(LogManager.ROOT_LOGGER_NAME);
-//	    			Object value = c.getValueAdded();
-//	    			if (c.wasAdded() && value != null) {
-//	    				boolean on = (boolean)value;
-//	    				if (on) {
-//	    	    			loggerConfig.setLevel(Level.TRACE);
-//	    				} else {
-//	    					loggerConfig.setLevel(Level.INFO);
-//	    				}
-//	    			} else if (c.wasRemoved()) {
-//	    				loggerConfig.setLevel(Level.INFO);
-//	    			}
-//	    			ctx.updateLoggers();
-//    			}
-//    		});
-//    		
-//    		LOGGER.info("Creating the UI.");
-//    		t0 = System.nanoTime();
-//    		// create the main pane and add it to the stack
-//    		MainPane main = new MainPane(this.context);
-//    		t1 = System.nanoTime();
-//    		LOGGER.info("UI created in {} seconds.", (t1 - t0) / 1e9);
-//    		
-//    		stack.getChildren().add(0, main);
-//    		
-//    		// set what to do when the app is closed
-//    		stage.setOnHiding(this::onHiding);
-//    		stage.setOnCloseRequest(we -> {
-//    			// check for unsaved changes
-//    			we.consume();
-//    			LOGGER.info("Checking for any unsaved changes.");
-//	    		AsyncTask<ButtonType> task = main.checkForUnsavedChanges();
-//	    		task.addCompletedHandler(te -> {
-//	    			if (task.getValue() != ButtonType.CANCEL) {
-//		    			this.waitForIncompleteTasks(stage);
-//		    		}
-//	    		}).execute(this.context.getExecutorService());
-//    		});
-//    		
-//			// fade out the loader
-//			FadeTransition fade = new FadeTransition(Duration.millis(600), loading);
-//			fade.setFromValue(1.0);
-//			fade.setToValue(0.0);
-//			
-//			// we'll pause for a moment to let the user see it completed
-//			SequentialTransition seq = new SequentialTransition(new PauseTransition(Duration.millis(1500)), fade);
-//			seq.setAutoReverse(false);
-//			seq.setCycleCount(1);
-//			
-//			// when the fade out is complete
-//			seq.statusProperty().addListener((fadeStatus, oldFadeStatus, newFadeStatus) -> {
-//				if (newFadeStatus == Animation.Status.STOPPED) {
-//					LOGGER.info("Fade out of loading screen complete.");
-//					stack.getChildren().remove(loading);
-//					LOGGER.info("Loading scene removed from the scene graph. {} node(s) remaining.", stack.getChildren().size());
-//					long endTime = System.nanoTime();
-//					LOGGER.info("Loading took {} seconds.", (endTime - START_TIME) / 1e9);
-//				}
-//			});
-//			
-//			// play the fade out
-//			seq.play();
-//    	});
-//    	
-//    	// add the loading scene to the stack
-//    	stack.getChildren().add(loading);
-//    	
-//    	// show the stage
-//    	Scene scene = new Scene(stack);
-//    	// set the application look and feel
-//    	// NOTE: this should be the only place where this is done, every other window needs to inherit the css from the parent
-//    	scene.getStylesheets().add(Theme.getTheme(CONFIGURATION.getString(Setting.APP_THEME, null)).getCss());
-//    	stage.setScene(scene);
-//    	stage.show();
-//    	
-//    	// start the loading
-//    	LOGGER.info("Starting load");
-//    	loading.start();
+    		
+    		LOGGER.info("Starting load");
+    		loadingPane.start().thenRun(() -> {
+    			Platform.runLater(() -> {
+    				// TODO fix missing slide thumbnails?
+    				// TODO setup display manager
+//    				// generate any missing slide thumbnails
+//    				LOGGER.info("Generating missing slide thumbnails.");
+//    				context.getSlideLibrary().generateMissingThumbnails();
+//    				
+//    				// setup the screen manager
+//    				LOGGER.info("Initializing the screen manager.");
+//    				context.getDisplayManager().initialize(context.getJavaFXContext().getStage().getScene());
+    				
+    				// load fonts
+    				LOGGER.info("Loading fonts.");
+    				List<String> families = Font.getFamilies();
+    				Font.getFontNames();
+    				// to improve performance of font pickers, we need to preload
+    				// the fonts by creating a font for each one
+    				for (String family : families) {
+    					Font.font(family);
+    				}
+    				LOGGER.info("Fonts loaded.");
+    				
+    				LOGGER.info("Load complete");
+    				
+    				LOGGER.info("Building UI");
+//    	    		Label label = new Label();
+//    	    		label.textProperty().bind(Bindings.createStringBinding(() -> {
+//    	    			StringBuilder sb = new StringBuilder();
+//    	    			sb.append("(").append(context.configuration.getApplicationX()).append(", ").append(context.configuration.getApplicationY()).append(") ")
+//    	    			  .append(context.configuration.getApplicationWidth()).append("x").append(context.configuration.getApplicationHeight());
+//    	    			return sb.toString();
+//    	    		}, context.configuration.applicationXProperty(),
+//    					context.configuration.applicationYProperty(),
+//    					context.configuration.applicationWidthProperty(),
+//    					context.configuration.applicationHeightProperty()));
+    	    		
+    	    		PraisenterPane main = new PraisenterPane(context);
+    	    		
+    	    		// TODO replace with main UI
+    	    		layout.getChildren().add(0, main);
+    	    		
+    				// fade out the loader
+    				FadeTransition fade = new FadeTransition(Duration.millis(600), loadingPane);
+    				fade.setFromValue(1.0);
+    				fade.setToValue(0.0);
+    				
+    				// we'll pause for a moment to let the user see it completed
+    				SequentialTransition seq = new SequentialTransition(new PauseTransition(Duration.millis(1500)), fade);
+    				seq.setAutoReverse(false);
+    				seq.setCycleCount(1);
+    				
+    				// when the fade out is complete
+    				seq.statusProperty().addListener((fadeStatus, oldFadeStatus, newFadeStatus) -> {
+    					if (newFadeStatus == Animation.Status.STOPPED) {
+    						LOGGER.info("Fade out of loading screen complete.");
+    						layout.getChildren().remove(loadingPane);
+    						LOGGER.info("Loading scene removed from the scene graph. {} node(s) remaining.", layout.getChildren().size());
+    						long endTime = System.nanoTime();
+//    						LOGGER.info("Loading took {} seconds.", (endTime - START_TIME) / 1e9);
+    					}
+    				});
+    				
+    				// play the fade out
+    				seq.play();
+    			});
+    		}).exceptionally((ex) -> {
+    			this.showExecptionAlertThenExit(ex, context);
+    			return null;
+    		});
+    	})).exceptionally((ex) -> {
+    		this.showExecptionAlertThenExit(ex, context);
+    		return null;
+    	});
     }
+    
+    private void showExecptionAlertThenExit(Throwable ex, ReadOnlyPraisenterContext context) {
+		Platform.runLater(() -> {
+			// and show the error
+			Alert a = Alerts.exception(
+					context.getApplicationState().getScene().getWindow(),
+					Translations.get("init.error.title"), 
+					Translations.get("init.error.header"), 
+					ex.getMessage(), 
+					ex);
+			a.showAndWait();
+			
+			LOGGER.info("User closed exception dialog. Exiting application.");
+			
+			// then exit the app
+			Platform.exit();
+		});
+	}
     
     private CompletableFuture<Void> loadConfiguration(PraisenterContext context) {
     	return context.dataManager.registerPersistAdapter(Configuration.class, new ConfigurationPersistAdapter(Paths.get(Constants.CONFIG_ABSOLUTE_PATH))).exceptionally((ex) -> {
@@ -496,6 +470,7 @@ public final class Praisenter extends Application {
         return false;
     }
     
+    // TODO handle still running tasks
 //    private void waitForIncompleteTasks(Stage stage) {
 //    	LOGGER.info("Checking for background threads that have not completed yet.");
 //		// this stuff could be null if we blow up before its created

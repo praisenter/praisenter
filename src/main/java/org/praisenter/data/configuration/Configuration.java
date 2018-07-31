@@ -89,8 +89,8 @@ public final class Configuration implements ReadonlyConfiguration, MediaConfigur
 		this.renumberBibleWarningEnabled = new SimpleBooleanProperty(true);
 		this.reorderBibleWarningEnabled = new SimpleBooleanProperty(true);
 		
-		this.thumbnailWidth = new SimpleIntegerProperty(100);
-		this.thumbnailHeight = new SimpleIntegerProperty(100);
+		this.thumbnailWidth = new SimpleIntegerProperty(Constants.THUMBNAIL_SIZE);
+		this.thumbnailHeight = new SimpleIntegerProperty(Constants.THUMBNAIL_SIZE);
 		this.audioTranscodingEnabled = new SimpleBooleanProperty(true);
 		this.videoTranscodingEnabled = new SimpleBooleanProperty(true);
 		this.audioTranscodeExtension = new SimpleStringProperty(MediaConfiguration.DEFAULT_AUDIO_EXTENSION);

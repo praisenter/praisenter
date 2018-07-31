@@ -3,15 +3,14 @@ package org.praisenter.ui;
 import org.praisenter.data.DataManager;
 import org.praisenter.data.configuration.Configuration;
 
-import javafx.application.Application;
-import javafx.stage.Stage;
-
 final class PraisenterContext implements ReadOnlyPraisenterContext {
+	ApplicationState applicationState;
 	DataManager dataManager;
 	Configuration configuration;
 	
-	Application application;
-	Stage stage;
+	public PraisenterContext(ApplicationState state) {
+		this.applicationState = state;
+	}
 	
 	@Override
 	public DataManager getDataManager() {
@@ -24,12 +23,7 @@ final class PraisenterContext implements ReadOnlyPraisenterContext {
 	}
 	
 	@Override
-	public Application getApplication() {
-		return this.application;
-	}
-	
-	@Override
-	public Stage getStage() {
-		return this.stage;
+	public ApplicationState getApplicationState() {
+		return this.applicationState;
 	}
 }
