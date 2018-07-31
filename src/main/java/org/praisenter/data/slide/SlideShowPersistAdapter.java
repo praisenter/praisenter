@@ -48,7 +48,7 @@ public final class SlideShowPersistAdapter implements PersistAdapter<SlideShow> 
 	
 	private final Map<KnownFormat, DataFormatProvider<SlideShow>> formatProviders;
 	
-	public SlideShowPersistAdapter(Path basePath, SlideRenderer renderer) {
+	public SlideShowPersistAdapter(Path basePath) {
 		this.pathResolver = new BasicPathResolver<>(basePath, EXTENSION);
 		
 		this.locks = new LockMap<>();

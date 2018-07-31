@@ -136,6 +136,17 @@ public final class Constants {
 	public static final String SLIDES_ABSOLUTE_PATH = Constants.ROOT_PATH + SLIDES_RELATIVE_PATH;
 	
 	///////////////////////////
+	// SLIDESHOWS
+	
+	// /slides
+	/** The relative path to the slides folder */
+	public static final String SLIDESHOWS_RELATIVE_PATH = "slideshows" + RuntimeProperties.PATH_SEPARATOR;
+	
+	// /user/home/dir/Praisenter3/slides
+	/** The absolute path to the slides folder */
+	public static final String SLIDESHOWS_ABSOLUTE_PATH = Constants.ROOT_PATH + SLIDES_RELATIVE_PATH;
+	
+	///////////////////////////
 	// BIBLES
 	
 	// /bibles
@@ -145,18 +156,6 @@ public final class Constants {
 	// /user/home/dir/Praisenter3/bibles
 	/** The absolute path to the database */
 	public static final String BIBLES_ABSOLUTE_PATH = Constants.ROOT_PATH + BIBLES_RELATIVE_PATH;
-	
-	///////////////////////////
-	// TOOLS
-
-	// /tools
-	/** The relative path to the tools folder */
-	public static final String TOOLS_RELATIVE_PATH = "tools" + RuntimeProperties.PATH_SEPARATOR;
-	
-	// /user/home/dir/Praisenter3/tools/
-	/** The absolute path to the tools folder */
-	public static final String TOOLS_ABSOLUTE_PATH = Constants.ROOT_PATH + TOOLS_RELATIVE_PATH;
-	
 	
 	///////////////////////////
 	// OTHER
@@ -171,20 +170,5 @@ public final class Constants {
 	public static final String FORMAT_PROPERTY_NAME = "@format";
 	
 	/** The version property name in praisenter formats */
-	public static final String VERSION_PROPERTY_NAME = "@version";
-	
-	/** The extension to use for the bible files */
-	public static final String BIBLE_FILE_EXTENSION = ".json";
-	
-	/** The extension to use for the media metadata files */
-	public static final String MEDIA_METADATA_FILE_EXTENSION = ".json";
-	
-	/** The extension to use for the slide files */
-	public static final String SLIDE_FILE_EXTENSION = ".json";
-	
-	/** The extension to use for the slide show files */
-	public static final String SLIDE_SHOW_FILE_EXTENSION = ".json";
-	
-	/** The extension to use for the song files */
-	public static final String SONG_FILE_EXTENSION = ".json";	
+	public static final String VERSION_PROPERTY_NAME = "@version";	
 }

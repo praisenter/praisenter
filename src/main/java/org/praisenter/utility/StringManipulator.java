@@ -26,8 +26,6 @@ package org.praisenter.utility;
 
 import java.util.UUID;
 
-import org.praisenter.Constants;
-
 /**
  * Class containing string manipulation methods.
  * @author William Bittle
@@ -167,25 +165,6 @@ public final class StringManipulator {
 				string,
 				StringManipulator.toFileName(id),
 				maxLength,
-				null);
-	}
-	
-	/**
-	 * Strips invalid characters from the given string based on
-	 * a cross platform white-list of characters (basically
-	 * any letter or digit, including unicode codepoints).
-	 * <p>
-	 * If the given string or the stripped string is null or empty, the given
-	 * id will be used.
-	 * @param string the string
-	 * @param id a unique identifier
-	 * @return String
-	 */
-	public static String toFileName(String string, UUID id) {
-		return StringManipulator.toFileName(
-				string,
-				StringManipulator.toFileName(id),
-				Constants.MAX_FILE_NAME_CODEPOINTS,
 				null);
 	}
 	
