@@ -4,8 +4,8 @@ interface Edit {
 	public String getName();
 	public void undo();
 	public void redo();
-	public boolean isMergeSupported(Edit edit);
-	public Edit merge(Edit edit);
+	public boolean isMergeSupported(Edit previous);
+	public Edit merge(Edit previous);
 	
 	public static final Edit MARK = new Edit() {
 		@Override
@@ -21,14 +21,14 @@ interface Edit {
 		@Override
 		public void undo() {}
 		@Override
-		public boolean isMergeSupported(Edit command) {
-			if (command == this) {
+		public boolean isMergeSupported(Edit previous) {
+			if (previous == this) {
 				return true;
 			}
 			return false;
 		}
 		@Override
-		public Edit merge(Edit command) {
+		public Edit merge(Edit previous) {
 			return this;
 		}
 	};

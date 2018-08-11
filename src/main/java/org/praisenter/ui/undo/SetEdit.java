@@ -25,12 +25,12 @@ final class SetEdit<T> implements Edit {
 	}
 	
 	@Override
-	public boolean isMergeSupported(Edit edit) {
+	public boolean isMergeSupported(Edit previous) {
 		return false;
 	}
 	
 	@Override
-	public Edit merge(Edit edit) {
+	public Edit merge(Edit previous) {
 		return null;
 	}
 	

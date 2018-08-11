@@ -13,6 +13,7 @@ import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.praisenter.Constants;
+import org.praisenter.Editable;
 import org.praisenter.data.Copyable;
 import org.praisenter.data.Identifiable;
 import org.praisenter.data.Localized;
@@ -571,6 +572,7 @@ public final class Bible implements ReadonlyBible, Indexable, Persistable, Copya
 	}
 	
 	@Override
+	@Editable("name")
 	public StringProperty nameProperty() {
 		return this.name;
 	}
@@ -623,6 +625,7 @@ public final class Bible implements ReadonlyBible, Indexable, Persistable, Copya
 	}
 	
 	@Override
+	@Editable("language")
 	public StringProperty languageProperty() {
 		return this.language;
 	}
@@ -639,6 +642,7 @@ public final class Bible implements ReadonlyBible, Indexable, Persistable, Copya
 	}
 	
 	@Override
+	@Editable("source")
 	public StringProperty sourceProperty() {
 		return this.source;
 	}
@@ -655,6 +659,7 @@ public final class Bible implements ReadonlyBible, Indexable, Persistable, Copya
 	}
 	
 	@Override
+	@Editable("copyright")
 	public StringProperty copyrightProperty() {
 		return this.copyright;
 	}
@@ -671,6 +676,7 @@ public final class Bible implements ReadonlyBible, Indexable, Persistable, Copya
 	}
 	
 	@Override
+	@Editable("notes")
 	public StringProperty notesProperty() {
 		return this.notes;
 	}
@@ -681,6 +687,7 @@ public final class Bible implements ReadonlyBible, Indexable, Persistable, Copya
 	}
 	
 	@JsonProperty
+	@Editable("books")
 	public ObservableList<Book> getBooks() {
 		return this.books;
 	}

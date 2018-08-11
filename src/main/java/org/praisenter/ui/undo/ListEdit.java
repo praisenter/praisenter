@@ -28,12 +28,12 @@ final class ListEdit<T> implements Edit {
 	}
 	
 	@Override
-	public boolean isMergeSupported(Edit edit) {
+	public boolean isMergeSupported(Edit previous) {
 		return false;
 	}
 	
 	@Override
-	public Edit merge(Edit edit) {
+	public Edit merge(Edit previous) {
 		return null;
 	}
 	
@@ -120,6 +120,8 @@ final class ListEdit<T> implements Edit {
 			
 			changes.changes.add(c);
 		}
+		change.reset();
+		
 		return changes;
 	}
 	
