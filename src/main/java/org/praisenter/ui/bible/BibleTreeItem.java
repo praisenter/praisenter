@@ -40,6 +40,12 @@ final class BibleTreeItem extends TreeItem<Object> {
 			} else {
 				this.label.unbind();
 				this.label.set(null);
+				this.setExpanded(false);
+				if (this.children != null) {
+					Bindings.unbindContent(super.getChildren(), this.children);
+				}
+				this.children = null;
+				super.getChildren().clear();
 			}
 		});
 	}
@@ -47,7 +53,11 @@ final class BibleTreeItem extends TreeItem<Object> {
 	@Override
 	public boolean isLeaf() {
 		Object value = this.getValue();
+		if (value == null) return true;
 		if (value instanceof Verse) {
+			if (this.children != null) {
+				return this.children.size() > 0;
+			}
 			return true;
 		}
 		return false;
@@ -69,12 +79,6 @@ final class BibleTreeItem extends TreeItem<Object> {
 			}
 			
 			if (data != null) {
-				for (Object o : data) {
-					BibleTreeItem bti = new BibleTreeItem();
-					bti.setValue(o);
-					children.add(bti);
-				}
-				
 				this.children = new MappedList<TreeItem<Object>, Object>(data, (index, item) -> {
 					BibleTreeItem bti = new BibleTreeItem();
 	               	bti.setValue(item);

@@ -14,4 +14,6 @@ public interface DocumentPane extends ApplicationPane {
 	
 	public CompletableFuture<Void> saveDocument();
 	
+	public void undo();
+	public void redo();
 }

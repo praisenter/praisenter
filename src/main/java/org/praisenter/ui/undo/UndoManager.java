@@ -2,7 +2,6 @@ package org.praisenter.ui.undo;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.BiConsumer;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -68,7 +67,7 @@ public final class UndoManager {
 				if (this.isBatching && this.batch != null) {
 					this.batch.add(edit);
 				} else {
-					this.undos.add(edit);
+					this.addUndoEdit(edit);
 				}
 			}
 		});
@@ -108,15 +107,6 @@ public final class UndoManager {
 				this.watcher.register(nv);
 			}
 		});
-	}
-
-	/**
-	 * Defines the registration of an object of the given type.
-	 * @param clazz
-	 * @param registrar
-	 */
-	public <T> void addWatchDefinition(Class<T> clazz, BiConsumer<T, Watcher> registrar) {
-		this.watcher.addWatchDefinition(new WatchDefinition<>(clazz, registrar));
 	}
 
 	public void undo() {
@@ -167,6 +157,19 @@ public final class UndoManager {
 		}
 	}
 	
+	private void addUndoEdit(Edit edit) {
+		int size = this.undos.size();
+		if (size > 0) {
+			Edit top = this.undos.get(size - 1);
+			if (top.isMergeSupported(edit)) {
+				System.out.println("Merging edit of '" + edit + "' with '" + top + "'");
+				edit = edit.merge(top);
+				System.out.println("Merged edit = '" + edit + "'");
+			}
+		}
+		this.undos.add(edit);
+	}
+	
 	private void printCounts() {
 		LOGGER.trace("UNDO(" + this.undos.size() + ") REDO(" + this.redos.size() + ")");
 	}
@@ -187,7 +190,7 @@ public final class UndoManager {
 	public void reset() {
 		this.undos.clear();
 		this.redos.clear();
-		this.watcher.unregister(this.target.get());
+		this.watcher.unregister();
 		this.batchName = null;
 		this.batch = null;
 		this.isBatching = false;

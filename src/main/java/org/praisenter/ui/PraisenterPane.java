@@ -124,34 +124,37 @@ public class PraisenterPane extends BorderPane {
 //		
 //		buttons.getChildren().add(btn7);
 		
-		Button btn8 = new Button("Change bible 1");
+		Button btn8 = new Button("copy");
 		btn8.setOnAction(e -> {
-			Book book = new Book();
-			bibleEditorPane1.getBible().getBooks().add(book);
+//			Book book = new Book();
+//			book.setName("Test");
+//			book.setNumber(bibleEditorPane1.getBible().getBooks().size());
+//			
+//			Chapter chapter = new Chapter();
+//			chapter.setNumber(1);
+//			book.getChapters().add(chapter);
+//			
+//			Verse verse = new Verse();
+//			verse.setNumber(1);
+//			verse.setText("The first verse");
+//			chapter.getVerses().add(verse);
+//			
+//			bibleEditorPane1.getBible().getBooks().add(book);
 			
-			book.setName("Test");
-			book.setNumber(bibleEditorPane1.getBible().getBooks().size());
-			
-			Chapter chapter = new Chapter();
-			
-			book.getChapters().add(chapter);
-			
-			chapter.setNumber(1);
-			
-			Verse verse = new Verse();
-			
-			chapter.getVerses().add(verse);
-			
-			verse.setNumber(1);
-			verse.setText("The first verse");
+			bibleEditorPane1.performAction(Action.COPY);
+		});
+		
+		Button btn10 = new Button("paste");
+		btn10.setOnAction(e -> {
+			bibleEditorPane1.performAction(Action.PASTE);
 		});
 		
 		Button btn9 = new Button("undo");
 		btn9.setOnAction(e -> {
-			//bibleEditorPane1.undoManager.undo();
+			bibleEditorPane1.undo();
 		}); 
 		
-		buttons.getChildren().addAll(btn8, btn9);
+		buttons.getChildren().addAll(btn8, btn9, btn10);
 		
 		this.setCenter(tabs);
 		this.setBottom(buttons);
