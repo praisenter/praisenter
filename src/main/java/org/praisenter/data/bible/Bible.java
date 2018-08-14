@@ -189,12 +189,6 @@ public final class Bible implements ReadonlyBible, Indexable, Persistable, Copya
 		return documents;
 	}
 	
-	public Bible duplicate() {
-		Bible bible = this.copy();
-		bible.id.set(UUID.randomUUID());
-		return bible;
-	}
-	
 	/**
 	 * Returns the total verse count.
 	 * @return int
@@ -551,7 +545,7 @@ public final class Bible implements ReadonlyBible, Indexable, Persistable, Copya
 	}
 	
 	@JsonProperty
-	private void setId(UUID id) {
+	public void setId(UUID id) {
 		this.id.set(id);
 	}
 	

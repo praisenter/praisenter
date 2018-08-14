@@ -1,14 +1,14 @@
 package org.praisenter.ui.bible;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
+import org.praisenter.async.AsyncHelper;
 import org.praisenter.data.bible.Bible;
 import org.praisenter.data.bible.Book;
 import org.praisenter.data.bible.Chapter;
@@ -22,9 +22,6 @@ import org.praisenter.ui.undo.UndoManager;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 
-import javafx.beans.InvalidationListener;
-import javafx.beans.Observable;
-import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
@@ -36,16 +33,19 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
-import javafx.collections.ObservableList;
 import javafx.event.Event;
 import javafx.event.EventHandler;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.Spinner;
-import javafx.scene.control.SpinnerValueFactory.IntegerSpinnerValueFactory;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
@@ -53,8 +53,8 @@ import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DataFormat;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.stage.Modality;
 
 public class BibleEditorPane extends BorderPane implements DocumentPane {
 	private static final DataFormat BOOK_CLIPBOARD_DATA = new DataFormat("application/x-praisenter-json-list;class=" + Book.class.getName());
@@ -360,22 +360,6 @@ public class BibleEditorPane extends BorderPane implements DocumentPane {
 	}
 	
 	@Override
-	public CompletableFuture<Void> saveDocument() {
-		Bible bible = this.bible.get();
-		return this.context.getDataManager().update(bible);
-	}
-	
-	@Override
-	public void undo() {
-		this.undoManager.undo();
-	}
-	
-	@Override
-	public void redo() {
-		this.undoManager.redo();
-	}
-	
-	@Override
 	public CompletableFuture<Void> performAction(Action action) {
 		switch (action) {
 			case COPY:
@@ -384,24 +368,29 @@ public class BibleEditorPane extends BorderPane implements DocumentPane {
 				return this.paste();
 			case CUT:
 				return this.copy(true);
-//			case DELETE:
-//				return this.selectionInfo.getSelectedCount() > 0;
+			case DELETE:
+				return this.delete();
 //			case NEW_BOOK:
 //				return this.selectionInfo.getSelectedType() == Bible.class;
 //			case NEW_CHAPTER:
 //				return this.selectionInfo.getSelectedType() == Book.class;
 //			case NEW_VERSE:
 //				return this.selectionInfo.getSelectedType() == Chapter.class;
-//			case REDO:
-//			case UNDO:
-//			case RENUMBER:
-//				return this.selectionInfo.getSelectedType() != Verse.class;
-//			case REORDER:
-//				return this.selectionInfo.getSelectedType() != Verse.class;
-//			default:
-//				return false;
+			case REDO:
+				return this.redo();
+			case UNDO:
+				return this.undo();
+			case RENUMBER:
+				return this.renumber();
+			case REORDER:
+				return this.reorder();
+			case SAVE:
+				return this.save();
+			case SAVE_AS:
+				return this.saveAs();
+			default:
+				return CompletableFuture.completedFuture(null);
 		}
-		return null;
 	}
 	
 	@Override
@@ -416,17 +405,23 @@ public class BibleEditorPane extends BorderPane implements DocumentPane {
 			case DELETE:
 				return this.selectionInfo.getSelectedCount() > 0;
 			case NEW_BOOK:
-				return this.selectionInfo.getSelectedType() == Bible.class;
+				return this.selectionInfo.getSelectedCount() == 1 && this.selectionInfo.getSelectedType() == Bible.class;
 			case NEW_CHAPTER:
-				return this.selectionInfo.getSelectedType() == Book.class;
+				return this.selectionInfo.getSelectedCount() == 1 && this.selectionInfo.getSelectedType() == Book.class;
 			case NEW_VERSE:
-				return this.selectionInfo.getSelectedType() == Chapter.class;
+				return this.selectionInfo.getSelectedCount() == 1 && this.selectionInfo.getSelectedType() == Chapter.class;
 			case REDO:
+				return this.undoManager.isRedoAvailable();
 			case UNDO:
+				return this.undoManager.isUndoAvailable();
 			case RENUMBER:
-				return this.selectionInfo.getSelectedType() != Verse.class;
+				return this.selectionInfo.getSelectedCount() == 1 && this.selectionInfo.getSelectedType() != Verse.class;
 			case REORDER:
-				return this.selectionInfo.getSelectedType() != Verse.class;
+				return this.selectionInfo.getSelectedCount() == 1 && this.selectionInfo.getSelectedType() != Verse.class;
+			case SAVE:
+				return true;
+			case SAVE_AS:
+				return true;
 			default:
 				return false;
 		}
@@ -460,6 +455,178 @@ public class BibleEditorPane extends BorderPane implements DocumentPane {
 	}
 	
 	// internal methods
+
+	private CompletableFuture<Void> undo() {
+		this.undoManager.undo();
+		return AsyncHelper.NO_RETURN;
+	}
+	
+	private CompletableFuture<Void> redo() {
+		this.undoManager.redo();
+		return AsyncHelper.NO_RETURN;
+	}
+	
+	private CompletableFuture<Void> delete() {
+		List<TreeItem<Object>> selected = this.treeView.getSelectionModel().getSelectedItems();
+		this.undoManager.beginBatch("Delete");
+		for (TreeItem<Object> item : selected) {
+			Object value = item.getValue();
+			TreeItem<Object> parentItem = item.getParent();
+			if (parentItem != null) {
+				Object parent = parentItem.getValue();
+				if (parent != null) {
+					if (parent instanceof Bible) {
+						((Bible)parent).getBooks().remove(value);
+					} else if (parent instanceof Book) {
+						((Book)parent).getChapters().remove(value);
+					} else if (parent instanceof Chapter) {
+						((Chapter)parent).getVerses().remove(value);
+					}
+				}
+			}
+		}
+		this.undoManager.completeBatch();
+		return AsyncHelper.NO_RETURN;
+	}
+	
+	private CompletableFuture<Void> renumber() {
+		if (this.selectionInfo.getSelectedCount() == 1) {
+			Alert dialog = new Alert(AlertType.CONFIRMATION);
+			dialog.setTitle("Renumber");
+			dialog.setHeaderText("Reunumber this item");
+			dialog.setContentText("Are you sure you want to renumber?");
+			dialog.initOwner(this.getScene().getWindow());
+			dialog.initModality(Modality.WINDOW_MODAL);
+			
+			Optional<ButtonType> result = dialog.showAndWait();
+			if (result.isPresent() && result.get() == ButtonType.OK) {
+				TreeItem<Object> selected = this.treeView.getSelectionModel().getSelectedItem();
+				if (selected != null) {
+					Object value = selected.getValue();
+					if (value != null) {
+						this.undoManager.beginBatch("Renumber");
+						if (value instanceof Bible) {
+							this.renumber((Bible)value);
+						} else if (value instanceof Book) {
+							this.renumber((Book)value);
+						} else if (value instanceof Chapter) {
+							this.renumber((Chapter)value);
+						}
+						this.undoManager.completeBatch();
+					}
+				}
+			}
+		}
+		return AsyncHelper.NO_RETURN;
+	}
+	
+	private void renumber(Bible bible) {
+		int n = 1;
+		List<Book> books = bible.getBooks();
+		for (Book book : books) {
+			book.setNumber(n++);
+			this.renumber(book);
+		}
+	}
+	
+	private void renumber(Book book) {
+		int n = 1;
+		List<Chapter> chapters = book.getChapters();
+		for (Chapter chapter : chapters) {
+			chapter.setNumber(n++);
+			this.renumber(chapter);
+		}
+	}
+	
+	private void renumber(Chapter chapter) {
+		int n = 1;
+		List<Verse> verses = chapter.getVerses();
+		for (Verse verse : verses) {
+			verse.setNumber(n++);
+		}
+	}
+	
+	private CompletableFuture<Void> reorder() {
+		if (this.selectionInfo.getSelectedCount() == 1) {
+			Alert dialog = new Alert(AlertType.CONFIRMATION);
+			dialog.setTitle("Reorder");
+			dialog.setHeaderText("Reorder this item");
+			dialog.setContentText("Are you sure you want to reorder?");
+			dialog.initOwner(this.getScene().getWindow());
+			dialog.initModality(Modality.WINDOW_MODAL);
+			
+			Optional<ButtonType> result = dialog.showAndWait();
+			if (result.isPresent() && result.get() == ButtonType.OK) {
+				TreeItem<Object> selected = this.treeView.getSelectionModel().getSelectedItem();
+				if (selected != null) {
+					Object value = selected.getValue();
+					if (value != null) {
+						this.undoManager.beginBatch("Reorder");
+						if (value instanceof Bible) {
+							this.reorder((Bible)value);
+						} else if (value instanceof Book) {
+							this.reorder((Book)value);
+						} else if (value instanceof Chapter) {
+							this.reorder((Chapter)value);
+						}
+						this.undoManager.completeBatch();
+					}
+				}
+			}
+		}
+		return AsyncHelper.NO_RETURN;
+	}
+	
+	private void reorder(Bible bible) {
+		FXCollections.sort(bible.getBooks());
+		for (Book book : bible.getBooks()) {
+			this.reorder(book);
+		}
+	}
+	
+	private void reorder(Book book) {
+		FXCollections.sort(book.getChapters());
+		for (Chapter chapter : book.getChapters()) {
+			this.reorder(chapter);
+		}
+	}
+	
+	private void reorder(Chapter chapter) {
+		FXCollections.sort(chapter.getVerses());
+	}
+
+	private CompletableFuture<Void> save() {
+		Bible bible = this.bible.get();
+		if (bible != null) {
+			return this.context.getDataManager().update(bible.copy()).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
+				this.undoManager.mark();
+			}));
+		}
+		return AsyncHelper.NO_RETURN;
+	}
+	
+	private CompletableFuture<Void> saveAs() {
+		Bible bible = this.bible.get();
+		if (bible != null) {
+			// prompt for new name
+			TextInputDialog dialog = new TextInputDialog("Copy of " + bible.getName());
+			dialog.setContentText("Name");
+			dialog.setHeaderText("Please supply a name for the bible");
+			dialog.setTitle("Save As");
+			dialog.initOwner(this.getScene().getWindow());
+			dialog.initModality(Modality.WINDOW_MODAL);
+			Optional<String> result = dialog.showAndWait();
+			if (result.isPresent()) {
+				String name = result.get();
+				bible.setId(UUID.randomUUID());
+				bible.setName(name);
+				return this.context.getDataManager().create(bible.copy()).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
+					this.undoManager.mark();
+				}));
+			}
+		}
+		return AsyncHelper.NO_RETURN;
+	}
 	
 	private CompletableFuture<Void> copy(boolean isCut) {
 		if (this.selectionInfo.isSingleTypeSelected() && this.selectionInfo.getSelectedType() != Bible.class) {
@@ -513,7 +680,7 @@ public class BibleEditorPane extends BorderPane implements DocumentPane {
 			}
 		}
 		
-		return CompletableFuture.completedFuture(null);
+		return AsyncHelper.NO_RETURN;
 	}
 	
 	private CompletableFuture<Void> paste() {
@@ -546,6 +713,7 @@ public class BibleEditorPane extends BorderPane implements DocumentPane {
 				}
 			}
 		}
-		return CompletableFuture.completedFuture(null);
+		
+		return AsyncHelper.NO_RETURN;
 	}
 }

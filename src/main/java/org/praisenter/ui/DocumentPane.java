@@ -11,9 +11,4 @@ public interface DocumentPane extends ApplicationPane {
 	
 	public boolean hasUnsavedChanges();
 	public ReadOnlyBooleanProperty unsavedChangesProperty();
-	
-	public CompletableFuture<Void> saveDocument();
-	
-	public void undo();
-	public void redo();
 }

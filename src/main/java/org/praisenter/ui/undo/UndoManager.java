@@ -158,16 +158,16 @@ public final class UndoManager {
 	}
 	
 	private void addUndoEdit(Edit edit) {
+		Edit toAdd = edit;
 		int size = this.undos.size();
 		if (size > 0) {
 			Edit top = this.undos.get(size - 1);
 			if (top.isMergeSupported(edit)) {
-				System.out.println("Merging edit of '" + edit + "' with '" + top + "'");
-				edit = edit.merge(top);
-				System.out.println("Merged edit = '" + edit + "'");
+				Edit merged = toAdd = edit.merge(top);
+				LOGGER.trace(() -> "Merged edit '" + edit + "' with '" + top + "' to produce '" + merged + "'");
 			}
 		}
-		this.undos.add(edit);
+		this.undos.add(toAdd);
 	}
 	
 	private void printCounts() {
@@ -204,8 +204,11 @@ public final class UndoManager {
 	}
 	
 	public void completeBatch() {
-		this.undos.add(new CompositeEdit(this.batchName, this.batch));
+		if (this.batch != null && this.batch.size() > 0) {
+			this.undos.add(new CompositeEdit(this.batchName, this.batch));
+		}
 		this.isBatching = false;
+		this.batchName = null;
 		this.batch = null;
 	}
 	
