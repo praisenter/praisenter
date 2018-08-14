@@ -28,10 +28,6 @@ public class PraisenterPane extends BorderPane {
 	public PraisenterPane(ReadOnlyPraisenterContext context) {
 		this.context = context;
 		
-		this.context.getApplicationState().focusOwnerProperty().addListener((obs, ov, nv) -> {
-			System.out.println("Focus changed from " + ov + " to " + nv);
-		});
-		
 		BibleEditorPane bibleEditorPane1 = new BibleEditorPane(context);
 		BibleEditorPane bibleEditorPane2 = new BibleEditorPane(context);
 		
@@ -151,13 +147,19 @@ public class PraisenterPane extends BorderPane {
 		
 		Button btn9 = new Button("undo");
 		btn9.setOnAction(e -> {
-			bibleEditorPane1.undo();
+			//bibleEditorPane1.performAction(Action.UNDO);
+			bibleEditorPane1.performAction(Action.REORDER);
 		}); 
 		
 		buttons.getChildren().addAll(btn8, btn9, btn10);
 		
 		this.setCenter(tabs);
 		this.setBottom(buttons);
+		
+
+		this.context.getApplicationState().focusOwnerProperty().addListener((obs, ov, nv) -> {
+			System.out.println("Focus changed from " + ov + " to " + nv);
+		});
 		
 		EventHandler<Event> eh = e -> {
 			System.out.println("Recieved state change from " + this.context.getApplicationState().getApplicationPane());

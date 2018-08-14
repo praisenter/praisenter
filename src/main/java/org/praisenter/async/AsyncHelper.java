@@ -12,7 +12,13 @@ import javafx.concurrent.Task;
 
 public final class AsyncHelper {
 	
+	public static final CompletableFuture<Void> NO_RETURN = empty();
+	
 	private AsyncHelper() {}
+	
+	public static <T> CompletableFuture<T> empty() {
+		return CompletableFuture.completedFuture(null);
+	}
 	
 	public static <T> Function<T, CompletableFuture<Void>> onJavaFXThreadAndWait(final ThrowableConsumer<T> operation) {
 		return (T data) -> {
