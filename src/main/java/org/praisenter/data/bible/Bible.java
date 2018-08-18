@@ -506,6 +506,21 @@ public final class Bible implements ReadonlyBible, Indexable, Persistable, Copya
 		return this.books.get(this.books.size() - 1);
 	}
 	
+	public void renumber() {
+		int n = 1;
+		for (Book book : this.books) {
+			book.setNumber(n++);
+			book.renumber();
+		}
+	}
+	
+	public void reorder() {
+		FXCollections.sort(this.books);
+		for (Book book : this.books) {
+			book.reorder();
+		}
+	}
+	
 	@Override
 	@JsonProperty(Constants.FORMAT_PROPERTY_NAME)
 	public String getFormat() {

@@ -45,6 +45,17 @@ public final class Chapter implements ReadonlyChapter, Copyable, Comparable<Chap
 		}
 		return c;
 	}
+
+	public void renumber() {
+		int n = 1;
+		for (Verse verse : this.verses) {
+			verse.setNumber(n++);
+		}
+	}
+	
+	public void reorder() {
+		FXCollections.sort(this.verses);
+	}
 	
 	@JsonProperty
 	public int getNumber() {

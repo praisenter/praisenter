@@ -1,7 +1,5 @@
 package org.praisenter.ui;
 
-import java.util.concurrent.CompletableFuture;
-
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 

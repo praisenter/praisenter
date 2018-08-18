@@ -102,6 +102,21 @@ public final class Book implements ReadonlyBook, Copyable, Comparable<Book> {
 		if (o == null) return 1;
 		return this.number.get() - o.number.get();
 	}
+	
+	public void renumber() {
+		int n = 1;
+		for (Chapter chapter : this.chapters) {
+			chapter.setNumber(n++);
+			chapter.renumber();
+		}
+	}
+	
+	public void reorder() {
+		FXCollections.sort(this.chapters);
+		for (Chapter chapter : this.chapters) {
+			chapter.reorder();
+		}
+	}
 
 	@Override
 	@JsonProperty
