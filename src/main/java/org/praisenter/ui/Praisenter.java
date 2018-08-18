@@ -43,11 +43,13 @@ import org.controlsfx.glyphfont.FontAwesome;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
 import org.praisenter.Constants;
 import org.praisenter.async.AsyncHelper;
+import org.praisenter.configuration.Setting;
 import org.praisenter.data.DataManager;
 import org.praisenter.data.configuration.Configuration;
 import org.praisenter.data.configuration.ConfigurationPersistAdapter;
 import org.praisenter.data.search.SearchIndex;
 import org.praisenter.javafx.controls.Alerts;
+import org.praisenter.javafx.themes.Theme;
 import org.praisenter.ui.fonts.OpenIconic;
 import org.praisenter.ui.translations.Translations;
 import org.praisenter.utility.RuntimeProperties;
@@ -249,7 +251,7 @@ public final class Praisenter extends Application {
     			loggerConfig.setLevel(Level.TRACE);
     			ctx.updateLoggers();
     		}
-    	}).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
+    	}).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {    		
     		// set the widow size and position
     		// set minimum size
         	stage.setMinWidth(MIN_WIDTH);
@@ -324,6 +326,7 @@ public final class Praisenter extends Application {
     		
     		Scene scene = new Scene(layout);
     		stage.setScene(scene);
+    		scene.getStylesheets().add(Theme.getTheme(context.configuration.getThemeName()).getCss());
     		stage.show();
     		
     		LOGGER.info("Starting load");

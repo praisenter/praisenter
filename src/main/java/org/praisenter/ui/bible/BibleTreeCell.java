@@ -12,6 +12,7 @@ final class BibleTreeCell extends TreeCell<Object> {
 	private final Label graphic;
 	
 	public BibleTreeCell() {
+		this.getStyleClass().add("bible-tree-cell");
 		this.graphic = new Label();
 		this.graphic.getStyleClass().add("bible-tree-cell-verse-number");
 	}
