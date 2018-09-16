@@ -78,7 +78,7 @@ public final class UndoManager {
 		
 		this.redoAvailable.bind(Bindings.createBooleanBinding(() -> {
 			return !this.redos.isEmpty();
-		}, this.undos));
+		}, this.redos));
 		
 		this.undoCount.bind(Bindings.createIntegerBinding(() -> {
 			return this.undos.size();
@@ -128,7 +128,6 @@ public final class UndoManager {
 				this.redos.add(undo);
 			}
 		} finally {
-			this.printCounts();
 			this.isOperating = false;
 		}
 	}
@@ -142,17 +141,16 @@ public final class UndoManager {
 				return;
 			}
 			
-			Edit redo = this.redos.get(this.redos.size() - 1);
+			Edit redo = this.redos.remove(this.redos.size() - 1);
 			redo.redo();
 			this.undos.add(redo);
 			
 			if (redo == Edit.MARK) {
-				redo = this.redos.get(this.redos.size() - 1);
+				redo = this.redos.remove(this.redos.size() - 1);
 				redo.redo();
 				this.undos.add(redo);
 			}
 		} finally {
-			this.printCounts();
 			this.isOperating = false;
 		}
 	}
@@ -165,13 +163,22 @@ public final class UndoManager {
 			if (top.isMergeSupported(edit)) {
 				Edit merged = toAdd = edit.merge(top);
 				LOGGER.trace(() -> "Merged edit '" + edit + "' with '" + top + "' to produce '" + merged + "'");
+				this.undos.remove(size - 1);
 			}
 		}
 		this.undos.add(toAdd);
+		this.redos.clear();
 	}
 	
-	private void printCounts() {
-		LOGGER.trace("UNDO(" + this.undos.size() + ") REDO(" + this.redos.size() + ")");
+	public void print() {
+		System.out.println("Undos:");
+		for (Edit edit : this.undos) {
+			System.out.println(edit);
+		}
+		System.out.println("Redos:");
+		for (Edit edit : this.redos) {
+			System.out.println(edit);
+		}
 	}
 	
 	public void mark() {
@@ -210,6 +217,7 @@ public final class UndoManager {
 		this.isBatching = false;
 		this.batchName = null;
 		this.batch = null;
+		this.redos.clear();
 	}
 	
 	public void discardBatch() {

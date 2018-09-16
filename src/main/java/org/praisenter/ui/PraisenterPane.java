@@ -1,25 +1,19 @@
 package org.praisenter.ui;
 
 import java.nio.file.Paths;
-import java.util.Locale;
 
-import org.praisenter.Reference;
 import org.praisenter.data.bible.Bible;
-import org.praisenter.data.bible.Book;
-import org.praisenter.data.bible.Chapter;
-import org.praisenter.data.bible.Verse;
 import org.praisenter.ui.bible.BibleEditorPane;
 
-import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
-import javafx.collections.ObservableList;
-import javafx.event.Event;
-import javafx.event.EventHandler;
 import javafx.scene.control.Button;
-import javafx.scene.control.ColorPicker;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.BorderPaneBuilder;
 import javafx.scene.layout.HBox;
 
 public class PraisenterPane extends BorderPane {
@@ -30,6 +24,20 @@ public class PraisenterPane extends BorderPane {
 		
 		BibleEditorPane bibleEditorPane1 = new BibleEditorPane(context);
 		BibleEditorPane bibleEditorPane2 = new BibleEditorPane(context);
+		
+		//NavigationBar bar = new NavigationBar();
+		
+//		HamburgerSlideCloseTransition burgerTask = new HamburgerSlideCloseTransition(h1);
+//		burgerTask.setRate(-1);
+//		h1.addEventHandler(MouseEvent.MOUSE_PRESSED, (e)->{
+//		    burgerTask.setRate(burgerTask.getRate()*-1);
+//		    burgerTask.play();
+//		});
+		
+		Menu mnuFile = new Menu("file", null, new MenuItem("reindex"), new MenuItem("preferences"));
+		Menu mnuHelp = new Menu("help", null, new MenuItem("logs"), new MenuItem("about"));
+		MenuBar mainMenu = new MenuBar(mnuFile, mnuHelp);
+		
 		
 		TabPane tabs = new TabPane();
 		tabs.getTabs().add(new Tab("bible1", bibleEditorPane1));
@@ -145,30 +153,45 @@ public class PraisenterPane extends BorderPane {
 			bibleEditorPane1.performAction(Action.PASTE);
 		});
 		
-		Button btn9 = new Button("undo");
+		Button btn9 = new Button("print");
 		btn9.setOnAction(e -> {
-			//bibleEditorPane1.performAction(Action.UNDO);
-			bibleEditorPane1.performAction(Action.REORDER);
+			bibleEditorPane1.printState();
 		}); 
 		
 		buttons.getChildren().addAll(btn8, btn9, btn10);
 		
+		ActionBar ab = new ActionBar(context);
+		
+		//BorderPane bp = new BorderPane();
+		this.setTop(mainMenu);
 		this.setCenter(tabs);
 		this.setBottom(buttons);
+		this.setLeft(ab);
 		
+		//this.getChildren().addAll(bp);
+
+//		AnchorPane.setLeftAnchor(ab, 0.0);
+//		AnchorPane.setTopAnchor(ab, 0.0);
+//		AnchorPane.setBottomAnchor(ab, 0.0);
+//		
+//		AnchorPane.setLeftAnchor(bp, 150.0);
+//		AnchorPane.setTopAnchor(bp, 0.0);
+//		AnchorPane.setBottomAnchor(bp, 0.0);
+//		AnchorPane.setRightAnchor(bp, 0.0);
 
 		this.context.getApplicationState().focusOwnerProperty().addListener((obs, ov, nv) -> {
-			System.out.println("Focus changed from " + ov + " to " + nv);
+//			System.out.println("Focus changed from " + ov + " to " + nv);
+//			System.out.println("Last Focused: " + context.getApplicationState().getLastFocused());
 		});
 		
-		EventHandler<Event> eh = e -> {
-			System.out.println("Recieved state change from " + this.context.getApplicationState().getApplicationPane());
-		};
-		this.context.getApplicationState().applicationPaneProperty().addListener((obs, ov, nv) -> {
-			eh.handle(null);
-			if (ov != null) ov.setOnActionStateChanged(null);
-			if (nv != null) nv.setOnActionStateChanged(eh);
-		});
+//		EventHandler<Event> eh = e -> {
+//			System.out.println("Recieved state change from " + this.context.getApplicationState().getApplicationPane());
+//		};
+//		this.context.getApplicationState().actionPaneProperty().addListener((obs, ov, nv) -> {
+//			eh.handle(null);
+//			if (ov != null) ov.setOnActionStateChanged(null);
+//			if (nv != null) nv.setOnActionStateChanged(eh);
+//		});
 	}
 	
 	

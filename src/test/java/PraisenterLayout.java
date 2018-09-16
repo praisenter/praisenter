@@ -8,6 +8,7 @@ import java.util.List;
 
 import org.controlsfx.glyphfont.FontAwesome;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
+import org.controlsfx.glyphfont.FontAwesome.Glyph;
 import org.praisenter.ui.Praisenter;
 import org.praisenter.ui.fonts.OpenIconic;
 
@@ -31,6 +32,7 @@ import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -74,10 +76,11 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.TilePane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
-public class JavaFXCssTester extends Application {
+public class PraisenterLayout extends Application {
 	public static void main(String[] args) {
 		launch(args);
 	}
@@ -86,25 +89,88 @@ public class JavaFXCssTester extends Application {
 	
 	@Override
 	public void start(Stage primaryStage) throws Exception {
+		FontAwesome fa = new FontAwesome(Praisenter.class.getResourceAsStream("/org/praisenter/fonts/fontawesome-webfont.ttf"));
+		OpenIconic openiconic = new OpenIconic(Praisenter.class.getResourceAsStream("/org/praisenter/fonts/open-iconic.ttf"));
+    	GlyphFontRegistry.register(fa);
+		GlyphFontRegistry.register(openiconic);
 		
-    	GlyphFontRegistry.register(new FontAwesome(Praisenter.class.getResourceAsStream("/org/praisenter/fonts/fontawesome-webfont.ttf")));
-		GlyphFontRegistry.register(new OpenIconic(Praisenter.class.getResourceAsStream("/org/praisenter/fonts/open-iconic.ttf")));
+		MenuBar menu = new MenuBar();
+		Menu mnuFile = new Menu("File");
+		mnuFile.getItems().addAll(new MenuItem("Preferences", fa.create(Glyph.GEAR)));
+		Menu mnuAbout = new Menu("About");
+		mnuAbout.getItems().addAll(new MenuItem("About Praisenter", fa.create(Glyph.INFO_CIRCLE).color(Color.CORNFLOWERBLUE)), new MenuItem("Logs"));
+		menu.setUseSystemMenuBar(true);
+		menu.getMenus().addAll(mnuFile, mnuAbout);
 		
-		TabPane tabs = new TabPane(new Tab("javafx", new ScrollPane(buildKitchenSink())), new Tab("custom", buildPanelSet()));
+		ToolBar toolbar = new ToolBar(
+				new Button(null, fa.create(Glyph.SAVE)),
+				new Button(null, openiconic.create(OpenIconic.Glyph.ACTION_UNDO)),
+				new Button(null, openiconic.create(OpenIconic.Glyph.ACTION_REDO)),
+				new Button(null, fa.create(Glyph.PLUS)),
+				new Button(null, fa.create(Glyph.COPY)),
+				new Button(null, fa.create(Glyph.CUT)),
+				new Button(null, fa.create(Glyph.PASTE)),
+				new Button(null, fa.create(Glyph.DOWNLOAD)),
+				new Button(null, fa.create(Glyph.TERMINAL)),
+				new Button(null, fa.create(Glyph.REMOVE)),
+				new Button(null, fa.create(Glyph.SORT_ALPHA_ASC)),
+				new Button(null, fa.create(Glyph.SORT_AMOUNT_ASC)));
+		toolbar.setOrientation(Orientation.VERTICAL);
+		
+		VBox toolbarSubPane = new VBox(5);
+		// selections to create something new
+		// make selections before creation (media, type, etc)
+		MenuButton mbtn = new MenuButton("Type", null, new MenuItem("Option 1"), new MenuItem("Another option"));
+		ComboBox<String> cmb = new ComboBox<>(FXCollections.observableArrayList("This option", "Another option", "2", "And a long option"));
+		Button btn = new Button("Done");
+		btn.setAlignment(Pos.BASELINE_RIGHT);
+		toolbarSubPane.getChildren().addAll(mbtn, cmb, btn);
+		
+		TabPane docs = new TabPane(new Tab("doc 1"), new Tab("the bible"), new Tab("It's all in him"));
+		
+		StackPane stack = new StackPane();
+		stack.getChildren().add(docs);
+		stack.getChildren().add(toolbarSubPane);
+		StackPane.setAlignment(toolbarSubPane, Pos.TOP_LEFT);
+		StackPane.setAlignment(docs, Pos.TOP_LEFT);
+		
+		TabPane store = new TabPane(new Tab("Bibles"), new Tab("Songs"), new Tab("Slides"), new Tab("Slide Shows"), new Tab("Media"));
+		
+		VBox properties = new VBox(5,
+				new TextField(),
+				new PasswordField(),
+				new CheckBox(),
+				new RadioButton(),
+				new ChoiceBox<>(),
+				new ComboBox<>(),
+				new Slider(0, 10, 0),
+				new Spinner<>());
+		
+		
+		HBox tools = new HBox(5, toolbar);
+		
+		BorderPane mainLayout = new BorderPane();
+		
+		mainLayout.setTop(menu);
+		mainLayout.setLeft(tools);
+		mainLayout.setCenter(stack);
+		mainLayout.setBottom(store);
+		mainLayout.setRight(properties);
 		
 		TextArea area = new TextArea();
 		
 		final Path css1 = Paths.get(System.getProperty("user.home")).resolve("temp1.css");
 		final Path css2 = Paths.get(System.getProperty("user.home")).resolve("temp2.css");
 		this.currentCss = css1;
-		
-		SplitPane split = new SplitPane(tabs, area);
-		split.setOrientation(Orientation.HORIZONTAL);
-		
+
 		Button swap = new Button("Swap CSS");
 		
+		VBox cssPane = new VBox(5, area, swap);
+		
+		SplitPane split = new SplitPane(mainLayout, cssPane);
+		split.setOrientation(Orientation.HORIZONTAL);
+		
 		BorderPane root = new BorderPane();
-		root.setTop(swap);
 		root.setCenter(split);
 		
 		Scene scene = new Scene(root);

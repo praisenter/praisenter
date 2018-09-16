@@ -51,8 +51,8 @@ final class ListEdit<T> implements Edit {
 			}
 			
 			// handle add
-			for (T added : change.added) {
-				this.list.add(added);
+			for (Added added : change.added) {
+				this.list.addAll(added.index, added.items);
 			}
 		}
 	}
@@ -64,7 +64,9 @@ final class ListEdit<T> implements Edit {
 			Change change = this.change.changes.get(i);
 			
 			// remove adds first
-			this.list.removeAll(change.added);
+			for (int j = 0; j < change.added.size(); j++) {
+				this.list.removeAll(change.added.get(i).items);
+			}
 			
 			// add back any removed (in reverse order)
 			// getFrom will always be the correct index
@@ -92,7 +94,11 @@ final class ListEdit<T> implements Edit {
 			
 			// copy the added items
 			if (change.wasAdded()) {
-				c.added.addAll(change.getAddedSubList());
+				Added a = new Added();
+				a.index = change.getFrom();
+				a.items = new ArrayList<T>(change.getAddedSubList());
+				c.added.add(a);
+				//c.added.addAll(change.getAddedSubList());
 			}
 
 			// copy the removed items
@@ -130,9 +136,14 @@ final class ListEdit<T> implements Edit {
 	}
 	
 	private class Change {
-		public List<T> added = new ArrayList<>();
+		public List<Added> added = new ArrayList<>();
 		public List<Removed> removed = new ArrayList<>();
 		public List<Moved> moved = new ArrayList<>();
+	}
+	
+	private class Added {
+		public int index;
+		public List<T> items;
 	}
 	
 	private class Removed {
