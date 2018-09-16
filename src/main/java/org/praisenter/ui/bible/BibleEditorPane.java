@@ -15,9 +15,13 @@ import org.praisenter.data.bible.Chapter;
 import org.praisenter.data.bible.Verse;
 import org.praisenter.data.json.JsonIO;
 import org.praisenter.ui.Action;
+import org.praisenter.ui.ConfirmationPromptPane;
 import org.praisenter.ui.DocumentPane;
 import org.praisenter.ui.ReadOnlyPraisenterContext;
 import org.praisenter.ui.SelectionInfo;
+import org.praisenter.ui.TextInputFieldFieldEventFilter;
+import org.praisenter.ui.events.ActionPromptPaneCompleteEvent;
+import org.praisenter.ui.events.ActionStateChangedEvent;
 import org.praisenter.ui.undo.UndoManager;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -33,10 +37,9 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.css.PseudoClass;
-import javafx.event.Event;
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
@@ -80,7 +83,6 @@ public class BibleEditorPane extends BorderPane implements DocumentPane {
 	private final ObjectProperty<Bible> bible;
 	private final BooleanProperty hasUnsavedChanges;
 	private final StringProperty documentName;
-	private final ObjectProperty<EventHandler<Event>> onActionStateChanged;
 	
 	// helpers
 	
@@ -119,7 +121,6 @@ public class BibleEditorPane extends BorderPane implements DocumentPane {
 		this.bible = new SimpleObjectProperty<>();
 		this.hasUnsavedChanges = new SimpleBooleanProperty();
 		this.documentName = new SimpleStringProperty();
-		this.onActionStateChanged = new SimpleObjectProperty<>();
 		
 		this.name = new SimpleStringProperty();
 		this.language = new SimpleStringProperty();
@@ -211,7 +212,7 @@ public class BibleEditorPane extends BorderPane implements DocumentPane {
 
 		Label lblBibleNotes = new Label("Notes");
 		TextArea txtBibleNotes = new TextArea();
-		txtBibleNotes.textProperty().bind(this.notes);
+		txtBibleNotes.textProperty().bindBidirectional(this.notes);
 		txtBibleNotes.setWrapText(true);
 		
 		Label lblBookName = new Label("Name");
@@ -237,6 +238,18 @@ public class BibleEditorPane extends BorderPane implements DocumentPane {
 		Spinner<Integer> spnVerseNumber = new Spinner<>(1, Integer.MAX_VALUE, 1);
 		spnVerseNumber.setEditable(true);
 		spnVerseNumber.getValueFactory().valueProperty().bindBidirectional(this.verseNumber2);
+		
+		TextInputFieldFieldEventFilter.applyTextInputFieldEventFilter(
+				txtBibleName,
+				txtBibleLanguage,
+				txtBibleSource,
+				txtBibleCopyright,
+				txtBibleNotes,
+				txtBookName,
+				spnBookNumber.getEditor(),
+				spnChapterNumber.getEditor(),
+				txtVerseText,
+				spnVerseNumber.getEditor());
 		
 		VBox fields = new VBox(
 				lblBibleName, txtBibleName,
@@ -299,12 +312,6 @@ public class BibleEditorPane extends BorderPane implements DocumentPane {
 		});
 		
 		this.treeView.getSelectionModel().getSelectedItems().addListener((ListChangeListener.Change<? extends TreeItem<Object>> change) -> {
-			// handle the selection state changing
-			EventHandler<Event> eh = this.onActionStateChanged.get();
-			if (eh != null) {
-				eh.handle(null);
-			}
-			
 			// handle selection of a tree item
 			this.selectedBook.set(null);
 			this.selectedChapter.set(null);
@@ -319,18 +326,33 @@ public class BibleEditorPane extends BorderPane implements DocumentPane {
 					this.selectedVerse.set((Verse)value);
 				}
 			}
+			
+			// handle the selection state changing
+			this.fireEvent(new ActionStateChangedEvent(this, this.treeView, ActionStateChangedEvent.SELECTION));
 		});
 		
 		this.selectionInfo = new SelectionInfo<TreeItem<Object>>(this.treeView.getSelectionModel(), (item) -> {
-			return item.getValue().getClass();
+			Object value = item.getValue();
+			return value != null ? value.getClass() : null;
 		});
 		
 		this.undoManager.targetProperty().bind(this.bible);
+		this.undoManager.undoCountProperty().addListener(this::onUndoStateChanged);
+		this.undoManager.redoCountProperty().addListener(this::onUndoStateChanged);
 		
 		SplitPane split = new SplitPane(this.treeView, fields);
 		split.setDividerPositions(0.75);
 		
 		this.setCenter(split);
+		
+	}
+	
+	private void onUndoStateChanged(ObservableValue<? extends Number> obs, Number ov, Number nv) {
+		this.fireEvent(new ActionStateChangedEvent(this, this, ActionStateChangedEvent.UNDO_REDO));
+	}
+	
+	public void printState() {
+		this.undoManager.print();
 	}
 	
 	@Override
@@ -365,7 +387,7 @@ public class BibleEditorPane extends BorderPane implements DocumentPane {
 	}
 	
 	@Override
-	public CompletableFuture<Void> performAction(Action action) {
+	public CompletableFuture<Node> performAction(Action action) {
 		switch (action) {
 			case COPY:
 				return this.copy(false);
@@ -375,12 +397,10 @@ public class BibleEditorPane extends BorderPane implements DocumentPane {
 				return this.copy(true);
 			case DELETE:
 				return this.delete();
-//			case NEW_BOOK:
-//				return this.selectionInfo.getSelectedType() == Bible.class;
-//			case NEW_CHAPTER:
-//				return this.selectionInfo.getSelectedType() == Book.class;
-//			case NEW_VERSE:
-//				return this.selectionInfo.getSelectedType() == Chapter.class;
+			case NEW_BOOK:
+			case NEW_CHAPTER:
+			case NEW_VERSE:
+				return this.create(action);
 			case REDO:
 				return this.redo();
 			case UNDO:
@@ -402,13 +422,15 @@ public class BibleEditorPane extends BorderPane implements DocumentPane {
 	public boolean isActionEnabled(Action action) {
 		switch (action) {
 			case COPY:
-				return this.selectionInfo.isSingleTypeSelected();
-			case PASTE:
-				return this.selectionInfo.isSingleTypeSelected();
+				return this.selectionInfo.isSingleTypeSelected() && this.selectionInfo.getSelectedType() != Bible.class;
 			case CUT:
-				return this.selectionInfo.isSingleTypeSelected();
+				return this.selectionInfo.isSingleTypeSelected() && this.selectionInfo.getSelectedType() != Bible.class;
+			case PASTE:
+				return (this.selectionInfo.getSelectedType() == Bible.class && Clipboard.getSystemClipboard().hasContent(BOOK_CLIPBOARD_DATA)) ||
+					   (this.selectionInfo.getSelectedType() == Book.class && Clipboard.getSystemClipboard().hasContent(CHAPTER_CLIPBOARD_DATA)) ||
+					   (this.selectionInfo.getSelectedType() == Chapter.class && Clipboard.getSystemClipboard().hasContent(VERSE_CLIPBOARD_DATA));
 			case DELETE:
-				return this.selectionInfo.getSelectedCount() > 0;
+				return this.selectionInfo.getSelectedCount() > 0 && this.selectionInfo.getSelectedType() != Bible.class;
 			case NEW_BOOK:
 				return this.selectionInfo.getSelectedCount() == 1 && this.selectionInfo.getSelectedType() == Bible.class;
 			case NEW_CHAPTER:
@@ -431,20 +453,10 @@ public class BibleEditorPane extends BorderPane implements DocumentPane {
 				return false;
 		}
 	}
-
-	@Override
-	public EventHandler<Event> getOnActionStateChanged() {
-		return this.onActionStateChanged.get();
-	}
 	
 	@Override
-	public ObjectProperty<EventHandler<Event>> onActionStateChangedProperty() {
-		return this.onActionStateChanged;
-	}
-	
-	@Override
-	public void setOnActionStateChanged(EventHandler<Event> handler) {
-		this.onActionStateChanged.set(handler);
+	public boolean isActionVisible(Action action) {
+		return true;
 	}
 	
 	public Bible getBible() {
@@ -461,17 +473,17 @@ public class BibleEditorPane extends BorderPane implements DocumentPane {
 	
 	// internal methods
 
-	private CompletableFuture<Void> undo() {
+	private CompletableFuture<Node> undo() {
 		this.undoManager.undo();
-		return AsyncHelper.NO_RETURN;
+		return AsyncHelper.nil();
 	}
 	
-	private CompletableFuture<Void> redo() {
+	private CompletableFuture<Node> redo() {
 		this.undoManager.redo();
-		return AsyncHelper.NO_RETURN;
+		return AsyncHelper.nil();
 	}
 	
-	private CompletableFuture<Void> delete() {
+	private CompletableFuture<Node> delete() {
 		List<TreeItem<Object>> selected = this.treeView.getSelectionModel().getSelectedItems();
 		this.undoManager.beginBatch("Delete");
 		for (TreeItem<Object> item : selected) {
@@ -491,41 +503,89 @@ public class BibleEditorPane extends BorderPane implements DocumentPane {
 			}
 		}
 		this.undoManager.completeBatch();
-		return AsyncHelper.NO_RETURN;
+		return AsyncHelper.nil();
 	}
 	
-	private CompletableFuture<Void> renumber() {
+	private CompletableFuture<Node> create(Action action) {
+		switch (action) {
+			case NEW_BOOK:
+				
+				break;
+			case NEW_CHAPTER:
+				
+				break;
+			case NEW_VERSE:
+				
+				break;
+			default:
+				break;
+		}
+		return AsyncHelper.nil();
+	}
+	
+	private CompletableFuture<Node> renumber() {
 		if (this.selectionInfo.getSelectedCount() == 1) {
-			Alert dialog = new Alert(AlertType.CONFIRMATION);
-			dialog.setTitle("Renumber");
-			dialog.setHeaderText("Reunumber this item");
-			dialog.setContentText("Are you sure you want to renumber?");
-			dialog.initOwner(this.getScene().getWindow());
-			dialog.initModality(Modality.WINDOW_MODAL);
-			
-			Optional<ButtonType> result = dialog.showAndWait();
-			if (result.isPresent() && result.get() == ButtonType.OK) {
-				TreeItem<Object> selected = this.treeView.getSelectionModel().getSelectedItem();
-				if (selected != null) {
-					Object value = selected.getValue();
-					if (value != null) {
-						this.undoManager.beginBatch("Renumber");
-						if (value instanceof Bible) {
-							((Bible)value).renumber();;
-						} else if (value instanceof Book) {
-							((Book)value).renumber();;
-						} else if (value instanceof Chapter) {
-							((Chapter)value).renumber();;
+			// capture the item to be renumbered
+			final TreeItem<Object> selected = this.treeView.getSelectionModel().getSelectedItem();
+			// TODO check if we need to ask based on config value
+			ConfirmationPromptPane confirm = new ConfirmationPromptPane();
+			confirm.setTitle("Renumber");
+			confirm.setMessage("Are you sure you want to renumber?");
+			confirm.addEventHandler(ActionPromptPaneCompleteEvent.ALL, (e) -> {
+				if (confirm.getAskAgain()) {
+					// TODO update config based on askagain value
+				}
+				this.treeView.requestFocus();
+				if (e.getEventType() == ActionPromptPaneCompleteEvent.ACCEPT) {
+					if (selected != null) {
+						Object value = selected.getValue();
+						if (value != null) {
+							this.undoManager.beginBatch("Renumber");
+							if (value instanceof Bible) {
+								((Bible)value).renumber();
+							} else if (value instanceof Book) {
+								((Book)value).renumber();
+							} else if (value instanceof Chapter) {
+								((Chapter)value).renumber();
+							}
+							this.undoManager.completeBatch();
 						}
-						this.undoManager.completeBatch();
 					}
 				}
-			}
+			});
+			return CompletableFuture.completedFuture(confirm);
+			
+			
+//			Alert dialog = new Alert(AlertType.CONFIRMATION);
+//			dialog.setTitle("Renumber");
+//			dialog.setHeaderText("Reunumber this item");
+//			dialog.setContentText("Are you sure you want to renumber?");
+//			dialog.initOwner(this.getScene().getWindow());
+//			dialog.initModality(Modality.WINDOW_MODAL);
+//			
+//			Optional<ButtonType> result = dialog.showAndWait();
+//			if (result.isPresent() && result.get() == ButtonType.OK) {
+//				TreeItem<Object> selected = this.treeView.getSelectionModel().getSelectedItem();
+//				if (selected != null) {
+//					Object value = selected.getValue();
+//					if (value != null) {
+//						this.undoManager.beginBatch("Renumber");
+//						if (value instanceof Bible) {
+//							((Bible)value).renumber();;
+//						} else if (value instanceof Book) {
+//							((Book)value).renumber();;
+//						} else if (value instanceof Chapter) {
+//							((Chapter)value).renumber();;
+//						}
+//						this.undoManager.completeBatch();
+//					}
+//				}
+//			}
 		}
-		return AsyncHelper.NO_RETURN;
+		return AsyncHelper.nil();
 	}
 	
-	private CompletableFuture<Void> reorder() {
+	private CompletableFuture<Node> reorder() {
 		if (this.selectionInfo.getSelectedCount() == 1) {
 			Alert dialog = new Alert(AlertType.CONFIRMATION);
 			dialog.setTitle("Reorder");
@@ -553,20 +613,22 @@ public class BibleEditorPane extends BorderPane implements DocumentPane {
 				}
 			}
 		}
-		return AsyncHelper.NO_RETURN;
+		return AsyncHelper.nil();
 	}
 	
-	private CompletableFuture<Void> save() {
+	private CompletableFuture<Node> save() {
 		Bible bible = this.bible.get();
 		if (bible != null) {
 			return this.context.getDataManager().update(bible.copy()).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
 				this.undoManager.mark();
-			}));
+			})).thenCompose(n -> {
+				return null;
+			});
 		}
-		return AsyncHelper.NO_RETURN;
+		return AsyncHelper.nil();
 	}
 	
-	private CompletableFuture<Void> saveAs() {
+	private CompletableFuture<Node> saveAs() {
 		Bible bible = this.bible.get();
 		if (bible != null) {
 			// prompt for new name
@@ -583,10 +645,12 @@ public class BibleEditorPane extends BorderPane implements DocumentPane {
 				bible.setName(name);
 				return this.context.getDataManager().create(bible.copy()).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
 					this.undoManager.mark();
-				}));
+				})).thenCompose(n -> {
+					return null;
+				});
 			}
 		}
-		return AsyncHelper.NO_RETURN;
+		return AsyncHelper.nil();
 	}
 	
 	private ClipboardContent getClipboardContentForSelection(boolean serializeData) throws JsonProcessingException {
@@ -616,12 +680,16 @@ public class BibleEditorPane extends BorderPane implements DocumentPane {
 		return content;
 	}
 	
-	private CompletableFuture<Void> copy(boolean isCut) {
+	private CompletableFuture<Node> copy(boolean isCut) {
 		Class<?> clazz = this.selectionInfo.getSelectedType();
 		if (clazz != null && clazz != Bible.class) {
 			List<TreeItem<Object>> items = this.treeView.getSelectionModel().getSelectedItems();
 			List<Object> objectData = items.stream().map(i -> i.getValue()).collect(Collectors.toList());
 			try {
+				ClipboardContent content = this.getClipboardContentForSelection(true);
+				Clipboard clipboard = Clipboard.getSystemClipboard();
+				clipboard.setContent(content);
+				
 				if (isCut) {
 					Object parent = items.get(0).getParent().getValue();
 					if (clazz == Book.class) {
@@ -633,25 +701,18 @@ public class BibleEditorPane extends BorderPane implements DocumentPane {
 					}
 				}
 				
-				ClipboardContent content = this.getClipboardContentForSelection(true);
-				Clipboard clipboard = Clipboard.getSystemClipboard();
-				clipboard.setContent(content);
-				
 				// handle the selection state changing
-				EventHandler<Event> eh = this.onActionStateChanged.get();
-				if (eh != null) {
-					eh.handle(null);
-				}
+				this.fireEvent(new ActionStateChangedEvent(this, this.treeView, ActionStateChangedEvent.CLIPBOARD));
 			} catch (JsonProcessingException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
 		
-		return AsyncHelper.NO_RETURN;
+		return AsyncHelper.nil();
 	}
 	
-	private CompletableFuture<Void> paste() {
+	private CompletableFuture<Node> paste() {
 		if (this.selectionInfo.getSelectedCount() == 1) {
 			Clipboard clipboard = Clipboard.getSystemClipboard();
 			TreeItem<Object> selected = this.treeView.getSelectionModel().getSelectedItem();
@@ -672,14 +733,10 @@ public class BibleEditorPane extends BorderPane implements DocumentPane {
 			}
 		}
 		
-		return AsyncHelper.NO_RETURN;
+		return AsyncHelper.nil();
 	}
 	
 	private void dragDetected(MouseEvent e) {
-		System.out.println("Detected" + e.getSource());
-		System.out.println("Detected" + e.getTarget());
-		System.out.println("Detected" + e.getPickResult().getIntersectedNode());
-		
 		if (this.selectionInfo.isSingleTypeSelected()) {
 			try {
 				Dragboard db = ((Node)e.getSource()).startDragAndDrop(TransferMode.COPY_OR_MOVE);

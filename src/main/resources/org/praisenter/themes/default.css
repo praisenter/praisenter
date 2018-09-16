@@ -1,17 +1,3 @@
-/*******************
- * JavaFX Styles
- *******************/
-
-.hyperlink:visited,
-.hyperlink:focused,
-.hyperlink:hover { 
-	-fx-text-fill: -fx-accent; 
-}
-
-.progress-bar:indeterminate > .bar {
-    -fx-background-color: -fx-accent;
-}
-
 /** tree cell drag n drop styles */
 .tree-cell:drag-over-parent {
 	-fx-background-color: rgba(153, 209, 255, 0.5);
@@ -29,421 +15,86 @@
     -fx-border-width: 0 0 1 0;
 }
 
-/*******************
- * Praisenter Styles
- *******************/
+/* ============== Components ================= */
 
-/* SectionHeader */
-.section-header {}
-.section-header-title { -fx-font-size: 1.8em; }
-.section-header-divider { -fx-padding: 3 0 0 0; }
-.section-header-description {
-	-fx-padding: 7 0 0 0;
-	-fx-wrap-text: true;
+.root {
+	menu-bg-color: cornflowerblue;
+	menu-fg-color: white;
+	menu-ha-color: derive(menu-bg-color, -10%);
 }
 
-/* WellLabel */
-.well {
-	-fx-padding: 10px;
-  	-fx-background-color: derive(-fx-background, -2%);
-  	-fx-background-radius: 5;
-  	-fx-border-radius: 5;
-  	-fx-border-color: #e3e3e3;
-	-fx-border-width: 1;
-	-fx-border-style: solid;
-	-fx-effect: innershadow(gaussian, rgba(0, 0, 0, 0.2), 5, 0, 0, 0);
-	-fx-wrap-text: true;
+.navigation-bar {
+	-fx-padding: 0;
+	-fx-background-color: menu-bg-color;
+	-fx-spacing: 0;
 }
-
-/* MessageLabel */
-.message-label,
-.message-label-wrapped {
-	-fx-spacing: 3;
-	-fx-alignment: top-left;
+.navigation-bar .menu {
+	-fx-padding: 20;
+	-fx-background-insets: 0;
+	-fx-min-height: 61;
 }
-.message-label-message {}
-.message-label-graphic {}
-
-/* FlowListView */
-.flow-list-view {}
-.flow-list-view-tiles {
-	-fx-padding: 5 5 5 5;
-	-fx-vgap: 5;
-	-fx-hgap: 5;
+.navigation-bar > .container > .menu-button:hover,
+.navigation-bar > .container > .menu-button:focused,
+.navigation-bar > .container > .menu-button:showing {
+	-fx-background-color: menu-ha-color;
 }
-.flow-list-view-cell {
-	-fx-background-color: transparent;
-	-fx-border-color: transparent;
-	-fx-border-width: 1;
-	-fx-border-style: solid;
-	-fx-padding: 2 2 2 2;
-	-fx-alignment: top-center;
+.navigation-bar .menu > .right-container > .arrow {
+	-fx-background-color: menu-fg-color;
 }
-.flow-list-view-cell:hover { 
-	-fx-background-color: rgba(153, 209, 255, 0.5);
+.navigation-bar .menu:hover,
+.navigation-bar .menu:focused,
+.navigation-bar .menu:pressed {
+	-fx-background-color: menu-ha-color;
 }
-.flow-list-view-cell:selected {
-	-fx-background-color: rgb(204, 232, 255);
-	-fx-border-color: rgb(153, 209, 255);
-	-fx-border-width: 1;
-	-fx-border-style: solid;
+.navigation-bar .context-menu {
+	-fx-padding: 0;
+	-fx-background-color: menu-bg-color;
 }
-.flow-list-view-drag-selection-area {
-	-fx-fill: rgba(255, 204, 204, 0.5);
-	-fx-stroke: rgb(255, 153, 153);
-	-fx-smooth: false;
-	-fx-stroke-width: 1;
+.navigation-bar .context-menu .separator:horizontal .line {
+    -fx-border-color: menu-ha-color;
+    -fx-border-width: 1 0 0 0;
+    -fx-border-insets: 0;
 }
-
-/* AutoCompleteComboBox */
-.auto-complete-combobox {}
-
-/* TagListView */
-.tag {
-	-fx-min-width: 0;
-}
-.tag-list-view {}
-.tag-list-view-tags {
-	-fx-vgap: 2;
-	-fx-hgap: 2;
-	-fx-padding: 5 0 0 0;
-}
-.tag-list-view-tag-x {
-	-fx-stroke: -fx-text-background-color;
-	-fx-smooth: true;
-	-fx-stroke-width: 2;
-}
-
-/* SortGraphic */
-.sort-graphic {}
-.sort-graphic-line {
-	-fx-stroke: -fx-text-background-color;
-}
-
-/* ProgressOverlay */
-.progress-overlay {
-	-fx-background-color: rgba(255, 255, 255, 0.7);
-}
-.progress-overlay-indicator {
-	-fx-max-width: 50;
-	-fx-max-height: 50;
-}
-
-/** ValueLabel */
-.value-label {
-	-fx-border-color: -fx-text-base-color;
-	-fx-border-width: 0 0 1 0;
-	-fx-border-style: dashed;
-}
-
-/* MonitoredTaskListCell */
-.monitored-task-list-popover {}
-.monitored-task-list {
-	-fx-pref-width: 200;
-	-fx-pref-height: 300;
-}
-.monitored-task-list-placeholder {}
-.monitored-task-list-cell {}
-.monitored-task-list-cell-indicator {}
-
-/* MainStatusBar */
-.main-status-bar {
-	-fx-spacing: 2;
-}
-.main-status-bar-task-button {
-	-fx-content-display: right;
-}
-.main-status-bar-task-progress {
-	-fx-indeterminate-bar-escape: false; 
-	-fx-indeterminate-bar-flip: true;
-	-fx-max-height: 10;
-	-fx-min-width: 200;
-	-fx-pref-width: 200;
-}
-
-/* SetupPane */
-.setup-pane {}
-.setup-pane-list {
-	-fx-min-width: 200;
-}
-.display-view {
-	-fx-alignment: top-center;
-	-fx-spacing: 5;
-}
-.display-view-number {
-	-fx-background-color: black;
-	-fx-padding: 10 20 10 20;
-	-fx-font-size: 2em;
+.navigation-bar .menu > .label {
+	-fx-text-fill: menu-fg-color;
+	-fx-font-size: 1.3em;
 	-fx-font-weight: bold;
-	-fx-text-fill: white;
 }
-.display-view-monitor {
-	-fx-background-color: black;
-	-fx-background-insets: 5;
-	-fx-border-color: linear-gradient(from 0% 0% to 25% 25%, reflect, rgb(25, 25, 25), rgb(51, 51, 51));
-	-fx-border-width: 10;
-	-fx-border-style: solid inside line-join round line-cap round;
-	-fx-border-radius: 2;
+.navigation-bar .menu-item {
+	-fx-padding: 10;
+	-fx-min-height: 61;
+}
+.navigation-bar .menu-item > .label {
+	-fx-text-fill: menu-fg-color;
+	-fx-font-size: 1.3em;
+	-fx-font-weight: bold;
+}
+.navigation-bar .menu-item:hover,
+.navigation-bar .menu-item:focused {
+	-fx-background-color: menu-ha-color;
+}
+.navigation-bar .menu-item .graphic-container {
+	-fx-padding: 10;
+}
+.navigation-bar .menu-item .graphic-container .label {
+	-fx-text-fill: menu-fg-color;
 }
 
-/* ShutdownDialog */
-.shutdown-dialog {}
-.shutdown-dialog-progress {}
-.shutdown-dialog-message {}
+.navigation-bar .hamburger {
+	-fx-spacing: 6;
+}
 
-/* SlideDataPane */
-.slide-data-pane {}
+.navigation-bar .hamburger Line {
+	-fx-stroke-width: 3;
+	-fx-stroke: menu-fg-color;
+	-fx-fill: menu-fg-color;
+}
 
 /* BibleEditorPane */
 .bible-editor-pane {}
-.bible-editor-pane-tree {}
+.bible-editor-pane-tree-view {}
 .bible-tree-cell {}
 .bible-tree-cell-verse-number {
 	-fx-font-weight: bold; 
 	-fx-font-size: 0.8em;
 }
-
-/* BibleLibraryPane */
-.bible-library-pane {}
-
-/* BibleListCell */
-.bible-list-cell {
-	-fx-alignment: top-center;
-	-fx-pref-width: 110;
-}
-.bible-list-cell-thumbnail {
-	-fx-image: url("/org/praisenter/resources/bible-icon.png");
-	-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.25), 2, 0, 2, 2);
-}
-.bible-list-cell-progress {}
-.bible-list-cell-wrapper {
-	-fx-alignment: bottom-center;
-	-fx-pref-height: 100;
-	-fx-max-height: 100;
-	-fx-min-height: 100;
-}
-.bible-list-cell-name {
-	-fx-text-alignment: center;
-	-fx-padding: 5 0 0 0;
-	-fx-wrap-text: true;
-}
-
-/* BibleNavigationPane */
-.bible-navigation-pane {}
-
-/* BiblePropertiesPane */
-.bible-properties-pane {}
-
-/* BibleSearchPane */
-.bible-search-pane {}
-
-/* MediaLibraryPane */
-.media-library-pane {}
-
-/* MediaListCell */
-.media-list-cell {
-	-fx-alignment: top-center;
-	-fx-pref-width: 110;
-}
-.media-list-cell-thumbnail {}
-.media-list-cell-thumbnail-image {
-	-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.25), 2, 0, 2, 2);
-}
-.media-list-cell-thumbnail-video {}
-.media-list-cell-thumbnail-audio {}
-.media-list-cell-progress {}
-.media-list-cell-wrapper {
-	-fx-alignment: bottom-center;
-}
-.media-list-cell-name {
-	-fx-text-alignment: center;
-	-fx-padding: 5 0 0 0;
-	-fx-wrap-text: true;
-}
-
-/* MediaPlayerPane */
-.media-player-pane {}
-
-/* MediaPropertiesPane */
-.media-properties-pane {}
-
-/* SlideEditorRibbon */
-.slide-editor-ribbon {}
-.slide-editor-ribbon-content {
-	-fx-padding: 0 0 0 5;
-}
-
-/* PlaceholderSlideComboBox */
-.placeholder-slide-combobox {}
-
-/* SingleSlidePreviewPane */
-.single-slide-preview-pane {
-	-fx-background-color: lightgray;
-}
-.slide-preview-container {
-	-fx-background-image: url("/org/praisenter/resources/transparent.png");
-	-fx-background-repeat: repeat;
-	-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 5, 0, 0, 0);
-}
-
-/* SlideLibraryPane */
-.slide-library-pane {}
-
-/* SlideFlowListCell */
-.slide-list-cell {
-	-fx-alignment: top-center;
-	-fx-pref-width: 110;
-}
-.slide-list-cell-thumbnail {
-	-fx-background-image: url("/org/praisenter/resources/transparent.png");
-	-fx-background-repeat: repeat;
-	-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.25), 2, 0, 2, 2);
-}
-.slide-list-cell-progress {}
-.slide-list-cell-wrapper {
-	-fx-alignment: bottom-center;
-}
-.slide-list-cell-name {
-	-fx-text-alignment: center;
-	-fx-padding: 5 0 0 0;
-	-fx-wrap-text: true;
-}
-
-/* SlideShowLibraryPane */
-.slide-show-library-pane {}
-
-/* SlideShowFlowListCell */
-.slide-show-list-cell {
-	-fx-alignment: top-center;
-	-fx-pref-width: 130;
-}
-.slide-show-list-cell-thumbnail {
-	-fx-background-image: url("/org/praisenter/resources/transparent.png");
-	-fx-background-repeat: repeat;
-	-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 0, 0, 2, 2);
-}
-.slide-show-list-cell-progress {}
-.slide-show-list-cell-wrapper {
-	-fx-alignment: bottom-center;
-}
-.slide-show-list-cell-name {
-	-fx-text-alignment: center;
-	-fx-padding: 5 0 0 0;
-	-fx-wrap-text: true;
-}
-
-/* SlidePropertiesPane */
-.slide-properties-pane {}
-
-/* SlideShowPropertiesPane */
-.slide-show-properties-pane {}
-
-/* SlideEditorPane */
-.slide-editor-pane {}
-
-/* AnimationListCell */
-.animation-list-cell {
-	-fx-wrap-text: false;
-	-fx-text-overrun: ellipsis;
-}
-
-/* AnimationListPane */
-.animation-list-pane {}
-.animation-list-pane-top {
-	-fx-padding: 5;
-	-fx-spacing: 5;
-	-fx-border-color: -fx-box-border;
-	-fx-border-width: 0 1 0 1;
-}
-.animation-list-pane-list {}
-.animation-list-pane-title {
-	-fx-alignment: baseline-center;
-	-fx-font-weight: bold;
-}
-
-/* AnimationOptionListCell */
-.animation-option-list-cell {
-	-fx-pref-width: 100;
-	-fx-pref-height: 80;
-}
-.animation-option-list-cell-thumbnail {}
-.animation-option-list-cell-name {
-	-fx-text-alignment: center;
-	-fx-padding: 5 0 0 0;
-	-fx-wrap-text: true;
-}
-
-/* AnimationOption */
-.animation-option-animation-Swap {
-	-fx-image: url("/org/praisenter/resources/animation.Swap.png");
-}
-.animation-option-animation-Fade {
-	-fx-image: url("/org/praisenter/resources/animation.Fade.png");
-}
-.animation-option-animation-Swipe {
-	-fx-image: url("/org/praisenter/resources/animation.Swipe.png");
-}
-.animation-option-animation-Push {
-	-fx-image: url("/org/praisenter/resources/animation.Push.png");
-}
-.animation-option-animation-Split {
-	-fx-image: url("/org/praisenter/resources/animation.Split.png");
-}
-.animation-option-animation-Shaped {
-	-fx-image: url("/org/praisenter/resources/animation.Shaped.png");
-}
-.animation-option-animation-Blinds {
-	-fx-image: url("/org/praisenter/resources/animation.Blinds.png");
-}
-.animation-option-animation-Zoom {
-	-fx-image: url("/org/praisenter/resources/animation.Zoom.png");
-}
-.animation-option-easing-Linear {
-	-fx-image: url("/org/praisenter/resources/easing.Linear.png");
-}
-.animation-option-easing-Quadratic {
-	-fx-image: url("/org/praisenter/resources/easing.Quadratic.png");
-}
-.animation-option-easing-Cubic {
-	-fx-image: url("/org/praisenter/resources/easing.Cubic.png");
-}
-.animation-option-easing-Quartic {
-	-fx-image: url("/org/praisenter/resources/easing.Quartic.png");
-}
-.animation-option-easing-Quintic {
-	-fx-image: url("/org/praisenter/resources/easing.Quintic.png");
-}
-.animation-option-easing-Exponential {
-	-fx-image: url("/org/praisenter/resources/easing.Exponential.png");
-}
-.animation-option-easing-Circular {
-	-fx-image: url("/org/praisenter/resources/easing.Circular.png");
-}
-.animation-option-easing-Sinusoidal {
-	-fx-image: url("/org/praisenter/resources/easing.Sinusoidal.png");
-}
-.animation-option-easing-Back {
-	-fx-image: url("/org/praisenter/resources/easing.Back.png");
-}
-.animation-option-easing-Bounce {
-	-fx-image: url("/org/praisenter/resources/easing.Bounce.png");
-}
-.animation-option-easing-Elastic {
-	-fx-image: url("/org/praisenter/resources/easing.Elastic.png");
-}
-
-/* Slide editing */
-.slide-edit-region:edit-hover {
-	-fx-border-color: black, white;
-	-fx-border-style: segments(2, 2) phase 0 outside line-join miter 2 line-cap butt, segments(2, 2) phase 2 outside line-join miter 2 line-cap butt;
-	-fx-border-width: 1, 1;
-}
-.slide-edit-region:edit-selected {
-	-fx-border-color: black, white;
-	-fx-border-style: segments(4, 4) phase 0 outside line-join miter 2 line-cap butt, segments(4, 4) phase 4 outside line-join miter 2 line-cap butt;
-	-fx-border-width: 1, 1;
-}
-.slide-edit-region:animation-hovered {
-	-fx-background-color: rgba(255, 255, 0, 0.2);
-}
-

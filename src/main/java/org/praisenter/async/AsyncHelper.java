@@ -12,11 +12,11 @@ import javafx.concurrent.Task;
 
 public final class AsyncHelper {
 	
-	public static final CompletableFuture<Void> NO_RETURN = empty();
+	public static final CompletableFuture<Void> NO_RETURN = nil();
 	
 	private AsyncHelper() {}
 	
-	public static <T> CompletableFuture<T> empty() {
+	public static <T> CompletableFuture<T> nil() {
 		return CompletableFuture.completedFuture(null);
 	}
 	
@@ -103,5 +103,13 @@ public final class AsyncHelper {
 				return future.get();
 			}
 		};
+	}
+
+	public static void onJavaFXThread(Runnable operation) {
+		if (Platform.isFxApplicationThread()) {
+			operation.run();
+		} else {
+			Platform.runLater(operation);
+		}
 	}
 }

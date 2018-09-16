@@ -53,7 +53,7 @@ public final class Theme implements Comparable<Theme> {
 	private static final Pattern THEME_PATTERN = Pattern.compile("^(.+)\\.css$", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
 	
 	/** The default theme */
-	public static final Theme DEFAULT = new Theme("Default", Theme.class.getResource("/org/praisenter/ui/themes/default.css").toExternalForm());
+	public static final Theme DEFAULT = new Theme("Default", Theme.class.getResource("/org/praisenter/themes/default.css").toExternalForm());
 	
 	static {
 		Path path = Paths.get(Constants.THEMES_ABSOLUTE_FILE_PATH);

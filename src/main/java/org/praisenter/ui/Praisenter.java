@@ -43,14 +43,13 @@ import org.controlsfx.glyphfont.FontAwesome;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
 import org.praisenter.Constants;
 import org.praisenter.async.AsyncHelper;
-import org.praisenter.configuration.Setting;
 import org.praisenter.data.DataManager;
 import org.praisenter.data.configuration.Configuration;
 import org.praisenter.data.configuration.ConfigurationPersistAdapter;
 import org.praisenter.data.search.SearchIndex;
 import org.praisenter.javafx.controls.Alerts;
-import org.praisenter.javafx.themes.Theme;
 import org.praisenter.ui.fonts.OpenIconic;
+import org.praisenter.ui.themes.Theme;
 import org.praisenter.ui.translations.Translations;
 import org.praisenter.utility.RuntimeProperties;
 
@@ -325,8 +324,8 @@ public final class Praisenter extends Application {
     		StackPane layout = new StackPane(loadingPane);
     		
     		Scene scene = new Scene(layout);
-    		stage.setScene(scene);
     		scene.getStylesheets().add(Theme.getTheme(context.configuration.getThemeName()).getCss());
+    		stage.setScene(scene);
     		stage.show();
     		
     		LOGGER.info("Starting load");
