@@ -27,30 +27,22 @@ public final class ConfirmationPromptPane extends VBox {
 		this.askAgain = new SimpleBooleanProperty(true);
 		this.showAskAgain = new SimpleBooleanProperty(false);
 		
-		this.setFocusTraversable(false);
-		
 		// ui
 		TitledPane ttlTitle = new TitledPane();
 		ttlTitle.textProperty().bind(this.title);
 		ttlTitle.setCollapsible(false);
-		ttlTitle.setFocusTraversable(false);
 		
 		Label lblMessage = new Label();
 		lblMessage.textProperty().bind(this.message);
-		lblMessage.setFocusTraversable(false);
 		
 		CheckBox chkAskAgain = new CheckBox();
-		chkAskAgain.setText(Translations.get("askagain"));
+		chkAskAgain.setText(Translations.get("showWarningAgain"));
 		chkAskAgain.visibleProperty().bind(this.showAskAgain);
 		chkAskAgain.managedProperty().bind(this.showAskAgain);
-		chkAskAgain.setFocusTraversable(false);
-		this.askAgain.bind(chkAskAgain.selectedProperty());
+		this.askAgain.bindBidirectional(chkAskAgain.selectedProperty());
 		
 		Button ok = new Button(Translations.get("ok"));
 		Button cancel = new Button(Translations.get("cancel"));
-		
-		ok.setFocusTraversable(false);
-		cancel.setFocusTraversable(false);
 		
 		ok.setOnAction(e -> accept());
 		cancel.setOnAction(e -> cancel());

@@ -38,7 +38,7 @@ import javafx.beans.property.SimpleDoubleProperty;
  * @author William Bittle
  * @version 3.0.0
  */
-public final class SlideColor implements ReadonlySlideColor, SlidePaint, Copyable {
+public final class SlideColor implements ReadOnlySlideColor, SlidePaint, Copyable {
 	private final DoubleProperty red;
 	private final DoubleProperty green;
 	private final DoubleProperty blue;

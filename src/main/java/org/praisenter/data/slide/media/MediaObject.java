@@ -58,7 +58,7 @@ import javafx.beans.property.StringProperty;
  * @author William Bittle
  * @version 3.0.0
  */
-public final class MediaObject implements ReadonlyMediaObject, SlidePaint, Copyable {
+public final class MediaObject implements ReadOnlyMediaObject, SlidePaint, Copyable {
 	private final ObjectProperty<UUID> mediaId;
 	private final StringProperty mediaName;
 	private final ObjectProperty<MediaType> mediaType;

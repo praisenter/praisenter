@@ -38,7 +38,7 @@ import javafx.beans.property.SimpleObjectProperty;
  * @author William Bittle
  * @version 3.0.0
  */
-public abstract class SlideComponent extends SlideRegion implements ReadonlySlideComponent, ReadonlySlideRegion, Copyable, Identifiable {
+public abstract class SlideComponent extends SlideRegion implements ReadOnlySlideComponent, ReadOnlySlideRegion, Copyable, Identifiable {
 	private final ObjectProperty<SlideShadow> shadow;
 	private final ObjectProperty<SlideShadow> glow;
 	

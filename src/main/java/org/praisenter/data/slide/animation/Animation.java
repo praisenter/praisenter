@@ -58,7 +58,7 @@ import javafx.beans.property.SimpleObjectProperty;
 //	@Type(value = Swipe.class, name = "swipe"),
 //	@Type(value = Zoom.class, name = "zoom")
 //})
-public abstract class Animation implements ReadonlyAnimation, Copyable {
+public abstract class Animation implements ReadOnlyAnimation, Copyable {
 	/** Value for a constantly repeating animation */
 	public static final int INFINITE = -1;
 	

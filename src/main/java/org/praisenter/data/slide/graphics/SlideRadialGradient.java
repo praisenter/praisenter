@@ -38,7 +38,7 @@ import javafx.beans.property.SimpleDoubleProperty;
  * @author William Bittle
  * @version 3.0.0
  */
-public final class SlideRadialGradient extends SlideGradient implements ReadonlySlideRadialGradient, ReadonlySlideGradient, SlidePaint, Copyable {
+public final class SlideRadialGradient extends SlideGradient implements ReadOnlySlideRadialGradient, ReadOnlySlideGradient, SlidePaint, Copyable {
 	private final DoubleProperty centerX;
 	private final DoubleProperty centerY;
 	private final DoubleProperty radius;

@@ -519,7 +519,7 @@ public final class Praisenter extends Application {
 				context.getConfiguration().getApplicationHeight(),
 				context.getConfiguration().isApplicationMaximized());
 		
-		return context.getDataManager().update(context.getConfiguration()).exceptionally((ex) -> {
+		return context.saveConfiguration().exceptionally((ex) -> {
 			LOGGER.warn("Failed to save application x,y and width,height when the application closed.", ex);
 			return null;
 		});

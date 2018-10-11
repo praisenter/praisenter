@@ -79,7 +79,7 @@ final class BibleTreeItem extends TreeItem<Object> {
 			}
 			
 			if (data != null) {
-				this.children = new MappedList<TreeItem<Object>, Object>(data, (index, item) -> {
+				this.children = new MappedList<TreeItem<Object>, Object>(data, (item) -> {
 					BibleTreeItem bti = new BibleTreeItem();
 	               	bti.setValue(item);
 					return bti;

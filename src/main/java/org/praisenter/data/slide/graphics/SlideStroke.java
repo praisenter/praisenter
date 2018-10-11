@@ -40,7 +40,7 @@ import javafx.beans.property.SimpleObjectProperty;
  * @author William Bittle
  * @version 3.0.0
  */
-public final class SlideStroke implements ReadonlySlideStroke, Copyable {
+public final class SlideStroke implements ReadOnlySlideStroke, Copyable {
 	private final ObjectProperty<SlidePaint> paint;
 	private final ObjectProperty<SlideStrokeStyle> style;
 	private final DoubleProperty width;

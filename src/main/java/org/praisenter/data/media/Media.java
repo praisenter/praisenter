@@ -84,7 +84,7 @@ import javafx.collections.ObservableSet;
 	use = JsonTypeInfo.Id.NAME,
 	include = JsonTypeInfo.As.PROPERTY)
 @JsonTypeName(value = "media")
-public final class Media implements ReadonlyMedia, Indexable, Persistable, Copyable, Identifiable {
+public final class Media implements ReadOnlyMedia, Indexable, Persistable, Copyable, Identifiable {
 	/** Represents an unknown or not-applicable quantity */
 	public static final int UNKNOWN = -1;
 	

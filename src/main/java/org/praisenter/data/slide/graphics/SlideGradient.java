@@ -41,7 +41,7 @@ import javafx.collections.ObservableList;
  * @author William Bittle
  * @version 3.0.0
  */
-public abstract class SlideGradient implements ReadonlySlideGradient, SlidePaint, Copyable {
+public abstract class SlideGradient implements ReadOnlySlideGradient, SlidePaint, Copyable {
 	protected final ObjectProperty<SlideGradientCycleType> cycleType;
 	protected final ObservableList<SlideGradientStop> stops;
 	

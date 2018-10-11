@@ -10,7 +10,7 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
-public final class Verse implements ReadonlyVerse, Copyable, Comparable<Verse> {
+public final class Verse implements ReadOnlyVerse, Copyable, Comparable<Verse> {
 	private final StringProperty text;
 	private final IntegerProperty number;
 	

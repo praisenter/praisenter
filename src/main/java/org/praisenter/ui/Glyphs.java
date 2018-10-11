@@ -98,6 +98,9 @@ public final class Glyphs {
 	
 	/** Menu save as icon */
 	public static final Glyph MENU_SAVE_AS = FONT_AWESOME.create(FontAwesome.Glyph.SAVE);
+
+	/** Menu save all icon */
+	public static final Glyph MENU_SAVE_ALL = FONT_AWESOME.create(FontAwesome.Glyph.SAVE);
 	
 	/** Menu rename icon */
 	public static final Glyph MENU_RENAME = FONT_AWESOME.create(FontAwesome.Glyph.TERMINAL);

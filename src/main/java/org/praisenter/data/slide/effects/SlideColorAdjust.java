@@ -36,7 +36,7 @@ import javafx.beans.property.SimpleDoubleProperty;
  * @author William Bittle
  * @version 3.0.0
  */
-public final class SlideColorAdjust implements ReadonlySlideColorAdjust {
+public final class SlideColorAdjust implements ReadOnlySlideColorAdjust {
 	private final DoubleProperty hue;
 	private final DoubleProperty saturation;
 	private final DoubleProperty brightness;

@@ -38,7 +38,7 @@ import javafx.beans.property.SimpleIntegerProperty;
  * @author William Bittle
  * @version 3.0.0
  */
-public final class Resolution implements ReadonlyResolution, Copyable, Comparable<Resolution> {
+public final class Resolution implements ReadOnlyResolution, Copyable, Comparable<Resolution> {
 	private final IntegerProperty width;
 	private final IntegerProperty height;
 

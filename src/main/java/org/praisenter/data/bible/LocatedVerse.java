@@ -31,16 +31,16 @@ package org.praisenter.data.bible;
  */
 public final class LocatedVerse {
 	/** The bible */
-	private final ReadonlyBible bible;
+	private final ReadOnlyBible bible;
 	
 	/** The book */
-	private final ReadonlyBook book;
+	private final ReadOnlyBook book;
 	
 	/** The chapter */
-	private final ReadonlyChapter chapter;
+	private final ReadOnlyChapter chapter;
 	
 	/** The verse */
-	private final ReadonlyVerse verse;
+	private final ReadOnlyVerse verse;
 	
 	/**
 	 * Full constructor.
@@ -49,7 +49,7 @@ public final class LocatedVerse {
 	 * @param chapter the chapter
 	 * @param verse the verse
 	 */
-	public LocatedVerse(ReadonlyBible bible, ReadonlyBook book, ReadonlyChapter chapter, ReadonlyVerse verse) {
+	public LocatedVerse(ReadOnlyBible bible, ReadOnlyBook book, ReadOnlyChapter chapter, ReadOnlyVerse verse) {
 		this.bible = bible;
 		this.book = book;
 		this.chapter = chapter;
@@ -76,7 +76,7 @@ public final class LocatedVerse {
 	 * Returns the bible.
 	 * @return {@link Bible}
 	 */
-	public ReadonlyBible getBible() {
+	public ReadOnlyBible getBible() {
 		return this.bible;
 	}
 	
@@ -84,7 +84,7 @@ public final class LocatedVerse {
 	 * Returns the book.
 	 * @return {@link Book}
 	 */
-	public ReadonlyBook getBook() {
+	public ReadOnlyBook getBook() {
 		return this.book;
 	}
 	
@@ -92,7 +92,7 @@ public final class LocatedVerse {
 	 * Returns the chapter.
 	 * @return {@link Chapter}
 	 */
-	public ReadonlyChapter getChapter() {
+	public ReadOnlyChapter getChapter() {
 		return this.chapter;
 	}
 	
@@ -100,7 +100,7 @@ public final class LocatedVerse {
 	 * Returns the verse.
 	 * @return {@link Verse}
 	 */
-	public ReadonlyVerse getVerse() {
+	public ReadOnlyVerse getVerse() {
 		return this.verse;
 	}
 }

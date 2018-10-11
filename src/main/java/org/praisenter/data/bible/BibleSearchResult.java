@@ -7,16 +7,16 @@ import org.praisenter.data.search.SearchTextMatch;
 
 public final class BibleSearchResult {
 	/** The bible */
-	private final ReadonlyBible bible;
+	private final ReadOnlyBible bible;
 	
 	/** The book */
-	private final ReadonlyBook book;
+	private final ReadOnlyBook book;
 	
 	/** The chapter */
-	private final ReadonlyChapter chapter;
+	private final ReadOnlyChapter chapter;
 	
 	/** The verse */
-	private final ReadonlyVerse verse;
+	private final ReadOnlyVerse verse;
 	
 	/** The matched text */
 	private final List<SearchTextMatch> matches;
@@ -24,7 +24,7 @@ public final class BibleSearchResult {
 	/** The matching score */
 	private final float score;
 	
-	public BibleSearchResult(ReadonlyBible bible, ReadonlyBook book, ReadonlyChapter chapter, ReadonlyVerse verse, List<SearchTextMatch> matches, float score) {
+	public BibleSearchResult(ReadOnlyBible bible, ReadOnlyBook book, ReadOnlyChapter chapter, ReadOnlyVerse verse, List<SearchTextMatch> matches, float score) {
 		this.bible = bible;
 		this.book = book;
 		this.chapter = chapter;
@@ -33,19 +33,19 @@ public final class BibleSearchResult {
 		this.score = score;
 	}
 	
-	public ReadonlyBible getBible() {
+	public ReadOnlyBible getBible() {
 		return bible;
 	}
 	
-	public ReadonlyBook getBook() {
+	public ReadOnlyBook getBook() {
 		return book;
 	}
 
-	public ReadonlyChapter getChapter() {
+	public ReadOnlyChapter getChapter() {
 		return chapter;
 	}
 
-	public ReadonlyVerse getVerse() {
+	public ReadOnlyVerse getVerse() {
 		return verse;
 	}
 

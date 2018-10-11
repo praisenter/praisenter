@@ -53,7 +53,7 @@ import javafx.beans.property.SimpleObjectProperty;
 //	@Type(value = Quintic.class, name = "quintic"),
 //	@Type(value = Sinusoidal.class, name = "sinusoidal")
 //})
-public abstract class Easing implements ReadonlyEasing, Copyable {
+public abstract class Easing implements ReadOnlyEasing, Copyable {
 	protected final ObjectProperty<EasingType> easingType;
 
     public Easing(EasingType type) {

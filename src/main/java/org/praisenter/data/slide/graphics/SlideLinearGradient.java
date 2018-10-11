@@ -38,7 +38,7 @@ import javafx.beans.property.SimpleDoubleProperty;
  * @author William Bittle
  * @version 3.0.0
  */
-public final class SlideLinearGradient extends SlideGradient implements ReadonlySlideLinearGradient, ReadonlySlideGradient, SlidePaint, Copyable {
+public final class SlideLinearGradient extends SlideGradient implements ReadOnlySlideLinearGradient, ReadOnlySlideGradient, SlidePaint, Copyable {
 	private final DoubleProperty startX;
 	private final DoubleProperty startY;
 	private final DoubleProperty endX;

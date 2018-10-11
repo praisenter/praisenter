@@ -49,7 +49,7 @@ import javafx.beans.property.SimpleObjectProperty;
  * @author William Bittle
  * @version 3.0.0
  */
-public class SlideRegion implements ReadonlySlideRegion, Copyable, Identifiable {
+public class SlideRegion implements ReadOnlySlideRegion, Copyable, Identifiable {
 	public static final double MIN_SIZE = 20;
 	
 	protected final ObjectProperty<UUID> id;

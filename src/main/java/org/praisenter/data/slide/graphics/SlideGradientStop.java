@@ -40,7 +40,7 @@ import javafx.beans.property.SimpleObjectProperty;
  * @author William Bittle
  * @version 3.0.0
  */
-public final class SlideGradientStop implements ReadonlySlideGradientStop, Copyable {
+public final class SlideGradientStop implements ReadOnlySlideGradientStop, Copyable {
 	private final DoubleProperty offset;
 	private final ObjectProperty<SlideColor> color;
 	

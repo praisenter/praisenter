@@ -45,7 +45,7 @@ import javafx.beans.property.StringProperty;
  * @author William Bittle
  * @version 3.0.0
  */
-public final class Display implements ReadonlyDisplay, Copyable, Comparable<Display> {
+public final class Display implements ReadOnlyDisplay, Copyable, Comparable<Display> {
 	private final IntegerProperty id;
 	private final ObjectProperty<DisplayRole> role;
 	private final StringProperty name;

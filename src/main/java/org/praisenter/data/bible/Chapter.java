@@ -12,7 +12,7 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
-public final class Chapter implements ReadonlyChapter, Copyable, Comparable<Chapter> {
+public final class Chapter implements ReadOnlyChapter, Copyable, Comparable<Chapter> {
 	private final IntegerProperty number;
 	private final ObservableList<Verse> verses;
 	
@@ -85,7 +85,7 @@ public final class Chapter implements ReadonlyChapter, Copyable, Comparable<Chap
 	}
 	
 	@Override
-	public ObservableList<? extends ReadonlyVerse> getVersesUnmodifiable() {
+	public ObservableList<? extends ReadOnlyVerse> getVersesUnmodifiable() {
 		return FXCollections.unmodifiableObservableList(this.verses);
 	}
 }
