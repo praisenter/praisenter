@@ -43,7 +43,7 @@ import javafx.beans.property.SimpleObjectProperty;
  * @version 3.0.0
  * @since 3.0.0
  */
-public final class SlideShadow implements ReadonlySlideShadow, Copyable {
+public final class SlideShadow implements ReadOnlySlideShadow, Copyable {
 	private final ObjectProperty<ShadowType> type;
 	private final ObjectProperty<SlideColor> color;
 	private final DoubleProperty offsetX;

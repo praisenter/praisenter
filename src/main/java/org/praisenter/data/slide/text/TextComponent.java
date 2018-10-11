@@ -26,8 +26,8 @@ package org.praisenter.data.slide.text;
 
 import org.praisenter.data.Copyable;
 import org.praisenter.data.Identifiable;
-import org.praisenter.data.slide.ReadonlySlideComponent;
-import org.praisenter.data.slide.ReadonlySlideRegion;
+import org.praisenter.data.slide.ReadOnlySlideComponent;
+import org.praisenter.data.slide.ReadOnlySlideRegion;
 import org.praisenter.data.slide.SlideComponent;
 import org.praisenter.data.slide.effects.SlideShadow;
 import org.praisenter.data.slide.graphics.SlideColor;
@@ -51,7 +51,7 @@ import javafx.beans.property.StringProperty;
  * @author William Bittle
  * @version 3.0.0
  */
-public class TextComponent extends SlideComponent implements ReaonlyTextComponent, ReadonlySlideComponent, ReadonlySlideRegion, Copyable, Identifiable {
+public class TextComponent extends SlideComponent implements ReadOnlyTextComponent, ReadOnlySlideComponent, ReadOnlySlideRegion, Copyable, Identifiable {
 	protected final ObjectProperty<SlidePaint> textPaint;
 	protected final ObjectProperty<SlideStroke> textBorder;
 	protected final ObjectProperty<SlideFont> font;

@@ -85,7 +85,7 @@ import javafx.collections.ObservableSet;
 	use = JsonTypeInfo.Id.NAME,
 	include = JsonTypeInfo.As.PROPERTY)
 @JsonTypeName(value = "slide")
-public final class Slide extends SlideRegion implements ReadonlySlide, ReadonlySlideRegion, Indexable, Persistable, Copyable, Identifiable {
+public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlySlideRegion, Indexable, Persistable, Copyable, Identifiable {
 	/** Value indicating a slide should show forever */
 	public static final long TIME_FOREVER = -1;
 	

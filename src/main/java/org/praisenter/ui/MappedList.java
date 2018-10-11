@@ -1,8 +1,10 @@
 package org.praisenter.ui;
 
 import java.util.ArrayList;
+import java.util.IdentityHashMap;
 import java.util.List;
-import java.util.function.BiFunction;
+import java.util.Map;
+import java.util.function.Function;
 
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
@@ -11,11 +13,13 @@ import javafx.collections.transformation.TransformationList;
 // see https://gist.github.com/TomasMikula/8883719
 public final class MappedList<E, F> extends TransformationList<E, F> {
 
-	private final BiFunction<Integer, F, E> mapper;
+	private final Function<F, E> mapper;
+	private final Map<F, E> map;
 
-	public MappedList(ObservableList<? extends F> source, BiFunction<Integer, F, E> mapper) {
+	public MappedList(ObservableList<? extends F> source, Function<F, E> mapper) {
 		super(source);
 		this.mapper = mapper;
+		this.map = new IdentityHashMap<>();
 	}
 
 	@Override
@@ -25,7 +29,8 @@ public final class MappedList<E, F> extends TransformationList<E, F> {
 
 	@Override
 	public E get(int index) {
-		return this.mapper.apply(index, getSource().get(index));
+		//return this.mapper.apply(getSource().get(index));
+		return this.map.computeIfAbsent(getSource().get(index), this.mapper::apply);
 	}
 
 	@Override
@@ -33,11 +38,6 @@ public final class MappedList<E, F> extends TransformationList<E, F> {
 		return getSource().size();
 	}
 	
-//	@Override
-//	public int getViewIndex(int index) {
-//		return index;
-//	}
-
 	@Override
 	protected void sourceChanged(Change<? extends F> c) {
 		fireChange(new Change<E>(this) {
@@ -84,9 +84,9 @@ public final class MappedList<E, F> extends TransformationList<E, F> {
 			@Override
 			public List<E> getRemoved() {
 				ArrayList<E> res = new ArrayList<>(c.getRemovedSize());
-				int i = c.getFrom();
 				for (F e : c.getRemoved()) {
-					res.add(mapper.apply(i++, e));
+					//res.add(mapper.apply(e));
+					res.add(map.getOrDefault(e, mapper.apply(e)));
 				}
 				return res;
 			}
@@ -111,5 +111,10 @@ public final class MappedList<E, F> extends TransformationList<E, F> {
 				c.reset();
 			}
 		});
+		
+		c.reset();
+        while (c.next()) {
+            c.getRemoved().forEach(this.map::remove);
+        }
 	}
 }

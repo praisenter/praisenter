@@ -39,7 +39,7 @@ import javafx.beans.property.SimpleObjectProperty;
  * @author William Bittle
  * @version 3.0.0
  */
-public final class SlideAssignment implements ReadonlySlideAssignment, Copyable, Identifiable {
+public final class SlideAssignment implements ReadOnlySlideAssignment, Copyable, Identifiable {
 	private final ObjectProperty<UUID> id;
 	private final ObjectProperty<UUID> slideId;
 	

@@ -37,7 +37,7 @@ import javafx.collections.ObservableList;
 		use = JsonTypeInfo.Id.NAME,
 		include = JsonTypeInfo.As.PROPERTY)
 @JsonTypeName(value = "configuration")
-public final class Configuration implements ReadonlyConfiguration, MediaConfiguration, Indexable, Persistable, Copyable, Identifiable {
+public final class Configuration implements ReadOnlyConfiguration, MediaConfiguration, Indexable, Persistable, Copyable, Identifiable {
 	public static final double POSITION_SIZE_UNSET = -1;
 	
 	private final StringProperty format;

@@ -94,7 +94,7 @@ public final class UndoManager {
 		
 		this.topMarked.bind(Bindings.createBooleanBinding(() -> {
 			int size = this.undos.size();
-			if (size <= 0) return false;
+			if (size <= 0) return true;
 			Edit edit = this.undos.get(size - 1);
 			return edit == Edit.MARK;
 		}, this.undos));
@@ -114,16 +114,18 @@ public final class UndoManager {
 		this.isOperating = true;
 		
 		try {
-			if (this.undos.isEmpty()) { 
+			int size = this.undos.size();
+			
+			if (size == 0) { 
 				return;
 			}
 			
-			Edit undo = this.undos.remove(this.undos.size() - 1);
+			Edit undo = this.undos.remove(size - 1);
 			undo.undo();
 			this.redos.add(undo);
 			
-			if (undo == Edit.MARK) {
-				undo = this.undos.remove(this.undos.size() - 1);
+			if (undo == Edit.MARK && size > 1) {
+				undo = this.undos.remove(size - 1);
 				undo.undo();
 				this.redos.add(undo);
 			}
@@ -137,16 +139,18 @@ public final class UndoManager {
 		this.isOperating = true;
 		
 		try {
-			if (this.redos.isEmpty()) {
+			int size = this.redos.size();
+			
+			if (size == 0) {
 				return;
 			}
 			
-			Edit redo = this.redos.remove(this.redos.size() - 1);
+			Edit redo = this.redos.remove(size - 1);
 			redo.redo();
 			this.undos.add(redo);
 			
-			if (redo == Edit.MARK) {
-				redo = this.redos.remove(this.redos.size() - 1);
+			if (redo == Edit.MARK && size > 1) {
+				redo = this.redos.remove(size - 1);
 				redo.redo();
 				this.undos.add(redo);
 			}

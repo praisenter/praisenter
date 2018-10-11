@@ -40,7 +40,7 @@ import javafx.beans.property.StringProperty;
  * @author William Bittle
  * @version 3.0.0
  */
-public final class SlideFont implements ReadonlySlideFont, Copyable {
+public final class SlideFont implements ReadOnlySlideFont, Copyable {
 	private final StringProperty family;
 	private final ObjectProperty<SlideFontPosture> posture;
 	private final ObjectProperty<SlideFontWeight> weight;

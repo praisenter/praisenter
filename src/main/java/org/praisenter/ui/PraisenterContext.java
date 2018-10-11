@@ -1,5 +1,7 @@
 package org.praisenter.ui;
 
+import java.util.concurrent.CompletableFuture;
+
 import org.praisenter.data.DataManager;
 import org.praisenter.data.configuration.Configuration;
 
@@ -25,5 +27,10 @@ final class PraisenterContext implements ReadOnlyPraisenterContext {
 	@Override
 	public ApplicationState getApplicationState() {
 		return this.applicationState;
+	}
+	
+	@Override
+	public CompletableFuture<Void> saveConfiguration() {
+		return this.dataManager.update(this.configuration);
 	}
 }

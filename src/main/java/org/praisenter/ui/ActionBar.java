@@ -31,6 +31,7 @@ public final class ActionBar extends HBox {
 		toolbar.getItems().addAll(
 			this.createButton(Action.SAVE),
 			this.createButton(Action.SAVE_AS),
+			this.createButton(Action.SAVE_ALL),
 			this.createButton(Action.UNDO),
 			this.createButton(Action.REDO),
 			this.createButton(Action.NEW),
@@ -126,6 +127,10 @@ public final class ActionBar extends HBox {
 				});
 				this.subToolbar.getChildren().clear();
 				this.subToolbar.getChildren().add(node);
+				
+				// set the focus, the idea being that if the focus goes away from this
+				// node, then we immediately close it assuming the user has been distracted
+				node.requestFocus();
 			}
 			// if it's null, then there's nothing to do
 		});

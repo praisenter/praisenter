@@ -39,7 +39,7 @@ import javafx.beans.property.SimpleDoubleProperty;
  * @version 3.0.0
  * @since 3.0.0
  */
-public final class SlidePadding implements ReadonlySlidePadding, Copyable {
+public final class SlidePadding implements ReadOnlySlidePadding, Copyable {
 	private final DoubleProperty top;
 	private final DoubleProperty right;
 	private final DoubleProperty bottom;

@@ -28,8 +28,8 @@ import org.praisenter.data.Copyable;
 import org.praisenter.data.Identifiable;
 import org.praisenter.data.TextType;
 import org.praisenter.data.TextVariant;
-import org.praisenter.data.slide.ReadonlySlideComponent;
-import org.praisenter.data.slide.ReadonlySlideRegion;
+import org.praisenter.data.slide.ReadOnlySlideComponent;
+import org.praisenter.data.slide.ReadOnlySlideRegion;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -44,7 +44,7 @@ import javafx.beans.property.SimpleObjectProperty;
  * @author William Bittle
  * @version 3.0.0
  */
-public final class TextPlaceholderComponent extends TextComponent implements ReadonlyTextPlaceholderComponent, ReaonlyTextComponent, ReadonlySlideComponent, ReadonlySlideRegion, Copyable, Identifiable {
+public final class TextPlaceholderComponent extends TextComponent implements ReadOnlyTextPlaceholderComponent, ReadOnlyTextComponent, ReadOnlySlideComponent, ReadOnlySlideRegion, Copyable, Identifiable {
 	private final ObjectProperty<TextType> placeholderType;
 	private final ObjectProperty<TextVariant> placeholderVariant;
 

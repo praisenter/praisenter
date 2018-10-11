@@ -2,6 +2,7 @@ package org.praisenter.ui;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 import org.apache.logging.log4j.LogManager;
@@ -12,14 +13,21 @@ import org.praisenter.ui.events.ActionStateChangedEvent;
 import javafx.application.Application;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
+import javafx.collections.ListChangeListener.Change;
+import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -35,23 +43,36 @@ public final class ApplicationState {
 	private final Application application;
 	private final Stage stage;
 	private final ObjectProperty<Scene> scene;
+	
 	private final ObjectProperty<Node> focusOwner;
-	private final ObjectProperty<ActionPane> focusedActionPane;
 	private final BooleanProperty windowFocused;
+	
 	private final StringProperty selectedText;
 	private final BooleanProperty textSelected;
+	
+	private final ObjectProperty<DocumentContext<?>> currentDocument;
+	private final ObservableList<DocumentContext<?>> openDocuments;
+	
 	private final Map<Action, BooleanProperty> isEnabled;
 	private final Map<Action, BooleanProperty> isVisible;
+	
+	private final ObjectProperty<ActionPane> closestActionPane;
 	
 	public ApplicationState(Application application, Stage stage) {
 		this.application = application;
 		this.stage = stage;
 		this.scene = new SimpleObjectProperty<>();
+		
 		this.focusOwner = new SimpleObjectProperty<>();
-		this.focusedActionPane = new SimpleObjectProperty<>();
+		this.closestActionPane = new SimpleObjectProperty<>();
 		this.windowFocused = new SimpleBooleanProperty();
+		
 		this.selectedText = new SimpleStringProperty();
 		this.textSelected = new SimpleBooleanProperty();
+		
+		this.currentDocument = new SimpleObjectProperty<>();
+		this.openDocuments = FXCollections.observableArrayList();
+		
 		this.isEnabled = new HashMap<>();
 		this.isVisible = new HashMap<>();
 		
@@ -80,40 +101,95 @@ public final class ApplicationState {
 		this.focusOwner.addListener((obs, ov, nv) -> {
 			// detach selection change event handler if text input
 			this.selectedText.unbind();
+			if (nv != null && nv instanceof TextInputControl) {
+				this.selectedText.bind(((TextInputControl)nv).selectedTextProperty());
+			}
 			
 			// detach the handler on the previous focused action pane
-			ActionPane ap = this.focusedActionPane.get();
-			if (ap != null) {
-				ap.removeEventHandler(ActionStateChangedEvent.ALL, eh);
-			}
-			this.focusedActionPane.set(null);
-			
+			ActionPane op = this.closestActionPane.get();
+			ActionPane ap = null;
 			if (nv != null) {
-				if (nv instanceof TextInputControl) {
-					this.selectedText.bind(((TextInputControl)nv).selectedTextProperty());
-				}
-				
 				// walk up the tree from the focused node to the top
 				// looking for an Application Pane
 				Node node = nv;
 				while (node != null) {
 					if (node instanceof ActionPane) {
 						ap = (ActionPane)node;
-						ap.addEventHandler(ActionStateChangedEvent.ALL, eh);
-						this.focusedActionPane.set(ap);
+						break;
 					}
-					
 					node = node.getParent();
 				}
+			}
+			
+			if (op != null) {
+				op.removeEventHandler(ActionStateChangedEvent.ALL, eh);
+				this.closestActionPane.set(null);
+			}
+			
+			if (ap != null) {
+				ap.addEventHandler(ActionStateChangedEvent.ALL, eh);
+				this.closestActionPane.set(ap);
 			}
 			
 			this.onActionStateChanged("FOCUS_CHANGED=" + (nv != null ? nv.getClass().getName() : "null"));
 		});
 		
+//		this.focusedActionPane.addListener((obs, ov, nv) -> {
+////			this.currentDocument.unbind();
+////			this.currentDocument.set(null);
+//			if (ov != null) {
+//				Bindings.unbindContent(this.selectedItems, ov.getSelectedItems());
+//			}
+//			if (nv != null) {
+//				Bindings.bindContent(this.selectedItems, nv.getSelectedItems());
+//				
+////				if (nv instanceof DocumentPane) {
+////					DocumentPane<?> pane = (DocumentPane<?>)nv;
+////					this.currentDocument.bind(pane.documentProperty());
+////				}
+//			}
+//		});
+		
 		this.textSelected.bind(Bindings.createBooleanBinding(() -> {
 			String selection = this.selectedText.get();
 			return selection != null && !selection.isEmpty();
 		}, this.selectedText));
+		
+		ListChangeListener<Object> lcl = (Change<? extends Object> c) -> {
+			this.onActionStateChanged("ACTION_STATE_CHANGED_SELECTION=" + this.currentDocument.get().getSelectedItem());
+		};
+		this.currentDocument.addListener((obs, ov, nv) -> {
+			if (ov != null) {
+				ov.getSelectedItems().removeListener(lcl);
+			}
+			if (nv != null) {
+				nv.getSelectedItems().addListener(lcl);
+			}
+		});
+		
+//		this.selectedItems.addListener((Change<? extends Object> c) -> {
+//			Class<?> clazz = null;
+//			for (Object item : this.selectedItems) {
+//				if (item != null) {
+//					if (clazz == null) {
+//						clazz = item.getClass();
+//					} else if (!item.getClass().equals(clazz)) {
+//						clazz = null;
+//						break;
+//					}
+//				}
+//			}
+//			
+//			this.selectedType.set(clazz);
+//			this.singleTypeSelected.set(clazz != null);
+//			
+//			int size = this.selectedItems.size();
+//			
+//			this.selectedCount.set(size);
+//			this.selectedItem.set(size == 1 ? this.selectedItems.get(0) : null);
+//			
+//			this.onActionStateChanged("ACTION_STATE_CHANGED_SELECTION=" + this.selectedItem.get());
+//		});
 		
 		// we need to re-evaluate the action states when:
 		// 1. the focus between windows change (clipboard content may have changed)
@@ -143,7 +219,7 @@ public final class ApplicationState {
 	private void onActionStateChanged(String reason) {
 		LOGGER.debug("Action State Updating: " + reason);
 		
-		ActionPane ap = this.focusedActionPane.get();
+		ActionPane ap = this.closestActionPane.get();
 		Node focused = this.getFocusOwner();
 		
 		boolean isTextInput = focused != null && focused instanceof TextInputControl;
@@ -212,7 +288,7 @@ public final class ApplicationState {
 	public CompletableFuture<Node> executeAction(Action action) {
 		boolean isUndoRedo = action == Action.UNDO || action == Action.REDO;
 		
-		ActionPane ap = this.focusedActionPane.get();
+		ActionPane ap = this.closestActionPane.get();
 		Node focused = this.getFocusOwner();
 		
 		boolean isTextInput = focused != null && focused instanceof TextInputControl;
@@ -315,13 +391,13 @@ public final class ApplicationState {
 		return this.focusOwner;
 	}
 	
-	public ActionPane getFocusedActionPane() {
-		return this.focusedActionPane.get();
-	}
-	
-	public ReadOnlyObjectProperty<ActionPane> focusedActionPaneProperty() {
-		return this.focusedActionPane;
-	}
+//	public ActionPane getFocusedActionPane() {
+//		return this.focusedActionPane.get();
+//	}
+//	
+//	public ReadOnlyObjectProperty<ActionPane> focusedActionPaneProperty() {
+//		return this.focusedActionPane;
+//	}
 	
 	public boolean isWindowFocused() {
 		return this.windowFocused.get();
@@ -345,6 +421,69 @@ public final class ApplicationState {
 	
 	public ReadOnlyBooleanProperty textSelectedProperty() {
 		return this.textSelected;
+	}
+	
+	public Object getCurrentDocument() {
+		return this.currentDocument.get();
+	}
+	
+	public void setCurrentDocument(Object document) {
+		this.setAlreadyAddedDocument(document);
+	}
+	
+	private void setAlreadyAddedDocument(Object document) {
+		if (document == null) {
+			this.currentDocument.set(null);
+		} else {
+			// find the related instance of the given document
+			for (DocumentContext<?> ctx : this.openDocuments) {
+				if (Objects.equals(ctx.getDocument(), document)) {
+					this.currentDocument.set(ctx);
+					break;
+				}
+			}
+//			int index = this.openDocuments.indexOf(document);
+//			if (index >= 0 && index < this.openDocuments.size()) {
+//				DocumentContext<?> doc = this.openDocuments.get(index);
+//				this.currentDocument.set(doc);
+//			}
+		}
+	}
+	
+	public ObjectProperty<DocumentContext<?>> currentDocumentProperty() {
+		return this.currentDocument;
+	}
+	
+	public void openDocument(Object document) {
+		boolean found = false;
+		for (DocumentContext<?> ctx : this.openDocuments) {
+			if (Objects.equals(ctx.getDocument(), document)) {
+				found = true;
+				break;
+			}
+		}
+		
+		if (!found) {
+			DocumentContext<Object> ctx = new DocumentContext<>(document);
+			this.openDocuments.add(ctx);
+		}
+		
+//		if (!this.openDocuments.contains(document)) {
+//			this.openDocuments.add(document);
+//		}
+		this.setAlreadyAddedDocument(document);
+	}
+	
+	public void closeDocument(Object document) {
+		this.openDocuments.removeIf(d -> Objects.equals(d.getDocument(), document));
+		if (Objects.equals(document, this.currentDocument.get().getDocument())) {
+			this.currentDocument.set(null);
+		}
+		// TODO on remove, set the next one to the left as the current?
+	}
+	
+	public ObservableList<DocumentContext<?>> getOpenDocumentsUnmodifiable() {
+		return FXCollections.unmodifiableObservableList(this.openDocuments);
 	}
 	
 	public ReadOnlyBooleanProperty getActionEnabledProperty(Action action) {

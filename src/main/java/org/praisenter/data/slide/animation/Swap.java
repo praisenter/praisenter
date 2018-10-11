@@ -31,7 +31,7 @@ import org.praisenter.data.Copyable;
  * @author William Bittle
  * @version 3.0.0
  */
-public final class Swap extends Animation implements ReadonlyAnimation, Copyable {
+public final class Swap extends Animation implements ReadOnlyAnimation, Copyable {
 	@Override
 	public Swap copy() {
 		Swap ani = new Swap();

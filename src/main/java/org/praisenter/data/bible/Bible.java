@@ -40,7 +40,7 @@ import javafx.collections.ObservableList;
 	use = JsonTypeInfo.Id.NAME,
 	include = JsonTypeInfo.As.PROPERTY)
 @JsonTypeName(value = "bible")
-public final class Bible implements ReadonlyBible, Indexable, Persistable, Copyable, Identifiable, Localized {
+public final class Bible implements ReadOnlyBible, Indexable, Persistable, Copyable, Identifiable, Localized {
 	/** The lucene field to store the book number as a searchable value */
 	public static final String FIELD_BOOK_ID = "bookid";
 	
@@ -702,7 +702,7 @@ public final class Bible implements ReadonlyBible, Indexable, Persistable, Copya
 	}
 	
 	@Override
-	public ObservableList<? extends ReadonlyBook> getBooksUnmodifiable() {
+	public ObservableList<? extends ReadOnlyBook> getBooksUnmodifiable() {
 		return FXCollections.unmodifiableObservableList(this.books);
 	}
 }

@@ -15,7 +15,8 @@ public enum Action {
 	CLOSE("action.close", () -> ApplicationGlyphs.MENU_CLOSE.duplicate()),
 	
 	SAVE("action.save", new KeyCodeCombination(KeyCode.S, KeyCombination.SHORTCUT_DOWN), () -> Glyphs.MENU_SAVE.duplicate()),
-	SAVE_AS("action.saveas", new KeyCodeCombination(KeyCode.S, KeyCombination.SHIFT_DOWN, KeyCombination.SHORTCUT_DOWN), () -> Glyphs.MENU_SAVE_AS.duplicate()),
+	SAVE_AS("action.saveas", () -> Glyphs.MENU_SAVE_AS.duplicate()),
+	SAVE_ALL("action.saveall", new KeyCodeCombination(KeyCode.S, KeyCombination.SHIFT_DOWN, KeyCombination.SHORTCUT_DOWN), () -> Glyphs.MENU_SAVE_ALL.duplicate()),
 	RENAME("action.rename", new KeyCodeCombination(KeyCode.R, KeyCombination.SHORTCUT_DOWN), () -> Glyphs.MENU_RENAME.duplicate()),
 	DELETE("action.delete", new KeyCodeCombination(KeyCode.DELETE), () -> Glyphs.MENU_DELETE.duplicate()),
 	

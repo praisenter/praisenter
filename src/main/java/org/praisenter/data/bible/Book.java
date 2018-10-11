@@ -14,7 +14,7 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
-public final class Book implements ReadonlyBook, Copyable, Comparable<Book> {
+public final class Book implements ReadOnlyBook, Copyable, Comparable<Book> {
 	private final IntegerProperty number;
 	private final StringProperty name;
 	private final ObservableList<Chapter> chapters;
@@ -163,7 +163,7 @@ public final class Book implements ReadonlyBook, Copyable, Comparable<Book> {
 	}
 	
 	@Override
-	public ObservableList<? extends ReadonlyChapter> getChaptersUnmodifiable() {
+	public ObservableList<? extends ReadOnlyChapter> getChaptersUnmodifiable() {
 		return FXCollections.unmodifiableObservableList(this.chapters);
 	}
 }

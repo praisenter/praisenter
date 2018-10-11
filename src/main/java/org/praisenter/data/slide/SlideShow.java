@@ -36,7 +36,7 @@ import javafx.collections.ObservableList;
 	use = JsonTypeInfo.Id.NAME,
 	include = JsonTypeInfo.As.PROPERTY)
 @JsonTypeName(value = "slideshow")
-public final class SlideShow implements ReadonlySlideShow, Indexable, Persistable, Copyable, Identifiable {
+public final class SlideShow implements ReadOnlySlideShow, Indexable, Persistable, Copyable, Identifiable {
 
 	public static final String DATA_TYPE_SLIDE_SHOW = "show";
 	

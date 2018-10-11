@@ -38,7 +38,7 @@ import javafx.beans.property.SimpleObjectProperty;
  * @author William Bittle
  * @version 3.0.0
  */
-public final class SlideStrokeStyle implements ReadonlySlideStrokeStyle, Copyable {
+public final class SlideStrokeStyle implements ReadOnlySlideStrokeStyle, Copyable {
 	private final ObjectProperty<SlideStrokeType> type;
 	private final ObjectProperty<SlideStrokeJoin> join;
 	private final ObjectProperty<SlideStrokeCap> cap;
