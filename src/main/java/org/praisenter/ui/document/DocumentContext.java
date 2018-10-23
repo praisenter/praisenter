@@ -1,6 +1,9 @@
-package org.praisenter.ui;
+package org.praisenter.ui.document;
 
 import java.util.Objects;
+
+import org.praisenter.data.Persistable;
+import org.praisenter.ui.undo.UndoManager;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
@@ -8,20 +11,29 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.collections.ListChangeListener.Change;
+import javafx.collections.ObservableList;
 
-public final class DocumentContext<T> {
-	private final ObjectProperty<T> document;
-	private final ObservableList<Object> selectedItems;
-	private final ObjectProperty<Object> selectedItem;
-	private final ObjectProperty<Class<?>> selectedType;
-	private final BooleanProperty singleTypeSelected;
-	private final IntegerProperty selectedCount;
+public final class DocumentContext<T extends Persistable> {
+	protected final ObjectProperty<T> document;
+
+	protected final ObservableList<Object> selectedItems;
+	protected final ObjectProperty<Object> selectedItem;
+	protected final ObjectProperty<Class<?>> selectedType;
+	protected final BooleanProperty singleTypeSelected;
+	protected final IntegerProperty selectedCount;
+
+	protected final BooleanProperty hasUnsavedChanges;
+	protected final StringProperty documentName;
+	
+	protected final UndoManager undoManager;
 	
 	public DocumentContext(T document) {
 		this.document = new SimpleObjectProperty<>(document);
@@ -30,6 +42,12 @@ public final class DocumentContext<T> {
 		this.selectedType = new SimpleObjectProperty<>();
 		this.singleTypeSelected = new SimpleBooleanProperty();
 		this.selectedCount = new SimpleIntegerProperty();
+		
+		this.hasUnsavedChanges = new SimpleBooleanProperty();
+		this.documentName = new SimpleStringProperty();
+		
+		this.undoManager = new UndoManager();
+		this.undoManager.setTarget(document);
 		
 		this.selectedItems.addListener((Change<? extends Object> c) -> {
 			Class<?> clazz = null;
@@ -52,6 +70,10 @@ public final class DocumentContext<T> {
 			this.selectedCount.set(size);
 			this.selectedItem.set(size == 1 ? this.selectedItems.get(0) : null);
 		});
+		
+		this.hasUnsavedChanges.bind(this.undoManager.notTopMarkedProperty());
+		
+		this.documentName.bind((document).nameProperty());
 	}
 	
 	@Override
@@ -72,6 +94,12 @@ public final class DocumentContext<T> {
 		}
 		// TODO what's the hashcode of null?
 		return 0;
+	}
+	
+	@Override
+	public String toString() {
+		T document = this.document.get();
+		return document != null ? document.toString() : "null";
 	}
 	
 	public T getDocument() {
@@ -117,5 +145,25 @@ public final class DocumentContext<T> {
 	
 	public ReadOnlyBooleanProperty singleTypeSelectedProperty() {
 		return this.singleTypeSelected;
+	}
+	
+	public boolean hasUnsavedChanges() {
+		return this.hasUnsavedChanges.get();
+	}
+	
+	public ReadOnlyBooleanProperty hasUnsavedChangesProperty() {
+		return this.hasUnsavedChanges;
+	}
+	
+	public String getDocumentName() {
+		return this.documentName.get();
+	}
+	
+	public ReadOnlyStringProperty documentNameProperty() {
+		return this.documentName;
+	}
+	
+	public UndoManager getUndoManager() {
+		return this.undoManager;
 	}
 }

@@ -26,6 +26,11 @@ public final class MappedList<E, F> extends TransformationList<E, F> {
 	public int getSourceIndex(int index) {
 		return index;
 	}
+	
+	@Override
+	public int getViewIndex(int index) {
+		return index;
+	}
 
 	@Override
 	public E get(int index) {

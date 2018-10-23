@@ -4,8 +4,8 @@ import org.praisenter.data.bible.Bible;
 import org.praisenter.data.bible.Book;
 import org.praisenter.data.bible.Chapter;
 import org.praisenter.data.bible.Verse;
-import org.praisenter.ui.DocumentContext;
 import org.praisenter.ui.TextInputFieldFieldEventFilter;
+import org.praisenter.ui.document.DocumentContext;
 
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.IntegerProperty;
@@ -65,6 +65,9 @@ public final class BiblePropertiesPane extends VBox {
 			if (nv != null) {
 				this.bible.bind(nv.documentProperty());
 				this.selectedItem.bind(nv.selectedItemProperty());
+			} else {
+				this.bible.set(null);
+				this.selectedItem.set(null);
 			}
 		});
 		

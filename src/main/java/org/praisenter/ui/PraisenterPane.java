@@ -4,8 +4,15 @@ import java.nio.file.Paths;
 
 import org.praisenter.data.bible.Bible;
 import org.praisenter.ui.bible.BibleEditorPane;
+import org.praisenter.ui.bible.BibleListCell;
 import org.praisenter.ui.bible.BiblePropertiesPane;
+import org.praisenter.ui.controls.FlowListCell;
+import org.praisenter.ui.controls.FlowListView;
+import org.praisenter.ui.document.DocumentsPane;
 
+import javafx.beans.binding.Bindings;
+import javafx.collections.ListChangeListener.Change;
+import javafx.geometry.Orientation;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
@@ -18,13 +25,13 @@ import javafx.scene.control.TabPane;
 import javafx.scene.control.TabPane.TabClosingPolicy;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.BorderPaneBuilder;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 
 public class PraisenterPane extends BorderPane {
-	private final ReadOnlyPraisenterContext context;
+	private final GlobalContext context;
 	
-	public PraisenterPane(ReadOnlyPraisenterContext context) {
+	public PraisenterPane(GlobalContext context) {
 		this.context = context;
 		
 //		BibleEditorPane bibleEditorPane1 = new BibleEditorPane(context);
@@ -168,14 +175,20 @@ public class PraisenterPane extends BorderPane {
 //		buttons.getChildren().addAll(btn8, btn10);
 
 		ActionBar ab = new ActionBar(context);
-		DocumentEditorPane dep = new DocumentEditorPane(context);
-		ContextPropertiesPane cpp = new ContextPropertiesPane(context);
+		DocumentsPane dep = new DocumentsPane(context);
+//		ContextPropertiesPane cpp = new ContextPropertiesPane(context);
+		
+		FlowListView<Bible> bblListing = new FlowListView<>(Orientation.HORIZONTAL, (bible) -> {
+			return new BibleListCell(bible);
+		});
+		
+		Bindings.bindContent(bblListing.getItems(), context.getDataManager().getItems(Bible.class));
 		
 		//BorderPane bp = new BorderPane();
 		this.setTop(mainMenu);
-		this.setCenter(dep);
+		this.setCenter(new VBox(5, bblListing, dep));
 		this.setLeft(ab);
-		this.setRight(cpp);
+//		this.setRight(cpp);
 
 		Spinner<Integer> spnIndex = new Spinner<>(0,5,0);
 		Button btnLoadDocument = new Button("Load document");
@@ -183,7 +196,7 @@ public class PraisenterPane extends BorderPane {
 			//dep.addOrFocusDocument(context.getDataManager().getItems(Bible.class).get(0).copy());
 			int index = spnIndex.getValue();
 			Bible document = context.getDataManager().getItems(Bible.class).get(index).copy();
-			context.getApplicationState().openDocument(document);
+			context.openDocument(document);
 		});
 		HBox buttons = new HBox(5, spnIndex, btnLoadDocument);
 		

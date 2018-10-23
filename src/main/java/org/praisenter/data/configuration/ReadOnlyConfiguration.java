@@ -1,6 +1,5 @@
 package org.praisenter.data.configuration;           
 
-import java.time.Instant;
 import java.util.UUID;
 
 import org.praisenter.data.Copyable;
@@ -32,13 +31,6 @@ public interface ReadOnlyConfiguration extends MediaConfiguration, Indexable, Pe
 	public double getApplicationHeight();
 	public boolean isApplicationMaximized();
 	public boolean isDebugModeEnabled();
-	
-	public ReadOnlyStringProperty formatProperty();
-	public ReadOnlyStringProperty versionProperty();
-	public ReadOnlyObjectProperty<UUID> idProperty();
-	public ReadOnlyStringProperty nameProperty();
-	public ReadOnlyObjectProperty<Instant> createdDateProperty();
-	public ReadOnlyObjectProperty<Instant> modifiedDateProperty();
 	
 	public ReadOnlyObjectProperty<UUID> primaryBibleIdProperty();
 	public ReadOnlyObjectProperty<UUID> secondaryBibleIdProperty();

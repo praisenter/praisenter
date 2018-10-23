@@ -85,6 +85,8 @@ public final class Glyphs {
 	
 	public static final Glyph NEW = FONT_AWESOME.create(FontAwesome.Glyph.PLUS);
 	
+	public static final Glyph ASTERISK = FONT_AWESOME.create(FontAwesome.Glyph.ASTERISK);
+	
 	// menu
 	
 	/** Menu home icon */

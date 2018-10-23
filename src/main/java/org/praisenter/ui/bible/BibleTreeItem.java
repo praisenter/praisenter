@@ -23,6 +23,7 @@ final class BibleTreeItem extends TreeItem<Object> {
 		this.valueProperty().addListener((obs, ov, nv) -> {
 			this.children = null;
 			super.getChildren().clear();
+			this.setExpanded(false);
 			if (nv != null) {
 				if (nv instanceof Bible) {
 					Bible bible = (Bible)nv;
@@ -40,7 +41,6 @@ final class BibleTreeItem extends TreeItem<Object> {
 			} else {
 				this.label.unbind();
 				this.label.set(null);
-				this.setExpanded(false);
 				if (this.children != null) {
 					Bindings.unbindContent(super.getChildren(), this.children);
 				}

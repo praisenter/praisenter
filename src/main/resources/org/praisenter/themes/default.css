@@ -15,7 +15,55 @@
     -fx-border-width: 0 0 1 0;
 }
 
+/* 
+Bug fix for expand/collapse indicator in JavaFX 10 (10/11/2018)
+https://stackoverflow.com/questions/50011276/javafx-treeview-expand-collapse-disclosure-arrow-bug 
+*/
+.tree-cell > .tree-disclosure-node > .arrow,
+.tree-table-row-cell > .tree-disclosure-node > .arrow {
+    -fx-rotate: 0;
+}
+
+.tree-cell:expanded > .tree-disclosure-node > .arrow,
+.tree-table-row-cell:expanded > .tree-disclosure-node > .arrow {
+    -fx-rotate: 90;
+}
+
 /* ============== Components ================= */
+
+
+/* FlowListView */
+.flow-list-view {}
+.flow-list-view-tiles {
+	-fx-padding: 5 5 5 5;
+	-fx-vgap: 5;
+	-fx-hgap: 5;
+}
+.flow-list-view-cell {
+	-fx-background-color: transparent;
+	-fx-border-color: transparent;
+	-fx-border-width: 1;
+	-fx-border-style: solid;
+	-fx-padding: 2 2 2 2;
+	-fx-alignment: top-center;
+}
+.flow-list-view-cell:hover { 
+	-fx-background-color: rgba(153, 209, 255, 0.5);
+}
+.flow-list-view-cell:selected {
+	-fx-background-color: rgb(204, 232, 255);
+	-fx-border-color: rgb(153, 209, 255);
+	-fx-border-width: 1;
+	-fx-border-style: solid;
+}
+.flow-list-view-drag-selection-area {
+	-fx-fill: rgba(255, 204, 204, 0.5);
+	-fx-stroke: rgb(255, 153, 153);
+	-fx-smooth: false;
+	-fx-stroke-width: 1;
+}
+
+
 
 .root {
 	menu-bg-color: cornflowerblue;
@@ -97,4 +145,27 @@
 .bible-tree-cell-verse-number {
 	-fx-font-weight: bold; 
 	-fx-font-size: 0.8em;
+}
+
+
+/* BibleListCell */
+.bible-list-cell {
+	-fx-alignment: top-center;
+	-fx-pref-width: 110;
+}
+.bible-list-cell-thumbnail {
+	-fx-image: url("/org/praisenter/images/bible-icon.png");
+	-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.25), 2, 0, 2, 2);
+}
+.bible-list-cell-progress {}
+.bible-list-cell-wrapper {
+	-fx-alignment: bottom-center;
+	-fx-pref-height: 100;
+	-fx-max-height: 100;
+	-fx-min-height: 100;
+}
+.bible-list-cell-name {
+	-fx-text-alignment: center;
+	-fx-padding: 5 0 0 0;
+	-fx-wrap-text: true;
 }

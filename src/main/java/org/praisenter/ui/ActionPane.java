@@ -16,6 +16,7 @@ public interface ActionPane {
 	
 	public boolean isActionEnabled(Action action);
 	public boolean isActionVisible(Action action);
+	// TODO instead of returning a Node, we should just bubble up an event (since the action may get called from a number of places)
 	public CompletableFuture<Node> performAction(Action action);
 	
 	public void setDefaultFocus();

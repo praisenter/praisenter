@@ -33,6 +33,7 @@ public final class UndoManager {
 	
 	private final BooleanProperty marked;
 	private final BooleanProperty topMarked;
+	private final BooleanProperty notTopMarked;
 	
 	private boolean isOperating;
 	private boolean isBatching;
@@ -54,6 +55,7 @@ public final class UndoManager {
 		this.redoCount = new SimpleIntegerProperty();
 		this.marked = new SimpleBooleanProperty();
 		this.topMarked = new SimpleBooleanProperty();
+		this.notTopMarked = new SimpleBooleanProperty();
 		
 		this.isOperating = false;
 
@@ -72,6 +74,36 @@ public final class UndoManager {
 			}
 		});
 		
+		this.marked.bind(Bindings.createBooleanBinding(() -> {
+			return this.undos.contains(Edit.MARK);
+		}, this.undos));
+		
+		this.topMarked.bind(Bindings.createBooleanBinding(() -> {
+			int usize = this.undos.size();
+			boolean redoHasMark = this.redos.stream().anyMatch(r -> r == Edit.MARK);
+			// if there's nothing to undo, and the redos do not contain
+			// the MARK, then we are back to the original state
+			if (usize <= 0 && !redoHasMark) return true;
+			// if the MARK is in the redo stack, then that means that the
+			// save has occurred since it was opened and if you undo past
+			// the MARK, it's now considered changed again
+			
+			// or if the top item on the undo stack is MARK
+			if (usize > 0) {
+				Edit edit = this.undos.get(usize - 1);
+				return edit == Edit.MARK;
+			}
+			return false;
+		}, this.undos, this.redos));
+		
+		this.notTopMarked.bind(Bindings.createBooleanBinding(() -> {
+			return !this.topMarked.get();
+		}, this.topMarked));
+
+		// these bindings are after the ones above since we need them updated
+		// before these are updated since its more likely that these will be
+		// listened to
+		
 		this.undoAvailable.bind(Bindings.createBooleanBinding(() -> {
 			return !this.undos.isEmpty();
 		}, this.undos));
@@ -87,17 +119,6 @@ public final class UndoManager {
 		this.redoCount.bind(Bindings.createIntegerBinding(() -> {
 			return this.redos.size();
 		}, this.redos));
-		
-		this.marked.bind(Bindings.createBooleanBinding(() -> {
-			return this.undos.contains(Edit.MARK);
-		}, this.undos));
-		
-		this.topMarked.bind(Bindings.createBooleanBinding(() -> {
-			int size = this.undos.size();
-			if (size <= 0) return true;
-			Edit edit = this.undos.get(size - 1);
-			return edit == Edit.MARK;
-		}, this.undos));
 		
 		this.target.addListener((obs, ov, nv) -> {
 			if (ov != null) {
@@ -123,6 +144,7 @@ public final class UndoManager {
 			Edit undo = this.undos.remove(size - 1);
 			undo.undo();
 			this.redos.add(undo);
+			size--;
 			
 			if (undo == Edit.MARK && size > 1) {
 				undo = this.undos.remove(size - 1);
@@ -148,6 +170,7 @@ public final class UndoManager {
 			Edit redo = this.redos.remove(size - 1);
 			redo.redo();
 			this.undos.add(redo);
+			size--;
 			
 			if (redo == Edit.MARK && size > 1) {
 				redo = this.redos.remove(size - 1);
@@ -160,17 +183,17 @@ public final class UndoManager {
 	}
 	
 	private void addUndoEdit(Edit edit) {
-		Edit toAdd = edit;
 		int size = this.undos.size();
 		if (size > 0) {
 			Edit top = this.undos.get(size - 1);
 			if (top.isMergeSupported(edit)) {
-				Edit merged = toAdd = edit.merge(top);
+				Edit merged = edit.merge(top);
 				LOGGER.trace(() -> "Merged edit '" + edit + "' with '" + top + "' to produce '" + merged + "'");
-				this.undos.remove(size - 1);
+				this.undos.set(size - 1, merged);
+				return;
 			}
 		}
-		this.undos.add(toAdd);
+		this.undos.add(edit);
 		this.redos.clear();
 	}
 	
@@ -230,6 +253,21 @@ public final class UndoManager {
 		this.batch = null;
 	}
 	
+	public Object storePosition() {
+		MarkPosition position = new MarkPosition();
+		this.undos.add(position);
+		return position;
+	}
+	
+	public void markPosition(Object position) {
+		int index = this.undos.indexOf(position);
+		if (index >= 0) {
+			this.unmark();
+			index = this.undos.indexOf(position);
+			this.undos.set(index, Edit.MARK);
+		}
+	}
+	
 	public Object getTarget() {
 		return this.target.get();
 	}
@@ -272,6 +310,14 @@ public final class UndoManager {
 	
 	public ReadOnlyBooleanProperty topMarkedProperty() {
 		return this.topMarked;
+	}
+
+	public boolean isNotTopMarked() {
+		return this.notTopMarked.get();
+	}
+	
+	public ReadOnlyBooleanProperty notTopMarkedProperty() {
+		return this.notTopMarked;
 	}
 	
 	public int getUndoCount() {

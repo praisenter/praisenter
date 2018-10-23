@@ -5,18 +5,35 @@ import java.util.function.Supplier;
 import org.praisenter.javafx.ApplicationGlyphs;
 import org.praisenter.utility.RuntimeProperties;
 
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
+import javafx.scene.layout.StackPane;
+import javafx.scene.paint.Color;
 
 public enum Action {
-	EDIT("action.edit"),
-	CLOSE("action.close", () -> ApplicationGlyphs.MENU_CLOSE.duplicate()),
+//	EDIT("action.edit"),
+//	CLOSE("action.close", () -> ApplicationGlyphs.MENU_CLOSE.duplicate()),
 	
 	SAVE("action.save", new KeyCodeCombination(KeyCode.S, KeyCombination.SHORTCUT_DOWN), () -> Glyphs.MENU_SAVE.duplicate()),
-	SAVE_AS("action.saveas", () -> Glyphs.MENU_SAVE_AS.duplicate()),
-	SAVE_ALL("action.saveall", new KeyCodeCombination(KeyCode.S, KeyCombination.SHIFT_DOWN, KeyCombination.SHORTCUT_DOWN), () -> Glyphs.MENU_SAVE_ALL.duplicate()),
+//	SAVE_AS("action.saveas", () -> {
+//		StackPane stack = new StackPane();
+//		Node plus = Glyphs.ASTERISK.duplicate().size(8).color(Color.GREEN);
+//		plus.setTranslateX(3);
+//		stack.getChildren().addAll(Glyphs.MENU_SAVE_AS.duplicate(), plus);
+//		StackPane.setAlignment(plus, Pos.TOP_RIGHT);
+//		return stack;
+//	}),
+	SAVE_ALL("action.saveall", new KeyCodeCombination(KeyCode.S, KeyCombination.SHIFT_DOWN, KeyCombination.SHORTCUT_DOWN), () -> {
+		StackPane stack = new StackPane();
+		StackPane pane = new StackPane(Glyphs.MENU_SAVE_ALL.duplicate().size(12));
+		pane.setTranslateX(3);
+		pane.setTranslateY(3);
+		stack.getChildren().addAll(Glyphs.MENU_SAVE_ALL.duplicate().size(12), pane);
+		return stack;	
+	}),
 	RENAME("action.rename", new KeyCodeCombination(KeyCode.R, KeyCombination.SHORTCUT_DOWN), () -> Glyphs.MENU_RENAME.duplicate()),
 	DELETE("action.delete", new KeyCodeCombination(KeyCode.DELETE), () -> Glyphs.MENU_DELETE.duplicate()),
 	
@@ -43,11 +60,11 @@ public enum Action {
 	// application
 	
 	PREFERENCES("action.preferences", () -> Glyphs.MENU_PREFERENCES.duplicate()),
-	MANAGE_MEDIA("action.media"),
-	MANAGE_BIBLES("action.bibles"),
-	MANAGE_SLIDES("action.slides"),
-	MANAGE_SHOWS("action.shows"),
-	MANAGE_SONGS("action.songs"),
+//	MANAGE_MEDIA("action.media"),
+//	MANAGE_BIBLES("action.bibles"),
+//	MANAGE_SLIDES("action.slides"),
+//	MANAGE_SHOWS("action.shows"),
+//	MANAGE_SONGS("action.songs"),
 	REINDEX("action.reindex"),
 	ABOUT("action.about", () -> Glyphs.MENU_ABOUT.duplicate()),
 	LOGS("action.logs"),
@@ -55,21 +72,22 @@ public enum Action {
 	
 	// bible
 	
-	NEW_BIBLE("action.new.bible"),
-	NEW_BOOK("action.new.book"),
-	NEW_CHAPTER("action.new.chapter"),
-	NEW_VERSE("action.new.verse"),
+//	NEW_BIBLE("action.new.bible"),
+//	NEW_BOOK("action.new.book"),
+//	NEW_CHAPTER("action.new.chapter"),
+//	NEW_VERSE("action.new.verse"),
 	RENUMBER("action.renumber", () -> Glyphs.RENUMBER.duplicate()),
-	REORDER("action.reorder", () -> Glyphs.REORDER.duplicate()),
+	REORDER("action.reorder", () -> Glyphs.REORDER.duplicate())
 	
 	// slide
 	
-	NEW_SLIDE("action.new.slide"),
-	NEW_SLIDE_SHOW("action.new.show"),
+//	NEW_SLIDE("action.new.slide"),
+//	NEW_SLIDE_SHOW("action.new.show"),
 	
 	// song
 	
-	NEW_SONG("action.new.song");
+//	NEW_SONG("action.new.song")
+	;
 	
 	private final String messageKey;
 	private final KeyCombination accelerator;

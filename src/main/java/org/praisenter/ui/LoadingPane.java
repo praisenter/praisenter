@@ -71,7 +71,7 @@ import javafx.util.Duration;
 
 /**
  * Pane for showing a loading indicator and other animations while building
- * a {@link PraisenterContext}
+ * a {@link GlobalContext}
  * @author William Bittle
  * @version 3.0.0
  */
@@ -90,7 +90,7 @@ final class LoadingPane extends Pane {
 	
 	// members
 	
-	private final PraisenterContext context;
+	private final GlobalContext context;
 	
 	private final StringProperty message;
 	private final DoubleProperty progress;
@@ -108,7 +108,7 @@ final class LoadingPane extends Pane {
 	 * @param javaFXContext the JavaFX context
 	 * @param configuration the application configuration
 	 */
-	public LoadingPane(PraisenterContext context) {
+	public LoadingPane(GlobalContext context) {
 		this.context = context;
 		
 		this.message = new SimpleStringProperty();
