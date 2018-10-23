@@ -24,7 +24,6 @@ public interface ReadOnlySlideRegion extends Copyable, Identifiable {
 	public SlideStroke getBorder();
 	public double getOpacity();
 
-	public ReadOnlyObjectProperty<UUID> idProperty();
 	public ReadOnlyStringProperty nameProperty();
 	public ReadOnlyDoubleProperty xProperty();
 	public ReadOnlyDoubleProperty yProperty();

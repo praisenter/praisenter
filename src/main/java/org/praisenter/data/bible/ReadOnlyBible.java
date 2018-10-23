@@ -1,14 +1,10 @@
 package org.praisenter.data.bible;
 
-import java.time.Instant;
-import java.util.UUID;
-
 import org.praisenter.data.Copyable;
 import org.praisenter.data.Identifiable;
 import org.praisenter.data.Persistable;
 import org.praisenter.data.search.Indexable;
 
-import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.collections.ObservableList;
 
@@ -18,12 +14,6 @@ public interface ReadOnlyBible extends Indexable, Persistable, Copyable, Identif
 	public String getSource();
 	public String getNotes();
 	
-	public ReadOnlyStringProperty formatProperty();
-	public ReadOnlyStringProperty versionProperty();
-	public ReadOnlyObjectProperty<UUID> idProperty();
-	public ReadOnlyStringProperty nameProperty();
-	public ReadOnlyObjectProperty<Instant> createdDateProperty();
-	public ReadOnlyObjectProperty<Instant> modifiedDateProperty();
 	public ReadOnlyStringProperty languageProperty();
 	public ReadOnlyStringProperty copyrightProperty();
 	public ReadOnlyStringProperty sourceProperty();

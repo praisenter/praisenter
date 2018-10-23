@@ -1,8 +1,6 @@
 package org.praisenter.data.media;
 
 import java.nio.file.Path;
-import java.time.Instant;
-import java.util.UUID;
 
 import org.praisenter.data.Copyable;
 import org.praisenter.data.Identifiable;
@@ -28,13 +26,7 @@ public interface ReadOnlyMedia extends Indexable, Persistable, Copyable, Identif
 	public long getLength();
 	public boolean isAudioAvailable();
 	
-	public ReadOnlyStringProperty formatProperty();
-	public ReadOnlyStringProperty versionProperty();
-	public ReadOnlyObjectProperty<UUID> idProperty();
-	public ReadOnlyStringProperty nameProperty();
 	public ReadOnlyStringProperty extensionProperty();
-	public ReadOnlyObjectProperty<Instant> createdDateProperty();
-	public ReadOnlyObjectProperty<Instant> modifiedDateProperty();
 	public ReadOnlyObjectProperty<MediaType> mediaTypeProperty();
 	public ReadOnlyObjectProperty<MediaFormat> mediaFormatProperty();
 	public ReadOnlyStringProperty mimeTypeProperty();

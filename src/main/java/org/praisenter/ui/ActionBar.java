@@ -15,12 +15,12 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 
 public final class ActionBar extends HBox {
-	private final ReadOnlyPraisenterContext context;
+	private final GlobalContext context;
 	
 	private final ToolBar toolbar;
 	private final StackPane subToolbar;
 	
-	public ActionBar(ReadOnlyPraisenterContext context) {
+	public ActionBar(GlobalContext context) {
 		this.getStyleClass().add("p-action-bar");
 		
 		this.context = context;
@@ -30,7 +30,7 @@ public final class ActionBar extends HBox {
 		toolbar.setOrientation(Orientation.VERTICAL);
 		toolbar.getItems().addAll(
 			this.createButton(Action.SAVE),
-			this.createButton(Action.SAVE_AS),
+//			this.createButton(Action.SAVE_AS),
 			this.createButton(Action.SAVE_ALL),
 			this.createButton(Action.UNDO),
 			this.createButton(Action.REDO),
@@ -56,7 +56,7 @@ public final class ActionBar extends HBox {
 		this.toolbar = toolbar;
 		this.subToolbar = subToolBar;
 		
-		this.context.getApplicationState().focusOwnerProperty().addListener((obs, ov, nv) -> {
+		this.context.focusOwnerProperty().addListener((obs, ov, nv) -> {
 			if (nv == null) {
 				this.subToolbar.getChildren().clear();
 			} else if (!this.isPromptPaneFocused(nv)) {
@@ -70,8 +70,8 @@ public final class ActionBar extends HBox {
 		
 		button.setUserData(action);
 		button.setOnAction(e -> this.executeAction(action));
-		button.disableProperty().bind(this.context.getApplicationState().getActionEnabledProperty(action).not());
-		button.visibleProperty().bind(this.context.getApplicationState().getActionVisibleProperty(action));
+		button.disableProperty().bind(this.context.getActionEnabledProperty(action).not());
+		button.visibleProperty().bind(this.context.getActionVisibleProperty(action));
 		button.managedProperty().bind(button.visibleProperty());
 		// act like a menu - don't receive focus
 		button.setFocusTraversable(false);
@@ -85,7 +85,7 @@ public final class ActionBar extends HBox {
 		KeyCombination accelerator = action.getAccelerator();
 		if (accelerator != null) {
 			// TODO move these to the ApplicationState class and some how check to see if they need to be re-set
-			this.context.getApplicationState().getScene().getAccelerators().put(accelerator, () -> {
+			this.context.getScene().getAccelerators().put(accelerator, () -> {
 				this.executeAction(action);
 			});
 		}
@@ -116,7 +116,7 @@ public final class ActionBar extends HBox {
 	}
 	
 	private void executeAction(Action action) {
-		this.context.getApplicationState().executeAction(action).thenAccept(node -> {
+		this.context.executeAction(action).thenAccept(node -> {
 			if (node != null) {
 				// TODO how can we know when to close this? the problem is that if you select something, pop this, but then select something else then continue...
 				// if we're given a node back, then we need to present this node in the button sub pane

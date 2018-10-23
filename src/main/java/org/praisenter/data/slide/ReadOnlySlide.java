@@ -1,7 +1,6 @@
 package org.praisenter.data.slide;
 
 import java.nio.file.Path;
-import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -15,7 +14,6 @@ import org.praisenter.data.slide.animation.SlideAnimation;
 
 import javafx.beans.property.ReadOnlyLongProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
-import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableSet;
 
@@ -24,10 +22,6 @@ public interface ReadOnlySlide extends ReadOnlySlideRegion, Indexable, Persistab
 	public long getTime();
 	public Path getThumbnailPath();
 	
-	public ReadOnlyStringProperty formatProperty();
-	public ReadOnlyStringProperty versionProperty();
-	public ReadOnlyObjectProperty<Instant> modifiedDateProperty();
-	public ReadOnlyObjectProperty<Instant> createdDateProperty();
 	public ReadOnlyObjectProperty<TextStore> placeholderDataProperty();
 	public ReadOnlyLongProperty timeProperty();
 	public ReadOnlyObjectProperty<Path> thumbnailPathProperty();

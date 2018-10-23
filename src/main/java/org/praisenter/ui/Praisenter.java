@@ -68,6 +68,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.text.Font;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 import javafx.util.Duration;
 
 // FIXME fix the manifest
@@ -217,20 +218,23 @@ public final class Praisenter extends Application {
     	GlyphFontRegistry.register(new FontAwesome(Praisenter.class.getResourceAsStream("/org/praisenter/fonts/fontawesome-webfont.ttf")));
 		GlyphFontRegistry.register(new OpenIconic(Praisenter.class.getResourceAsStream("/org/praisenter/fonts/open-iconic.ttf")));
 
-    	// start building the context
-		final ApplicationState applicationState = new ApplicationState(this, stage);
-    	final PraisenterContext context = new PraisenterContext(applicationState);
-		
     	// initialize lucene
 		final FSDirectory directory = FSDirectory.open(Paths.get(Constants.SEARCH_INDEX_ABSOLUTE_PATH));
 		final Analyzer analyzer = new StandardAnalyzer(new CharArraySet(1, false));
 		
 		// initialize the data manager
     	final SearchIndex index = new SearchIndex(directory, analyzer);
-    	context.dataManager = new DataManager(index);
+    	DataManager dataManager = new DataManager(index);
     	
     	// Step 1: load configuration or default it
-    	this.loadConfiguration(context).thenRun(() -> {
+    	this.loadConfiguration(dataManager).thenApply((configuration) -> {
+    		// finally build the context
+    		return new GlobalContext(
+    				this, 
+    				stage, 
+    				dataManager, 
+    				configuration);
+    	}).thenApply((context) -> {
     		// set the language if in the config
         	String languageTag = context.configuration.getLanguageTag();
         	if (languageTag != null) {
@@ -250,7 +254,9 @@ public final class Praisenter extends Application {
     			loggerConfig.setLevel(Level.TRACE);
     			ctx.updateLoggers();
     		}
-    	}).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {    		
+    		
+    		return context;
+    	}).thenCompose(AsyncHelper.onJavaFXThreadAndWait((context) -> {    		
     		// set the widow size and position
     		// set minimum size
         	stage.setMinWidth(MIN_WIDTH);
@@ -396,20 +402,20 @@ public final class Praisenter extends Application {
     				seq.play();
     			});
     		}).exceptionally((ex) -> {
-    			this.showExecptionAlertThenExit(ex, context);
+    			this.showExecptionAlertThenExit(ex, stage);
     			return null;
     		});
     	})).exceptionally((ex) -> {
-    		this.showExecptionAlertThenExit(ex, context);
+    		this.showExecptionAlertThenExit(ex, stage);
     		return null;
     	});
     }
     
-    private void showExecptionAlertThenExit(Throwable ex, ReadOnlyPraisenterContext context) {
+    private void showExecptionAlertThenExit(Throwable ex, Window owner) {
 		Platform.runLater(() -> {
 			// and show the error
 			Alert a = Alerts.exception(
-					context.getApplicationState().getScene().getWindow(),
+					owner,
 					Translations.get("init.error.title"), 
 					Translations.get("init.error.header"), 
 					ex.getMessage(), 
@@ -423,13 +429,13 @@ public final class Praisenter extends Application {
 		});
 	}
     
-    private CompletableFuture<Void> loadConfiguration(PraisenterContext context) {
-    	return context.dataManager.registerPersistAdapter(Configuration.class, new ConfigurationPersistAdapter(Paths.get(Constants.CONFIG_ABSOLUTE_PATH))).exceptionally((ex) -> {
+    private CompletableFuture<Configuration> loadConfiguration(DataManager dataManager) {
+    	return dataManager.registerPersistAdapter(Configuration.class, new ConfigurationPersistAdapter(Paths.get(Constants.CONFIG_ABSOLUTE_PATH))).exceptionally((ex) -> {
     		LOGGER.error("Failed to load configuration: ", ex);
     		return null;
     	}).thenCompose(AsyncHelper.onJavaFXThreadAndWait((a) -> {
     		LOGGER.info("Loading configuration.");
-    		List<Configuration> configs = context.dataManager.getItems(Configuration.class);
+    		List<Configuration> configs = dataManager.getItems(Configuration.class);
     		if (configs.isEmpty()) {
     			return null;
     		}
@@ -438,14 +444,14 @@ public final class Praisenter extends Application {
     		LOGGER.error("", ex);
     		return null;
     	}).thenCompose((configuration) -> {
-        	CompletableFuture<Void> future = CompletableFuture.completedFuture(null);
+    		// just return the config if it's not null
+        	CompletableFuture<Configuration> future = CompletableFuture.completedFuture(configuration);
         	if (configuration == null) {
+        		// if it is null, then create a new default configuration
         		LOGGER.info("Configuration not found, creating a new one with default settings.");
-        		configuration = new Configuration();
-        		future = context.dataManager.create(configuration);
+        		final Configuration newConfiguration = new Configuration();
+        		future = dataManager.create(newConfiguration).thenApply((o) -> newConfiguration);
         	}
-        	
-        	context.configuration = configuration;
         	
         	LOGGER.info("Saving configuration.");
         	return future;
@@ -507,7 +513,7 @@ public final class Praisenter extends Application {
 //		}
 //    }
     
-    private CompletableFuture<Void> onCloseRequest(ReadOnlyPraisenterContext context) {
+    private CompletableFuture<Void> onCloseRequest(GlobalContext context) {
     	// close the presentation screens
 		//this.context.getDisplayManager().release();
 		

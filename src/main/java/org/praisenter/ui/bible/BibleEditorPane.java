@@ -1,13 +1,17 @@
 package org.praisenter.ui.bible;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import org.praisenter.Constants;
 import org.praisenter.async.AsyncHelper;
+import org.praisenter.async.BackgroundTask;
+import org.praisenter.async.InOrderExecutionManager;
 import org.praisenter.data.bible.Bible;
 import org.praisenter.data.bible.Book;
 import org.praisenter.data.bible.Chapter;
@@ -15,30 +19,25 @@ import org.praisenter.data.bible.Verse;
 import org.praisenter.data.json.JsonIO;
 import org.praisenter.ui.Action;
 import org.praisenter.ui.ConfirmationPromptPane;
-import org.praisenter.ui.DocumentContext;
-import org.praisenter.ui.DocumentPane;
-import org.praisenter.ui.ReadOnlyPraisenterContext;
+import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.SaveAsPromptPane;
+import org.praisenter.ui.document.DocumentContext;
+import org.praisenter.ui.document.DocumentEditor;
 import org.praisenter.ui.events.ActionPromptPaneCompleteEvent;
 import org.praisenter.ui.events.ActionStateChangedEvent;
+import org.praisenter.ui.translations.Translations;
 import org.praisenter.ui.undo.UndoManager;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ReadOnlyBooleanProperty;
-import javafx.beans.property.ReadOnlyStringProperty;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
-import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
 import javafx.scene.Node;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.input.Clipboard;
@@ -51,9 +50,9 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
 
 // TODO error handling, translations, UI clean up, context menu
-// TODO drag n drop scrolling, selection
+// TODO drag n drop scrolling
 
-public final class BibleEditorPane extends BorderPane implements DocumentPane<Bible> {
+public final class BibleEditorPane extends BorderPane implements DocumentEditor<Bible> {
 	private static final DataFormat BOOK_CLIPBOARD_DATA = new DataFormat("application/x-praisenter-json-list;class=" + Book.class.getName());
 	private static final DataFormat CHAPTER_CLIPBOARD_DATA = new DataFormat("application/x-praisenter-json-list;class=" + Chapter.class.getName());
 	private static final DataFormat VERSE_CLIPBOARD_DATA = new DataFormat("application/x-praisenter-json-list;class=" + Verse.class.getName());
@@ -64,55 +63,37 @@ public final class BibleEditorPane extends BorderPane implements DocumentPane<Bi
 	
 	// data
 	
-	private final ReadOnlyPraisenterContext context;
-	
-//	private final ObjectProperty<Bible> bible;
-	private final ObjectProperty<DocumentContext<Bible>> documentContext;
-	private final ObjectProperty<Bible> bible;
-	
-	private final BooleanProperty hasUnsavedChanges;
-	private final StringProperty documentName;
-	
+	private final GlobalContext context;
+	private final DocumentContext<Bible> documentContext;
+
 	// helpers
 	
-//	private final ObservableList<Object> selectedItems;
-	private final UndoManager undoManager = new UndoManager();
+	private final Bible bible;
+	private final UndoManager undoManager;
+	private final InOrderExecutionManager executionManager;
 	
 	// nodes
 	
 	private final TreeView<Object> treeView;
 	
-	public BibleEditorPane(ReadOnlyPraisenterContext context) {
+	public BibleEditorPane(
+			GlobalContext context, 
+			DocumentContext<Bible> documentContext) {
 		this.getStyleClass().add("bible-editor-pane");
 		
 		this.context = context;
+		this.documentContext = documentContext;
 		
-		this.documentContext = new SimpleObjectProperty<>();
-		this.bible = new SimpleObjectProperty<>();
+		// set the helpers
 		
-		this.hasUnsavedChanges = new SimpleBooleanProperty();
-		this.documentName = new SimpleStringProperty();
-		
-		this.documentContext.addListener((obs, ov, nv) -> {
-			this.bible.unbind();
-			if (nv != null) {
-				this.bible.bind(nv.documentProperty());
-			}
-		});
-		
-		this.bible.addListener((obs, ov, nv) -> {
-			if (ov != null) {
-				this.documentName.unbind();
-			}
-			if (nv != null) {
-				this.documentName.bind(nv.nameProperty());
-			}
-		});
+		this.bible = documentContext.getDocument();
+		this.undoManager = documentContext.getUndoManager();
+		this.executionManager = new InOrderExecutionManager();
 		
 		// the tree
 		
 		BibleTreeItem root = new BibleTreeItem();
-		root.valueProperty().bind(this.bible);
+		root.setValue(this.bible);
 		
 		this.treeView = new TreeView<Object>(root);
 		this.treeView.getStyleClass().add("bible-editor-pane-tree-view");
@@ -130,7 +111,7 @@ public final class BibleEditorPane extends BorderPane implements DocumentPane<Bi
 		
 		this.treeView.getSelectionModel().getSelectedItems().addListener((ListChangeListener.Change<? extends TreeItem<Object>> change) -> {
 			// set the selected items
-			this.documentContext.get().getSelectedItems().setAll(this.treeView
+			documentContext.getSelectedItems().setAll(this.treeView
 					.getSelectionModel()
 					.getSelectedItems()
 					.stream().filter(i -> i != null && i.getValue() != null)
@@ -138,14 +119,41 @@ public final class BibleEditorPane extends BorderPane implements DocumentPane<Bi
 					.collect(Collectors.toList()));
 		});
 		
-		this.undoManager.targetProperty().bind(this.bible);
-		this.undoManager.undoCountProperty().addListener(this::onUndoStateChanged);
-		this.undoManager.redoCountProperty().addListener(this::onUndoStateChanged);
+		documentContext.getUndoManager().undoCountProperty().addListener(this::onUndoStateChanged);
+		documentContext.getUndoManager().redoCountProperty().addListener(this::onUndoStateChanged);
 		
-		this.hasUnsavedChanges.bind(this.undoManager.topMarkedProperty().not());
+		ContextMenu menu = new ContextMenu();
+		menu.getItems().addAll(
+//				menu.createMenuItem(ApplicationAction.NEW_BOOK),
+//				menu.createMenuItem(ApplicationAction.NEW_CHAPTER),
+//				menu.createMenuItem(ApplicationAction.NEW_VERSE),
+				new SeparatorMenuItem(),
+				this.createMenuItem(Action.COPY),
+				this.createMenuItem(Action.CUT),
+				this.createMenuItem(Action.PASTE),
+				new SeparatorMenuItem(),
+				this.createMenuItem(Action.REORDER),
+				this.createMenuItem(Action.RENUMBER),
+				new SeparatorMenuItem(),
+				this.createMenuItem(Action.DELETE)
+			);
+		this.treeView.setContextMenu(menu);
+		
+		// when the menu is shown, update the enabled/disable state
+		menu.showingProperty().addListener((obs, ov, nv) -> {
+			if (nv) {
+				// update the enable state
+				for (MenuItem mnu : menu.getItems()) {
+					Action action = (Action)mnu.getUserData();
+					if (action != null) {
+						boolean isEnabled = this.isActionEnabled(action);
+						mnu.setDisable(!isEnabled);
+					}
+				}
+			}
+		});
 		
 		this.setCenter(this.treeView);
-		
 	}
 	
 	private void onUndoStateChanged(ObservableValue<? extends Number> obs, Number ov, Number nv) {
@@ -154,42 +162,20 @@ public final class BibleEditorPane extends BorderPane implements DocumentPane<Bi
 	
 	@Override
 	public DocumentContext<Bible> getDocumentContext() {
-		return this.documentContext.get();
-	}
-	
-	@Override
-	public void setDocumentContext(DocumentContext<Bible> documentContext) {
-		this.documentContext.set(documentContext);
-	}
-	
-	@Override
-	public ObjectProperty<DocumentContext<Bible>> documentContextProperty() {
 		return this.documentContext;
 	}
 	
-	@Override
-	public String getDocumentName() {
-		return this.documentName.get();
-	}
-	
-	@Override
-	public ObservableList<Object> getSelectedItems() {
-		return this.documentContext.get().getSelectedItems();
-	}
-	
-	@Override
-	public ReadOnlyStringProperty documentNameProperty() {
-		return this.documentName;
-	}
-	
-	@Override
-	public boolean hasUnsavedChanges() {
-		return this.hasUnsavedChanges.get();
-	}
-	
-	@Override
-	public ReadOnlyBooleanProperty unsavedChangesProperty() {
-		return this.hasUnsavedChanges;
+	private MenuItem createMenuItem(Action action) {
+		MenuItem mnu = new MenuItem(Translations.get(action.getMessageKey()));
+		if (action.getGraphicSupplier() != null) {
+			mnu.setGraphic(action.getGraphicSupplier().get());
+		}
+		// NOTE: due to bug in JavaFX, we don't apply the accelerator here
+		//mnu.setAccelerator(value);
+		
+		mnu.setOnAction(e -> this.executeAction(action));
+		mnu.setUserData(action);
+		return mnu;
 	}
 	
 	@Override
@@ -197,14 +183,13 @@ public final class BibleEditorPane extends BorderPane implements DocumentPane<Bi
 		this.treeView.requestFocus();
 	}
 	
-	@Override
-	public void cleanUp() {
-		this.documentContext.set(null);
-		this.undoManager.reset();
-	}
+//	@Override
+//	public void cleanUp() {
+//		
+//	}
 	
 	@Override
-	public CompletableFuture<Node> performAction(Action action) {
+	public CompletableFuture<Node> executeAction(Action action) {
 		switch (action) {
 			case COPY:
 				return this.copy(false);
@@ -214,10 +199,10 @@ public final class BibleEditorPane extends BorderPane implements DocumentPane<Bi
 				return this.copy(true);
 			case DELETE:
 				return this.delete();
-			case NEW_BOOK:
-			case NEW_CHAPTER:
-			case NEW_VERSE:
-				return this.create(action);
+//			case NEW_BOOK:
+//			case NEW_CHAPTER:
+//			case NEW_VERSE:
+//				return this.create(action);
 			case REDO:
 				return this.redo();
 			case UNDO:
@@ -227,9 +212,9 @@ public final class BibleEditorPane extends BorderPane implements DocumentPane<Bi
 			case REORDER:
 				return this.reorder();
 			case SAVE:
-				return this.save();
-			case SAVE_AS:
-				return this.saveAs();
+				return this.save().thenApply((a) -> { return null; });
+//			case SAVE_AS:
+//				return this.saveAs();
 			default:
 				return CompletableFuture.completedFuture(null);
 		}
@@ -237,7 +222,7 @@ public final class BibleEditorPane extends BorderPane implements DocumentPane<Bi
 	
 	@Override
 	public boolean isActionEnabled(Action action) {
-		DocumentContext<Bible> ctx = this.documentContext.get();
+		DocumentContext<Bible> ctx = this.documentContext;
 		switch (action) {
 			case COPY:
 				return ctx.isSingleTypeSelected() && ctx.getSelectedType() != Bible.class;
@@ -249,24 +234,24 @@ public final class BibleEditorPane extends BorderPane implements DocumentPane<Bi
 					   (ctx.getSelectedType() == Chapter.class && Clipboard.getSystemClipboard().hasContent(VERSE_CLIPBOARD_DATA));
 			case DELETE:
 				return ctx.getSelectedCount() > 0 && ctx.getSelectedType() != Bible.class;
-			case NEW_BOOK:
-				return ctx.getSelectedCount() == 1 && ctx.getSelectedType() == Bible.class;
-			case NEW_CHAPTER:
-				return ctx.getSelectedCount() == 1 && ctx.getSelectedType() == Book.class;
-			case NEW_VERSE:
-				return ctx.getSelectedCount() == 1 && ctx.getSelectedType() == Chapter.class;
+//			case NEW_BOOK:
+//				return ctx.getSelectedCount() == 1 && ctx.getSelectedType() == Bible.class;
+//			case NEW_CHAPTER:
+//				return ctx.getSelectedCount() == 1 && ctx.getSelectedType() == Book.class;
+//			case NEW_VERSE:
+//				return ctx.getSelectedCount() == 1 && ctx.getSelectedType() == Chapter.class;
 			case REDO:
-				return this.undoManager.isRedoAvailable();
+				return ctx.getUndoManager().isRedoAvailable();
 			case UNDO:
-				return this.undoManager.isUndoAvailable();
+				return ctx.getUndoManager().isUndoAvailable();
 			case RENUMBER:
 				return ctx.getSelectedCount() == 1 && ctx.getSelectedType() != Verse.class;
 			case REORDER:
 				return ctx.getSelectedCount() == 1 && ctx.getSelectedType() != Verse.class;
-			case SAVE:
-				return true;
-			case SAVE_AS:
-				return true;
+//			case SAVE:
+//				return true;
+//			case SAVE_AS:
+//				return true;
 			default:
 				return false;
 		}
@@ -313,25 +298,25 @@ public final class BibleEditorPane extends BorderPane implements DocumentPane<Bi
 		return AsyncHelper.nil();
 	}
 	
-	private CompletableFuture<Node> create(Action action) {
-		switch (action) {
-			case NEW_BOOK:
-				
-				break;
-			case NEW_CHAPTER:
-				
-				break;
-			case NEW_VERSE:
-				
-				break;
-			default:
-				break;
-		}
-		return AsyncHelper.nil();
-	}
+//	private CompletableFuture<Node> create(Action action) {
+//		switch (action) {
+//			case NEW_BOOK:
+//				
+//				break;
+//			case NEW_CHAPTER:
+//				
+//				break;
+//			case NEW_VERSE:
+//				
+//				break;
+//			default:
+//				break;
+//		}
+//		return AsyncHelper.nil();
+//	}
 	
 	private CompletableFuture<Node> renumber() {
-		if (this.documentContext.get().getSelectedCount() == 1) {
+		if (this.documentContext.getSelectedCount() == 1) {
 			// capture the item to be renumbered
 			final TreeItem<Object> selected = this.treeView.getSelectionModel().getSelectedItem();
 			if (selected != null) {
@@ -376,7 +361,7 @@ public final class BibleEditorPane extends BorderPane implements DocumentPane<Bi
 	}
 	
 	private CompletableFuture<Node> reorder() {
-		if (this.documentContext.get().getSelectedCount() == 1) {
+		if (this.documentContext.getSelectedCount() == 1) {
 			// capture the item to be renumbered
 			final TreeItem<Object> selected = this.treeView.getSelectionModel().getSelectedItem();
 			if (selected != null) {
@@ -420,49 +405,92 @@ public final class BibleEditorPane extends BorderPane implements DocumentPane<Bi
 		}
 	}
 	
-	private CompletableFuture<Node> save() {
-		Bible bible = this.documentContext.get().getDocument();
+	private CompletableFuture<Void> save() {
+		Bible bible = this.bible;
 		if (bible != null) {
-			return this.context.getDataManager().update(bible.copy()).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
-				this.undoManager.mark();
-			})).thenCompose(n -> {
-				return null;
-			});
-		}
-		return AsyncHelper.nil();
-	}
-	
-	private CompletableFuture<Node> saveAs() {
-		Bible bible = this.documentContext.get().getDocument();
-		if (bible != null) {
-			final String name = bible.getName();
-			final UUID id = bible.getId();
-			
-			// prompt for new name
-			SaveAsPromptPane confirm = new SaveAsPromptPane();
-			confirm.setTitle("Save this bible as...");
-			confirm.setMessage("Please choose a new name for the bible");
-			confirm.setName("Copy of " + name);
-			confirm.addEventHandler(ActionPromptPaneCompleteEvent.ACCEPT, e -> {
-				String newName = confirm.getName();
-				bible.setId(UUID.randomUUID());
-				bible.setName(newName);
-				this.context.getDataManager().create(bible.copy()).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
-					this.undoManager.mark();
-				})).exceptionally(t -> {
-					// revert changes
-					bible.setId(id);
-					bible.setName(name);
-					return null;
-				}).thenCompose(n -> {
+			// update the modified on
+			bible.setModifiedDate(Instant.now());
+			// now create a copy to be saved
+			final Bible copy = bible.copy();
+			final Object position = this.undoManager.storePosition();
+			this.executionManager.execute((o) -> {
+				System.out.println("Saving " + copy.getModifiedDate());
+				BackgroundTask task = new BackgroundTask();
+				task.setName("Save " + this.bible.getName());
+				task.setMessage("Saving...");
+				this.context.addBackgroundTask(task);
+				return this.context.getDataManager().update(copy).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
+					this.undoManager.markPosition(position);
+					task.setProgress(1);
+				})).exceptionally((ex) -> {
+					task.setException(ex);
 					return null;
 				});
 			});
-			return CompletableFuture.completedFuture(confirm);
+			
+			
+//// TODO need to make sure that saves don't interleave
+//			this.saveBarrier.thenRun(() -> {
+//				BackgroundTask task = new BackgroundTask();
+//				task.setName("Save " + this.bible.getName());
+//				task.setMessage("Saving...");
+//				this.context.addBackgroundTask(task);
+//				this.saveBarrier = this.context.getDataManager().update(bible.copy()).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
+//					this.undoManager.mark();
+//					task.setProgress(1);
+//				})).exceptionally((ex) -> {
+//					task.setException(ex);
+//					return null;
+//				});
+//			});
+			
 		}
 		return AsyncHelper.nil();
 	}
-	
+
+//	private CompletableFuture<Node> saveAs() {
+//		Bible bible = this.bible;
+//		if (bible != null) {
+//			final String name = bible.getName();
+//			final UUID id = bible.getId();
+//			
+//			// prompt for new name
+//			SaveAsPromptPane confirm = new SaveAsPromptPane();
+//			confirm.setTitle("Save this bible as...");
+//			confirm.setMessage("Please choose a new name for the bible");
+//			confirm.setName("Copy of " + name);
+//			confirm.addEventHandler(ActionPromptPaneCompleteEvent.ACCEPT, e -> {
+//				String newName = confirm.getName();
+//				bible.setId(UUID.randomUUID());
+//				bible.setName(newName);
+//				bible.setModifiedDate(Instant.now());
+//				final Bible copy = bible.copy();
+//				final Object position = this.undoManager.storePosition();
+//				this.executionManager.execute((o) -> {
+//					return this.context.getDataManager().create(copy).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
+//						this.undoManager.markPosition(position);
+//					})).exceptionally(t -> {
+//						// revert changes
+//						bible.setId(id);
+//						// another option is to not allow Save As... and the user just needs to copy the document first
+//						// NOTE: this will cause another undo to be placed, which kind of sucks
+//						// but I don't see a way around this right now, this causes two undos to occur...
+//						// make sure the name hasn't changed since we attempted to save
+//						// if it hasn't, then we can revert the name
+//						if (Objects.equals(bible.getName(), newName)) {
+//							bible.setName(name);
+//						}
+//						return null;
+//					}).thenCompose(n -> {
+//						return null;
+//					});
+//				});
+//			});
+//			return CompletableFuture.completedFuture(confirm);
+//		}
+//		return AsyncHelper.nil();
+//	}
+//	
 	private ClipboardContent getClipboardContentForSelection(boolean serializeData) throws JsonProcessingException {
 		List<TreeItem<Object>> items = this.treeView.getSelectionModel().getSelectedItems();
 		List<Object> objectData = items.stream().map(i -> i.getValue()).collect(Collectors.toList());
@@ -471,7 +499,7 @@ public final class BibleEditorPane extends BorderPane implements DocumentPane<Bi
 		List<String> textData = new ArrayList<>();
 		DataFormat format = null;
 		
-		Class<?> clazz = this.documentContext.get().getSelectedType();
+		Class<?> clazz = this.documentContext.getSelectedType();
 		if (clazz == Book.class) {
 			format = BOOK_CLIPBOARD_DATA;
 			textData = items.stream().map(b -> ((Book)b.getValue()).getName()).collect(Collectors.toList());
@@ -491,7 +519,7 @@ public final class BibleEditorPane extends BorderPane implements DocumentPane<Bi
 	}
 	
 	private CompletableFuture<Node> copy(boolean isCut) {
-		Class<?> clazz = this.documentContext.get().getSelectedType();
+		Class<?> clazz = this.documentContext.getSelectedType();
 		if (clazz != null && clazz != Bible.class) {
 			List<TreeItem<Object>> items = this.treeView.getSelectionModel().getSelectedItems();
 			List<Object> objectData = items.stream().map(i -> i.getValue()).collect(Collectors.toList());
@@ -523,13 +551,13 @@ public final class BibleEditorPane extends BorderPane implements DocumentPane<Bi
 	}
 	
 	private CompletableFuture<Node> paste() {
-		if (this.documentContext.get().getSelectedCount() == 1) {
+		if (this.documentContext.getSelectedCount() == 1) {
 			Clipboard clipboard = Clipboard.getSystemClipboard();
 			TreeItem<Object> selected = this.treeView.getSelectionModel().getSelectedItem();
 			try {
 				if (selected.getValue() instanceof Bible && clipboard.hasContent(BOOK_CLIPBOARD_DATA)) {
 					Book[] books = JsonIO.read((String)clipboard.getContent(BOOK_CLIPBOARD_DATA), Book[].class);
-					this.bible.get().getBooks().addAll(books);
+					this.bible.getBooks().addAll(books);
 				} else if (selected.getValue() instanceof Book && clipboard.hasContent(CHAPTER_CLIPBOARD_DATA)) {
 					Chapter[] chapters = JsonIO.read((String)clipboard.getContent(CHAPTER_CLIPBOARD_DATA), Chapter[].class);
 					((Book)selected.getValue()).getChapters().addAll(chapters);
@@ -548,7 +576,7 @@ public final class BibleEditorPane extends BorderPane implements DocumentPane<Bi
 	}
 	
 	private void dragDetected(MouseEvent e) {
-		if (this.documentContext.get().isSingleTypeSelected()) {
+		if (this.documentContext.isSingleTypeSelected()) {
 			try {
 				Dragboard db = ((Node)e.getSource()).startDragAndDrop(TransferMode.COPY_OR_MOVE);
 				ClipboardContent content = this.getClipboardContentForSelection(false);

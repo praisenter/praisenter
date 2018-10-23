@@ -1,15 +1,12 @@
-package org.praisenter.ui;
+package org.praisenter.ui.document;
 
+import org.praisenter.data.Persistable;
 import org.praisenter.data.bible.Bible;
+import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.bible.BiblePropertiesPane;
 
-import com.fasterxml.jackson.annotation.SimpleObjectIdResolver;
-
-import javafx.beans.binding.Bindings;
-import javafx.beans.binding.ObjectBinding;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.value.ObservableValue;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 
@@ -36,19 +33,21 @@ import javafx.scene.layout.VBox;
 // + About UI (modal)
 // + Configuration (maybe modal?)
 
-public final class ContextPropertiesPane extends VBox {
-	private final ReadOnlyPraisenterContext context;
+
+// TODO move to the document editor pane
+public final class DocumentPropertiesPane extends VBox {
+	private final GlobalContext context;
 	
 	// context panes
 	
 	private final BiblePropertiesPane biblePropertiesPane;
 	
-	public ContextPropertiesPane(ReadOnlyPraisenterContext context) {
+	public DocumentPropertiesPane(GlobalContext context) {
 		this.context = context;
 		
 		this.biblePropertiesPane = new BiblePropertiesPane();
 		
-		Binder<Bible> bible = new Binder<>(Bible.class, context.getApplicationState().currentDocumentProperty());
+		Binder<Bible> bible = new Binder<>(Bible.class, context.currentDocumentProperty());
 		this.biblePropertiesPane.documentContextProperty().bind(bible.target);//this.createObjectBinding(Bible.class, context.getApplicationState().currentDocumentProperty()));
 		
 		this.getChildren().addAll(
@@ -56,18 +55,7 @@ public final class ContextPropertiesPane extends VBox {
 				this.biblePropertiesPane);
 	}
 	
-//	private <T> ObjectBinding<DocumentContext<T>> createObjectBinding(Class<T> clazz, ObservableValue<DocumentContext<?>> source) {
-//		return Bindings.createObjectBinding(() -> {
-//			DocumentContext<?> ctx = source.getValue();
-//			Object value = ctx.getDocument();
-//			if (value != null && value.getClass() == clazz) {
-//				return (DocumentContext<T>)ctx;
-//			}
-//			return null;
-//		}, source);
-//	}
-	
-	private class Binder<T> {
+	private class Binder<T extends Persistable> {
 		private final Class<T> clazz;
 		private final ObjectProperty<DocumentContext<?>> source;
 		private final ObjectProperty<Object> document;
@@ -81,6 +69,7 @@ public final class ContextPropertiesPane extends VBox {
 			
 			this.source.addListener((obs, ov, nv) -> {
 				this.document.unbind();
+				this.document.set(null);
 				if (nv != null) this.document.bind(nv.documentProperty());
 			});
 			
@@ -93,15 +82,4 @@ public final class ContextPropertiesPane extends VBox {
 			});
 		}
 	}
-	
-	
-//	public Object getDocument();
-//	public void setDocument(Object object);
-//	public ObjectProperty<Object> documentProperty();
-//	
-//	public Object getSelectedItem();
-//	public void setSelectedItem(Object item);
-//	public ObjectProperty<Object> selectedItemProperty();
-//	
-//	public ObservableList<Object> getSelectedItems();
 }
