@@ -29,7 +29,7 @@ https://stackoverflow.com/questions/50011276/javafx-treeview-expand-collapse-dis
     -fx-rotate: 90;
 }
 
-/* ============== Components ================= */
+/* ============== Reusable Components ================= */
 
 
 /* FlowListView */
@@ -63,108 +63,49 @@ https://stackoverflow.com/questions/50011276/javafx-treeview-expand-collapse-dis
 	-fx-stroke-width: 1;
 }
 
+/* ============== Praisenter Views ================= */
 
-
-.root {
-	menu-bg-color: cornflowerblue;
-	menu-fg-color: white;
-	menu-ha-color: derive(menu-bg-color, -10%);
-}
-
-.navigation-bar {
-	-fx-padding: 0;
-	-fx-background-color: menu-bg-color;
-	-fx-spacing: 0;
-}
-.navigation-bar .menu {
-	-fx-padding: 20;
-	-fx-background-insets: 0;
-	-fx-min-height: 61;
-}
-.navigation-bar > .container > .menu-button:hover,
-.navigation-bar > .container > .menu-button:focused,
-.navigation-bar > .container > .menu-button:showing {
-	-fx-background-color: menu-ha-color;
-}
-.navigation-bar .menu > .right-container > .arrow {
-	-fx-background-color: menu-fg-color;
-}
-.navigation-bar .menu:hover,
-.navigation-bar .menu:focused,
-.navigation-bar .menu:pressed {
-	-fx-background-color: menu-ha-color;
-}
-.navigation-bar .context-menu {
-	-fx-padding: 0;
-	-fx-background-color: menu-bg-color;
-}
-.navigation-bar .context-menu .separator:horizontal .line {
-    -fx-border-color: menu-ha-color;
-    -fx-border-width: 1 0 0 0;
-    -fx-border-insets: 0;
-}
-.navigation-bar .menu > .label {
-	-fx-text-fill: menu-fg-color;
-	-fx-font-size: 1.3em;
-	-fx-font-weight: bold;
-}
-.navigation-bar .menu-item {
-	-fx-padding: 10;
-	-fx-min-height: 61;
-}
-.navigation-bar .menu-item > .label {
-	-fx-text-fill: menu-fg-color;
-	-fx-font-size: 1.3em;
-	-fx-font-weight: bold;
-}
-.navigation-bar .menu-item:hover,
-.navigation-bar .menu-item:focused {
-	-fx-background-color: menu-ha-color;
-}
-.navigation-bar .menu-item .graphic-container {
-	-fx-padding: 10;
-}
-.navigation-bar .menu-item .graphic-container .label {
-	-fx-text-fill: menu-fg-color;
-}
-
-.navigation-bar .hamburger {
-	-fx-spacing: 6;
-}
-
-.navigation-bar .hamburger Line {
-	-fx-stroke-width: 3;
-	-fx-stroke: menu-fg-color;
-	-fx-fill: menu-fg-color;
-}
+/* ActionBar */
+.p-action-bar {}
+.p-action-bar .button {}
 
 /* BibleEditorPane */
-.bible-editor-pane {}
-.bible-editor-pane-tree-view {}
-.bible-tree-cell {}
-.bible-tree-cell-verse-number {
+.p-bible-editor {}
+.p-bible-editor .tree-view {}
+.p-bible-editor .tree-view .tree-cell {}
+.p-bible-editor .verse-number {
 	-fx-font-weight: bold; 
 	-fx-font-size: 0.8em;
 }
 
+/* BiblePropertiesPane */
+.p-bible-properties {}
+
+
+
+
+
+
+
+
+
 
 /* BibleListCell */
-.bible-list-cell {
+.library-list-cell {
 	-fx-alignment: top-center;
 	-fx-pref-width: 110;
 }
-.bible-list-cell-thumbnail {
+.library-list-cell > .image-wrapper > .bible {
 	-fx-image: url("/org/praisenter/images/bible-icon.png");
 	-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.25), 2, 0, 2, 2);
 }
-.bible-list-cell-progress {}
-.bible-list-cell-wrapper {
+.library-list-cell > .image-wrapper {
 	-fx-alignment: bottom-center;
 	-fx-pref-height: 100;
 	-fx-max-height: 100;
 	-fx-min-height: 100;
 }
-.bible-list-cell-name {
+.library-list-cell > Label {
 	-fx-text-alignment: center;
 	-fx-padding: 5 0 0 0;
 	-fx-wrap-text: true;

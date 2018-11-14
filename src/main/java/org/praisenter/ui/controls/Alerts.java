@@ -22,7 +22,7 @@
  * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
  * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.praisenter.javafx.controls;
+package org.praisenter.ui.controls;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -82,9 +82,9 @@ public final class Alerts {
 			alert.initOwner(owner);
 		}
 		alert.initModality(Modality.APPLICATION_MODAL);
-		alert.setTitle(title == null ? Translations.get("error.alert.title") : title);
-		alert.setHeaderText(header == null ? Translations.get("error.alert.message") : header);
-		alert.setContentText(content == null ? Translations.get("error.alert.message") : content);
+		alert.setTitle(title == null ? Translations.get("error.title") : title);
+		alert.setHeaderText(header == null ? Translations.get("error.message") : header);
+		alert.setContentText(content == null ? Translations.get("error.message") : content);
 
 		// create expandable section with the exceptions in it
 		StringWriter sw = new StringWriter();
@@ -96,7 +96,7 @@ public final class Alerts {
 		}
 		String exceptionText = sw.toString();
 
-		Label label = new Label(Translations.get("error.alert.stacktrace"));
+		Label label = new Label(Translations.get("error.stacktrace"));
 
 		TextArea textArea = new TextArea(exceptionText);
 		textArea.setEditable(false);
@@ -131,7 +131,7 @@ public final class Alerts {
 	 * @param optOutAction the action to execute when the opt out is changed
 	 * @return Alert
 	 */
-	public static final Alert optOut(
+	public static final Alert confirmWithOptOut(
 			Window owner,
 			Modality modality,
 			AlertType type, 

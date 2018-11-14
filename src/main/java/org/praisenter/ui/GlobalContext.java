@@ -1,6 +1,7 @@
 package org.praisenter.ui;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -8,7 +9,6 @@ import java.util.concurrent.CompletableFuture;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.async.AsyncHelper;
-import org.praisenter.async.BackgroundTask;
 import org.praisenter.async.ReadOnlyBackgroundTask;
 import org.praisenter.data.DataManager;
 import org.praisenter.data.Persistable;
@@ -64,11 +64,13 @@ public final class GlobalContext {
 	
 	private final ObjectProperty<DocumentContext<? extends Persistable>> currentDocument;
 	private final ObservableList<DocumentContext<? extends Persistable>> openDocuments;
+	private final ObservableList<DocumentContext<? extends Persistable>> openDocumentsReadOnly;
 	
 	private final Map<Action, BooleanProperty> isEnabled;
 	private final Map<Action, BooleanProperty> isVisible;
 	
 	private final ObservableList<ReadOnlyBackgroundTask> tasks;
+	private final ObservableList<ReadOnlyBackgroundTask> tasksReadOnly;
 	private final BooleanProperty taskExecuting;
 	private final BooleanProperty taskFailed;
 
@@ -93,6 +95,7 @@ public final class GlobalContext {
 		
 		this.currentDocument = new SimpleObjectProperty<>();
 		this.openDocuments = FXCollections.observableArrayList();
+		this.openDocumentsReadOnly = FXCollections.unmodifiableObservableList(this.openDocuments);
 		
 		this.isEnabled = new HashMap<>();
 		this.isVisible = new HashMap<>();
@@ -108,6 +111,7 @@ public final class GlobalContext {
 				t.completeProperty()
 			};
 		});
+		this.tasksReadOnly = FXCollections.unmodifiableObservableList(this.tasks);
 		this.taskExecuting = new SimpleBooleanProperty();
 		this.taskFailed = new SimpleBooleanProperty();
 		
@@ -163,7 +167,15 @@ public final class GlobalContext {
 		};
 		
 		ListChangeListener<Object> lcl = (Change<? extends Object> c) -> {
-			this.onActionStateChanged("SELECTION_CHANGED=" + this.currentDocument.get().getSelectedItem());
+			Object selectedItem = null;
+			ActionPane ap = this.closestActionPane.get();
+			if (ap != null) {
+				List<?> selected = ap.getSelectedItems();
+				if (selected != null && selected.size() > 0) {
+					selectedItem = selected.get(0);
+				}
+			}
+			this.onActionStateChanged("SELECTION_CHANGED=" + (selectedItem != null ? selectedItem.toString() : "null"));
 		};
 		
 		this.closestActionPane.addListener((obs, ov, nv) -> {
@@ -197,23 +209,6 @@ public final class GlobalContext {
 		}, this.tasks));
 	}
 	
-	public static boolean isNodeInFocusChain(Node focused, Node... nodes) {
-		boolean isFocused = false;
-		while (nodes != null && nodes.length > 0 && focused != null) {
-			for (int i = 0; i < nodes.length; i++) {
-				if (focused == nodes[i]) {
-					isFocused = true;
-					break;
-				}
-			}
-			if (isFocused) {
-				break;
-			}
-			focused = focused.getParent();
-		}
-		return isFocused;
-	}
-
 	/**
 	 * Called in a number of scenarios so that the state of global actions can be updated.
 	 * @param reason the reason for the update
@@ -311,6 +306,9 @@ public final class GlobalContext {
 		switch (action) {
 			case RENUMBER:
 			case REORDER:
+			case NEW_BOOK:
+			case NEW_CHAPTER:
+			case NEW_VERSE:
 				return ap != null && ap.isActionVisible(action);
 			default:
 				return true;
@@ -322,67 +320,54 @@ public final class GlobalContext {
 	 * @param action
 	 * @return
 	 */
-	public CompletableFuture<Node> executeAction(Action action) {
-		// TODO undo/redo need to routed to the current document (not the current action pane)
-		boolean isUndoRedo = action == Action.UNDO || action == Action.REDO;
+	public CompletableFuture<Void> executeAction(Action action) {
+		// handle global actions (i.e. no context related to the action)
+		switch (action) {
+			case IMPORT:
+				// TODO show the file lookup
+				break;
+			case NEW:
+				// TODO show a new dialog
+				break;
+			default:
+				break;
+		}
 		
-		ActionPane ap = this.closestActionPane.get();
+		// if the last focused thing was a TextInputControl, then send actions there first
 		Node focused = this.getFocusOwner();
-		
 		boolean isTextInput = focused != null && focused instanceof TextInputControl;
 		TextInputControl control = null;
 		if (isTextInput) {
 			control = (TextInputControl)focused;
 		}
 		
-		// if the last focused thing was a TextInputControl, then send actions
-		// to it (other than undo/redo)
-		CompletableFuture<Node> future = CompletableFuture.completedFuture(null);
-		if (!isUndoRedo && isTextInput && this.isTextInputAction(action)) {
+		CompletableFuture<Void> future = CompletableFuture.completedFuture(null);
+		if (isTextInput && this.isTextInputAction(action)) {
 			// send commands to it
 			this.handleTextInputControlAction(control, action);
-		} else if (ap != null) {
-			future = ap.performAction(action);
+			return CompletableFuture.completedFuture(null);
 		}
 		
-		return future.thenApply((node) -> {
-			// when undo/redo is sent, update the action states after execution
-			if (isUndoRedo) {
-				AsyncHelper.onJavaFXThread(() -> {
-					this.onActionStateChanged("UNDO_REDO_ACTION");
-				});
-			}
-			
-			// return the node
-			return node;
+		// lastly, send the actions to the closest action pane to the focused node
+		ActionPane ap = this.closestActionPane.get();
+		if (ap != null) {
+			future = ap.executeAction(action);
+		}
+		
+		// when we're done, always update the action states
+		return future.thenApply((o) -> {
+			AsyncHelper.onJavaFXThread(() -> {
+				this.onActionStateChanged("ACTION_EXECUTED");
+			});
+			return null;
 		});
 	}
 	
-	private void handleAction2(Action action) {
-		// handle global actions (i.e. no context related to the action)
-		switch (action) {
-			case IMPORT:
-				// TODO show the file lookup
-				break;
-			default:
-				break;
-		}
-		
-		// context is determined by the current document
-		DocumentContext<?> document = this.currentDocument.get();
-		switch (action) {
-			case SAVE:
-				// save the current document
-				break;
-			case SAVE_ALL:
-				break;
-		}
-		
-		// context is determined by the current action pane
-		ActionPane ap = this.closestActionPane.get();
-		ap.performAction(action);
-	}
-	
+	/**
+	 * Handles the set of actions that a TextInputControl should be able to perform.
+	 * @param control the control
+	 * @param action the action
+	 */
 	private void handleTextInputControlAction(TextInputControl control, Action action) {
 		IndexRange selection = control.getSelection();
 		switch (action) {
@@ -416,6 +401,11 @@ public final class GlobalContext {
 		this.onActionStateChanged("TEXT_INPUT_CONTROL_ACTION");
 	}
 	
+	/**
+	 * Returns true if the given action is in the set of actions applicable to TextInputControls.
+	 * @param action the action
+	 * @return boolean
+	 */
 	private boolean isTextInputAction(Action action) {
 		switch(action) {
 			case COPY:
@@ -555,7 +545,7 @@ public final class GlobalContext {
 	 * @return ObservableList
 	 */
 	public ObservableList<DocumentContext<? extends Persistable>> getOpenDocumentsUnmodifiable() {
-		return FXCollections.unmodifiableObservableList(this.openDocuments);
+		return this.openDocumentsReadOnly;
 	}
 	
 	/**
@@ -597,7 +587,7 @@ public final class GlobalContext {
 	 * @return
 	 */
 	public ObservableList<ReadOnlyBackgroundTask> getBackgroundTasksUnmodifiable() {
-		return FXCollections.unmodifiableObservableList(this.tasks);
+		return this.tasksReadOnly;
 	}
 	
 	/**

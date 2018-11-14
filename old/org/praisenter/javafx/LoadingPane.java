@@ -29,7 +29,7 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.configuration.Configuration;
-import org.praisenter.javafx.controls.Alerts;
+import org.praisenter.ui.controls.Alerts;
 import org.praisenter.ui.translations.Translations;
 import org.praisenter.utility.RuntimeProperties;
 

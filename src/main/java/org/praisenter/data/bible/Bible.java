@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -68,6 +69,7 @@ public final class Bible implements ReadOnlyBible, Indexable, Persistable, Copya
 	private final StringProperty notes;
 	
 	private final ObservableList<Book> books;
+	private final ObservableList<Book> booksReadOnly;
 
 	public Bible() {
 		this.format = new SimpleStringProperty(Constants.FORMAT_NAME);
@@ -80,7 +82,9 @@ public final class Bible implements ReadOnlyBible, Indexable, Persistable, Copya
 		this.source = new SimpleStringProperty();
 		this.copyright = new SimpleStringProperty();
 		this.notes = new SimpleStringProperty();
+		
 		this.books = FXCollections.observableArrayList();
+		this.booksReadOnly = FXCollections.unmodifiableObservableList(this.books);
 	}
 	
 	/* (non-Javadoc)
@@ -506,6 +510,21 @@ public final class Bible implements ReadOnlyBible, Indexable, Persistable, Copya
 		return this.books.get(this.books.size() - 1);
 	}
 	
+	/**
+	 * Returns the highest book number among all the books.
+	 * @return int
+	 */
+	public int getMaxBookNumber() {
+		int max = -Integer.MAX_VALUE;
+		for (Book book : this.books) {
+			int n = book.getNumber();
+			if (n > max) {
+				max = n;
+			}
+		}
+		return max >= 0 ? max : 0;
+	}
+	
 	public void renumber() {
 		int n = 1;
 		for (Book book : this.books) {
@@ -528,12 +547,12 @@ public final class Bible implements ReadOnlyBible, Indexable, Persistable, Copya
 	}
 	
 	@JsonProperty(Constants.FORMAT_PROPERTY_NAME)
-	private void setFormat(String format) {
+	void setFormat(String format) {
 		this.format.set(format);
 	}
 	
 	@Override
-	public StringProperty formatProperty() {
+	public ReadOnlyStringProperty formatProperty() {
 		return this.format;
 	}
 	
@@ -544,12 +563,12 @@ public final class Bible implements ReadOnlyBible, Indexable, Persistable, Copya
 	}
 	
 	@JsonProperty(Constants.VERSION_PROPERTY_NAME)
-	public void setVersion(String version) {
+	void setVersion(String version) {
 		this.version.set(version);
 	}
 	
 	@Override
-	public StringProperty versionProperty() {
+	public ReadOnlyStringProperty versionProperty() {
 		return this.version;
 	}
 	
@@ -703,6 +722,6 @@ public final class Bible implements ReadOnlyBible, Indexable, Persistable, Copya
 	
 	@Override
 	public ObservableList<? extends ReadOnlyBook> getBooksUnmodifiable() {
-		return FXCollections.unmodifiableObservableList(this.books);
+		return this.booksReadOnly;
 	}
 }

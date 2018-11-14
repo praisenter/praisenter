@@ -26,9 +26,9 @@ package org.praisenter.ui.controls;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
-import org.praisenter.javafx.DataFormats;
 import org.praisenter.ui.MappedList;
 
 import javafx.beans.binding.Bindings;
@@ -37,7 +37,6 @@ import javafx.beans.property.ListProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.css.PseudoClass;
 import javafx.event.EventHandler;
@@ -77,7 +76,7 @@ public class FlowListView<T> extends ScrollPane {
     // state
     
     /** The cell factory */
-    private final Callback<T, FlowListCell<T>> cellFactory;
+    private final Callback<T, ? extends FlowListCell<T>> cellFactory;
     
     /** The selection model */
 	private final FlowListSelectionModel<T> selection;
@@ -88,9 +87,9 @@ public class FlowListView<T> extends ScrollPane {
 	private final TilePane layout;
 	
 	/** The item nodes */
-	private final ListProperty<FlowListCell<T>> nodes;
+//	private final ListProperty<FlowListCell<T>> nodes;
 	
-	private final MappedList<Node, T> mapping;
+	private final MappedList<FlowListCell<T>, T> mapping;
 	
 	/** The drag selection node */
 	private final Rectangle dragRect;
@@ -106,7 +105,7 @@ public class FlowListView<T> extends ScrollPane {
 	// drag reorder
 
 	/** A special data format for this instance of flow list only */
-	private final DataFormat REORDER = DataFormats.getUniqueFormat();
+	private final DataFormat REORDER = new DataFormat("application/x-praisenter-" + UUID.randomUUID().toString().replaceAll("-", ""));
 	
 	/** The cell being dragged */
 	private FlowListCell<T> dragReorderCell = null;
@@ -135,13 +134,13 @@ public class FlowListView<T> extends ScrollPane {
 	 * @param orientation the orientation of the items
 	 * @param cellFactory the cell factory
 	 */
-	public FlowListView(Orientation orientation, Callback<T, FlowListCell<T>> cellFactory) {
+	public FlowListView(Orientation orientation, Callback<T, ? extends FlowListCell<T>> cellFactory) {
 		this.getStyleClass().add("flow-list-view");
 		
 		this.cellFactory = cellFactory;
 
 		this.layout = new TilePane();
-		this.nodes = new SimpleListProperty<FlowListCell<T>>(FXCollections.observableArrayList());
+//		this.nodes = new SimpleListProperty<FlowListCell<T>>(FXCollections.observableArrayList());
 		
 		this.dragRect = new Rectangle();
 		this.dragRect.getStyleClass().add("flow-list-view-drag-selection-area");
@@ -274,7 +273,7 @@ public class FlowListView<T> extends ScrollPane {
 	 				
 	 				// select anything under the rect
 	 				List<FlowListCell<T>> nodes = new ArrayList<FlowListCell<T>>();
-	 				for (FlowListCell<T> node : this.nodes) {
+	 				for (FlowListCell<T> node : this.mapping) {
 	 					if (node.getBoundsInParent().intersects(x, y, w, h)) {
 	 						nodes.add(node);
 	 					}
@@ -283,8 +282,8 @@ public class FlowListView<T> extends ScrollPane {
 					// make sure the items selected have actually changed
 	 				// so we don't flood the listeners
 	 				List<T> items = nodes.stream().map(n -> n.getData()).collect(Collectors.toList());
-	 				if (!items.containsAll(this.selection.selectionsProperty()) || 
-	 					!this.selection.selectionsProperty().containsAll(items)) {
+	 				if (!items.containsAll(this.selection.getSelectedItems()) || 
+	 					!this.selection.getSelectedItems().containsAll(items)) {
 						this.selection.selectCellsOnly(nodes);
 	 				}
 	 			}

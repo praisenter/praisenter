@@ -40,8 +40,8 @@ import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.async.AsyncGroupTask;
 import org.praisenter.javafx.async.AsyncTask;
 import org.praisenter.javafx.async.AsyncTaskFactory;
-import org.praisenter.javafx.controls.Alerts;
 import org.praisenter.media.Media;
+import org.praisenter.ui.controls.Alerts;
 import org.praisenter.ui.translations.Translations;
 import org.praisenter.utility.MimeType;
 

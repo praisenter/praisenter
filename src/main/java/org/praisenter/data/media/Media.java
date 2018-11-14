@@ -56,6 +56,7 @@ import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.LongProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleLongProperty;
@@ -241,7 +242,7 @@ public final class Media implements ReadOnlyMedia, Indexable, Persistable, Copya
 	}
 	
 	@Override
-	public StringProperty formatProperty() {
+	public ReadOnlyStringProperty formatProperty() {
 		return this.format;
 	}
 	
@@ -257,7 +258,7 @@ public final class Media implements ReadOnlyMedia, Indexable, Persistable, Copya
 	}
 	
 	@Override
-	public StringProperty versionProperty() {
+	public ReadOnlyStringProperty versionProperty() {
 		return this.version;
 	}
 	
@@ -318,7 +319,7 @@ public final class Media implements ReadOnlyMedia, Indexable, Persistable, Copya
 	
 	@JsonProperty
 	@JsonDeserialize(using = InstantJsonDeserializer.class)
-	void setCreatedDate(Instant date) {
+	public void setCreatedDate(Instant date) {
 		this.createdDate.set(date);
 	}
 	
@@ -336,7 +337,7 @@ public final class Media implements ReadOnlyMedia, Indexable, Persistable, Copya
 	
 	@JsonProperty
 	@JsonDeserialize(using = InstantJsonDeserializer.class)
-	void setModifiedDate(Instant date) {
+	public void setModifiedDate(Instant date) {
 		this.modifiedDate.set(date);
 	}
 	

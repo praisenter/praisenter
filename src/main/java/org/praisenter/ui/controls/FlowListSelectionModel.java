@@ -27,18 +27,16 @@ package org.praisenter.ui.controls;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
+import org.praisenter.ui.MappedList;
 import org.praisenter.ui.events.FlowListViewSelectionEvent;
 
+import javafx.beans.binding.Bindings;
 import javafx.beans.binding.ObjectBinding;
 import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.ListProperty;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ReadOnlyListProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
@@ -69,8 +67,12 @@ public final class FlowListSelectionModel<T> {
 	/** The current selection when only one item is selected */
 	private final ObjectProperty<T> selection = new SimpleObjectProperty<T>();
 	
+	private final MappedList<T, FlowListCell<T>> mapping;
+	
 	/** The list of selected items */
-	private final ListProperty<T> selections = new SimpleListProperty<T>();
+	private final ObservableList<T> selections = FXCollections.observableArrayList();
+	
+	private final ObservableList<T> selectionsReadOnly = FXCollections.unmodifiableObservableList(this.selections);
 	
 	/** True if multi-selection is enabled */
 	private final BooleanProperty multiselect = new SimpleBooleanProperty(true);
@@ -92,7 +94,6 @@ public final class FlowListSelectionModel<T> {
 	 */
 	public FlowListSelectionModel(FlowListView<T> view) {
 		this.view = view;
-		this.selections.set(FXCollections.observableArrayList());
 		
 		// remove selections when the children are removed or replaced
 		this.view.getLayoutChildren().addListener(new ListChangeListener<Node>() {
@@ -107,11 +108,17 @@ public final class FlowListSelectionModel<T> {
 		
 		// make sure we update the publicly facing selections when the 
 		// internal selections are changed
-		this.selected.addListener((ListChangeListener.Change<? extends FlowListCell<T>> change) -> {
-			while (change.next()) {
-				this.selections.setAll(change.getList().stream().map(c -> c.getData()).collect(Collectors.toList()));
-			}
+//		this.selected.addListener((ListChangeListener.Change<? extends FlowListCell<T>> change) -> {
+//			while (change.next()) {
+//				this.selections.setAll(change.getList().stream().map(c -> c.getData()).collect(Collectors.toList()));
+//			}
+//		});
+		
+		this.mapping = new MappedList<>(this.selected, (item) -> {
+			return item.getData();
 		});
+		
+		Bindings.bindContent(this.selections, this.mapping);
 		
 		// make sure the single selection property is updated when the
 		// multi-selection property is changed
@@ -302,7 +309,6 @@ public final class FlowListSelectionModel<T> {
 			node.pseudoClassStateChanged(SELECTED, false);
 		}
 		this.selected.clear();
-		this.selections.clear();
 		this.last = null;
 	}
 	
@@ -523,16 +529,24 @@ public final class FlowListSelectionModel<T> {
 	 * use the other methods of this class to set selection programatically.
 	 * @return ListProperty&lt;T&gt;
 	 */
-	public ReadOnlyListProperty<T> selectionsProperty() {
-		return this.selections;
+	public ObservableList<T> getSelectedItems() {
+		return this.selectionsReadOnly;
+	}
+	
+	public T getSelectedItem() {
+		return this.selection.get();
 	}
 	
 	/**
 	 * Returns the single-selection property.
 	 * @return ReadOnlyObjectProperty&lt;T&gt;
 	 */
-	public ReadOnlyObjectProperty<T> selectionProperty() {
+	public ReadOnlyObjectProperty<T> selectedItemProperty() {
 		return this.selection;
+	}
+	
+	public boolean isMultiSelect() {
+		return this.multiselect.get();
 	}
 	
 	/**

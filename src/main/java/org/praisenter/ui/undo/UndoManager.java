@@ -105,7 +105,7 @@ public final class UndoManager {
 		// listened to
 		
 		this.undoAvailable.bind(Bindings.createBooleanBinding(() -> {
-			return !this.undos.isEmpty();
+			return this.undos.stream().filter(u -> u != Edit.MARK && !(u instanceof MarkPosition)).count() > 0;
 		}, this.undos));
 		
 		this.redoAvailable.bind(Bindings.createBooleanBinding(() -> {
@@ -146,7 +146,7 @@ public final class UndoManager {
 			this.redos.add(undo);
 			size--;
 			
-			if (undo == Edit.MARK && size > 1) {
+			if ((undo == Edit.MARK || undo instanceof MarkPosition) && size > 0) {
 				undo = this.undos.remove(size - 1);
 				undo.undo();
 				this.redos.add(undo);
@@ -172,7 +172,7 @@ public final class UndoManager {
 			this.undos.add(redo);
 			size--;
 			
-			if (redo == Edit.MARK && size > 1) {
+			if ((redo == Edit.MARK || redo instanceof MarkPosition) && size > 0) {
 				redo = this.redos.remove(size - 1);
 				redo.redo();
 				this.undos.add(redo);
@@ -260,12 +260,22 @@ public final class UndoManager {
 	}
 	
 	public void markPosition(Object position) {
-		int index = this.undos.indexOf(position);
-		if (index >= 0) {
+		int uindex = this.undos.indexOf(position);
+		int rindex = this.redos.indexOf(position);
+		if (uindex >= 0) {
 			this.unmark();
-			index = this.undos.indexOf(position);
-			this.undos.set(index, Edit.MARK);
+			uindex = this.undos.indexOf(position);
+			this.undos.set(uindex, Edit.MARK);
+		} else if (rindex >= 0) {
+			this.unmark();
+			rindex = this.redos.indexOf(position);
+			this.redos.set(rindex, Edit.MARK);
 		}
+	}
+	
+	public void clearPosition(Object position) {
+		this.undos.removeIf(u -> u == position);
+		this.redos.removeIf(r -> r == position);
 	}
 	
 	public Object getTarget() {

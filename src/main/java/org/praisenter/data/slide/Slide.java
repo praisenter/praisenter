@@ -68,6 +68,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import javafx.beans.property.LongProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -106,7 +107,9 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 	private final ObjectProperty<Path> thumbnailPath;
 	private final ObservableSet<Tag> tags;
 	private final ObservableList<SlideComponent> components;
+	private final ObservableList<SlideComponent> componentsReadOnly;
 	private final ObservableList<SlideAnimation> animations;
+	private final ObservableList<SlideAnimation> animationsReadOnly;
 
 	public Slide() {
 		this.format = new SimpleStringProperty(Constants.FORMAT_NAME);
@@ -118,7 +121,9 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 
 		this.tags = FXCollections.observableSet(new HashSet<>());
 		this.components = FXCollections.observableArrayList();
+		this.componentsReadOnly = FXCollections.unmodifiableObservableList(this.components);
 		this.animations = FXCollections.observableArrayList();
+		this.animationsReadOnly = FXCollections.unmodifiableObservableList(this.animations);
 		
 		this.thumbnailPath = new SimpleObjectProperty<>();
 		
@@ -185,12 +190,12 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 	}
 	
 	@JsonProperty(Constants.FORMAT_PROPERTY_NAME)
-	private void setFormat(String format) {
+	void setFormat(String format) {
 		this.format.set(format);
 	}
 	
 	@Override
-	public StringProperty formatProperty() {
+	public ReadOnlyStringProperty formatProperty() {
 		return this.format;
 	}
 	
@@ -201,12 +206,12 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 	}
 	
 	@JsonProperty(Constants.VERSION_PROPERTY_NAME)
-	public void setVersion(String version) {
+	void setVersion(String version) {
 		this.version.set(version);
 	}
 	
 	@Override
-	public StringProperty versionProperty() {
+	public ReadOnlyStringProperty versionProperty() {
 		return this.version;
 	}
 
@@ -399,7 +404,7 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 	
 	@Override
 	public ObservableList<SlideComponent> getComponentsUnmodifiable() {
-		return FXCollections.unmodifiableObservableList(this.components);
+		return this.componentsReadOnly;
 	}
 	
 	public void addComponent(SlideComponent component) {
@@ -538,7 +543,7 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 	}
 	
 	public ObservableList<SlideAnimation> getAnimationsUnmodifiable() {
-		return FXCollections.unmodifiableObservableList(this.animations);
+		return this.animationsReadOnly;
 	}
 	
 	@Override

@@ -19,7 +19,6 @@ import org.praisenter.javafx.async.AsyncTaskFactory;
 import org.praisenter.javafx.bible.BibleActions;
 import org.praisenter.javafx.bible.BibleEditorPane;
 import org.praisenter.javafx.bible.BibleLibraryPane;
-import org.praisenter.javafx.controls.Alerts;
 import org.praisenter.javafx.media.MediaActions;
 import org.praisenter.javafx.media.MediaLibraryPane;
 import org.praisenter.javafx.slide.SlideActions;
@@ -30,6 +29,7 @@ import org.praisenter.javafx.slide.editor.SlideShowEditorDialog;
 import org.praisenter.slide.BasicSlide;
 import org.praisenter.slide.Slide;
 import org.praisenter.slide.SlideShow;
+import org.praisenter.ui.controls.Alerts;
 import org.praisenter.ui.translations.Translations;
 
 import javafx.beans.property.ObjectProperty;

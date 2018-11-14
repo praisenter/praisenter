@@ -2,7 +2,6 @@ package org.praisenter.ui;
 
 import java.util.function.Supplier;
 
-import org.praisenter.javafx.ApplicationGlyphs;
 import org.praisenter.utility.RuntimeProperties;
 
 import javafx.geometry.Pos;
@@ -17,7 +16,7 @@ public enum Action {
 //	EDIT("action.edit"),
 //	CLOSE("action.close", () -> ApplicationGlyphs.MENU_CLOSE.duplicate()),
 	
-	SAVE("action.save", new KeyCodeCombination(KeyCode.S, KeyCombination.SHORTCUT_DOWN), () -> Glyphs.MENU_SAVE.duplicate()),
+	SAVE("action.save", new KeyCodeCombination(KeyCode.S, KeyCombination.SHORTCUT_DOWN), () -> Glyphs.SAVE.duplicate()),
 //	SAVE_AS("action.saveas", () -> {
 //		StackPane stack = new StackPane();
 //		Node plus = Glyphs.ASTERISK.duplicate().size(8).color(Color.GREEN);
@@ -28,32 +27,34 @@ public enum Action {
 //	}),
 	SAVE_ALL("action.saveall", new KeyCodeCombination(KeyCode.S, KeyCombination.SHIFT_DOWN, KeyCombination.SHORTCUT_DOWN), () -> {
 		StackPane stack = new StackPane();
-		StackPane pane = new StackPane(Glyphs.MENU_SAVE_ALL.duplicate().size(12));
+		StackPane pane = new StackPane(Glyphs.SAVE.duplicate().size(12));
 		pane.setTranslateX(3);
 		pane.setTranslateY(3);
-		stack.getChildren().addAll(Glyphs.MENU_SAVE_ALL.duplicate().size(12), pane);
+		stack.setTranslateX(-3);
+		stack.setTranslateY(-3);
+		stack.getChildren().addAll(Glyphs.SAVE.duplicate().size(12), pane);
 		return stack;	
 	}),
-	RENAME("action.rename", new KeyCodeCombination(KeyCode.R, KeyCombination.SHORTCUT_DOWN), () -> Glyphs.MENU_RENAME.duplicate()),
-	DELETE("action.delete", new KeyCodeCombination(KeyCode.DELETE), () -> Glyphs.MENU_DELETE.duplicate()),
+	RENAME("action.rename", new KeyCodeCombination(KeyCode.R, KeyCombination.SHORTCUT_DOWN), () -> Glyphs.RENAME.duplicate()),
+	DELETE("action.delete", new KeyCodeCombination(KeyCode.DELETE), () -> Glyphs.DELETE.duplicate()),
 	
-	UNDO("action.undo", new KeyCodeCombination(KeyCode.Z, KeyCombination.SHORTCUT_DOWN), () -> Glyphs.MENU_UNDO.duplicate()),
+	UNDO("action.undo", new KeyCodeCombination(KeyCode.Z, KeyCombination.SHORTCUT_DOWN), () -> Glyphs.UNDO.duplicate()),
 	REDO("action.redo", RuntimeProperties.IS_WINDOWS_OS
 			// windows
 			? new KeyCodeCombination(KeyCode.Y, KeyCombination.SHORTCUT_DOWN)
 			// mac/ubuntu
-			: new KeyCodeCombination(KeyCode.Z, KeyCombination.SHORTCUT_DOWN, KeyCombination.SHIFT_DOWN), () -> Glyphs.MENU_REDO.duplicate()),
+			: new KeyCodeCombination(KeyCode.Z, KeyCombination.SHORTCUT_DOWN, KeyCombination.SHIFT_DOWN), () -> Glyphs.REDO.duplicate()),
 	
-	COPY("action.copy", new KeyCodeCombination(KeyCode.C, KeyCombination.SHORTCUT_DOWN), () -> Glyphs.MENU_COPY.duplicate()),
-	CUT("action.cut", new KeyCodeCombination(KeyCode.X, KeyCombination.SHORTCUT_DOWN), () -> Glyphs.MENU_CUT.duplicate()),
-	PASTE("action.paste", new KeyCodeCombination(KeyCode.V, KeyCombination.SHORTCUT_DOWN), () -> Glyphs.MENU_PASTE.duplicate()),
+	COPY("action.copy", new KeyCodeCombination(KeyCode.C, KeyCombination.SHORTCUT_DOWN), () -> Glyphs.COPY.duplicate()),
+	CUT("action.cut", new KeyCodeCombination(KeyCode.X, KeyCombination.SHORTCUT_DOWN), () -> Glyphs.CUT.duplicate()),
+	PASTE("action.paste", new KeyCodeCombination(KeyCode.V, KeyCombination.SHORTCUT_DOWN), () -> Glyphs.PASTE.duplicate()),
 	
 	SELECT_ALL("action.select.all", new KeyCodeCombination(KeyCode.A, KeyCombination.SHORTCUT_DOWN), () -> Glyphs.SELECT_ALL.duplicate()),
 	SELECT_NONE("action.select.none", () -> Glyphs.SELECT_NONE.duplicate()),
 	SELECT_INVERT("action.select.invert", () -> Glyphs.SELECT_INVERT.duplicate()),
 
-	IMPORT("action.import", () -> Glyphs.MENU_IMPORT.duplicate()),
-	EXPORT("action.export", () -> Glyphs.MENU_EXPORT.duplicate()),
+	IMPORT("action.import", () -> Glyphs.IMPORT.duplicate()),
+	EXPORT("action.export", () -> Glyphs.EXPORT.duplicate()),
 	
 	NEW("action.new", () -> Glyphs.NEW.duplicate()),
 	
@@ -73,9 +74,30 @@ public enum Action {
 	// bible
 	
 //	NEW_BIBLE("action.new.bible"),
-//	NEW_BOOK("action.new.book"),
-//	NEW_CHAPTER("action.new.chapter"),
-//	NEW_VERSE("action.new.verse"),
+	NEW_BOOK("action.new.book", () -> {
+		StackPane stack = new StackPane();
+		Node plus = Glyphs.ASTERISK.duplicate().size(8).color(Color.LIME);
+		plus.setTranslateX(3);
+		stack.getChildren().addAll(Glyphs.NEW_BOOK.duplicate(), plus);
+		StackPane.setAlignment(plus, Pos.TOP_RIGHT);
+		return stack;
+	}),
+	NEW_CHAPTER("action.new.chapter", () -> {
+		StackPane stack = new StackPane();
+		Node plus = Glyphs.ASTERISK.duplicate().size(8).color(Color.LIME);
+		plus.setTranslateX(3);
+		stack.getChildren().addAll(Glyphs.NEW_CHAPTER.duplicate(), plus);
+		StackPane.setAlignment(plus, Pos.TOP_RIGHT);
+		return stack;
+	}),
+	NEW_VERSE("action.new.verse", () -> {
+		StackPane stack = new StackPane();
+		Node plus = Glyphs.ASTERISK.duplicate().size(8).color(Color.LIME);
+		plus.setTranslateX(3);
+		stack.getChildren().addAll(Glyphs.NEW_VERSE.duplicate(), plus);
+		StackPane.setAlignment(plus, Pos.TOP_RIGHT);
+		return stack;
+	}),
 	RENUMBER("action.renumber", () -> Glyphs.RENUMBER.duplicate()),
 	REORDER("action.reorder", () -> Glyphs.REORDER.duplicate())
 	

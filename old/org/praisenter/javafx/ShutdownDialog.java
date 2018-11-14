@@ -29,8 +29,8 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.praisenter.javafx.controls.Alerts;
 import org.praisenter.javafx.utility.Fx;
+import org.praisenter.ui.controls.Alerts;
 
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;

@@ -24,6 +24,7 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
@@ -74,7 +75,9 @@ public final class Configuration implements ReadOnlyConfiguration, MediaConfigur
 	private final BooleanProperty debugModeEnabled;
 	
 	private final ObservableList<Display> displays;
+	private final ObservableList<Display> displaysReadOnly;
 	private final ObservableList<Resolution> resolutions;
+	private final ObservableList<Resolution> resolutionsReadOnly;
 	
 	public Configuration() {
 		this.format = new SimpleStringProperty(Constants.FORMAT_NAME);
@@ -111,7 +114,9 @@ public final class Configuration implements ReadOnlyConfiguration, MediaConfigur
 		this.debugModeEnabled = new SimpleBooleanProperty(false);
 		
 		this.displays = FXCollections.observableArrayList();
+		this.displaysReadOnly = FXCollections.unmodifiableObservableList(this.displays);
 		this.resolutions = FXCollections.observableArrayList(Resolution.DEFAULT_RESOLUTIONS);
+		this.resolutionsReadOnly = FXCollections.unmodifiableObservableList(this.resolutions);
 	}
 
 	@Override
@@ -205,7 +210,7 @@ public final class Configuration implements ReadOnlyConfiguration, MediaConfigur
 	}
 	
 	@Override
-	public StringProperty formatProperty() {
+	public ReadOnlyStringProperty formatProperty() {
 		return this.format;
 	}
 	
@@ -221,7 +226,7 @@ public final class Configuration implements ReadOnlyConfiguration, MediaConfigur
 	}
 	
 	@Override
-	public StringProperty versionProperty() {
+	public ReadOnlyStringProperty versionProperty() {
 		return this.version;
 	}
 	
@@ -266,7 +271,7 @@ public final class Configuration implements ReadOnlyConfiguration, MediaConfigur
 	
 	@JsonProperty
 	@JsonDeserialize(using = InstantJsonDeserializer.class)
-	void setCreatedDate(Instant date) {
+	public void setCreatedDate(Instant date) {
 		this.createdDate.set(date);
 	}
 	
@@ -284,7 +289,7 @@ public final class Configuration implements ReadOnlyConfiguration, MediaConfigur
 	
 	@JsonProperty
 	@JsonDeserialize(using = InstantJsonDeserializer.class)
-	void setModifiedDate(Instant date) {
+	public void setModifiedDate(Instant date) {
 		this.modifiedDate.set(date);
 	}
 	
@@ -647,7 +652,7 @@ public final class Configuration implements ReadOnlyConfiguration, MediaConfigur
 
 	@Override
 	public ObservableList<Display> getDisplaysUnmodifiable() {
-		return FXCollections.unmodifiableObservableList(this.displays);
+		return this.displaysReadOnly;
 	}
 	
 	@JsonProperty
@@ -672,6 +677,6 @@ public final class Configuration implements ReadOnlyConfiguration, MediaConfigur
 	
 	@Override
 	public ObservableList<Resolution> getResolutionsUnmodifiable() {
-		return FXCollections.unmodifiableObservableList(this.resolutions);
+		return this.resolutionsReadOnly;
 	}
 }

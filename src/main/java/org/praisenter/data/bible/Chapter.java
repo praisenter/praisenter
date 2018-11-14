@@ -15,10 +15,12 @@ import javafx.collections.ObservableList;
 public final class Chapter implements ReadOnlyChapter, Copyable, Comparable<Chapter> {
 	private final IntegerProperty number;
 	private final ObservableList<Verse> verses;
+	private final ObservableList<Verse> versesReadOnly;
 	
 	public Chapter() {
 		this.number = new SimpleIntegerProperty();
 		this.verses = FXCollections.observableArrayList();
+		this.versesReadOnly = FXCollections.unmodifiableObservableList(this.verses);
 	}
 	
 	public Chapter(int number) {
@@ -57,6 +59,17 @@ public final class Chapter implements ReadOnlyChapter, Copyable, Comparable<Chap
 		FXCollections.sort(this.verses);
 	}
 	
+	public int getMaxVerseNumber() {
+		int max = -Integer.MAX_VALUE;
+		for (Verse verse : this.verses) {
+			int n = verse.getNumber();
+			if (n > max) {
+				max = n;
+			}
+		}
+		return max >= 0 ? max : 0;
+	}
+	
 	@JsonProperty
 	public int getNumber() {
 		return this.number.get();
@@ -86,6 +99,6 @@ public final class Chapter implements ReadOnlyChapter, Copyable, Comparable<Chap
 	
 	@Override
 	public ObservableList<? extends ReadOnlyVerse> getVersesUnmodifiable() {
-		return FXCollections.unmodifiableObservableList(this.verses);
+		return this.versesReadOnly;
 	}
 }

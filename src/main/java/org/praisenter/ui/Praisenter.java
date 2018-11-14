@@ -28,6 +28,8 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
@@ -47,7 +49,7 @@ import org.praisenter.data.DataManager;
 import org.praisenter.data.configuration.Configuration;
 import org.praisenter.data.configuration.ConfigurationPersistAdapter;
 import org.praisenter.data.search.SearchIndex;
-import org.praisenter.javafx.controls.Alerts;
+import org.praisenter.ui.controls.Alerts;
 import org.praisenter.ui.fonts.OpenIconic;
 import org.praisenter.ui.themes.Theme;
 import org.praisenter.ui.translations.Translations;
@@ -517,6 +519,14 @@ public final class Praisenter extends Application {
     	// close the presentation screens
 		//this.context.getDisplayManager().release();
 		
+    	// wait for any pending async tasks
+    	// NOTE: the assumption here is that all asynchronous processing is being performed on the ForkJoinPool commonPool
+    	// (the default for CompletableFuture)
+    	if (!ForkJoinPool.commonPool().awaitQuiescence(60, TimeUnit.SECONDS)) {
+    		LOGGER.warn("Waited 60 seconds for tasks to complete, but they didn't.");
+    		// TODO need to prompt user to wait longer or just exit
+    	}
+    	
 		// save some application info
 		LOGGER.debug("Saving application location and size: ({}, {}) {}x{} isMaximized={}", 
 				context.getConfiguration().getApplicationX(), 
