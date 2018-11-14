@@ -1,11 +1,14 @@
 package org.praisenter.ui.bible;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.praisenter.data.bible.Bible;
 import org.praisenter.data.bible.Book;
 import org.praisenter.data.bible.Chapter;
 import org.praisenter.data.bible.Verse;
 import org.praisenter.ui.TextInputFieldFieldEventFilter;
 import org.praisenter.ui.document.DocumentContext;
+import org.praisenter.ui.translations.Translations;
 
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.IntegerProperty;
@@ -21,7 +24,9 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.VBox;
 
-public final class BiblePropertiesPane extends VBox {
+public final class SelectedBibleItemEditor extends VBox {
+	private static final Logger LOGGER = LogManager.getLogger();
+	
 	private final ObjectProperty<DocumentContext<Bible>> documentContext;
 	
 	private final ObjectProperty<Bible> bible;
@@ -47,7 +52,9 @@ public final class BiblePropertiesPane extends VBox {
 	private final IntegerProperty verseNumber;
 	private final ObjectProperty<Integer> verseNumber2;
 	
-	public BiblePropertiesPane() {
+	public SelectedBibleItemEditor() {
+		this.getStyleClass().add("p-bible-properties");
+		
 		this.documentContext = new SimpleObjectProperty<>();
 		
 		this.bible = new SimpleObjectProperty<>();
@@ -155,7 +162,6 @@ public final class BiblePropertiesPane extends VBox {
 
 			if (nv == null) {
 				// do nothing
-				// TODO logging - something was null here
 			} else if (nv instanceof Book) {
 				this.selectedBook.set((Book)nv);
 			} else if (nv instanceof Chapter) {
@@ -163,53 +169,53 @@ public final class BiblePropertiesPane extends VBox {
 			} else if (nv instanceof Verse) {
 				this.selectedVerse.set((Verse)nv);
 			} else {
-				// TODO logging - unsupported type
+				LOGGER.warn("The selected item was not a recognized type {}", nv.getClass());
 			}
 		});
 		
 		// UI
 		
-		Label lblBibleName = new Label("Name");
+		Label lblBibleName = new Label(Translations.get("bible.name"));
 		TextField txtBibleName = new TextField();
 		txtBibleName.textProperty().bindBidirectional(this.name);
 
-		Label lblBibleLanguage = new Label("Language");
+		Label lblBibleLanguage = new Label(Translations.get("bible.language"));
 		TextField txtBibleLanguage = new TextField();
 		txtBibleLanguage.textProperty().bindBidirectional(this.language);
 		
-		Label lblBibleSource = new Label("Source");
+		Label lblBibleSource = new Label(Translations.get("bible.source"));
 		TextField txtBibleSource = new TextField();
 		txtBibleSource.textProperty().bindBidirectional(this.source);
 		
-		Label lblBibleCopyright = new Label("Copyright");
+		Label lblBibleCopyright = new Label(Translations.get("bible.copyright"));
 		TextField txtBibleCopyright = new TextField();
 		txtBibleCopyright.textProperty().bindBidirectional(this.copyright);
 
-		Label lblBibleNotes = new Label("Notes");
+		Label lblBibleNotes = new Label(Translations.get("bible.notes"));
 		TextArea txtBibleNotes = new TextArea();
 		txtBibleNotes.textProperty().bindBidirectional(this.notes);
 		txtBibleNotes.setWrapText(true);
 		
-		Label lblBookName = new Label("Name");
+		Label lblBookName = new Label(Translations.get("bible.name"));
 		TextField txtBookName = new TextField();
 		txtBookName.textProperty().bindBidirectional(this.bookName);
 		
-		Label lblBookNumber = new Label("Number");
+		Label lblBookNumber = new Label(Translations.get("bible.number"));
 		Spinner<Integer> spnBookNumber = new Spinner<>(1, Integer.MAX_VALUE, 1);
 		spnBookNumber.setEditable(true);
 		spnBookNumber.getValueFactory().valueProperty().bindBidirectional(this.bookNumber2);
 		
-		Label lblChapterNumber = new Label("Number");
+		Label lblChapterNumber = new Label(Translations.get("bible.number"));
 		Spinner<Integer> spnChapterNumber = new Spinner<>(1, Integer.MAX_VALUE, 1);
 		spnChapterNumber.setEditable(true);
 		spnChapterNumber.getValueFactory().valueProperty().bindBidirectional(this.chapterNumber2);
 		
-		Label lblVerseText = new Label("Text");
+		Label lblVerseText = new Label(Translations.get("bible.text"));
 		TextArea txtVerseText = new TextArea();
 		txtVerseText.textProperty().bindBidirectional(this.verseText);
 		txtVerseText.setWrapText(true);
 		
-		Label lblVerseNumber = new Label("Number");
+		Label lblVerseNumber = new Label(Translations.get("bible.number"));
 		Spinner<Integer> spnVerseNumber = new Spinner<>(1, Integer.MAX_VALUE, 1);
 		spnVerseNumber.setEditable(true);
 		spnVerseNumber.getValueFactory().valueProperty().bindBidirectional(this.verseNumber2);
@@ -226,21 +232,21 @@ public final class BiblePropertiesPane extends VBox {
 				txtVerseText,
 				spnVerseNumber.getEditor());
 		
-		TitledPane ttlBible = new TitledPane("bible", new VBox(
+		TitledPane ttlBible = new TitledPane(Translations.get("bible"), new VBox(
 				lblBibleName, txtBibleName,
 				lblBibleLanguage, txtBibleLanguage,
 				lblBibleSource, txtBibleSource,
 				lblBibleCopyright, txtBibleCopyright,
 				lblBibleNotes, txtBibleNotes));
 		
-		TitledPane ttlBook = new TitledPane("book", new VBox(
+		TitledPane ttlBook = new TitledPane(Translations.get("bible.book"), new VBox(
 				lblBookNumber, spnBookNumber,
 				lblBookName, txtBookName));
 
-		TitledPane ttlChapter = new TitledPane("chapter", new VBox(
+		TitledPane ttlChapter = new TitledPane(Translations.get("bible.chapter"), new VBox(
 				lblChapterNumber, spnChapterNumber));
 		
-		TitledPane ttlVerse = new TitledPane("book", new VBox(
+		TitledPane ttlVerse = new TitledPane(Translations.get("bible.verse"), new VBox(
 				lblVerseNumber, spnVerseNumber,
 				lblVerseText, txtVerseText));
 		

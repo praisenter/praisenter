@@ -49,10 +49,10 @@ import org.praisenter.javafx.PraisenterContext;
 import org.praisenter.javafx.async.AsyncTask;
 import org.praisenter.javafx.controls.FlowListCell;
 import org.praisenter.javafx.controls.FlowListView;
-import org.praisenter.javafx.controls.SelectionEvent;
 import org.praisenter.javafx.controls.SortGraphic;
 import org.praisenter.javafx.utility.Fx;
 import org.praisenter.slide.Slide;
+import org.praisenter.ui.events.SelectionEvent;
 import org.praisenter.ui.translations.Translations;
 
 import javafx.beans.InvalidationListener;

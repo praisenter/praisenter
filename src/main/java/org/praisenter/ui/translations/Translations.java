@@ -28,6 +28,7 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -154,5 +155,10 @@ public final class Translations {
 		
 		// last resort just return the key itself
 		return key;
+	}
+	
+	public static final String get(String key, Object... params) {
+		String message = get(key);
+		return MessageFormat.format(message, params);
 	}
 }

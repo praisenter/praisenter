@@ -49,6 +49,7 @@ public final class SlideShow implements ReadOnlySlideShow, Indexable, Persistabl
 	private final BooleanProperty loopEnabled;
 	
 	private final ObservableList<SlideAssignment> slides;
+	private final ObservableList<SlideAssignment> slidesReadOnly;
 	
 	public SlideShow() {
 		this.format = new SimpleStringProperty(Constants.FORMAT_NAME);
@@ -59,6 +60,7 @@ public final class SlideShow implements ReadOnlySlideShow, Indexable, Persistabl
 		this.modifiedDate = new SimpleObjectProperty<>(this.createdDate.get());
 		this.loopEnabled = new SimpleBooleanProperty(false);
 		this.slides = FXCollections.observableArrayList();
+		this.slidesReadOnly = FXCollections.unmodifiableObservableList(this.slides);
 	}
 
 	@Override
@@ -242,7 +244,7 @@ public final class SlideShow implements ReadOnlySlideShow, Indexable, Persistabl
 	
 	@Override
 	public ObservableList<SlideAssignment> getSlidesUnmodifiable() {
-		return FXCollections.unmodifiableObservableList(this.slides);
+		return this.slidesReadOnly;
 	}
 	
 	public ObservableList<SlideAssignment> getSlides() {

@@ -18,11 +18,13 @@ public final class Book implements ReadOnlyBook, Copyable, Comparable<Book> {
 	private final IntegerProperty number;
 	private final StringProperty name;
 	private final ObservableList<Chapter> chapters;
+	private final ObservableList<Chapter> chaptersReadOnly;
 	
 	public Book() {
 		this.number = new SimpleIntegerProperty();
 		this.name = new SimpleStringProperty();
 		this.chapters = FXCollections.observableArrayList();
+		this.chaptersReadOnly = FXCollections.unmodifiableObservableList(this.chapters);
 	}
 	
 	public Book(int number, String name) {
@@ -48,11 +50,14 @@ public final class Book implements ReadOnlyBook, Copyable, Comparable<Book> {
 	 */
 	@Override
 	public int getMaxChapterNumber() {
-		int max = 0;
+		int max = -Integer.MAX_VALUE;
 		for (Chapter chapter : this.chapters) {
-			max = max < chapter.getNumber() ? chapter.getNumber() : max;
+			int n = chapter.getNumber();
+			if (n > max) {
+				max = n;
+			}
 		}
-		return max;
+		return max >= 0 ? max : 0;
 	}
 	
 	/**
@@ -164,6 +169,6 @@ public final class Book implements ReadOnlyBook, Copyable, Comparable<Book> {
 	
 	@Override
 	public ObservableList<? extends ReadOnlyChapter> getChaptersUnmodifiable() {
-		return FXCollections.unmodifiableObservableList(this.chapters);
+		return this.chaptersReadOnly;
 	}
 }

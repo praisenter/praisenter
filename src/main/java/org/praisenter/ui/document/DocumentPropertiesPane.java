@@ -3,7 +3,7 @@ package org.praisenter.ui.document;
 import org.praisenter.data.Persistable;
 import org.praisenter.data.bible.Bible;
 import org.praisenter.ui.GlobalContext;
-import org.praisenter.ui.bible.BiblePropertiesPane;
+import org.praisenter.ui.bible.SelectedBibleItemEditor;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -40,12 +40,12 @@ public final class DocumentPropertiesPane extends VBox {
 	
 	// context panes
 	
-	private final BiblePropertiesPane biblePropertiesPane;
+	private final SelectedBibleItemEditor biblePropertiesPane;
 	
 	public DocumentPropertiesPane(GlobalContext context) {
 		this.context = context;
 		
-		this.biblePropertiesPane = new BiblePropertiesPane();
+		this.biblePropertiesPane = new SelectedBibleItemEditor();
 		
 		Binder<Bible> bible = new Binder<>(Bible.class, context.currentDocumentProperty());
 		this.biblePropertiesPane.documentContextProperty().bind(bible.target);//this.createObjectBinding(Bible.class, context.getApplicationState().currentDocumentProperty()));

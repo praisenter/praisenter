@@ -14,7 +14,6 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 
 public interface ReadOnlySlideRegion extends Copyable, Identifiable {
-	public UUID getId();
 	public String getName();
 	public double getX();
 	public double getY();

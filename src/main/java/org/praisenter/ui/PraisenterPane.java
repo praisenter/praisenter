@@ -1,29 +1,16 @@
 package org.praisenter.ui;
 
-import java.nio.file.Paths;
-
 import org.praisenter.data.bible.Bible;
-import org.praisenter.ui.bible.BibleEditorPane;
-import org.praisenter.ui.bible.BibleListCell;
-import org.praisenter.ui.bible.BiblePropertiesPane;
-import org.praisenter.ui.controls.FlowListCell;
-import org.praisenter.ui.controls.FlowListView;
 import org.praisenter.ui.document.DocumentsPane;
+import org.praisenter.ui.library.LibraryList;
 
 import javafx.beans.binding.Bindings;
-import javafx.collections.ListChangeListener.Change;
-import javafx.geometry.Orientation;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.control.Spinner;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
-import javafx.scene.control.TabPane.TabClosingPolicy;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -46,8 +33,8 @@ public class PraisenterPane extends BorderPane {
 //		    burgerTask.play();
 //		});
 		
-		Menu mnuFile = new Menu("file", null, new MenuItem("reindex"), new MenuItem("preferences"));
-		Menu mnuHelp = new Menu("help", null, new MenuItem("logs"), new MenuItem("about"));
+		Menu mnuFile = new Menu("file", null, new MenuItem("reindex"), new MenuItem("preferences", Glyphs.MENU_PREFERENCES.duplicate()));
+		Menu mnuHelp = new Menu("help", null, new MenuItem("logs"), new MenuItem("about", Glyphs.MENU_ABOUT.duplicate()));
 		MenuBar mainMenu = new MenuBar(mnuFile, mnuHelp);
 		
 //		
@@ -178,10 +165,11 @@ public class PraisenterPane extends BorderPane {
 		DocumentsPane dep = new DocumentsPane(context);
 //		ContextPropertiesPane cpp = new ContextPropertiesPane(context);
 		
-		FlowListView<Bible> bblListing = new FlowListView<>(Orientation.HORIZONTAL, (bible) -> {
-			return new BibleListCell(bible);
-		});
+//		FlowListView<Bible> bblListing = new FlowListView<>(Orientation.HORIZONTAL, (bible) -> {
+//			return new BibleListCell(bible);
+//		});
 		
+		LibraryList bblListing = new LibraryList(context);
 		Bindings.bindContent(bblListing.getItems(), context.getDataManager().getItems(Bible.class));
 		
 		//BorderPane bp = new BorderPane();
@@ -200,7 +188,10 @@ public class PraisenterPane extends BorderPane {
 		});
 		HBox buttons = new HBox(5, spnIndex, btnLoadDocument);
 		
-		this.setBottom(buttons);
+		ProgressBar progress = new ProgressBar();
+		progress.visibleProperty().bind(context.taskExecutingProperty());
+		
+		this.setBottom(new HBox(5, buttons, progress));
 		
 		//this.getChildren().addAll(bp);
 

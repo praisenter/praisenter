@@ -75,8 +75,8 @@ import org.praisenter.javafx.command.EditCommand;
 import org.praisenter.javafx.command.EditManager;
 import org.praisenter.javafx.command.RemoveEditCommand;
 import org.praisenter.javafx.command.UndorderedCompositeEditCommand;
-import org.praisenter.javafx.controls.Alerts;
 import org.praisenter.javafx.utility.Fx;
+import org.praisenter.ui.controls.Alerts;
 import org.praisenter.ui.translations.Translations;
 
 import javafx.beans.property.ObjectProperty;
@@ -932,7 +932,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 			// see if we should prompt the user to verify
 			boolean verify = this.context.getConfiguration().getBoolean(Setting.BIBLE_SHOW_REORDER_WARNING, true);
 			if (verify) {
-				Alert alert = Alerts.optOut(
+				Alert alert = Alerts.confirmWithOptOut(
 					getScene().getWindow(),
 					Modality.WINDOW_MODAL,
 					AlertType.CONFIRMATION, 
@@ -973,7 +973,7 @@ public final class BibleEditorPane extends BorderPane implements ApplicationPane
 			// see if we should prompt the user to verify
 			boolean verify = this.context.getConfiguration().getBoolean(Setting.BIBLE_SHOW_RENUMBER_WARNING, true);
 			if (verify) {
-				Alert alert = Alerts.optOut(
+				Alert alert = Alerts.confirmWithOptOut(
 						getScene().getWindow(),
 						Modality.WINDOW_MODAL,
 						AlertType.CONFIRMATION, 

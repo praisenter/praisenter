@@ -36,7 +36,7 @@ import org.praisenter.configuration.DisplayRole;
 import org.praisenter.configuration.Setting;
 import org.praisenter.javafx.async.AsyncTaskExecutor;
 import org.praisenter.javafx.configuration.ObservableConfiguration;
-import org.praisenter.javafx.controls.Alerts;
+import org.praisenter.ui.controls.Alerts;
 import org.praisenter.ui.translations.Translations;
 
 import javafx.collections.FXCollections;

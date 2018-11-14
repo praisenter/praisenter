@@ -37,7 +37,7 @@ final class UnknownDocumentEditor extends VBox implements DocumentEditor<Persist
 	}
 	
 	@Override
-	public CompletableFuture<Node> executeAction(Action action) {
+	public CompletableFuture<Void> executeAction(Action action) {
 		return CompletableFuture.completedFuture(null);
 	}
 	

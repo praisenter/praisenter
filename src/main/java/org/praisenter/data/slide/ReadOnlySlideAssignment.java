@@ -10,6 +10,5 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 public interface ReadOnlySlideAssignment extends Copyable, Identifiable {
 	public UUID getSlideId();
 	
-	public ReadOnlyObjectProperty<UUID> idProperty();
 	public ReadOnlyObjectProperty<UUID> slideIdProperty();
 }

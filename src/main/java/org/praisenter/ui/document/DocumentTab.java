@@ -3,7 +3,7 @@ package org.praisenter.ui.document;
 import org.praisenter.data.Persistable;
 import org.praisenter.data.bible.Bible;
 import org.praisenter.ui.GlobalContext;
-import org.praisenter.ui.bible.BibleEditorPane;
+import org.praisenter.ui.bible.BibleEditor;
 
 import javafx.beans.binding.Bindings;
 import javafx.scene.control.Tab;
@@ -53,7 +53,7 @@ final class DocumentTab extends Tab {
 		if (document != null) {
 			// TODO don't really like this, but what else could we do?
 			if (document.getClass() == Bible.class) {
-				BibleEditorPane bep = new BibleEditorPane(this.context, (DocumentContext<Bible>)this.document);
+				BibleEditor bep = new BibleEditor(this.context, (DocumentContext<Bible>)this.document);
 				this.setContent(bep);
 				return bep;
 			}

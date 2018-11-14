@@ -44,12 +44,14 @@ import javafx.collections.ObservableList;
 public abstract class SlideGradient implements ReadOnlySlideGradient, SlidePaint, Copyable {
 	protected final ObjectProperty<SlideGradientCycleType> cycleType;
 	protected final ObservableList<SlideGradientStop> stops;
+	private final ObservableList<SlideGradientStop> stopsReadOnly;
 	
 	public SlideGradient() {
 		this.cycleType = new SimpleObjectProperty<>(SlideGradientCycleType.NONE);
 		this.stops = FXCollections.observableArrayList(
 				new SlideGradientStop(0, 0, 0, 0, 1),
 				new SlideGradientStop(1, 1, 1, 1, 1));
+		this.stopsReadOnly = FXCollections.unmodifiableObservableList(this.stops);
 	}
 	
 	/* (non-Javadoc)
@@ -96,7 +98,7 @@ public abstract class SlideGradient implements ReadOnlySlideGradient, SlidePaint
 	@Override
 	@JsonProperty
 	public ObservableList<SlideGradientStop> getStopsUnmodifiable() {
-		return FXCollections.unmodifiableObservableList(this.stops);
+		return this.stopsReadOnly;
 	}
 	
 	public ObservableList<SlideGradientStop> getStops() {

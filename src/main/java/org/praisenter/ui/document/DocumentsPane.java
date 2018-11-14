@@ -1,5 +1,7 @@
 package org.praisenter.ui.document;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
@@ -12,6 +14,7 @@ import org.praisenter.ui.MappedList;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.control.Tab;
@@ -31,6 +34,7 @@ public final class DocumentsPane extends HBox implements ActionPane {
 	private final DocumentPropertiesPane properties;
 	
 	private final ObjectProperty<DocumentEditor<?>> currentEditor;
+	private final ObservableList<Object> selectedItems;
 	
 	public DocumentsPane(GlobalContext context) {
 		
@@ -48,6 +52,7 @@ public final class DocumentsPane extends HBox implements ActionPane {
 		this.properties = new DocumentPropertiesPane(context);
 		
 		this.currentEditor = new SimpleObjectProperty<>();
+		this.selectedItems = FXCollections.observableArrayList();
 		
 		context.currentDocumentProperty().addListener((obs, ov, nv) -> {
 			if (nv != null) {
@@ -96,6 +101,15 @@ public final class DocumentsPane extends HBox implements ActionPane {
 			}
 		});
 		
+		this.currentEditor.addListener((obs, ov, nv) -> {
+			if (ov != null) {
+				Bindings.unbindContent(this.selectedItems, ov.getDocumentContext().getSelectedItems());
+			}
+			if (nv != null) {
+				Bindings.bindContent(this.selectedItems, nv.getDocumentContext().getSelectedItems());
+			}
+		});
+		
 		this.getChildren().addAll(this.tabs, this.properties);
 	}
 	
@@ -107,12 +121,7 @@ public final class DocumentsPane extends HBox implements ActionPane {
 	
 	@Override
 	public ObservableList<Object> getSelectedItems() {
-		// delegate to current document
-		DocumentEditor<?> editor = this.currentEditor.get();
-		if (editor != null) {
-			return editor.getDocumentContext().getSelectedItems();
-		}
-		return null;
+		return this.selectedItems;
 	}
 	
 	@Override
@@ -135,7 +144,22 @@ public final class DocumentsPane extends HBox implements ActionPane {
 	}
 	
 	@Override
-	public CompletableFuture<Node> performAction(Action action) {
+	public CompletableFuture<Void> executeAction(Action action) {
+		if (action == Action.SAVE_ALL) {
+			// then pass the save action to all editors
+			List<CompletableFuture<Void>> futures = new ArrayList<>();
+			for (Tab tab : this.tabs.getTabs()) {
+				if (tab instanceof DocumentTab) {
+					DocumentTab dt = (DocumentTab)tab;
+					DocumentEditor<?> editor = dt.getDocumentEditor();
+					DocumentContext<?> context = dt.getDocumentContext();
+					if (context.hasUnsavedChanges()) {
+						futures.add(editor.executeAction(Action.SAVE));
+					}
+				}
+			}
+			return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
+		}
 		// delegate to current document
 		DocumentEditor<?> editor = this.currentEditor.get();
 		if (editor != null) {
