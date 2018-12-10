@@ -117,7 +117,6 @@ final class LoadingPane extends Pane {
 		this.loading = new LoadingTask(javaFXContext, configuration);
 		this.loadingThread = new Thread(this.loading, "Praisenter Loading Thread");
 		
-		// FIXME Add "Praisenter" text or logo to the loading pane
 		// set the background image
     	setBackground(new Background(
     			new BackgroundImage(

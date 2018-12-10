@@ -49,7 +49,6 @@ public interface ApplicationPane {
 	 * @param action the action
 	 * @return boolean
 	 */
-	// TODO remove - I don't think this will be needed
 	public boolean isApplicationActionVisible(ApplicationAction action);
 	
 	// toggling disabled/enabled

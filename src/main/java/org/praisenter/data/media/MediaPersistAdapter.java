@@ -443,4 +443,9 @@ public final class MediaPersistAdapter implements PersistAdapter<Media> {
 		
 		return null;
 	}
+	
+	@Override
+	public Path getFilePath(Media media) {
+		return this.pathResolver.getPath(media);
+	}
 }

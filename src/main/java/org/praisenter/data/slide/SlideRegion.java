@@ -28,6 +28,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
+import org.praisenter.Editable;
 import org.praisenter.data.Copyable;
 import org.praisenter.data.Identifiable;
 import org.praisenter.data.slide.graphics.Rectangle;
@@ -144,6 +145,8 @@ public class SlideRegion implements ReadOnlySlideRegion, Copyable, Identifiable 
 		return this.name.get();
 	}
 	
+	@Override
+	@Editable("name")
 	public ReadOnlyStringProperty nameProperty() {
 		return this.name.getReadOnlyProperty();
 	}
@@ -160,6 +163,7 @@ public class SlideRegion implements ReadOnlySlideRegion, Copyable, Identifiable 
 	}
 	
 	@Override
+	@Editable("x")
 	public DoubleProperty xProperty() {
 		return this.x;
 	}
@@ -176,6 +180,7 @@ public class SlideRegion implements ReadOnlySlideRegion, Copyable, Identifiable 
 	}
 	
 	@Override
+	@Editable("y")
 	public DoubleProperty yProperty() {
 		return this.y;
 	}
@@ -192,6 +197,7 @@ public class SlideRegion implements ReadOnlySlideRegion, Copyable, Identifiable 
 	}
 	
 	@Override
+	@Editable("width")
 	public DoubleProperty widthProperty() {
 		return this.width;
 	}
@@ -208,6 +214,7 @@ public class SlideRegion implements ReadOnlySlideRegion, Copyable, Identifiable 
 	}
 	
 	@Override
+	@Editable("height")
 	public DoubleProperty heightProperty() {
 		return this.height;
 	}
@@ -224,6 +231,7 @@ public class SlideRegion implements ReadOnlySlideRegion, Copyable, Identifiable 
 	}
 	
 	@Override
+	@Editable("background")
 	public ObjectProperty<SlidePaint> backgroundProperty() {
 		return this.background;
 	}
@@ -240,6 +248,7 @@ public class SlideRegion implements ReadOnlySlideRegion, Copyable, Identifiable 
 	}
 	
 	@Override
+	@Editable("border")
 	public ObjectProperty<SlideStroke> borderProperty() {
 		return this.border;
 	}
@@ -255,6 +264,8 @@ public class SlideRegion implements ReadOnlySlideRegion, Copyable, Identifiable 
 		this.opacity.set(opacity);
 	}
 	
+	@Override
+	@Editable("opacity")
 	public DoubleProperty opacityProperty() {
 		return this.opacity;
 	}

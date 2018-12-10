@@ -1,8 +1,7 @@
 package org.praisenter.data.slide.effects;
 
 import org.praisenter.data.Copyable;
-import org.praisenter.slide.graphics.ShadowType;
-import org.praisenter.slide.graphics.SlideColor;
+import org.praisenter.data.slide.graphics.SlideColor;
 
 import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;

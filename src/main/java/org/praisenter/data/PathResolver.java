@@ -9,4 +9,6 @@ public interface PathResolver<T extends Identifiable> {
 	public Path getBasePath();
 	public Path getRelativePath(T item);
 	public Path getPath(T item);
+	public Path getExportBasePath();
+	public Path getExportPath(T item);
 }

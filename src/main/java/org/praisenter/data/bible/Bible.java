@@ -2,8 +2,10 @@ package org.praisenter.data.bible;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.UUID;
 
 import org.apache.lucene.document.Document;
@@ -18,6 +20,7 @@ import org.praisenter.data.Copyable;
 import org.praisenter.data.Identifiable;
 import org.praisenter.data.Localized;
 import org.praisenter.data.Persistable;
+import org.praisenter.data.Tag;
 import org.praisenter.data.json.InstantJsonDeserializer;
 import org.praisenter.data.json.InstantJsonSerializer;
 import org.praisenter.data.search.Indexable;
@@ -36,11 +39,13 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.ObservableSet;
 
 @JsonTypeInfo(
 	use = JsonTypeInfo.Id.NAME,
 	include = JsonTypeInfo.As.PROPERTY)
 @JsonTypeName(value = "bible")
+@Editable
 public final class Bible implements ReadOnlyBible, Indexable, Persistable, Copyable, Identifiable, Localized {
 	/** The lucene field to store the book number as a searchable value */
 	public static final String FIELD_BOOK_ID = "bookid";
@@ -70,6 +75,8 @@ public final class Bible implements ReadOnlyBible, Indexable, Persistable, Copya
 	
 	private final ObservableList<Book> books;
 	private final ObservableList<Book> booksReadOnly;
+	private final ObservableSet<Tag> tags;
+	private final ObservableSet<Tag> tagsReadOnly;
 
 	public Bible() {
 		this.format = new SimpleStringProperty(Constants.FORMAT_NAME);
@@ -85,6 +92,8 @@ public final class Bible implements ReadOnlyBible, Indexable, Persistable, Copya
 		
 		this.books = FXCollections.observableArrayList();
 		this.booksReadOnly = FXCollections.unmodifiableObservableList(this.books);
+		this.tags = FXCollections.observableSet(new HashSet<>());
+		this.tagsReadOnly = FXCollections.unmodifiableObservableSet(this.tags);
 	}
 	
 	/* (non-Javadoc)
@@ -136,6 +145,7 @@ public final class Bible implements ReadOnlyBible, Indexable, Persistable, Copya
 		for (Book book : this.books) {
 			b.books.add(book.copy());
 		}
+		b.tags.addAll(this.tags);
 		return b;
 	}
 	
@@ -189,6 +199,18 @@ public final class Bible implements ReadOnlyBible, Indexable, Persistable, Copya
 				}
 			}
 		}
+		
+		Document document = new Document();
+		document.add(new StringField(FIELD_ID, this.getId().toString(), Field.Store.YES));
+		document.add(new StringField(FIELD_TYPE, DATA_TYPE_BIBLE, Field.Store.YES));
+		
+		StringBuilder sb = new StringBuilder();
+		for (Tag tag : this.tags) {
+			sb.append(" ").append(tag.getName());
+		}
+		
+		document.add(new StringField(FIELD_TEXT, sb.toString(), Field.Store.YES));
+		documents.add(document);
 		
 		return documents;
 	}
@@ -723,5 +745,21 @@ public final class Bible implements ReadOnlyBible, Indexable, Persistable, Copya
 	@Override
 	public ObservableList<? extends ReadOnlyBook> getBooksUnmodifiable() {
 		return this.booksReadOnly;
+	}
+
+	@JsonProperty
+	@Editable("tags")
+	public ObservableSet<Tag> getTags() {
+		return this.tags;
+	}
+	
+	@JsonProperty
+	public void setTags(Set<Tag> tags) {
+		this.tags.addAll(tags);
+	}
+	
+	@Override
+	public ObservableSet<Tag> getTagsUnmodifiable() {
+		return this.tagsReadOnly;
 	}
 }

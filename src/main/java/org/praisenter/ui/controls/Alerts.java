@@ -26,6 +26,8 @@ package org.praisenter.ui.controls;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.Arrays;
+import java.util.List;
 import java.util.function.Consumer;
 
 import org.praisenter.ui.translations.Translations;
@@ -55,7 +57,7 @@ public final class Alerts {
 	
 	/** Hidden constructor */
 	private Alerts() {}
-	
+
 	/**
 	 * Creates an alert for the given exception(s) with the given title, header and content.
 	 * <p>
@@ -76,6 +78,29 @@ public final class Alerts {
 			String header,
 			String content,
 			Throwable... exceptions) {
+		return Alerts.exception(owner, title, header, content, Arrays.asList(exceptions));
+	}
+	
+	/**
+	 * Creates an alert for the given exception(s) with the given title, header and content.
+	 * <p>
+	 * The exceptions will have their stacktraces placed in an expandable area.
+	 * <p>
+	 * Ideally the header and content are descriptive enough for a user to make a decision on
+	 * what to do, with the exception stacktraces there for sending to support.
+	 * @param owner the owner of this alert
+	 * @param title the alert window title; if null, a generic message will be used
+	 * @param header the alert's header section; if null, a generic message will be used
+	 * @param content the alert's content section; if null, a generic message will be used
+	 * @param exceptions the exception(s)
+	 * @return Alert
+	 */
+	public static final Alert exception(
+			Window owner,
+			String title,
+			String header,
+			String content,
+			List<Throwable> exceptions) {
 		
 		Alert alert = new Alert(AlertType.ERROR);
 		if (owner != null) {

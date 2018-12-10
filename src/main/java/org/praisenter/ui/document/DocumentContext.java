@@ -2,6 +2,7 @@ package org.praisenter.ui.document;
 
 import java.util.Objects;
 
+import org.praisenter.async.InOrderExecutionManager;
 import org.praisenter.data.Persistable;
 import org.praisenter.ui.undo.UndoManager;
 
@@ -22,6 +23,7 @@ import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
 
 public final class DocumentContext<T extends Persistable> {
+	protected final Class<T> clazz;
 	protected final ObjectProperty<T> document;
 
 	protected final ObservableList<Object> selectedItems;
@@ -34,8 +36,12 @@ public final class DocumentContext<T extends Persistable> {
 	protected final StringProperty documentName;
 	
 	protected final UndoManager undoManager;
+	protected final InOrderExecutionManager saveExecutionManager;
 	
 	public DocumentContext(T document) {
+		if (document == null) throw new NullPointerException("You cannot create a document context with a null object.");
+		
+		this.clazz = (Class<T>) document.getClass();
 		this.document = new SimpleObjectProperty<>(document);
 		this.selectedItem = new SimpleObjectProperty<>();
 		this.selectedItems = FXCollections.observableArrayList();
@@ -48,6 +54,8 @@ public final class DocumentContext<T extends Persistable> {
 		
 		this.undoManager = new UndoManager();
 		this.undoManager.setTarget(document);
+		
+		this.saveExecutionManager = new InOrderExecutionManager();
 		
 		this.selectedItems.addListener((Change<? extends Object> c) -> {
 			Class<?> clazz = null;
@@ -110,6 +118,10 @@ public final class DocumentContext<T extends Persistable> {
 		return this.document;
 	}
 	
+	public Class<T> getDocumentClass() {
+		return this.clazz;
+	}
+	
 	// TODO i don't like this being publically writable, but we need it to be writable in the document editors
 	public ObservableList<Object> getSelectedItems() {
 		return this.selectedItems;
@@ -165,5 +177,9 @@ public final class DocumentContext<T extends Persistable> {
 	
 	public UndoManager getUndoManager() {
 		return this.undoManager;
+	}
+	
+	public InOrderExecutionManager getSaveExecutionManager() {
+		return this.saveExecutionManager;
 	}
 }

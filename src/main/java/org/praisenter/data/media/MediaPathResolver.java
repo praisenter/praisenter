@@ -17,15 +17,13 @@ final class MediaPathResolver extends BasicPathResolver<Media> implements PathRe
 	private static final String IMAGE_EXTENSION = "jpg";
 	private static final String THUMB_EXTENSION = "png";
 	
-	private static final String EXPORT_PATH = "media";
-	
 	private final Path mediaPath;
 	private final Path imagePath;
 	private final Path thumbPath;
 	private final Path importPath;
 	
 	public MediaPathResolver(Path basePath, String extension) {
-		super(basePath, extension);
+		super(basePath, "media", extension);
 		this.mediaPath = this.basePath.resolve(MEDIA_PATH);
 		this.imagePath = this.basePath.resolve(IMAGE_PATH);
 		this.thumbPath = this.basePath.resolve(THUMB_PATH);
@@ -120,14 +118,6 @@ final class MediaPathResolver extends BasicPathResolver<Media> implements PathRe
 	}
 	
 	// export
-	
-	public Path getExportBasePath() {
-		return Paths.get(EXPORT_PATH);
-	}
-	
-	public Path getExportPath(Media media) {
-		return this.getExportBasePath().resolve(this.getRelativePath(media));
-	}
 	
 	public Path getExportImagePath(Media media) {
 		return this.getExportBasePath().resolve(this.getRelativeImagePath(media));

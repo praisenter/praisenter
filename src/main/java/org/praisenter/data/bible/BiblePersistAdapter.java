@@ -50,7 +50,7 @@ public final class BiblePersistAdapter implements PersistAdapter<Bible> {
 	private final Map<KnownFormat, DataFormatProvider<Bible>> formatProviders;
 	
 	public BiblePersistAdapter(Path path) {
-		this.pathResolver = new BasicPathResolver<>(path, EXTENSION);
+		this.pathResolver = new BasicPathResolver<>(path, "bibles", EXTENSION);
 		this.locks = new LockMap<>();
 		this.exportLock = new Object();
 		this.formatProviders = new HashMap<>();
@@ -140,7 +140,7 @@ public final class BiblePersistAdapter implements PersistAdapter<Bible> {
 		
 		synchronized (this.exportLock) {
 			for (Bible item : items) {
-				ZipEntry entry = new ZipEntry(FilenameUtils.separatorsToUnix(this.pathResolver.getRelativePath(item).toString()));
+				ZipEntry entry = new ZipEntry(FilenameUtils.separatorsToUnix(this.pathResolver.getExportPath(item).toString()));
 				destination.putNextEntry(entry);
 				provider.write(destination, item);
 				destination.closeEntry();
@@ -259,6 +259,11 @@ public final class BiblePersistAdapter implements PersistAdapter<Bible> {
 		}
 		
 		return result;
+	}
+	
+	@Override
+	public Path getFilePath(Bible item) {
+		return this.pathResolver.getPath(item);
 	}
 	
 //	@Override

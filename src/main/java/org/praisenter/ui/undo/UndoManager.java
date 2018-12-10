@@ -146,10 +146,11 @@ public final class UndoManager {
 			this.redos.add(undo);
 			size--;
 			
-			if ((undo == Edit.MARK || undo instanceof MarkPosition) && size > 0) {
+			while ((undo == Edit.MARK || undo instanceof MarkPosition) && size > 0) {
 				undo = this.undos.remove(size - 1);
 				undo.undo();
 				this.redos.add(undo);
+				size--;
 			}
 		} finally {
 			this.isOperating = false;
@@ -172,10 +173,21 @@ public final class UndoManager {
 			this.undos.add(redo);
 			size--;
 			
-			if ((redo == Edit.MARK || redo instanceof MarkPosition) && size > 0) {
-				redo = this.redos.remove(size - 1);
-				redo.redo();
-				this.undos.add(redo);
+			// there may be marks after the one we just un-did
+			while (size > 0) {
+				// peek at the next item
+				redo = this.redos.get(size - 1);
+				// is it a mark?
+				if (redo == Edit.MARK || redo instanceof MarkPosition) {
+					// if so, remove it and "redo" it
+					this.redos.remove(size - 1);					
+					redo.redo();
+					this.undos.add(redo);
+					size--;
+				} else {
+					// if it's not a mark then exit
+					break;
+				}
 			}
 		} finally {
 			this.isOperating = false;
@@ -198,11 +210,11 @@ public final class UndoManager {
 	}
 	
 	public void print() {
-		System.out.println("Undos:");
+		System.out.println("====== Undos ======");
 		for (Edit edit : this.undos) {
 			System.out.println(edit);
 		}
-		System.out.println("Redos:");
+		System.out.println("====== Redos ======");
 		for (Edit edit : this.redos) {
 			System.out.println(edit);
 		}

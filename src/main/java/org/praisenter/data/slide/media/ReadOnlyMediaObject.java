@@ -6,7 +6,7 @@ import org.praisenter.data.Copyable;
 import org.praisenter.data.media.MediaType;
 import org.praisenter.data.slide.graphics.ScaleType;
 import org.praisenter.data.slide.graphics.SlidePaint;
-import org.praisenter.slide.effects.SlideColorAdjust;
+import org.praisenter.data.slide.effects.SlideColorAdjust;
 
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;

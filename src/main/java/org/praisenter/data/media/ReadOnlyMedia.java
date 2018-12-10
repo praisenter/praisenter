@@ -5,7 +5,6 @@ import java.nio.file.Path;
 import org.praisenter.data.Copyable;
 import org.praisenter.data.Identifiable;
 import org.praisenter.data.Persistable;
-import org.praisenter.data.Tag;
 import org.praisenter.data.search.Indexable;
 
 import javafx.beans.property.ReadOnlyBooleanProperty;
@@ -13,7 +12,6 @@ import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.ReadOnlyLongProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
-import javafx.collections.ObservableSet;
 
 public interface ReadOnlyMedia extends Indexable, Persistable, Copyable, Identifiable {
 	public String getExtension();
@@ -35,8 +33,6 @@ public interface ReadOnlyMedia extends Indexable, Persistable, Copyable, Identif
 	public ReadOnlyIntegerProperty heightProperty();
 	public ReadOnlyLongProperty lengthProperty();
 	public ReadOnlyBooleanProperty audioAvailableProperty();
-	
-	public ObservableSet<Tag> getTagsUnmodifiable();
 	
 	/**
 	 * Returns the file system path to the media.

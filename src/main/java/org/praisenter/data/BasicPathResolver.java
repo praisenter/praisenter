@@ -9,12 +9,13 @@ import java.util.UUID;
 import org.praisenter.utility.StringManipulator;
 
 public class BasicPathResolver<T extends Identifiable> implements PathResolver<T> {
-	
 	protected final Path basePath;
+	protected final String exportBasePath;
 	protected final String extension;
 	
-	public BasicPathResolver(Path basePath, String extension) {
+	public BasicPathResolver(Path basePath, String exportBasePath, String extension) {
 		this.basePath = basePath;
+		this.exportBasePath = exportBasePath;
 		this.extension = extension;
 	}
 	
@@ -53,5 +54,15 @@ public class BasicPathResolver<T extends Identifiable> implements PathResolver<T
 	@Override
 	public Path getRelativePath(T item) {
 		return this.getFileName(item);
+	}
+	
+	@Override
+	public Path getExportBasePath() {
+		return Paths.get(this.exportBasePath);
+	}
+	
+	@Override
+	public Path getExportPath(T item) {
+		return this.getExportBasePath().resolve(this.getRelativePath(item));
 	}
 }

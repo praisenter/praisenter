@@ -2,7 +2,9 @@ package org.praisenter.data.slide;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.apache.lucene.document.Document;
@@ -10,9 +12,11 @@ import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.praisenter.Constants;
+import org.praisenter.Editable;
 import org.praisenter.data.Copyable;
 import org.praisenter.data.Identifiable;
 import org.praisenter.data.Persistable;
+import org.praisenter.data.Tag;
 import org.praisenter.data.json.InstantJsonDeserializer;
 import org.praisenter.data.json.InstantJsonSerializer;
 import org.praisenter.data.search.Indexable;
@@ -31,11 +35,13 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.ObservableSet;
 
 @JsonTypeInfo(
 	use = JsonTypeInfo.Id.NAME,
 	include = JsonTypeInfo.As.PROPERTY)
 @JsonTypeName(value = "slideshow")
+@Editable
 public final class SlideShow implements ReadOnlySlideShow, Indexable, Persistable, Copyable, Identifiable {
 
 	public static final String DATA_TYPE_SLIDE_SHOW = "show";
@@ -50,6 +56,8 @@ public final class SlideShow implements ReadOnlySlideShow, Indexable, Persistabl
 	
 	private final ObservableList<SlideAssignment> slides;
 	private final ObservableList<SlideAssignment> slidesReadOnly;
+	private final ObservableSet<Tag> tags;
+	private final ObservableSet<Tag> tagsReadOnly;
 	
 	public SlideShow() {
 		this.format = new SimpleStringProperty(Constants.FORMAT_NAME);
@@ -61,6 +69,8 @@ public final class SlideShow implements ReadOnlySlideShow, Indexable, Persistabl
 		this.loopEnabled = new SimpleBooleanProperty(false);
 		this.slides = FXCollections.observableArrayList();
 		this.slidesReadOnly = FXCollections.unmodifiableObservableList(this.slides);
+		this.tags = FXCollections.observableSet(new HashSet<>());
+		this.tagsReadOnly = FXCollections.unmodifiableObservableSet(this.tags);
 	}
 
 	@Override
@@ -76,6 +86,7 @@ public final class SlideShow implements ReadOnlySlideShow, Indexable, Persistabl
 		for (SlideAssignment sa : this.slides) {
 			show.slides.add(sa.copy());
 		}
+		show.tags.addAll(this.tags);
 		return show;
 	}
 
@@ -118,6 +129,10 @@ public final class SlideShow implements ReadOnlySlideShow, Indexable, Persistabl
 		
 		StringBuilder sb = new StringBuilder();
 		sb.append(this.name.get());
+		
+		for (Tag tag : this.tags) {
+			sb.append(" ").append(tag.getName());
+		}
 		
 		document.add(new TextField(FIELD_TEXT, sb.toString(), Field.Store.YES));
 		
@@ -165,7 +180,7 @@ public final class SlideShow implements ReadOnlySlideShow, Indexable, Persistabl
 	}
 	
 	@JsonProperty
-	private void setId(UUID id) {
+	public void setId(UUID id) {
 		this.id.set(id);
 	}
 	
@@ -186,6 +201,7 @@ public final class SlideShow implements ReadOnlySlideShow, Indexable, Persistabl
 	}
 	
 	@Override
+	@Editable("name")
 	public StringProperty nameProperty() {
 		return this.name;
 	}
@@ -238,6 +254,7 @@ public final class SlideShow implements ReadOnlySlideShow, Indexable, Persistabl
 	}
 	
 	@Override
+	@Editable("loopEnabled")
 	public BooleanProperty loopEnabledProperty() {
 		return this.loopEnabled;
 	}
@@ -247,7 +264,30 @@ public final class SlideShow implements ReadOnlySlideShow, Indexable, Persistabl
 		return this.slidesReadOnly;
 	}
 	
+	@JsonProperty
+	@Editable("slides")
 	public ObservableList<SlideAssignment> getSlides() {
 		return this.slides;
+	}
+	
+	@JsonProperty
+	public void setSlides(List<SlideAssignment> slides) {
+		this.slides.setAll(slides);
+	}
+	
+	@JsonProperty
+	@Editable("tags")
+	public ObservableSet<Tag> getTags() {
+		return this.tags;
+	}
+	
+	@JsonProperty
+	public void setTags(Set<Tag> tags) {
+		this.tags.addAll(tags);
+	}
+	
+	@Override
+	public ObservableSet<Tag> getTagsUnmodifiable() {
+		return this.tagsReadOnly;
 	}
 }

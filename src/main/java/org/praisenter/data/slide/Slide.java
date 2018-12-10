@@ -39,6 +39,7 @@ import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.praisenter.Constants;
+import org.praisenter.Editable;
 import org.praisenter.data.Copyable;
 import org.praisenter.data.Identifiable;
 import org.praisenter.data.Persistable;
@@ -86,6 +87,7 @@ import javafx.collections.ObservableSet;
 	use = JsonTypeInfo.Id.NAME,
 	include = JsonTypeInfo.As.PROPERTY)
 @JsonTypeName(value = "slide")
+@Editable
 public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlySlideRegion, Indexable, Persistable, Copyable, Identifiable {
 	/** Value indicating a slide should show forever */
 	public static final long TIME_FOREVER = -1;
@@ -106,6 +108,7 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 	private final ObjectProperty<TextStore> placeholderData;
 	private final ObjectProperty<Path> thumbnailPath;
 	private final ObservableSet<Tag> tags;
+	private final ObservableSet<Tag> tagsReadOnly;
 	private final ObservableList<SlideComponent> components;
 	private final ObservableList<SlideComponent> componentsReadOnly;
 	private final ObservableList<SlideAnimation> animations;
@@ -120,6 +123,7 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 		this.placeholderData = new SimpleObjectProperty<>();
 
 		this.tags = FXCollections.observableSet(new HashSet<>());
+		this.tagsReadOnly = FXCollections.unmodifiableObservableSet(this.tags);
 		this.components = FXCollections.observableArrayList();
 		this.componentsReadOnly = FXCollections.unmodifiableObservableList(this.components);
 		this.animations = FXCollections.observableArrayList();
@@ -227,6 +231,7 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 	}
 
 	@Override
+	@Editable("name")
 	public StringProperty nameProperty() {
 		return this.name;
 	}
@@ -279,6 +284,7 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 	}
 
 	@Override
+	@Editable("time")
 	public LongProperty timeProperty() {
 		return this.time;
 	}
@@ -331,6 +337,7 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 	}
 	
 	@Override
+	@Editable("placeholderData")
 	public ObjectProperty<TextStore> placeholderDataProperty() {
 		return this.placeholderData;
 	}
@@ -378,6 +385,7 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 	}
 	
 	@JsonProperty
+	@Editable("tags")
 	public ObservableSet<Tag> getTags() {
 		return this.tags;
 	}
@@ -389,16 +397,17 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 	
 	@Override
 	public ObservableSet<Tag> getTagsUnmodifiable() {
-		return this.tags;
+		return this.tagsReadOnly;
 	}
 	
 	@JsonProperty
+	@Editable("components")
 	public ObservableList<SlideComponent> getComponents() {
 		return this.components;
 	}
 	
 	@JsonProperty
-	public void setComponents(List<SlideComponent> coponents) {
+	public void setComponents(List<SlideComponent> components) {
 		this.components.setAll(components);
 	}
 	
@@ -406,19 +415,19 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 	public ObservableList<SlideComponent> getComponentsUnmodifiable() {
 		return this.componentsReadOnly;
 	}
-	
-	public void addComponent(SlideComponent component) {
-		this.components.add(component);
-	}
 
-	public boolean removeComponent(SlideComponent component) {
-		// no re-sort required here
-		if (this.components.remove(component)) {
-			this.animations.removeIf(st -> st.getId().equals(component.getId()));
-			return true;
-		}
-		return false;
-	}
+//	public void addComponent(SlideComponent component) {
+//		this.components.add(component);
+//	}
+//
+//	public boolean removeComponent(SlideComponent component) {
+//		// no re-sort required here
+//		if (this.components.remove(component)) {
+//			this.animations.removeIf(st -> st.getId().equals(component.getId()));
+//			return true;
+//		}
+//		return false;
+//	}
 	
 	@Override
 	public <E extends SlideComponent> List<E> getComponents(Class<E> clazz) {
@@ -534,10 +543,13 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 		return -1;
 	}
 	
+	@JsonProperty
+	@Editable("animations")
 	public ObservableList<SlideAnimation> getAnimations() {
 		return this.animations;
 	}
 	
+	@JsonProperty
 	public void setAnimations(List<SlideAnimation> animations) {
 		this.animations.setAll(animations);
 	}

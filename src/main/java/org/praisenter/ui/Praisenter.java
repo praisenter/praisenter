@@ -437,7 +437,7 @@ public final class Praisenter extends Application {
     		return null;
     	}).thenCompose(AsyncHelper.onJavaFXThreadAndWait((a) -> {
     		LOGGER.info("Loading configuration.");
-    		List<Configuration> configs = dataManager.getItems(Configuration.class);
+    		List<Configuration> configs = dataManager.getItemsUnmodifiable(Configuration.class);
     		if (configs.isEmpty()) {
     			return null;
     		}

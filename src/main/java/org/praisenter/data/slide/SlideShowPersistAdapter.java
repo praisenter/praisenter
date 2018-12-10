@@ -49,7 +49,7 @@ public final class SlideShowPersistAdapter implements PersistAdapter<SlideShow> 
 	private final Map<KnownFormat, DataFormatProvider<SlideShow>> formatProviders;
 	
 	public SlideShowPersistAdapter(Path basePath) {
-		this.pathResolver = new BasicPathResolver<>(basePath, EXTENSION);
+		this.pathResolver = new BasicPathResolver<>(basePath, "shows", EXTENSION);
 		
 		this.locks = new LockMap<>();
 		this.exportLock = new Object();
@@ -251,11 +251,16 @@ public final class SlideShowPersistAdapter implements PersistAdapter<SlideShow> 
 		
 		synchronized (this.exportLock) {
 			for (SlideShow item : items) {
-				ZipEntry entry = new ZipEntry(FilenameUtils.separatorsToUnix(this.pathResolver.getRelativePath(item).toString()));
+				ZipEntry entry = new ZipEntry(FilenameUtils.separatorsToUnix(this.pathResolver.getExportPath(item).toString()));
 				destination.putNextEntry(entry);
 				provider.write(destination, item);
 				destination.closeEntry();
 			}
 		}
+	}
+	
+	@Override
+	public Path getFilePath(SlideShow item) {
+		return this.pathResolver.getPath(item);
 	}
 }

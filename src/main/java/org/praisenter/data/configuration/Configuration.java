@@ -9,6 +9,7 @@ import org.praisenter.Constants;
 import org.praisenter.data.Copyable;
 import org.praisenter.data.Identifiable;
 import org.praisenter.data.Persistable;
+import org.praisenter.data.Tag;
 import org.praisenter.data.json.InstantJsonDeserializer;
 import org.praisenter.data.json.InstantJsonSerializer;
 import org.praisenter.data.media.MediaConfiguration;
@@ -33,6 +34,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.ObservableSet;
 
 @JsonTypeInfo(
 		use = JsonTypeInfo.Id.NAME,
@@ -237,7 +239,7 @@ public final class Configuration implements ReadOnlyConfiguration, MediaConfigur
 	}
 	
 	@JsonProperty
-	void setId(UUID id) {
+	public void setId(UUID id) {
 		this.id.set(id);
 	}
 	
@@ -678,5 +680,10 @@ public final class Configuration implements ReadOnlyConfiguration, MediaConfigur
 	@Override
 	public ObservableList<Resolution> getResolutionsUnmodifiable() {
 		return this.resolutionsReadOnly;
+	}
+	
+	@Override
+	public ObservableSet<Tag> getTagsUnmodifiable() {
+		return null;
 	}
 }

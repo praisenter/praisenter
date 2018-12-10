@@ -1,6 +1,10 @@
 package org.praisenter.async;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.function.Function;
 
 import org.praisenter.ThrowableConsumer;
@@ -111,5 +115,23 @@ public final class AsyncHelper {
 		} else {
 			Platform.runLater(operation);
 		}
+	}
+
+	public static List<Throwable> getExceptions(CompletableFuture<?>[] futures) {
+		return AsyncHelper.getExceptions(Arrays.asList(futures));
+	}
+	
+	public static List<Throwable> getExceptions(Iterable<CompletableFuture<?>> futures) {
+		List<Throwable> exceptions = new ArrayList<>();
+		for (CompletableFuture<?> future : futures) {
+			try {
+				future.join();
+			} catch (CompletionException ex) {
+				exceptions.add(ex.getCause());
+			} catch (Exception ex) {
+				exceptions.add(ex);
+			}
+		}
+		return exceptions;
 	}
 }
