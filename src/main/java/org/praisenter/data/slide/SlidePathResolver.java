@@ -14,7 +14,7 @@ final class SlidePathResolver extends BasicPathResolver<Slide> {
 	private final Path thumbPath;
 	
 	public SlidePathResolver(Path basePath, String extension) {
-		super(basePath, extension);
+		super(basePath, "slides", extension);
 		
 		this.thumbPath = basePath.resolve(THUMB_PATH);
 	}

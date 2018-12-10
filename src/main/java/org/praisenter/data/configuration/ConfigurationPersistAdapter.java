@@ -29,7 +29,7 @@ public final class ConfigurationPersistAdapter implements PersistAdapter<Configu
 	private final Object lock;
 	
 	public ConfigurationPersistAdapter(Path path) {
-		this.pathResolver = new BasicPathResolver<>(path, EXTENSION);
+		this.pathResolver = new BasicPathResolver<>(path, "config", EXTENSION);
 		this.lock = new Object();
 	}
 
@@ -96,5 +96,10 @@ public final class ConfigurationPersistAdapter implements PersistAdapter<Configu
 	public DataImportResult<Configuration> importData(Path path) throws IOException {
 		// no-op
 		return new DataImportResult<>();
+	}
+	
+	@Override
+	public Path getFilePath(Configuration item) {
+		return this.pathResolver.getPath(item);
 	}
 }

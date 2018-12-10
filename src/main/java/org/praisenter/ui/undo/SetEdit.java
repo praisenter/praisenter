@@ -16,7 +16,7 @@ final class SetEdit<T> implements Edit {
 
 	@Override
 	public String toString() {
-		return this.name + "[C=" + String.join("|", this.change.added != null ? "Added" : null, this.change.removed != null ? "Removed" : null) + "]";
+		return this.name + "[C=" + String.join("|", this.change.added != null ? "Added(" + this.change.added + ")" : null, this.change.removed != null ? "Removed(" + this.change.removed + ")" : null) + "]";
 	}
 	
 	@Override

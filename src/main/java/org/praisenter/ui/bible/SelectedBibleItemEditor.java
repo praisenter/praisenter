@@ -1,15 +1,22 @@
 package org.praisenter.ui.bible;
 
+import java.util.HashSet;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.praisenter.data.Tag;
 import org.praisenter.data.bible.Bible;
 import org.praisenter.data.bible.Book;
 import org.praisenter.data.bible.Chapter;
 import org.praisenter.data.bible.Verse;
-import org.praisenter.ui.TextInputFieldFieldEventFilter;
+import org.praisenter.ui.GlobalContext;
+import org.praisenter.ui.TextInputFieldEventFilter;
+import org.praisenter.ui.controls.TagListView;
 import org.praisenter.ui.document.DocumentContext;
+import org.praisenter.ui.document.DocumentSelectionEditor;
 import org.praisenter.ui.translations.Translations;
 
+import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
@@ -17,6 +24,8 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableSet;
 import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.TextArea;
@@ -24,9 +33,10 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.VBox;
 
-public final class SelectedBibleItemEditor extends VBox {
+public final class SelectedBibleItemEditor extends VBox implements DocumentSelectionEditor<Bible> {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
+	private final GlobalContext context;
 	private final ObjectProperty<DocumentContext<Bible>> documentContext;
 	
 	private final ObjectProperty<Bible> bible;
@@ -37,6 +47,7 @@ public final class SelectedBibleItemEditor extends VBox {
 	private final StringProperty source;
 	private final StringProperty copyright;
 	private final StringProperty notes;
+	private final ObservableSet<Tag> tags;
 	
 	private final ObjectProperty<Book> selectedBook;
 	private final StringProperty bookName;
@@ -52,9 +63,10 @@ public final class SelectedBibleItemEditor extends VBox {
 	private final IntegerProperty verseNumber;
 	private final ObjectProperty<Integer> verseNumber2;
 	
-	public SelectedBibleItemEditor() {
+	public SelectedBibleItemEditor(GlobalContext context) {
 		this.getStyleClass().add("p-bible-properties");
 		
+		this.context = context;
 		this.documentContext = new SimpleObjectProperty<>();
 		
 		this.bible = new SimpleObjectProperty<>();
@@ -65,6 +77,7 @@ public final class SelectedBibleItemEditor extends VBox {
 		this.source = new SimpleStringProperty();
 		this.copyright = new SimpleStringProperty();
 		this.notes = new SimpleStringProperty();
+		this.tags = FXCollections.observableSet(new HashSet<>());
 		
 		this.documentContext.addListener((obs, ov, nv) -> {
 			this.bible.unbind();
@@ -85,12 +98,14 @@ public final class SelectedBibleItemEditor extends VBox {
 				this.source.unbindBidirectional(ov.sourceProperty());
 				this.copyright.unbindBidirectional(ov.copyrightProperty());
 				this.notes.unbindBidirectional(ov.notesProperty());
+				Bindings.unbindContentBidirectional(this.tags, ov.getTags());
 				
 				this.name.set(null);
 				this.language.set(null);
 				this.source.set(null);
 				this.copyright.set(null);
 				this.notes.set(null);
+				this.tags.clear();
 			}
 			if (nv != null) {
 				this.name.bindBidirectional(nv.nameProperty());
@@ -98,6 +113,7 @@ public final class SelectedBibleItemEditor extends VBox {
 				this.source.bindBidirectional(nv.sourceProperty());
 				this.copyright.bindBidirectional(nv.copyrightProperty());
 				this.notes.bindBidirectional(nv.notesProperty());
+				Bindings.bindContentBidirectional(this.tags, nv.getTags());
 			}
 		});
 		
@@ -160,7 +176,7 @@ public final class SelectedBibleItemEditor extends VBox {
 			this.selectedChapter.set(null);
 			this.selectedVerse.set(null);
 
-			if (nv == null) {
+			if (nv == null || nv instanceof Bible) {
 				// do nothing
 			} else if (nv instanceof Book) {
 				this.selectedBook.set((Book)nv);
@@ -196,6 +212,9 @@ public final class SelectedBibleItemEditor extends VBox {
 		txtBibleNotes.textProperty().bindBidirectional(this.notes);
 		txtBibleNotes.setWrapText(true);
 		
+		TagListView viewTags = new TagListView(this.context.getDataManager().getTagsUmodifiable());
+		Bindings.bindContentBidirectional(viewTags.getTags(), this.tags);
+		
 		Label lblBookName = new Label(Translations.get("bible.name"));
 		TextField txtBookName = new TextField();
 		txtBookName.textProperty().bindBidirectional(this.bookName);
@@ -220,7 +239,7 @@ public final class SelectedBibleItemEditor extends VBox {
 		spnVerseNumber.setEditable(true);
 		spnVerseNumber.getValueFactory().valueProperty().bindBidirectional(this.verseNumber2);
 		
-		TextInputFieldFieldEventFilter.applyTextInputFieldEventFilter(
+		TextInputFieldEventFilter.applyTextInputFieldEventFilter(
 				txtBibleName,
 				txtBibleLanguage,
 				txtBibleSource,
@@ -237,7 +256,8 @@ public final class SelectedBibleItemEditor extends VBox {
 				lblBibleLanguage, txtBibleLanguage,
 				lblBibleSource, txtBibleSource,
 				lblBibleCopyright, txtBibleCopyright,
-				lblBibleNotes, txtBibleNotes));
+				lblBibleNotes, txtBibleNotes,
+				viewTags));
 		
 		TitledPane ttlBook = new TitledPane(Translations.get("bible.book"), new VBox(
 				lblBookNumber, spnBookNumber,

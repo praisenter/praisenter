@@ -37,6 +37,7 @@ import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.praisenter.Constants;
+import org.praisenter.Editable;
 import org.praisenter.data.Copyable;
 import org.praisenter.data.Identifiable;
 import org.praisenter.data.Persistable;
@@ -85,6 +86,7 @@ import javafx.collections.ObservableSet;
 	use = JsonTypeInfo.Id.NAME,
 	include = JsonTypeInfo.As.PROPERTY)
 @JsonTypeName(value = "media")
+@Editable
 public final class Media implements ReadOnlyMedia, Indexable, Persistable, Copyable, Identifiable {
 	/** Represents an unknown or not-applicable quantity */
 	public static final int UNKNOWN = -1;
@@ -108,6 +110,7 @@ public final class Media implements ReadOnlyMedia, Indexable, Persistable, Copya
 	private final LongProperty length;
 	private final BooleanProperty audioAvailable;
 	private final ObservableSet<Tag> tags;
+	private final ObservableSet<Tag> tagsReadOnly;
 	
 	private final ObjectProperty<Path> mediaPath;
 	private final ObjectProperty<Path> mediaImagePath;
@@ -133,6 +136,7 @@ public final class Media implements ReadOnlyMedia, Indexable, Persistable, Copya
 		this.length = new SimpleLongProperty(0);
 		this.audioAvailable = new SimpleBooleanProperty(false);
 		this.tags = FXCollections.observableSet(new TreeSet<Tag>());
+		this.tagsReadOnly = FXCollections.unmodifiableObservableSet(this.tags);
 		
 		this.mediaPath = new SimpleObjectProperty<Path>();
 		this.mediaImagePath = new SimpleObjectProperty<Path>();
@@ -269,7 +273,7 @@ public final class Media implements ReadOnlyMedia, Indexable, Persistable, Copya
 	}
 	
 	@JsonProperty
-	void setId(UUID id) {
+	public void setId(UUID id) {
 		this.id.set(id);
 	}
 	
@@ -290,6 +294,7 @@ public final class Media implements ReadOnlyMedia, Indexable, Persistable, Copya
 	}
 	
 	@Override
+	@Editable("name")
 	public StringProperty nameProperty() {
 		return this.name;
 	}
@@ -475,6 +480,7 @@ public final class Media implements ReadOnlyMedia, Indexable, Persistable, Copya
 	}
 	
 	@JsonProperty
+	@Editable("tags")
 	public ObservableSet<Tag> getTags() {
 		return this.tags;
 	}
@@ -486,7 +492,7 @@ public final class Media implements ReadOnlyMedia, Indexable, Persistable, Copya
 	
 	@Override
 	public ObservableSet<Tag> getTagsUnmodifiable() {
-		return FXCollections.unmodifiableObservableSet(this.tags);
+		return this.tagsReadOnly;
 	}
 
 	@Override

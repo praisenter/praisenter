@@ -1,22 +1,30 @@
 package org.praisenter.ui;
 
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.async.AsyncHelper;
+import org.praisenter.async.BackgroundTask;
 import org.praisenter.async.ReadOnlyBackgroundTask;
 import org.praisenter.data.DataManager;
 import org.praisenter.data.Persistable;
 import org.praisenter.data.configuration.Configuration;
+import org.praisenter.ui.controls.Alerts;
 import org.praisenter.ui.document.DocumentContext;
 import org.praisenter.ui.events.ActionStateChangedEvent;
+import org.praisenter.ui.translations.Translations;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
@@ -35,6 +43,7 @@ import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.IndexRange;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.input.Clipboard;
@@ -53,6 +62,7 @@ public final class GlobalContext {
 	final Stage stage;
 	final DataManager dataManager;
 	final Configuration configuration;
+	final ImageCache imageCache;
 	
 	private final BooleanProperty windowFocused;
 	private final ObjectProperty<Scene> scene;
@@ -83,6 +93,7 @@ public final class GlobalContext {
 		this.stage = stage;
 		this.dataManager = dataManager;
 		this.configuration = configuration;
+		this.imageCache = new ImageCache();
 		
 		this.scene = new SimpleObjectProperty<>();
 		
@@ -333,6 +344,20 @@ public final class GlobalContext {
 				break;
 		}
 		
+		// handle document based actions
+		switch (action) {
+			case SAVE:
+				return this.save();
+			case SAVE_ALL:
+				return this.saveAll();
+			case REDO:
+				return this.redo();
+			case UNDO:
+				return this.undo();
+			default:
+				break;
+		}
+		
 		// if the last focused thing was a TextInputControl, then send actions there first
 		Node focused = this.getFocusOwner();
 		boolean isTextInput = focused != null && focused instanceof TextInputControl;
@@ -419,6 +444,104 @@ public final class GlobalContext {
 				return false;
 		}
 	}
+
+	private CompletableFuture<Void> undo() {
+		DocumentContext<?> ctx = this.currentDocument.get();
+		if (ctx != null) {
+			ctx.getUndoManager().undo();
+		}
+		return AsyncHelper.nil();
+	}
+	
+	private CompletableFuture<Void> redo() {
+		DocumentContext<?> ctx = this.currentDocument.get();
+		if (ctx != null) {
+			ctx.getUndoManager().redo();
+		}
+		return AsyncHelper.nil();
+	}
+	
+	private CompletableFuture<Void> save() {
+		DocumentContext<?> ctx = this.currentDocument.get();
+		if (ctx != null) {
+			return this.save(ctx).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
+				this.onActionStateChanged("SAVE_COMPLETE");
+			})).exceptionally(t -> {
+				Platform.runLater(() -> {
+					Alert alert = Alerts.exception(this.stage, null, null, null, t);
+					alert.show();
+				});
+				return null;
+			});
+		} else {
+			return CompletableFuture.completedFuture(null);
+		}
+	}
+	
+	private CompletableFuture<Void> saveAll() {
+		List<DocumentContext<?>> ctxs = new ArrayList<>(this.openDocuments);
+		
+		CompletableFuture<?>[] futures = ctxs.stream()
+			.map(ctx -> this.save(ctx))
+			.collect(Collectors.toList())
+			.toArray(new CompletableFuture[0]);
+		
+		return CompletableFuture.allOf(futures).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
+			this.onActionStateChanged("SAVE_COMPLETE");
+		})).exceptionally(t -> {
+			// get the root exceptions from the futures
+			List<Throwable> exceptions = AsyncHelper.getExceptions(futures);
+			
+			Platform.runLater(() -> {
+				Alert alert = Alerts.exception(this.stage, null, null, null, exceptions);
+				alert.show();
+			});
+			
+			return null;
+		});
+	}
+	
+	public CompletableFuture<Void> save(DocumentContext<?> context) {
+		// make sure there are changes to save first
+		if (!context.hasUnsavedChanges()) {
+			return CompletableFuture.completedFuture(null);
+		}
+		
+		// if there are, then attempt to save
+		Persistable data = context.getDocument();
+		if (data != null) {
+			// update the modified on
+			data.setModifiedDate(Instant.now());
+			// now create a copy to be saved
+			final Persistable copy = data.copy();
+			final Object position = context.getUndoManager().storePosition();
+			
+			return context.getSaveExecutionManager().execute((o) -> {
+				BackgroundTask task = new BackgroundTask();
+				task.setName(Translations.get("task.saving", copy.getName()));
+				task.setMessage(Translations.get("task.saving", copy.getName()));
+				this.addBackgroundTask(task);
+				return this.getDataManager().update(copy).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
+					context.getUndoManager().markPosition(position);
+					task.setProgress(1);
+				})).handle((ob, t) -> {
+					return t;
+				}).thenCompose(AsyncHelper.onJavaFXThreadAndWait((t) -> {
+					if (t != null) {
+						LOGGER.error("Failed to save '" + copy.getName() + "'", t);
+						context.getUndoManager().clearPosition(position);
+						task.setException(t);
+					}
+					return t;
+				})).thenAccept((t) -> {
+					if (t != null) {
+						throw new CompletionException(t);
+					}
+				});
+			});
+		}
+		return AsyncHelper.nil();
+	}
 	
 	public Application getApplication() {
 		return this.application;
@@ -434,6 +557,10 @@ public final class GlobalContext {
 	
 	public Configuration getConfiguration() {
 		return this.configuration;
+	}
+	
+	public ImageCache getImageCache() {
+		return this.imageCache;
 	}
 	
 	public CompletableFuture<Void> saveConfiguration() {
@@ -521,6 +648,8 @@ public final class GlobalContext {
 		if (context == null) {
 			// then open it
 			context = new DocumentContext<>(document);
+			context.getUndoManager().undoCountProperty().addListener((obs, ov, nv) -> this.onActionStateChanged("UNDO_REDO"));
+			context.getUndoManager().redoCountProperty().addListener((obs, ov, nv) -> this.onActionStateChanged("UNDO_REDO"));
 			this.openDocuments.add(context);
 		}
 		

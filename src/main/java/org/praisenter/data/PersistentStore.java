@@ -20,15 +20,17 @@ public final class PersistentStore<T extends Persistable> {
 	private final SearchIndex index;
 	
 	private final ObservableList<T> items;
+	private final ObservableList<T> itemsReadOnly;
 	
 	public PersistentStore(PersistAdapter<T> adapter, SearchIndex index) {
 		this.adapter = adapter;
 		this.index = index;
 		
 		this.items = FXCollections.observableArrayList();
+		this.itemsReadOnly = FXCollections.unmodifiableObservableList(this.items);
 	}
 	
-	public CompletableFuture<Void> initialize() {
+	public CompletableFuture<List<T>> initialize() {
 		return CompletableFuture.supplyAsync(() -> {
 			try {
 				this.adapter.initialize();
@@ -38,6 +40,7 @@ public final class PersistentStore<T extends Persistable> {
 			}
 		}).thenCompose(AsyncHelper.onJavaFXThreadAndWait((items) -> {
 			this.items.addAll(items);
+			return items;
 		}));
 	}
 	
@@ -47,9 +50,9 @@ public final class PersistentStore<T extends Persistable> {
 		}
 	}
 	
-	public ObservableList<T> getItems() {
+	public ObservableList<T> getItemsUnmodifiable() {
 		this.throwIfNotJavaFXThread();
-		return this.items;
+		return this.itemsReadOnly;
 	}
 	
 	public T getItem(UUID id) {
@@ -155,5 +158,9 @@ public final class PersistentStore<T extends Persistable> {
 				throw new CompletionException(ex);
 			}
 		});
+	}
+	
+	public Path getFilePath(T item) {
+		return this.adapter.getFilePath(item);
 	}
 }

@@ -1,6 +1,5 @@
 package org.praisenter.ui.bible;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -11,8 +10,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.Constants;
 import org.praisenter.async.AsyncHelper;
-import org.praisenter.async.BackgroundTask;
-import org.praisenter.async.InOrderExecutionManager;
 import org.praisenter.data.bible.Bible;
 import org.praisenter.data.bible.Book;
 import org.praisenter.data.bible.Chapter;
@@ -27,7 +24,6 @@ import org.praisenter.ui.events.ActionStateChangedEvent;
 import org.praisenter.ui.translations.Translations;
 import org.praisenter.ui.undo.UndoManager;
 
-import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.css.PseudoClass;
 import javafx.scene.Node;
@@ -72,7 +68,6 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 	
 	private final Bible bible;
 	private final UndoManager undoManager;
-	private final InOrderExecutionManager executionManager;
 	
 	// nodes
 	
@@ -90,7 +85,6 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 		
 		this.bible = documentContext.getDocument();
 		this.undoManager = documentContext.getUndoManager();
-		this.executionManager = new InOrderExecutionManager();
 		
 		// the tree
 		
@@ -119,10 +113,7 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 					.map(i -> i.getValue())
 					.collect(Collectors.toList()));
 		});
-		
-		documentContext.getUndoManager().undoCountProperty().addListener(this::onUndoStateChanged);
-		documentContext.getUndoManager().redoCountProperty().addListener(this::onUndoStateChanged);
-		
+
 		ContextMenu menu = new ContextMenu();
 		menu.getItems().addAll(
 				this.createMenuItem(Action.NEW_BOOK),
@@ -157,15 +148,6 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 		this.setCenter(this.treeView);
 	}
 	
-	private void onUndoStateChanged(ObservableValue<? extends Number> obs, Number ov, Number nv) {
-		this.fireEvent(new ActionStateChangedEvent(this, this, ActionStateChangedEvent.UNDO_REDO));
-	}
-	
-	@Override
-	public DocumentContext<Bible> getDocumentContext() {
-		return this.documentContext;
-	}
-	
 	private MenuItem createMenuItem(Action action) {
 		MenuItem mnu = new MenuItem(Translations.get(action.getMessageKey()));
 		if (action.getGraphicSupplier() != null) {
@@ -176,6 +158,11 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 		mnu.setOnAction(e -> this.executeAction(action));
 		mnu.setUserData(action);
 		return mnu;
+	}
+	
+	@Override
+	public DocumentContext<Bible> getDocumentContext() {
+		return this.documentContext;
 	}
 	
 	@Override
@@ -198,16 +185,10 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 			case NEW_CHAPTER:
 			case NEW_VERSE:
 				return this.create(action);
-			case REDO:
-				return this.redo();
-			case UNDO:
-				return this.undo();
 			case RENUMBER:
 				return this.renumber();
 			case REORDER:
 				return this.reorder();
-			case SAVE:
-				return this.save();
 			default:
 				return CompletableFuture.completedFuture(null);
 		}
@@ -263,16 +244,6 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 	
 	// internal methods
 
-	private CompletableFuture<Void> undo() {
-		this.undoManager.undo();
-		return AsyncHelper.nil();
-	}
-	
-	private CompletableFuture<Void> redo() {
-		this.undoManager.redo();
-		return AsyncHelper.nil();
-	}
-	
 	private CompletableFuture<Void> delete() {
 		List<TreeItem<Object>> selected = new ArrayList<>(this.treeView.getSelectionModel().getSelectedItems());
 		this.treeView.getSelectionModel().clearSelection();
@@ -448,33 +419,6 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 		}
 	}
 	
-	private CompletableFuture<Void> save() {
-		Bible bible = this.bible;
-		if (bible != null) {
-			// update the modified on
-			bible.setModifiedDate(Instant.now());
-			// now create a copy to be saved
-			final Bible copy = bible.copy();
-			final Object position = this.undoManager.storePosition();
-			return this.executionManager.execute((o) -> {
-				BackgroundTask task = new BackgroundTask();
-				task.setName(Translations.get("task.saving", this.bible.getName()));
-				task.setMessage(Translations.get("task.saving", this.bible.getName()));
-				this.context.addBackgroundTask(task);
-				return this.context.getDataManager().update(copy).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
-					this.undoManager.markPosition(position);
-					task.setProgress(1);
-				})).exceptionally((ex) -> {
-					LOGGER.error("Failed to save bible '" + copy.getName() + "'", ex);
-					this.undoManager.clearPosition(position);
-					task.setException(ex);
-					return null;
-				});
-			});
-		}
-		return AsyncHelper.nil();
-	}
-
 	private ClipboardContent getClipboardContentForSelection(boolean serializeData) throws Exception {
 		List<TreeItem<Object>> items = this.treeView.getSelectionModel().getSelectedItems();
 		List<Object> objectData = items.stream().map(i -> i.getValue()).collect(Collectors.toList());

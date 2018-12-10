@@ -7,6 +7,7 @@ import org.praisenter.data.search.Indexable;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.collections.ObservableSet;
 
 public interface Persistable extends Indexable, Identifiable, Copyable {
 	public String getName();
@@ -24,6 +25,8 @@ public interface Persistable extends Indexable, Identifiable, Copyable {
 	public ObjectProperty<Instant> modifiedDateProperty();
 	public ReadOnlyStringProperty versionProperty();
 	public ReadOnlyStringProperty formatProperty();
+	
+	public ObservableSet<Tag> getTagsUnmodifiable();
 	
 	public Persistable copy();
 }

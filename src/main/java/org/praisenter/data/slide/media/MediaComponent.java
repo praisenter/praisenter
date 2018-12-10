@@ -27,6 +27,7 @@ package org.praisenter.data.slide.media;
 import java.util.Set;
 import java.util.UUID;
 
+import org.praisenter.Editable;
 import org.praisenter.data.Copyable;
 import org.praisenter.data.Identifiable;
 import org.praisenter.data.slide.ReadOnlySlideComponent;
@@ -95,6 +96,7 @@ public final class MediaComponent extends SlideComponent implements ReadOnlyMedi
 	}
 
 	@Override
+	@Editable("media")
 	public ObjectProperty<MediaObject> mediaProperty() {
 		return this.media;
 	}

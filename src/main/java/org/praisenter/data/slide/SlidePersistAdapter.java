@@ -263,11 +263,16 @@ public final class SlidePersistAdapter implements PersistAdapter<Slide> {
 		
 		synchronized (this.exportLock) {
 			for (Slide item : items) {
-				ZipEntry entry = new ZipEntry(FilenameUtils.separatorsToUnix(this.pathResolver.getRelativePath(item).toString()));
+				ZipEntry entry = new ZipEntry(FilenameUtils.separatorsToUnix(this.pathResolver.getExportPath(item).toString()));
 				destination.putNextEntry(entry);
 				provider.write(destination, item);
 				destination.closeEntry();
 			}
 		}
+	}
+	
+	@Override
+	public Path getFilePath(Slide item) {
+		return this.pathResolver.getPath(item);
 	}
 }

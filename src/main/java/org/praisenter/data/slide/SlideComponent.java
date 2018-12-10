@@ -24,6 +24,7 @@
  */
 package org.praisenter.data.slide;
 
+import org.praisenter.Editable;
 import org.praisenter.data.Copyable;
 import org.praisenter.data.Identifiable;
 import org.praisenter.data.slide.effects.SlideShadow;
@@ -68,6 +69,7 @@ public abstract class SlideComponent extends SlideRegion implements ReadOnlySlid
 	}
 	
 	@Override
+	@Editable("shadow")
 	public ObjectProperty<SlideShadow> shadowProperty() {
 		return this.shadow;
 	}
@@ -84,6 +86,7 @@ public abstract class SlideComponent extends SlideRegion implements ReadOnlySlid
 	}
 	
 	@Override
+	@Editable("glow")
 	public ObjectProperty<SlideShadow> glowProperty() {
 		return this.glow;
 	}

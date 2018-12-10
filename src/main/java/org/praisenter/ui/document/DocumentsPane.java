@@ -2,6 +2,7 @@ package org.praisenter.ui.document;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
@@ -28,51 +29,50 @@ import javafx.scene.layout.HBox;
 public final class DocumentsPane extends HBox implements ActionPane {
 	private final GlobalContext context;
 	
-	private final MappedList<DocumentTab, DocumentContext<? extends Persistable>> docToTabMapping;
+	private final MappedList<DocumentTab, DocumentContext<? extends Persistable>> documentToTabMapping;
 	
-	private final TabPane tabs;
-	private final DocumentPropertiesPane properties;
+	private final TabPane documentTabs;
+	private final CurrentDocumentSelectionEditor documentSelectionEditor;
 	
-	private final ObjectProperty<DocumentEditor<?>> currentEditor;
-	private final ObservableList<Object> selectedItems;
-	
+	private final ObjectProperty<DocumentEditor<?>> currentDocumentEditor;
+	private final ObservableList<Object> documentSelectedItems;
+
 	public DocumentsPane(GlobalContext context) {
-		
 		this.context = context;
 		
-		this.docToTabMapping = new MappedList<DocumentTab, DocumentContext<? extends Persistable>>(
+		this.documentToTabMapping = new MappedList<DocumentTab, DocumentContext<? extends Persistable>>(
 				context.getOpenDocumentsUnmodifiable(), 
 				(item) -> {
 					return new DocumentTab(context, item);
 				});
 		
-		this.tabs = new TabPane();
-		this.tabs.setTabClosingPolicy(TabClosingPolicy.ALL_TABS);
+		this.documentTabs = new TabPane();
+		this.documentTabs.setTabClosingPolicy(TabClosingPolicy.ALL_TABS);
 		
-		this.properties = new DocumentPropertiesPane(context);
+		this.documentSelectionEditor = new CurrentDocumentSelectionEditor(context);
 		
-		this.currentEditor = new SimpleObjectProperty<>();
-		this.selectedItems = FXCollections.observableArrayList();
+		this.currentDocumentEditor = new SimpleObjectProperty<>();
+		this.documentSelectedItems = FXCollections.observableArrayList();
 		
 		context.currentDocumentProperty().addListener((obs, ov, nv) -> {
 			if (nv != null) {
-				for (Tab tab : this.tabs.getTabs()) {
+				for (Tab tab : this.documentTabs.getTabs()) {
 					if (Objects.equals(((DocumentTab)tab).getDocumentContext(), nv)) {
 						// since tabs are single select, a simple select does the trick
-						this.tabs.getSelectionModel().select(tab);
+						this.documentTabs.getSelectionModel().select(tab);
 						break;
 					}
 				}
 			} else {
-				this.tabs.getSelectionModel().clearSelection();
+				this.documentTabs.getSelectionModel().clearSelection();
 			}
 		});
 		
 		// when the tab pane gets focused, move focus to the selected tab's content
-		this.tabs.focusedProperty().addListener((obs, ov, nv) -> {
+		this.documentTabs.focusedProperty().addListener((obs, ov, nv) -> {
 			if (nv) {
 				// focus the content of the selected tab
-				Tab tab = this.tabs.getSelectionModel().getSelectedItem();
+				Tab tab = this.documentTabs.getSelectionModel().getSelectedItem();
 				if (tab != null) {
 					Node node = tab.getContent();
 					if (node != null) {
@@ -86,48 +86,47 @@ public final class DocumentsPane extends HBox implements ActionPane {
 			}
 		});
 		
-		Bindings.bindContent(this.tabs.getTabs(), this.docToTabMapping);
+		Bindings.bindContent(this.documentTabs.getTabs(), this.documentToTabMapping);
 		
-		this.tabs.getSelectionModel().selectedItemProperty().addListener((obs, ov, nv) -> {
+		this.documentTabs.getSelectionModel().selectedItemProperty().addListener((obs, ov, nv) -> {
 			if (nv != null) {
 				Node node = nv.getContent();
 				if (node != null) {
 					if (node instanceof DocumentEditor) {
-						this.currentEditor.set((DocumentEditor<?>)node);
+						this.currentDocumentEditor.set((DocumentEditor<?>)node);
 					}
 				}
 			} else {
-				this.currentEditor.set(null);
+				this.currentDocumentEditor.set(null);
 			}
 		});
 		
-		this.currentEditor.addListener((obs, ov, nv) -> {
+		this.currentDocumentEditor.addListener((obs, ov, nv) -> {
 			if (ov != null) {
-				Bindings.unbindContent(this.selectedItems, ov.getDocumentContext().getSelectedItems());
+				Bindings.unbindContent(this.documentSelectedItems, ov.getDocumentContext().getSelectedItems());
 			}
 			if (nv != null) {
-				Bindings.bindContent(this.selectedItems, nv.getDocumentContext().getSelectedItems());
+				Bindings.bindContent(this.documentSelectedItems, nv.getDocumentContext().getSelectedItems());
 			}
 		});
 		
-		this.getChildren().addAll(this.tabs, this.properties);
+		this.getChildren().addAll(this.documentTabs, this.documentSelectionEditor);
 	}
 	
 	@Override
 	public void cleanUp() {
-		// TODO Auto-generated method stub
 		
 	}
 	
 	@Override
 	public ObservableList<Object> getSelectedItems() {
-		return this.selectedItems;
+		return this.documentSelectedItems;
 	}
 	
 	@Override
 	public boolean isActionEnabled(Action action) {
 		// delegate to current document
-		DocumentEditor<?> editor = this.currentEditor.get();
+		DocumentEditor<?> editor = this.currentDocumentEditor.get();
 		if (editor != null) {
 			return editor.isActionEnabled(action);
 		}
@@ -136,7 +135,7 @@ public final class DocumentsPane extends HBox implements ActionPane {
 	@Override
 	public boolean isActionVisible(Action action) {
 		// delegate to current document
-		DocumentEditor<?> editor = this.currentEditor.get();
+		DocumentEditor<?> editor = this.currentDocumentEditor.get();
 		if (editor != null) {
 			return editor.isActionVisible(action);
 		}
@@ -148,7 +147,7 @@ public final class DocumentsPane extends HBox implements ActionPane {
 		if (action == Action.SAVE_ALL) {
 			// then pass the save action to all editors
 			List<CompletableFuture<Void>> futures = new ArrayList<>();
-			for (Tab tab : this.tabs.getTabs()) {
+			for (Tab tab : this.documentTabs.getTabs()) {
 				if (tab instanceof DocumentTab) {
 					DocumentTab dt = (DocumentTab)tab;
 					DocumentEditor<?> editor = dt.getDocumentEditor();
@@ -161,7 +160,7 @@ public final class DocumentsPane extends HBox implements ActionPane {
 			return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
 		}
 		// delegate to current document
-		DocumentEditor<?> editor = this.currentEditor.get();
+		DocumentEditor<?> editor = this.currentDocumentEditor.get();
 		if (editor != null) {
 			return editor.executeAction(action);
 		}
@@ -171,7 +170,7 @@ public final class DocumentsPane extends HBox implements ActionPane {
 	@Override
 	public void setDefaultFocus() {
 		// delegate to current document
-		DocumentEditor<?> editor = this.currentEditor.get();
+		DocumentEditor<?> editor = this.currentDocumentEditor.get();
 		if (editor != null) {
 			editor.setDefaultFocus();
 		}

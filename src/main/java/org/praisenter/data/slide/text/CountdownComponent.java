@@ -29,6 +29,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 
+import org.praisenter.Editable;
 import org.praisenter.data.Copyable;
 import org.praisenter.data.Identifiable;
 import org.praisenter.data.json.LocalDateTimeJsonDeserializer;
@@ -157,6 +158,7 @@ public final class CountdownComponent extends TextComponent implements ReadOnlyC
 	}
 
 	@Override
+	@Editable("countdownTarget")
 	public ObjectProperty<LocalDateTime> countdownTargetProperty() {
 		return this.countdownTarget;
 	}
@@ -173,6 +175,7 @@ public final class CountdownComponent extends TextComponent implements ReadOnlyC
 	}
 	
 	@Override
+	@Editable("countdownFormat")
 	public StringProperty countdownFormatProperty() {
 		return this.countdownFormat;
 	}
@@ -189,6 +192,7 @@ public final class CountdownComponent extends TextComponent implements ReadOnlyC
 	}
 	
 	@Override
+	@Editable("countdownTimeOnly")
 	public BooleanProperty countdownTimeOnlyProperty() {
 		return this.countdownTimeOnly;
 	}

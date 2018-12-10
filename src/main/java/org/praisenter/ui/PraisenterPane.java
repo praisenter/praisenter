@@ -1,6 +1,7 @@
 package org.praisenter.ui;
 
 import org.praisenter.data.bible.Bible;
+import org.praisenter.ui.document.DocumentContext;
 import org.praisenter.ui.document.DocumentsPane;
 import org.praisenter.ui.library.LibraryList;
 
@@ -170,7 +171,7 @@ public class PraisenterPane extends BorderPane {
 //		});
 		
 		LibraryList bblListing = new LibraryList(context);
-		Bindings.bindContent(bblListing.getItems(), context.getDataManager().getItems(Bible.class));
+		Bindings.bindContent(bblListing.getItems(), context.getDataManager().getItemsUnmodifiable(Bible.class));
 		
 		//BorderPane bp = new BorderPane();
 		this.setTop(mainMenu);
@@ -179,12 +180,12 @@ public class PraisenterPane extends BorderPane {
 //		this.setRight(cpp);
 
 		Spinner<Integer> spnIndex = new Spinner<>(0,5,0);
-		Button btnLoadDocument = new Button("Load document");
+		Button btnLoadDocument = new Button("Print Undo State");
 		btnLoadDocument.setOnAction(e -> {
-			//dep.addOrFocusDocument(context.getDataManager().getItems(Bible.class).get(0).copy());
-			int index = spnIndex.getValue();
-			Bible document = context.getDataManager().getItems(Bible.class).get(index).copy();
-			context.openDocument(document);
+			DocumentContext<?> ctx = context.getCurrentDocument();
+			if (ctx != null) {
+				ctx.getUndoManager().print();
+			}
 		});
 		HBox buttons = new HBox(5, spnIndex, btnLoadDocument);
 		

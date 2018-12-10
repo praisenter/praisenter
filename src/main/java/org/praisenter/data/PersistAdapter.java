@@ -14,4 +14,5 @@ public interface PersistAdapter<T extends Persistable> {
 	public DataImportResult<T> importData(Path path) throws IOException;
 	public void exportData(KnownFormat format, ZipOutputStream destination, List<T> items) throws IOException;
 	public void exportData(KnownFormat format, Path path, T item) throws IOException;
+	public Path getFilePath(T item);
 }

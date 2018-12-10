@@ -6,7 +6,6 @@ import org.praisenter.data.Persistable;
 import org.praisenter.ui.Action;
 import org.praisenter.ui.translations.Translations;
 
-import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 

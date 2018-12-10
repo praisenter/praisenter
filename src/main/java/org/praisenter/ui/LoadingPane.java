@@ -143,7 +143,7 @@ final class LoadingPane extends Pane {
     	barfg.endYProperty().bind(this.heightProperty().subtract(BAR_Y_OFFSET));
     	
     	// loading... text
-    	Text loadingText = new Text(Translations.get("loading"));
+    	Text loadingText = new Text(Translations.get("task.loading"));
     	loadingText.setFont(this.getFont(80));
     	loadingText.setFill(Color.WHITE);
     	loadingText.setX(BAR_X_OFFSET - 5);
@@ -242,7 +242,7 @@ final class LoadingPane extends Pane {
 	
 	private CompletableFuture<Void> loadBibles() {
 		return CompletableFuture.runAsync(() -> {
-			this.message.set(Translations.get("loading.library.bibles"));
+			this.message.set(Translations.get("task.loading.bible"));
 		}).thenCompose((v) -> {
 			return this.context.dataManager.registerPersistAdapter(Bible.class, new BiblePersistAdapter(Paths.get(Constants.BIBLES_ABSOLUTE_PATH)));
 		}).thenRun(() -> {
@@ -258,7 +258,7 @@ final class LoadingPane extends Pane {
 	
 	private CompletableFuture<Void> loadMedia() {
 		return CompletableFuture.runAsync(() -> {
-			this.message.set(Translations.get("loading.library.media"));
+			this.message.set(Translations.get("task.loading.media"));
 		}).thenCompose((v) -> {
 			return this.context.dataManager.registerPersistAdapter(Media.class, new MediaPersistAdapter(Paths.get(Constants.MEDIA_ABSOLUTE_PATH), context.configuration));
 		}).thenRun(() -> {
@@ -268,7 +268,7 @@ final class LoadingPane extends Pane {
 	
 	private CompletableFuture<Void> loadSlides() {
 		return CompletableFuture.runAsync(() -> {
-			this.message.set(Translations.get("loading.library.slides"));
+			this.message.set(Translations.get("task.loading.slide"));
 		}).thenCompose((v) -> {
 			// TODO slide renderer
 			return this.context.dataManager.registerPersistAdapter(Slide.class, new SlidePersistAdapter(Paths.get(Constants.SLIDES_ABSOLUTE_PATH), null));
@@ -279,7 +279,7 @@ final class LoadingPane extends Pane {
 	
 	private CompletableFuture<Void> loadSlideShows() {
 		return CompletableFuture.runAsync(() -> {
-			this.message.set(Translations.get("loading.library.slideshows"));
+			this.message.set(Translations.get("task.loading.show"));
 		}).thenCompose((v) -> {
 			return this.context.dataManager.registerPersistAdapter(SlideShow.class, new SlideShowPersistAdapter(Paths.get(Constants.SLIDESHOWS_ABSOLUTE_PATH)));
 		}).thenRun(() -> {
