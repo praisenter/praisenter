@@ -5,21 +5,26 @@ import org.praisenter.data.slide.graphics.SlideStroke;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.slide.convert.BorderConverter;
 
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.layout.Border;
-import javafx.scene.layout.Pane;
+import javafx.scene.layout.BorderStroke;
+import javafx.scene.layout.BorderStrokeStyle;
+import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
-import javafx.scene.shape.Rectangle;
-import javafx.scene.shape.Shape;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.StrokeLineCap;
+import javafx.scene.shape.StrokeLineJoin;
+import javafx.scene.shape.StrokeType;
 
 /**
  * This class represents any node within the scene of a slide
  * @author WBittle
  *
  */
-public abstract class SlideRegionNode<T extends SlideRegion> extends StackPane implements Playable {
+abstract class SlideRegionNode<T extends SlideRegion> extends StackPane implements Playable {
 	// need to support transformations (scale, translate, rotate)
 	// need to support borders, padding, backgrounds, etc
 	// need to support selection UI border with resize and move handles
@@ -33,7 +38,7 @@ public abstract class SlideRegionNode<T extends SlideRegion> extends StackPane i
 	
 	// scaling/clipping is performed at the parent node to the slide
 	// this					X, Y, Width, Height, Animation (TranslateX, TranslateY, ScaleX, ScaleY, Fade, Rotate, etc.)
-	//  +- container		Rotation, Opacity
+	//  +- container		Rotation, Opacity, Effects (Glow/Shadow)
 	//		+- background		the background (color, gradient, image)
 	//		+- mediaView		the media view (video)
 	//		+- *content*		supplied from the subclass
@@ -55,11 +60,12 @@ public abstract class SlideRegionNode<T extends SlideRegion> extends StackPane i
 	//			+- SlideDateTimeComponentNode
 	//			+- SlideTextPlaceholderComponentNode
 	
-	private final StackPane container;
-	private final PaintPane background;
-	private final Region borderPane;
+	protected final StackPane container;
+	protected final PaintPane background;
+	protected final StackPane content;
+	protected final Region borderPane;
 	
-	protected SlideRegionNode(GlobalContext context, T region, Pane contentPane) {
+	protected SlideRegionNode(GlobalContext context, T region) {
 		this.context = context;
 		this.region = region;
 		this.mode = new SimpleObjectProperty<>(SlideMode.VIEW);
@@ -67,40 +73,65 @@ public abstract class SlideRegionNode<T extends SlideRegion> extends StackPane i
 		this.container = new StackPane();
 		this.background = new PaintPane(context);
 		this.borderPane = new Region();
+		this.content = new StackPane();
+		
+		// for testing
+//		this.setBorder(new Border(new BorderStroke(Color.BLUE, new BorderStrokeStyle(StrokeType.CENTERED, StrokeLineJoin.MITER, StrokeLineCap.SQUARE, 1.0, 0.0, null), null, new BorderWidths(2.0))));
+//		this.container.setBorder(new Border(new BorderStroke(Color.GREEN, new BorderStrokeStyle(StrokeType.CENTERED, StrokeLineJoin.MITER, StrokeLineCap.SQUARE, 1.0, 0.0, null), null, new BorderWidths(2.0))));
+//		this.background.setBorder(new Border(new BorderStroke(Color.RED, new BorderStrokeStyle(StrokeType.CENTERED, StrokeLineJoin.MITER, StrokeLineCap.SQUARE, 1.0, 0.0, null), null, new BorderWidths(2.0))));
+//		this.content.setBorder(new Border(new BorderStroke(Color.YELLOW, new BorderStrokeStyle(StrokeType.CENTERED, StrokeLineJoin.MITER, StrokeLineCap.SQUARE, 1.0, 0.0, null), null, new BorderWidths(2.0))));
+//		this.borderPane.setBorder(new Border(new BorderStroke(Color.MAGENTA, new BorderStrokeStyle(StrokeType.CENTERED, StrokeLineJoin.MITER, StrokeLineCap.SQUARE, 1.0, 0.0, null), null, new BorderWidths(2.0))));
 		
 		this.layoutXProperty().bind(this.region.xProperty());
 		this.layoutYProperty().bind(this.region.yProperty());
 		this.prefWidthProperty().bind(this.region.widthProperty());
 		this.prefHeightProperty().bind(this.region.heightProperty());
+		this.minWidthProperty().bind(this.region.widthProperty());
+		this.minHeightProperty().bind(this.region.heightProperty());
+		this.maxWidthProperty().bind(this.region.widthProperty());
+		this.maxHeightProperty().bind(this.region.heightProperty());
+		
+		this.background.prefWidthProperty().bind(this.region.widthProperty());
+		this.background.prefHeightProperty().bind(this.region.heightProperty());
+		this.background.maxWidthProperty().bind(this.region.widthProperty());
+		this.background.maxHeightProperty().bind(this.region.heightProperty());
+//		this.background.minWidthProperty().bind(this.region.widthProperty());
+//		this.background.minHeightProperty().bind(this.region.heightProperty());
+		
+		this.content.prefWidthProperty().bind(this.region.widthProperty());
+		this.content.prefHeightProperty().bind(this.region.heightProperty());
+		
+		this.borderPane.prefWidthProperty().bind(this.region.widthProperty());
+		this.borderPane.prefHeightProperty().bind(this.region.heightProperty());
+		this.borderPane.maxWidthProperty().bind(this.region.widthProperty());
+		this.borderPane.maxHeightProperty().bind(this.region.heightProperty());
+//		this.borderPane.minWidthProperty().bind(this.region.widthProperty());
+//		this.borderPane.minHeightProperty().bind(this.region.heightProperty());
 		
 		this.container.opacityProperty().bind(this.region.opacityProperty());
+		
 		this.background.paintProperty().bind(this.region.backgroundProperty());
 		this.background.modeProperty().bind(this.mode);
 		
-		this.region.borderProperty().addListener((obs, ov, nv) -> {
-			Shape clip = this.getBorderBasedClip(nv);
-			this.background.setClip(clip);
-			contentPane.setClip(clip);
-			this.borderPane.setBorder(new Border(BorderConverter.toJavaFX(nv)));
-		});
+//		this.region.borderProperty().addListener((obs, ov, nv) -> {
+//			Shape clip = this.getBorderBasedClip(nv);
+//			this.background.setClip(clip);
+//			this.content.setClip(clip);
+//			//this.borderPane.setBorder(new Border(BorderConverter.toJavaFX(nv)));
+//		});
+
+//		this.background.clipProperty().bind(Bindings.createObjectBinding(() -> {
+//			SlideStroke border = this.region.getBorder();
+//			return this.getBorderBasedClip(border);
+//		}, this.region.borderProperty()));
 		
-		this.container.getChildren().addAll(this.background, contentPane, this.borderPane);
+		this.borderPane.borderProperty().bind(Bindings.createObjectBinding(() -> {
+			SlideStroke border = this.region.getBorder();
+			return new Border(BorderConverter.toJavaFX(border));
+		}, this.region.borderProperty()));
+		
+		this.container.getChildren().addAll(this.background, this.borderPane, this.content);
 		this.getChildren().add(this.container);
-	}
-	
-	private final Shape getBorderBasedClip(SlideStroke stroke) {
-		if (stroke != null) {
-			double radius = stroke.getRadius();
-			if (radius > 0) {
-				Rectangle r = new Rectangle();
-				r.widthProperty().bind(this.widthProperty());
-				r.heightProperty().bind(this.heightProperty());
-				r.setArcHeight(2 * radius);
-				r.setArcWidth(2 * radius);
-				return r;
-			}
-		}
-		return null;
 	}
 	
 	@Override

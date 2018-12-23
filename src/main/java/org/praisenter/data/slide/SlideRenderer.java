@@ -24,6 +24,8 @@
  */
 package org.praisenter.data.slide;
 
+import java.awt.image.BufferedImage;
+
 import javafx.scene.image.Image;
 
 /**
@@ -33,5 +35,5 @@ import javafx.scene.image.Image;
  */
 public interface SlideRenderer {
 	public Image render(Slide slide);
-	public Image renderThumbnail(Slide slide);
+	public BufferedImage renderThumbnail(Slide slide, int width, int height);
 }

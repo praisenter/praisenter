@@ -35,6 +35,7 @@ public final class MediaPersistAdapter implements PersistAdapter<Media> {
 	private static final Logger LOGGER = LogManager.getLogger();
 	private static final String EXTENSION = "json";
 
+	private final MediaConfiguration configuration;
 	private final MediaPathResolver pathResolver;
 	
 	private final MediaTools tools;
@@ -44,12 +45,13 @@ public final class MediaPersistAdapter implements PersistAdapter<Media> {
 	private final Object exportLock;
 	
 	public MediaPersistAdapter(Path path, MediaConfiguration configuration) {
+		this.configuration = configuration;
 		this.pathResolver = new MediaPathResolver(path, EXTENSION);
 		this.tools = new MediaTools(this.pathResolver.getBasePath());
 		this.loaders = new MediaLoader[] {
-			new ImageMediaLoader(this.pathResolver, configuration, this.tools),
-			new VideoMediaLoader(this.pathResolver, configuration, this.tools),
-			new AudioMediaLoader(this.pathResolver, configuration, this.tools)
+			new ImageMediaLoader(this.pathResolver, this.configuration, this.tools),
+			new VideoMediaLoader(this.pathResolver, this.configuration, this.tools),
+			new AudioMediaLoader(this.pathResolver, this.configuration, this.tools)
 		};
 		
 		this.locks = new LockMap<UUID>();

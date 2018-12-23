@@ -30,7 +30,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
 
-public final class PaintPane extends StackPane implements Playable {
+final class PaintPane extends StackPane implements Playable {
 
 	private final GlobalContext context;
 	private final ObjectProperty<SlideMode> mode;
@@ -244,8 +244,6 @@ public final class PaintPane extends StackPane implements Playable {
 		this.setRotate(0);
 		this.setOpacity(1.0);
 		this.setClip(null);
-		
-		// TODO need to reinitialize animations
 		
 		// media
 		this.stop();

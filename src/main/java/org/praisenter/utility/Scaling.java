@@ -92,6 +92,23 @@ public final class Scaling {
 		this.height = height;
 	}
 	
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("Scaling[ow=").append(this.originalWidth).append(", ")
+		.append("oh=").append(this.originalHeight).append(", ")
+		.append("tw=").append(this.targetWidth).append(", ")
+		.append("th=").append(this.targetHeight).append(", ")
+		.append("f=").append(this.factor).append(", ")
+		.append("fx=").append(this.factorX).append(", ")
+		.append("fy=").append(this.factorY).append(", ")
+		.append("x=").append(this.x).append(", ")
+		.append("y=").append(this.y).append(", ")
+		.append("w=").append(this.width).append(", ")
+		.append("h=").append(this.height).append("]");
+		return sb.toString();
+	}
+	
 	/**
 	 * Returns a zero {@link Scaling} for the given target width and height.
 	 * @param w the target with

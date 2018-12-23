@@ -36,6 +36,7 @@ import org.praisenter.data.slide.Slide;
 import org.praisenter.data.slide.SlidePersistAdapter;
 import org.praisenter.data.slide.SlideShow;
 import org.praisenter.data.slide.SlideShowPersistAdapter;
+import org.praisenter.ui.slide.ThumbnailGenerator;
 import org.praisenter.ui.translations.Translations;
 import org.praisenter.utility.RuntimeProperties;
 
@@ -260,7 +261,7 @@ final class LoadingPane extends Pane {
 		return CompletableFuture.runAsync(() -> {
 			this.message.set(Translations.get("task.loading.media"));
 		}).thenCompose((v) -> {
-			return this.context.dataManager.registerPersistAdapter(Media.class, new MediaPersistAdapter(Paths.get(Constants.MEDIA_ABSOLUTE_PATH), context.configuration));
+			return this.context.dataManager.registerPersistAdapter(Media.class, new MediaPersistAdapter(Paths.get(Constants.MEDIA_ABSOLUTE_PATH), this.context.configuration));
 		}).thenRun(() -> {
 			this.progress.set(0.4);
 		});
@@ -270,8 +271,7 @@ final class LoadingPane extends Pane {
 		return CompletableFuture.runAsync(() -> {
 			this.message.set(Translations.get("task.loading.slide"));
 		}).thenCompose((v) -> {
-			// TODO slide renderer
-			return this.context.dataManager.registerPersistAdapter(Slide.class, new SlidePersistAdapter(Paths.get(Constants.SLIDES_ABSOLUTE_PATH), null));
+			return this.context.dataManager.registerPersistAdapter(Slide.class, new SlidePersistAdapter(Paths.get(Constants.SLIDES_ABSOLUTE_PATH), new ThumbnailGenerator(this.context), this.context.configuration));
 		}).thenRun(() -> {
 			this.progress.set(0.6);
 		});
@@ -292,7 +292,10 @@ final class LoadingPane extends Pane {
 	 * @throws IllegalStateException if start has already been called
 	 */
 	public CompletableFuture<Void> start() {
-		return this.loadBibles().thenCompose((v) -> {
+		return CompletableFuture.completedFuture(null)
+		.thenCompose((v) -> {
+			return this.loadBibles();
+		}).thenCompose((v) -> {
 			return this.loadMedia();
 		}).thenCompose((v) -> {
 			return this.loadSlides();

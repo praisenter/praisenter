@@ -53,6 +53,14 @@ public final class SlideFont implements ReadOnlySlideFont, Copyable {
 		this.size = new SimpleDoubleProperty(10);
 	}
 	
+	public SlideFont(String family, SlideFontWeight weight, SlideFontPosture posture, double size) {
+		this();
+		this.family.set(family);
+		this.weight.set(weight);
+		this.posture.set(posture);
+		this.size.set(size);
+	}
+	
 	@Override
 	public SlideFont copy() {
 		SlideFont font = new SlideFont();
