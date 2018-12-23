@@ -7,6 +7,7 @@ import org.praisenter.data.Identifiable;
 import org.praisenter.data.Persistable;
 import org.praisenter.data.media.MediaConfiguration;
 import org.praisenter.data.search.Indexable;
+import org.praisenter.data.slide.SlideConfiguration;
 
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyDoubleProperty;
@@ -15,7 +16,7 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.collections.ObservableList;
 
-public interface ReadOnlyConfiguration extends MediaConfiguration, Indexable, Persistable, Copyable, Identifiable {
+public interface ReadOnlyConfiguration extends MediaConfiguration, SlideConfiguration, Indexable, Persistable, Copyable, Identifiable {
 	public UUID getPrimaryBibleId();
 	public UUID getSecondaryBibleId();
 	public boolean isRenumberBibleWarningEnabled();

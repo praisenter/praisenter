@@ -14,6 +14,7 @@ import org.praisenter.data.json.InstantJsonDeserializer;
 import org.praisenter.data.json.InstantJsonSerializer;
 import org.praisenter.data.media.MediaConfiguration;
 import org.praisenter.data.search.Indexable;
+import org.praisenter.data.slide.SlideConfiguration;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -40,7 +41,7 @@ import javafx.collections.ObservableSet;
 		use = JsonTypeInfo.Id.NAME,
 		include = JsonTypeInfo.As.PROPERTY)
 @JsonTypeName(value = "configuration")
-public final class Configuration implements ReadOnlyConfiguration, MediaConfiguration, Indexable, Persistable, Copyable, Identifiable {
+public final class Configuration implements ReadOnlyConfiguration, MediaConfiguration, SlideConfiguration, Indexable, Persistable, Copyable, Identifiable {
 	public static final double POSITION_SIZE_UNSET = -1;
 	
 	private final StringProperty format;

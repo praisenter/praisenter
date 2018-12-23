@@ -1,5 +1,6 @@
 package org.praisenter.data.slide;
 
+import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
@@ -38,13 +39,11 @@ import org.praisenter.data.json.JsonIO;
 import org.praisenter.utility.MimeType;
 import org.praisenter.utility.Streams;
 
-import javafx.embed.swing.SwingFXUtils;
-import javafx.scene.image.Image;
-
 public final class SlidePersistAdapter implements PersistAdapter<Slide> {
 	private static final Logger LOGGER = LogManager.getLogger();
 	private static final String EXTENSION = "json";
 	
+	private final SlideConfiguration configuration;
 	private final SlidePathResolver pathResolver;
 	private final SlideRenderer renderer;
 
@@ -53,7 +52,8 @@ public final class SlidePersistAdapter implements PersistAdapter<Slide> {
 	
 	private final Map<KnownFormat, DataFormatProvider<Slide>> formatProviders;
 	
-	public SlidePersistAdapter(Path basePath, SlideRenderer renderer) {
+	public SlidePersistAdapter(Path basePath, SlideRenderer renderer, SlideConfiguration configuration) {
+		this.configuration = configuration;
 		this.pathResolver = new SlidePathResolver(basePath, EXTENSION);
 		this.renderer = renderer;
 		
@@ -98,8 +98,8 @@ public final class SlidePersistAdapter implements PersistAdapter<Slide> {
 			if (Files.exists(path)) {
 				throw new FileAlreadyExistsException(path.toAbsolutePath().toString());
 			}
-			Image image = this.renderer.renderThumbnail(item);
-			ImageIO.write(SwingFXUtils.fromFXImage(image, null), this.pathResolver.getThumbExtension(), this.pathResolver.getThumbPath(item).toFile());
+			BufferedImage image = this.renderer.renderThumbnail(item, this.configuration.getThumbnailWidth(), this.configuration.getThumbnailHeight());
+			ImageIO.write(image, this.pathResolver.getThumbExtension(), this.pathResolver.getThumbPath(item).toFile());
 			JsonIO.write(path, item);
 		}
 	}
@@ -109,8 +109,8 @@ public final class SlidePersistAdapter implements PersistAdapter<Slide> {
 		synchronized (this.exportLock) {
 			Path path = this.pathResolver.getPath(item);
 			synchronized (this.locks.get(item.getId())) {
-				Image image = this.renderer.renderThumbnail(item);
-				ImageIO.write(SwingFXUtils.fromFXImage(image, null), this.pathResolver.getThumbExtension(), this.pathResolver.getThumbPath(item).toFile());
+				BufferedImage image = this.renderer.renderThumbnail(item, this.configuration.getThumbnailWidth(), this.configuration.getThumbnailHeight());
+				ImageIO.write(image, this.pathResolver.getThumbExtension(), this.pathResolver.getThumbPath(item).toFile());
 				JsonIO.write(path, item);
 			}
 		}

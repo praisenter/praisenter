@@ -62,7 +62,7 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 	// data
 	
 	private final GlobalContext context;
-	private final DocumentContext<Bible> documentContext;
+	private final DocumentContext<Bible> document;
 
 	// helpers
 	
@@ -75,16 +75,16 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 	
 	public BibleEditor(
 			GlobalContext context, 
-			DocumentContext<Bible> documentContext) {
+			DocumentContext<Bible> document) {
 		this.getStyleClass().add("p-bible-editor");
 		
 		this.context = context;
-		this.documentContext = documentContext;
+		this.document = document;
 		
 		// set the helpers
 		
-		this.bible = documentContext.getDocument();
-		this.undoManager = documentContext.getUndoManager();
+		this.bible = document.getDocument();
+		this.undoManager = document.getUndoManager();
 		
 		// the tree
 		
@@ -106,7 +106,7 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 		
 		this.treeView.getSelectionModel().getSelectedItems().addListener((ListChangeListener.Change<? extends TreeItem<Object>> change) -> {
 			// set the selected items
-			documentContext.getSelectedItems().setAll(this.treeView
+			document.getSelectedItems().setAll(this.treeView
 					.getSelectionModel()
 					.getSelectedItems()
 					.stream().filter(i -> i != null && i.getValue() != null)
@@ -162,7 +162,7 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 	
 	@Override
 	public DocumentContext<Bible> getDocumentContext() {
-		return this.documentContext;
+		return this.document;
 	}
 	
 	@Override
@@ -196,7 +196,7 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 	
 	@Override
 	public boolean isActionEnabled(Action action) {
-		DocumentContext<Bible> ctx = this.documentContext;
+		DocumentContext<Bible> ctx = this.document;
 		switch (action) {
 			case COPY:
 				return ctx.isSingleTypeSelected() && ctx.getSelectedType() != Bible.class;
@@ -280,8 +280,8 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 				this.bible.getBooks().add(new Book(number, "New Book"));
 				break;
 			case NEW_CHAPTER:
-				if (this.documentContext.getSelectedCount() == 1 && this.documentContext.getSelectedType() == Book.class) {
-					final Object selected = this.documentContext.getSelectedItem();
+				if (this.document.getSelectedCount() == 1 && this.document.getSelectedType() == Book.class) {
+					final Object selected = this.document.getSelectedItem();
 					if (selected != null && selected instanceof Book) {
 						Book book = (Book)selected;
 						int n = book.getMaxChapterNumber();
@@ -290,8 +290,8 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 				}
 				break;
 			case NEW_VERSE:
-				if (this.documentContext.getSelectedCount() == 1 && this.documentContext.getSelectedType() == Chapter.class) {
-					final Object selected = this.documentContext.getSelectedItem();
+				if (this.document.getSelectedCount() == 1 && this.document.getSelectedType() == Chapter.class) {
+					final Object selected = this.document.getSelectedItem();
 					if (selected != null && selected instanceof Chapter) {
 						Chapter chapter = (Chapter)selected;
 						int n = chapter.getMaxVerseNumber();
@@ -306,7 +306,7 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 	}
 	
 	private CompletableFuture<Void> renumber() {
-		if (this.documentContext.getSelectedCount() == 1) {
+		if (this.document.getSelectedCount() == 1) {
 			// capture the item to be renumbered
 			final TreeItem<Object> selected = this.treeView.getSelectionModel().getSelectedItem();
 			if (selected != null) {
@@ -363,7 +363,7 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 	}
 	
 	private CompletableFuture<Void> reorder() {
-		if (this.documentContext.getSelectedCount() == 1) {
+		if (this.document.getSelectedCount() == 1) {
 			// capture the item to be renumbered
 			final TreeItem<Object> selected = this.treeView.getSelectionModel().getSelectedItem();
 			if (selected != null) {
@@ -428,7 +428,7 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 		List<String> textData = new ArrayList<>();
 		DataFormat format = null;
 		
-		Class<?> clazz = this.documentContext.getSelectedType();
+		Class<?> clazz = this.document.getSelectedType();
 		if (clazz == Book.class) {
 			format = BOOK_CLIPBOARD_DATA;
 			textData = items.stream().map(b -> ((Book)b.getValue()).getName()).collect(Collectors.toList());
@@ -448,7 +448,7 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 	}
 	
 	private CompletableFuture<Void> copy(boolean isCut) {
-		Class<?> clazz = this.documentContext.getSelectedType();
+		Class<?> clazz = this.document.getSelectedType();
 		if (clazz != null && clazz != Bible.class) {
 			List<TreeItem<Object>> items = this.treeView.getSelectionModel().getSelectedItems();
 			List<Object> objectData = items.stream().map(i -> i.getValue()).collect(Collectors.toList());
@@ -479,7 +479,7 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 	}
 	
 	private CompletableFuture<Void> paste() {
-		if (this.documentContext.getSelectedCount() == 1) {
+		if (this.document.getSelectedCount() == 1) {
 			Clipboard clipboard = Clipboard.getSystemClipboard();
 			TreeItem<Object> selected = this.treeView.getSelectionModel().getSelectedItem();
 			try {
@@ -503,7 +503,7 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 	}
 	
 	private void dragDetected(MouseEvent e) {
-		if (this.documentContext.isSingleTypeSelected()) {
+		if (this.document.isSingleTypeSelected()) {
 			try {
 				Dragboard db = ((Node)e.getSource()).startDragAndDrop(TransferMode.COPY_OR_MOVE);
 				ClipboardContent content = this.getClipboardContentForSelection(false);
