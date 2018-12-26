@@ -13,6 +13,7 @@ import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.praisenter.Constants;
 import org.praisenter.Editable;
+import org.praisenter.Watchable;
 import org.praisenter.data.Copyable;
 import org.praisenter.data.Identifiable;
 import org.praisenter.data.Persistable;
@@ -201,7 +202,7 @@ public final class SlideShow implements ReadOnlySlideShow, Indexable, Persistabl
 	}
 	
 	@Override
-	@Editable("name")
+	@Watchable(name = "name")
 	public StringProperty nameProperty() {
 		return this.name;
 	}
@@ -254,7 +255,7 @@ public final class SlideShow implements ReadOnlySlideShow, Indexable, Persistabl
 	}
 	
 	@Override
-	@Editable("loopEnabled")
+	@Watchable(name = "loopEnabled")
 	public BooleanProperty loopEnabledProperty() {
 		return this.loopEnabled;
 	}
@@ -265,7 +266,7 @@ public final class SlideShow implements ReadOnlySlideShow, Indexable, Persistabl
 	}
 	
 	@JsonProperty
-	@Editable("slides")
+	@Watchable(name = "slides")
 	public ObservableList<SlideAssignment> getSlides() {
 		return this.slides;
 	}
@@ -276,7 +277,7 @@ public final class SlideShow implements ReadOnlySlideShow, Indexable, Persistabl
 	}
 	
 	@JsonProperty
-	@Editable("tags")
+	@Watchable(name = "tags")
 	public ObservableSet<Tag> getTags() {
 		return this.tags;
 	}

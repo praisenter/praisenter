@@ -2,7 +2,7 @@ package org.praisenter.data.bible;
 
 import java.util.List;
 
-import org.praisenter.Editable;
+import org.praisenter.Watchable;
 import org.praisenter.data.Copyable;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -81,7 +81,7 @@ public final class Chapter implements ReadOnlyChapter, Copyable, Comparable<Chap
 	}
 	
 	@Override
-	@Editable("number")
+	@Watchable(name = "number")
 	public IntegerProperty numberProperty() {
 		return this.number;
 	}
@@ -92,7 +92,7 @@ public final class Chapter implements ReadOnlyChapter, Copyable, Comparable<Chap
 	}
 	
 	@JsonProperty
-	@Editable("verses")
+	@Watchable(name = "verses")
 	public ObservableList<Verse> getVerses() {
 		return this.verses;
 	}

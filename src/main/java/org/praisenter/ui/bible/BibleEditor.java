@@ -264,8 +264,8 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 						}
 					}
 				}
-				this.undoManager.completeBatch();
 			}
+			this.undoManager.completeBatch();
 		} catch (Exception ex) {
 			LOGGER.error("Failed to delete the selected items", ex);
 			this.undoManager.discardBatch();

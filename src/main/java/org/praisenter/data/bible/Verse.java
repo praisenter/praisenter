@@ -1,6 +1,6 @@
 package org.praisenter.data.bible;
 
-import org.praisenter.Editable;
+import org.praisenter.Watchable;
 import org.praisenter.data.Copyable;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -55,7 +55,7 @@ public final class Verse implements ReadOnlyVerse, Copyable, Comparable<Verse> {
 	}
 	
 	@Override
-	@Editable("number")
+	@Watchable(name = "number")
 	public IntegerProperty numberProperty() {
 		return this.number;
 	}
@@ -72,7 +72,7 @@ public final class Verse implements ReadOnlyVerse, Copyable, Comparable<Verse> {
 	}
 	
 	@Override
-	@Editable("text")
+	@Watchable(name = "text")
 	public StringProperty textProperty() {
 		return this.text;
 	}

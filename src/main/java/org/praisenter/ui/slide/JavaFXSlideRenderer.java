@@ -54,7 +54,7 @@ import javafx.scene.paint.Color;
  * @author William Bittle
  * @version 3.0.0
  */
-public final class ThumbnailGenerator implements SlideRenderer {
+public final class JavaFXSlideRenderer implements SlideRenderer {
 	/** The class-level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
 
@@ -66,7 +66,7 @@ public final class ThumbnailGenerator implements SlideRenderer {
 	 * @param context the context
 	 * @param settings the thumbnail settings
 	 */
-	public ThumbnailGenerator(GlobalContext context) {
+	public JavaFXSlideRenderer(GlobalContext context) {
 		this.context = context;
 	}
 	

@@ -355,7 +355,7 @@ public final class SlideLibraryPane extends BorderPane implements ApplicationPan
         });
         
 		this.lstSlides.addEventHandler(SelectionEvent.DOUBLE_CLICK, (e) -> {
-			@SuppressWarnings("unchecked")
+			@SuppressWarnings(name = "unchecked")
 			FlowListCell<SlideListItem> view = (FlowListCell<SlideListItem>)e.getTarget();
 			SlideListItem item = view.getData();
 			if (item.isLoaded()) {

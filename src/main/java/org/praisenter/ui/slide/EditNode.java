@@ -3,11 +3,11 @@ package org.praisenter.ui.slide;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.praisenter.data.slide.SlideComponent;
+import org.praisenter.data.slide.Slide;
 import org.praisenter.data.slide.SlideRegion;
-import org.praisenter.javafx.slide.ObservableSlideComponent;
-import org.praisenter.javafx.utility.Fx;
-import org.praisenter.utility.Scaling;
+import org.praisenter.ui.Action;
+import org.praisenter.ui.document.DocumentContext;
+import org.praisenter.ui.translations.Translations;
 
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
@@ -20,14 +20,14 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
-import javafx.scene.Node;
-import javafx.scene.Scene;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderStroke;
 import javafx.scene.layout.BorderStrokeStyle;
 import javafx.scene.layout.BorderWidths;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
@@ -52,14 +52,60 @@ public class EditNode extends StackPane {
 	//  +- thumb2	Rectangle
 	//	+- ...
 	
+	private final DocumentContext<Slide> document;
 	private final ObjectProperty<SlideRegion> region;
 	private final DoubleProperty scale;
 	private final BooleanProperty selected;
 	
-	public EditNode(SlideRegion region) {
+	// for selection, move, and resize
+
+	private Cursor cursor;
+	
+	/** The start x value of the mouse gesture */
+	private double sx;
+	
+	/** The start y value of the mouse gesture */
+	private double sy;
+	
+	/** The current x coordinate of the region */
+	private double x;
+	
+	/** The current y coordinate of the region */
+	private double y;
+	
+	/** The current width of the region */
+	private double w;
+	
+	/** The current height of the region */
+	private double h;
+	
+	private final ContextMenu contextMenu;
+	
+	public EditNode(
+			DocumentContext<Slide> document,
+			SlideRegion region) {
+		this.document = document;
 		this.region = new SimpleObjectProperty<>(region);
 		this.scale = new SimpleDoubleProperty(1);
 		this.selected = new SimpleBooleanProperty(false);
+		
+		this.contextMenu = new ContextMenu();
+		this.contextMenu.getItems().addAll(
+//				this.createMenuItem(Action.NEW_BOOK),
+//				this.createMenuItem(Action.NEW_CHAPTER),
+//				this.createMenuItem(Action.NEW_VERSE),
+//				new SeparatorMenuItem(),
+				this.createMenuItem(Action.COPY),
+				this.createMenuItem(Action.CUT),
+				this.createMenuItem(Action.PASTE),
+//				new SeparatorMenuItem(),
+//				this.createMenuItem(Action.REORDER),
+//				this.createMenuItem(Action.RENUMBER),
+				new SeparatorMenuItem(),
+				this.createMenuItem(Action.DELETE)
+			);
+		this.contextMenu.setAutoHide(true);
+		this.setOnContextMenuRequested(e -> this.contextMenu.show(this, e.getScreenX(), e.getScreenY()));
 		
 		List<Double> dashes = new ArrayList<Double>();
 		dashes.add(2.0);
@@ -116,6 +162,16 @@ public class EditNode extends StackPane {
 			r.setFill(Color.WHITE);
 			r.setStroke(Color.BLACK);
 			r.setStrokeWidth(BORDER_SIZE);
+			r.addEventHandler(MouseEvent.ANY, e -> {
+				if (e.getEventType() == MouseEvent.MOUSE_PRESSED ||
+					e.getEventType() == MouseEvent.MOUSE_CLICKED) {
+					pressed(e, r.getCursor());
+				} else if (e.getEventType() == MouseEvent.MOUSE_DRAGGED) {
+					dragged(e);
+				} else if (e.getEventType() == MouseEvent.MOUSE_RELEASED) {
+					apply(e);
+				}
+			});
 		}
 		
 		this.getChildren().addAll(sp, tlThumb, tThumb, trThumb, rThumb, brThumb, bThumb, blThumb, lThumb);
@@ -143,43 +199,39 @@ public class EditNode extends StackPane {
 		this.addEventHandler(MouseEvent.MOUSE_PRESSED, e -> this.selected.set(true));
 		this.addEventHandler(MouseEvent.ANY, e -> {
 			if (e.getEventType() == MouseEvent.MOUSE_PRESSED ||
-				e.getEventType() == MouseEvent.MOUSE_RELEASED ||
 				e.getEventType() == MouseEvent.MOUSE_CLICKED) {
-				pressed(e);
+				pressed(e, Cursor.MOVE);
 			} else if (e.getEventType() == MouseEvent.MOUSE_DRAGGED) {
 				dragged(e);
+			} else if (e.getEventType() == MouseEvent.MOUSE_RELEASED) {
+				apply(e);
 			}
 		});
 		
 		this.setCursor(Cursor.MOVE);
+		
+		
 	}
-	
-	private Cursor cursor;
-	
-	/** The start x value of the mouse gesture */
-	private double sx;
-	
-	/** The start y value of the mouse gesture */
-	private double sy;
-	
-	/** The current x coordinate of the region */
-	private double x;
-	
-	/** The current y coordinate of the region */
-	private double y;
-	
-	/** The current width of the region */
-	private double w;
-	
-	/** The current height of the region */
-	private double h;
+
+	private MenuItem createMenuItem(Action action) {
+		MenuItem mnu = new MenuItem(Translations.get(action.getMessageKey()));
+		if (action.getGraphicSupplier() != null) {
+			//mnu.setGraphic(action.getGraphicSupplier().get());
+		}
+		// NOTE: due to bug in JavaFX, we don't apply the accelerator here
+		//mnu.setAccelerator(value);
+		// TODO need to send action to parent or define the context menu on the parent? OR don't show a context menu, but show a toolbar above the component?
+		//mnu.setOnAction(e -> this.executeAction(action));
+		mnu.setUserData(action);
+		return mnu;
+	}
 	
 	/**
 	 * Called when a mouse button has been pressed on the region.
 	 * @param event the event
 	 */
-	private void pressed(MouseEvent event) {
-		cursor = this.getCursor();
+	private void pressed(MouseEvent event, Cursor cursor) {
+		this.cursor = cursor;
 		
 		// record the scene coordinates of the start
 		sx = event.getSceneX();
@@ -274,7 +326,6 @@ public class EditNode extends StackPane {
 	 * @param y the new y coordinate
 	 */
 	private void positionChanged(double x, double y) {
-		//this.positionChanged.accept(this.region, new Rectangle(x, y, 0, 0));
 		this.region.get().setX(x);
 		this.region.get().setY(y);
 	}
@@ -287,7 +338,6 @@ public class EditNode extends StackPane {
 	 * @param h the new height
 	 */
 	private void sizeChanged(double x, double y, double w, double h) {
-		//this.sizeChanged.accept(this.region, new Rectangle(x, y, w, h));
 		SlideRegion region = this.region.get();
 		region.setX(x);
 		region.setY(y);
@@ -295,6 +345,41 @@ public class EditNode extends StackPane {
 		region.setHeight(h);
 	}
 	
+	/**
+	 * Records the action performed to the undo manager for easy undo/redo.
+	 * @param e the mouse event
+	 */
+	private void apply(MouseEvent e) {
+		SlideRegion sr = this.region.get();
+		
+		double sx = this.x;
+		double sy = this.y;
+		double sw = this.w;
+		double sh = this.h;
+		
+		double nx = sr.getX();
+		double ny = sr.getY();
+		double nw = sr.getWidth();
+		double nh = sr.getHeight();
+		
+		if (sx != nx || 
+			sy != ny ||
+			sw != nw ||
+			sh != nh) {
+			BoundsEdit be = new BoundsEdit(
+					sr.xProperty(), 
+					sr.yProperty(),
+					sr.widthProperty(),
+					sr.heightProperty(),
+					sx, sy, sw, sh, 
+					nx, ny, nw, nh);
+			
+			// apply the undo
+			this.document.getUndoManager().addEdit(be);
+		}
+		
+		e.consume();
+	}
 	
 	public ReadOnlyObjectProperty<SlideRegion> regionProperty() {
 		return this.region;

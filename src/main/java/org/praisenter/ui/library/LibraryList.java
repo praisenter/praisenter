@@ -21,6 +21,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.Constants;
 import org.praisenter.Editable;
+import org.praisenter.Watchable;
 import org.praisenter.async.AsyncHelper;
 import org.praisenter.async.BackgroundTask;
 import org.praisenter.data.KnownFormat;
@@ -188,8 +189,7 @@ public final class LibraryList extends BorderPane implements ActionPane {
 			FlowListCell<?> view = (FlowListCell<?>)e.getTarget();
         	Object item = view.getData();
         	Editable annotation = item.getClass().getAnnotation(Editable.class);
-        	// media is editable, but there's no editor for it (only "editable" from the list view)
-        	if (annotation != null && item.getClass() != Media.class) {
+        	if (annotation != null) {
         		this.context.openDocument(((Persistable)item).copy());
         	}
         });

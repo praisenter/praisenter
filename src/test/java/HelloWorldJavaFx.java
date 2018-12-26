@@ -13,6 +13,7 @@ import org.praisenter.data.DataManager;
 import org.praisenter.data.configuration.Configuration;
 import org.praisenter.data.search.SearchIndex;
 import org.praisenter.data.slide.Slide;
+import org.praisenter.data.slide.SlidePersistAdapter;
 import org.praisenter.data.slide.graphics.SlideColor;
 import org.praisenter.data.slide.graphics.SlidePadding;
 import org.praisenter.data.slide.graphics.SlideStroke;
@@ -28,6 +29,7 @@ import org.praisenter.data.slide.text.SlideFontWeight;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.document.DocumentContext;
 import org.praisenter.ui.slide.EditNode;
+import org.praisenter.ui.slide.JavaFXSlideRenderer;
 import org.praisenter.ui.slide.SlideEditor;
 import org.praisenter.ui.slide.SlideMode;
 import org.praisenter.ui.slide.SlideView;
@@ -35,6 +37,7 @@ import org.praisenter.ui.slide.SlideView;
 import javafx.application.Application;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.Priority;
@@ -58,6 +61,8 @@ public class HelloWorldJavaFx extends Application {
     	DataManager dm = new DataManager(si);
     	Configuration c = new Configuration();
     	GlobalContext gc = new GlobalContext(this, primaryStage, dm, c);
+    	
+    	dm.registerPersistAdapter(Slide.class, new SlidePersistAdapter(Paths.get(Constants.SLIDES_ABSOLUTE_PATH), new JavaFXSlideRenderer(gc), c));
     	
     	VBox root = new VBox();
     	root.setBackground(new Background(new BackgroundFill(Color.RED, null, null)));
@@ -116,7 +121,12 @@ public class HelloWorldJavaFx extends Application {
     	se.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
     	se.setMinSize(0, 0);
     	
-    	root.getChildren().addAll(se, sv);
+    	Button btnSave = new Button("save new");
+    	btnSave.setOnAction(e -> {
+    		gc.getDataManager().create(s);
+    	});
+    	
+    	root.getChildren().addAll(se, sv, btnSave);
 //    	VBox.setVgrow(sv, Priority.ALWAYS);
     	VBox.setVgrow(se, Priority.ALWAYS);
         
