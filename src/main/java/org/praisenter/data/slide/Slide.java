@@ -40,6 +40,7 @@ import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.praisenter.Constants;
 import org.praisenter.Editable;
+import org.praisenter.Watchable;
 import org.praisenter.data.Copyable;
 import org.praisenter.data.Identifiable;
 import org.praisenter.data.Persistable;
@@ -231,7 +232,7 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 	}
 
 	@Override
-	@Editable("name")
+	@Watchable(name = "name")
 	public StringProperty nameProperty() {
 		return this.name;
 	}
@@ -284,7 +285,7 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 	}
 
 	@Override
-	@Editable("time")
+	@Watchable(name = "time")
 	public LongProperty timeProperty() {
 		return this.time;
 	}
@@ -337,7 +338,7 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 	}
 	
 	@Override
-	@Editable("placeholderData")
+	@Watchable(name = "placeholderData")
 	public ObjectProperty<TextStore> placeholderDataProperty() {
 		return this.placeholderData;
 	}
@@ -385,7 +386,7 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 	}
 	
 	@JsonProperty
-	@Editable("tags")
+	@Watchable(name = "tags")
 	public ObservableSet<Tag> getTags() {
 		return this.tags;
 	}
@@ -401,7 +402,7 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 	}
 	
 	@JsonProperty
-	@Editable("components")
+	@Watchable(name = "components")
 	public ObservableList<SlideComponent> getComponents() {
 		return this.components;
 	}
@@ -544,7 +545,7 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 	}
 	
 	@JsonProperty
-	@Editable("animations")
+	@Watchable(name = "animations")
 	public ObservableList<SlideAnimation> getAnimations() {
 		return this.animations;
 	}

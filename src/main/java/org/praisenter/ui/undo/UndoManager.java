@@ -69,7 +69,7 @@ public final class UndoManager {
 				if (this.isBatching && this.batch != null) {
 					this.batch.add(edit);
 				} else {
-					this.addUndoEdit(edit);
+					this.addEdit(edit);
 				}
 			}
 		});
@@ -194,7 +194,7 @@ public final class UndoManager {
 		}
 	}
 	
-	private void addUndoEdit(Edit edit) {
+	public void addEdit(Edit edit) {
 		int size = this.undos.size();
 		if (size > 0) {
 			Edit top = this.undos.get(size - 1);

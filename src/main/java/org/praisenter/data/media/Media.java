@@ -37,7 +37,7 @@ import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.praisenter.Constants;
-import org.praisenter.Editable;
+import org.praisenter.Watchable;
 import org.praisenter.data.Copyable;
 import org.praisenter.data.Identifiable;
 import org.praisenter.data.Persistable;
@@ -86,7 +86,6 @@ import javafx.collections.ObservableSet;
 	use = JsonTypeInfo.Id.NAME,
 	include = JsonTypeInfo.As.PROPERTY)
 @JsonTypeName(value = "media")
-@Editable
 public final class Media implements ReadOnlyMedia, Indexable, Persistable, Copyable, Identifiable {
 	/** Represents an unknown or not-applicable quantity */
 	public static final int UNKNOWN = -1;
@@ -294,7 +293,7 @@ public final class Media implements ReadOnlyMedia, Indexable, Persistable, Copya
 	}
 	
 	@Override
-	@Editable("name")
+	@Watchable(name = "name")
 	public StringProperty nameProperty() {
 		return this.name;
 	}
@@ -480,7 +479,7 @@ public final class Media implements ReadOnlyMedia, Indexable, Persistable, Copya
 	}
 	
 	@JsonProperty
-	@Editable("tags")
+	@Watchable(name = "tags")
 	public ObservableSet<Tag> getTags() {
 		return this.tags;
 	}

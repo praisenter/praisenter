@@ -24,12 +24,20 @@
  */
 package org.praisenter.data.slide;
 
-import org.praisenter.Editable;
+import org.praisenter.Watchable;
 import org.praisenter.data.Copyable;
 import org.praisenter.data.Identifiable;
 import org.praisenter.data.slide.effects.SlideShadow;
+import org.praisenter.data.slide.media.MediaComponent;
+import org.praisenter.data.slide.text.CountdownComponent;
+import org.praisenter.data.slide.text.DateTimeComponent;
+import org.praisenter.data.slide.text.TextComponent;
+import org.praisenter.data.slide.text.TextPlaceholderComponent;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -39,6 +47,17 @@ import javafx.beans.property.SimpleObjectProperty;
  * @author William Bittle
  * @version 3.0.0
  */
+@JsonTypeInfo(
+  use = JsonTypeInfo.Id.NAME, 
+  include = JsonTypeInfo.As.PROPERTY, 
+  property = "type")
+@JsonSubTypes({ 
+  @Type(value = TextComponent.class, name = "textComponent"), 
+  @Type(value = TextPlaceholderComponent.class, name = "placeholderComponent"),
+  @Type(value = CountdownComponent.class, name = "countdownComponent"),
+  @Type(value = DateTimeComponent.class, name = "dateTimeComponent"),
+  @Type(value = MediaComponent.class, name = "mediaComponent")
+})
 public abstract class SlideComponent extends SlideRegion implements ReadOnlySlideComponent, ReadOnlySlideRegion, Copyable, Identifiable {
 	private final ObjectProperty<SlideShadow> shadow;
 	private final ObjectProperty<SlideShadow> glow;
@@ -69,7 +88,7 @@ public abstract class SlideComponent extends SlideRegion implements ReadOnlySlid
 	}
 	
 	@Override
-	@Editable("shadow")
+	@Watchable(name = "shadow")
 	public ObjectProperty<SlideShadow> shadowProperty() {
 		return this.shadow;
 	}
@@ -86,7 +105,7 @@ public abstract class SlideComponent extends SlideRegion implements ReadOnlySlid
 	}
 	
 	@Override
-	@Editable("glow")
+	@Watchable(name = "glow")
 	public ObjectProperty<SlideShadow> glowProperty() {
 		return this.glow;
 	}

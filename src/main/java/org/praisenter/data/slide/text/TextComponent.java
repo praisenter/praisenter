@@ -24,7 +24,7 @@
  */
 package org.praisenter.data.slide.text;
 
-import org.praisenter.Editable;
+import org.praisenter.Watchable;
 import org.praisenter.data.Copyable;
 import org.praisenter.data.Identifiable;
 import org.praisenter.data.slide.ReadOnlySlideComponent;
@@ -119,7 +119,7 @@ public class TextComponent extends SlideComponent implements ReadOnlyTextCompone
 	}
 	
 	@Override
-	@Editable("textPaint")
+	@Watchable(name = "textPaint")
 	public ObjectProperty<SlidePaint> textPaintProperty() {
 		return this.textPaint;
 	}
@@ -136,7 +136,7 @@ public class TextComponent extends SlideComponent implements ReadOnlyTextCompone
 	}
 
 	@Override
-	@Editable("textBorder")
+	@Watchable(name = "textBorder")
 	public ObjectProperty<SlideStroke> textBorderProperty() {
 		return this.textBorder;
 	}
@@ -153,7 +153,7 @@ public class TextComponent extends SlideComponent implements ReadOnlyTextCompone
 	}
 	
 	@Override
-	@Editable("font")
+	@Watchable(name = "font")
 	public ObjectProperty<SlideFont> fontProperty() {
 		return this.font;
 	}
@@ -170,7 +170,7 @@ public class TextComponent extends SlideComponent implements ReadOnlyTextCompone
 	}
 	
 	@Override
-	@Editable("fontScaleType")
+	@Watchable(name = "fontScaleType")
 	public ObjectProperty<FontScaleType> fontScaleTypeProperty() {
 		return this.fontScaleType;
 	}
@@ -187,7 +187,7 @@ public class TextComponent extends SlideComponent implements ReadOnlyTextCompone
 	}
 	
 	@Override
-	@Editable("verticalTextAlignment")
+	@Watchable(name = "verticalTextAlignment")
 	public ObjectProperty<VerticalTextAlignment> verticalTextAlignmentProperty() {
 		return this.verticalTextAlignment;
 	}
@@ -199,12 +199,12 @@ public class TextComponent extends SlideComponent implements ReadOnlyTextCompone
 	}
 	
 	@JsonProperty
-	public void setVerticalTextAlignment(HorizontalTextAlignment alignment) {
+	public void setHorizontalTextAlignment(HorizontalTextAlignment alignment) {
 		this.horizontalTextAlignment.set(alignment);
 	}
 	
 	@Override
-	@Editable("horizontalTextAlignment")
+	@Watchable(name = "horizontalTextAlignment")
 	public ObjectProperty<HorizontalTextAlignment> horizontalTextAlignmentProperty() {
 		return this.horizontalTextAlignment;
 	}
@@ -221,7 +221,7 @@ public class TextComponent extends SlideComponent implements ReadOnlyTextCompone
 	}
 	
 	@Override
-	@Editable("padding")
+	@Watchable(name = "padding")
 	public ObjectProperty<SlidePadding> paddingProperty() {
 		return this.padding;
 	}
@@ -238,7 +238,7 @@ public class TextComponent extends SlideComponent implements ReadOnlyTextCompone
 	}
 	
 	@Override
-	@Editable("lineSpacing")
+	@Watchable(name = "lineSpacing")
 	public DoubleProperty lineSpacingProperty() {
 		return this.lineSpacing;
 	}
@@ -255,7 +255,7 @@ public class TextComponent extends SlideComponent implements ReadOnlyTextCompone
 	}
 	
 	@Override
-	@Editable("textWrappingEnabled")
+	@Watchable(name = "textWrappingEnabled")
 	public BooleanProperty textWrappingEnabledProperty() {
 		return this.textWrapping;
 	}
@@ -271,7 +271,7 @@ public class TextComponent extends SlideComponent implements ReadOnlyTextCompone
 	}
 	
 	@Override
-	@Editable("textShadow")
+	@Watchable(name = "textShadow")
 	public ObjectProperty<SlideShadow> textShadowProperty() {
 		return this.textShadow;
 	}
@@ -288,7 +288,7 @@ public class TextComponent extends SlideComponent implements ReadOnlyTextCompone
 	}
 	
 	@Override
-	@Editable("textGlow")
+	@Watchable(name = "textGlow")
 	public ObjectProperty<SlideShadow> textGlowProperty() {
 		return this.textGlow;
 	}
@@ -305,7 +305,7 @@ public class TextComponent extends SlideComponent implements ReadOnlyTextCompone
 	}
 	
 	@Override
-	@Editable("text")
+	@Watchable(name = "text")
 	public StringProperty textProperty() {
 		return this.text;
 	}

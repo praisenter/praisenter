@@ -30,7 +30,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
 
-import org.praisenter.Editable;
+import org.praisenter.Watchable;
 import org.praisenter.data.Copyable;
 import org.praisenter.data.Identifiable;
 import org.praisenter.data.json.SimpleDateFormatJsonDeserializer;
@@ -89,7 +89,7 @@ public final class DateTimeComponent extends TextComponent implements ReadOnlyDa
 	}
 
 	@Override
-	@Editable("dateTimeFormat")
+	@Watchable(name = "dateTimeFormat")
 	public ObjectProperty<SimpleDateFormat> dateTimeFormatProperty() {
 		return this.dateTimeFormat;
 	}

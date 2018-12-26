@@ -24,7 +24,7 @@
  */
 package org.praisenter.data.slide.text;
 
-import org.praisenter.Editable;
+import org.praisenter.Watchable;
 import org.praisenter.data.Copyable;
 import org.praisenter.data.Identifiable;
 import org.praisenter.data.TextType;
@@ -75,7 +75,7 @@ public final class TextPlaceholderComponent extends TextComponent implements Rea
 	}
 	
 	@Override
-	@Editable("placeholderType")
+	@Watchable(name = "placeholderType")
 	public ObjectProperty<TextType> placeholderTypeProperty() {
 		return this.placeholderType;
 	}
@@ -92,7 +92,7 @@ public final class TextPlaceholderComponent extends TextComponent implements Rea
 	}
 	
 	@Override
-	@Editable("placeholderVariant")
+	@Watchable(name = "placeholderVariant")
 	public ObjectProperty<TextVariant> placeholderVariantProperty() {
 		return this.placeholderVariant;
 	}

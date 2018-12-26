@@ -6,12 +6,13 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotation to represent that a given object is "editable" in the sense that the user can
- * modify it through a UI.
+ * Annotation for property values that can be "watched."  The primary use of this annoation
+ * is to flag what properties will take part in undo/redo.
  * @author William Bittle
+ *
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.TYPE })
-public @interface Editable {
-	public String value() default "";
+@Target({ ElementType.METHOD })
+public @interface Watchable {
+	public String name() default "";
 }

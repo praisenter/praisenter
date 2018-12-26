@@ -36,7 +36,7 @@ import org.praisenter.data.slide.Slide;
 import org.praisenter.data.slide.SlidePersistAdapter;
 import org.praisenter.data.slide.SlideShow;
 import org.praisenter.data.slide.SlideShowPersistAdapter;
-import org.praisenter.ui.slide.ThumbnailGenerator;
+import org.praisenter.ui.slide.JavaFXSlideRenderer;
 import org.praisenter.ui.translations.Translations;
 import org.praisenter.utility.RuntimeProperties;
 
@@ -271,7 +271,7 @@ final class LoadingPane extends Pane {
 		return CompletableFuture.runAsync(() -> {
 			this.message.set(Translations.get("task.loading.slide"));
 		}).thenCompose((v) -> {
-			return this.context.dataManager.registerPersistAdapter(Slide.class, new SlidePersistAdapter(Paths.get(Constants.SLIDES_ABSOLUTE_PATH), new ThumbnailGenerator(this.context), this.context.configuration));
+			return this.context.dataManager.registerPersistAdapter(Slide.class, new SlidePersistAdapter(Paths.get(Constants.SLIDES_ABSOLUTE_PATH), new JavaFXSlideRenderer(this.context), this.context.configuration));
 		}).thenRun(() -> {
 			this.progress.set(0.6);
 		});

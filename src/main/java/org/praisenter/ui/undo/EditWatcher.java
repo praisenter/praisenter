@@ -9,7 +9,7 @@ import java.util.function.Consumer;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.praisenter.Editable;
+import org.praisenter.Watchable;
 
 import javafx.beans.Observable;
 import javafx.beans.property.Property;
@@ -70,7 +70,7 @@ final class EditWatcher implements Watcher {
 		List<Method> propertyMethods = this.getPropertyMethodsToWatch(clazz);
 		for (Method method : propertyMethods) {
 			try {
-				String name = method.getAnnotation(Editable.class).value();
+				String name = method.getAnnotation(Watchable.class).name();
 				Object returnValue = method.invoke(target);
 				if (returnValue != null) {
 					if (returnValue instanceof Property) {
@@ -99,7 +99,7 @@ final class EditWatcher implements Watcher {
 		for (Class<?> c = objectClass; c != null; c = c.getSuperclass()) {
             for (Method method : c.getDeclaredMethods()) {
             	// has to have the annotation
-            	if (method.isAnnotationPresent(Editable.class) &&
+            	if (method.isAnnotationPresent(Watchable.class) &&
             		Observable.class.isAssignableFrom(method.getReturnType())) {
             		propertyMethods.add(method);
             	}

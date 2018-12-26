@@ -1,6 +1,6 @@
 package org.praisenter.ui.undo;
 
-interface Edit {
+public interface Edit {
 	public String getName();
 	public void undo();
 	public void redo();
