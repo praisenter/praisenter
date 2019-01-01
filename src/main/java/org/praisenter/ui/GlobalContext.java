@@ -18,6 +18,7 @@ import org.praisenter.async.ReadOnlyBackgroundTask;
 import org.praisenter.data.DataManager;
 import org.praisenter.data.Persistable;
 import org.praisenter.data.configuration.Configuration;
+import org.praisenter.data.configuration.Resolution;
 import org.praisenter.ui.controls.Alerts;
 import org.praisenter.ui.document.DocumentContext;
 import org.praisenter.ui.events.ActionStateChangedEvent;
@@ -41,6 +42,7 @@ import javafx.collections.ListChangeListener;
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -48,6 +50,7 @@ import javafx.scene.control.IndexRange;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.DataFormat;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 
 /**
@@ -218,6 +221,35 @@ public final class GlobalContext {
 		this.taskFailed.bind(Bindings.createBooleanBinding(() -> {
 			return this.tasks.stream().anyMatch(t -> t.getException() != null);
 		}, this.tasks));
+
+		// watch for screen resolution changes
+		Screen.getScreens().addListener((Observable obs) -> {
+			LOGGER.info("Screen change detected.");
+			this.addMissingResolutionsBasedOnHost();
+		});
+		
+		this.addMissingResolutionsBasedOnHost();
+	}
+	
+	/**
+	 * Adds any missing screen resolutions from the resolutions list based on the host
+	 * environment's screen resolutions.
+	 */
+	private void addMissingResolutionsBasedOnHost() {
+		for (Screen screen : Screen.getScreens()) {
+			Rectangle2D bounds = screen.getBounds();
+			Resolution res = new Resolution((int)bounds.getWidth(), (int)bounds.getHeight());
+			boolean found = false;
+			for (Resolution r : this.configuration.getResolutions()) {
+				if (r.equals(res)) {
+					found = true;
+					break;
+				}
+			}
+			if (!found) {
+				this.configuration.getResolutions().add(res);
+			}
+		}
 	}
 	
 	/**

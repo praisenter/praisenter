@@ -2,21 +2,28 @@ package org.praisenter.ui.document;
 
 import java.util.Optional;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.praisenter.async.AsyncHelper;
 import org.praisenter.data.Persistable;
+import org.praisenter.data.bible.Bible;
+import org.praisenter.data.slide.Slide;
 import org.praisenter.ui.GlobalContext;
+import org.praisenter.ui.bible.BibleEditor;
 import org.praisenter.ui.controls.Alerts;
+import org.praisenter.ui.slide.SlideEditor;
 import org.praisenter.ui.translations.Translations;
 
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
-import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Tab;
 import javafx.stage.Modality;
 
 final class DocumentTab extends Tab {
+	private static final Logger LOGGER = LogManager.getLogger();
+	
 	private final GlobalContext context;
 	private final DocumentContext<? extends Persistable> document;
 	private final DocumentEditor<?> editor;
@@ -90,14 +97,19 @@ final class DocumentTab extends Tab {
 		Persistable document = this.document.getDocument();
 		if (document != null) {
 			// TODO don't really like this, but what else could we do?
-			DocumentEditor<?> editor = EditorRegistrations.createEditor(this.context, this.document);
-			this.setContent((Node)editor);
-			return editor;
-//			if (document.getClass() == Bible.class) {
-//				BibleEditor bep = new BibleEditor(this.context, (DocumentContext<Bible>)this.document);
-//				this.setContent(bep);
-//				return bep;
-//			}
+			if (document.getClass() == Bible.class) {
+				BibleEditor bep = new BibleEditor(this.context, (DocumentContext<Bible>)this.document);
+				this.setContent(bep);
+				return bep;
+			} else if (document.getClass() == Slide.class) {
+				SlideEditor sep = new SlideEditor(this.context, (DocumentContext<Slide>)this.document);
+				sep.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+				sep.setMinSize(0, 0);
+				this.setContent(sep);
+				return sep;
+			} else {
+				throw new RuntimeException("No editor for class '" + document.getClass().getName() + "'.");
+			}
 		}
 		
 		return new UnknownDocumentEditor((DocumentContext<Persistable>) this.document);

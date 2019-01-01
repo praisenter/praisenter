@@ -33,7 +33,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.VBox;
 
-public final class SelectedBibleItemEditor extends VBox implements DocumentSelectionEditor<Bible> {
+public final class BibleSelectionEditor extends VBox implements DocumentSelectionEditor<Bible> {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
 	private final GlobalContext context;
@@ -63,8 +63,8 @@ public final class SelectedBibleItemEditor extends VBox implements DocumentSelec
 	private final IntegerProperty verseNumber;
 	private final ObjectProperty<Integer> verseNumber2;
 	
-	public SelectedBibleItemEditor(GlobalContext context) {
-		this.getStyleClass().add("p-bible-properties");
+	public BibleSelectionEditor(GlobalContext context) {
+		this.getStyleClass().add("p-selection-properties");
 		
 		this.context = context;
 		this.documentContext = new SimpleObjectProperty<>();

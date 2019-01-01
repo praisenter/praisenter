@@ -86,17 +86,48 @@ public class TextComponent extends SlideComponent implements ReadOnlyTextCompone
 	
 	protected void copyTo(TextComponent component) {
 		super.copyTo(component);
-		component.textPaint.set(this.textPaint.get().copy());
-		component.textBorder.set(this.textBorder.get().copy());
-		component.font.set(this.font.get().copy());
+		
+		SlidePaint tp = this.textPaint.get();
+		if (tp != null) {
+			component.textPaint.set(tp.copy());
+		}
+		
+		SlideStroke ts = this.textBorder.get();
+		if (ts != null) {
+			component.textBorder.set(ts.copy());
+		} else {
+			component.textBorder.set(null);
+		}
+		
+		SlideFont sf = this.font.get();
+		if (sf != null) {
+			component.font.set(sf.copy());
+		}
+		
+		SlidePadding sp = this.padding.get();
+		if (sp != null) {
+			component.padding.set(sp.copy());
+		}
+		
+		SlideShadow sg = this.textGlow.get();
+		if (sg != null) {
+			component.textGlow.set(sg.copy());
+		} else {
+			component.textGlow.set(null);
+		}
+		
+		SlideShadow ss= this.textShadow.get();
+		if (ss != null) {
+			component.textShadow.set(ss.copy());
+		} else {
+			component.textShadow.set(null);
+		}
+		
 		component.fontScaleType.set(this.fontScaleType.get());
 		component.verticalTextAlignment.set(this.verticalTextAlignment.get());
 		component.horizontalTextAlignment.set(this.horizontalTextAlignment.get());
-		component.padding.set(this.padding.get().copy());
 		component.lineSpacing.set(this.lineSpacing.get());
 		component.textWrapping.set(this.textWrapping.get());
-		component.textShadow.set(this.textShadow.get().copy());
-		component.textGlow.set(this.textGlow.get().copy());
 		component.text.set(this.text.get());
 	}
 	

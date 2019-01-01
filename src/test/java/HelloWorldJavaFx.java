@@ -28,7 +28,6 @@ import org.praisenter.data.slide.text.SlideFontPosture;
 import org.praisenter.data.slide.text.SlideFontWeight;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.document.DocumentContext;
-import org.praisenter.ui.slide.EditNode;
 import org.praisenter.ui.slide.JavaFXSlideRenderer;
 import org.praisenter.ui.slide.SlideEditor;
 import org.praisenter.ui.slide.SlideMode;
@@ -76,7 +75,7 @@ public class HelloWorldJavaFx extends Application {
     	sv.setViewScalingEnabled(true);
     	
     	Slide s = new Slide();
-    	//s.setBackground(new SlideColor(0.5,0.5,0.5,1));
+    	s.setBackground(new SlideColor(0.5,0.5,0.5,0.5));
     	//s.setBorder(new SlideStroke(new SlideColor(0, 1, 0, 1), new SlideStrokeStyle(SlideStrokeType.CENTERED, SlideStrokeJoin.MITER, SlideStrokeCap.SQUARE), 1, 10));
     	s.setCreatedDate(Instant.now());
     	s.setHeight(768);

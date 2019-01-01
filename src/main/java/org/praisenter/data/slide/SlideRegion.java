@@ -54,8 +54,6 @@ public class SlideRegion implements ReadOnlySlideRegion, Copyable, Identifiable 
 	public static final double MIN_SIZE = 20;
 	
 	protected final ObjectProperty<UUID> id;
-	protected final DoubleProperty x;
-	protected final DoubleProperty y;
 	protected final DoubleProperty width;
 	protected final DoubleProperty height;
 	protected final ObjectProperty<SlideStroke> border;
@@ -70,8 +68,6 @@ public class SlideRegion implements ReadOnlySlideRegion, Copyable, Identifiable 
 	public SlideRegion() {
 		this.id = new SimpleObjectProperty<UUID>(UUID.randomUUID());
 		this.name = new ReadOnlyStringWrapper();
-		this.x = new SimpleDoubleProperty(0);
-		this.y = new SimpleDoubleProperty(0);
 		this.width = new SimpleDoubleProperty(100);
 		this.height = new SimpleDoubleProperty(100);
 		this.border = new SimpleObjectProperty<>();
@@ -87,15 +83,24 @@ public class SlideRegion implements ReadOnlySlideRegion, Copyable, Identifiable 
 	}
 	
 	protected void copyTo(SlideRegion region) {
-		region.background.set(this.background.get().copy());
-		region.border.set(this.border.get().copy());
+		SlidePaint bg = this.background.get();
+		if (bg != null) {
+			region.background.set(bg.copy());
+		} else {
+			region.background.set(null);
+		}
+		
+		SlideStroke bd = this.border.get();
+		if (bd != null) {
+			region.border.set(bd.copy());
+		} else {
+			region.border.set(null);
+		}
+		
 		region.height.set(this.height.get());
 		region.id.set(this.id.get());
-		region.name.set(this.name.get());
 		region.opacity.set(this.opacity.get());
 		region.width.set(this.width.get());
-		region.x.set(this.x.get());
-		region.y.set(this.y.get());
 	}
 	
 	@Override
@@ -153,38 +158,6 @@ public class SlideRegion implements ReadOnlySlideRegion, Copyable, Identifiable 
 	
 	@Override
 	@JsonProperty
-	public double getX() {
-		return this.x.get();
-	}
-	
-	@JsonProperty
-	public void setX(double x) {
-		this.x.set(x);
-	}
-	
-	@Override
-	public DoubleProperty xProperty() {
-		return this.x;
-	}
-	
-	@Override
-	@JsonProperty
-	public double getY() {
-		return this.y.get();
-	}
-	
-	@JsonProperty
-	public void setY(double y) {
-		this.y.set(y);
-	}
-	
-	@Override
-	public DoubleProperty yProperty() {
-		return this.y;
-	}
-	
-	@Override
-	@JsonProperty
 	public double getWidth() {
 		return this.width.get();
 	}
@@ -217,7 +190,7 @@ public class SlideRegion implements ReadOnlySlideRegion, Copyable, Identifiable 
 	
 	@Override
 	public Rectangle getBounds() {
-		return new Rectangle(this.x.get(), this.y.get(), this.width.get(), this.height.get());
+		return new Rectangle(0, 0, this.width.get(), this.height.get());
 	}
 	
 	@Override
@@ -273,22 +246,13 @@ public class SlideRegion implements ReadOnlySlideRegion, Copyable, Identifiable 
 	
 	// other
 	
-//	@Override
-//	public Rectangle getBounds() {
-//		return new Rectangle(this.x.get(), this.y.get(), this.width.get(), this.height.get());
-//	}
-	
 	public void adjust(double pw, double ph) {
 		// adjust width/height
 		this.width.set(Math.floor(this.width.get() * pw));
 		this.height.set(Math.floor(this.height.get() * ph));
-		
-		// adjust positioning
-		this.x.set(Math.ceil(this.x.get() * pw));
-		this.y.set(Math.ceil(this.y.get() * ph));
 	}
 	
-	public Rectangle resize(double dw, double dh) {
+	public void resize(double dw, double dh) {
 		// update
 		this.width.set(this.width.get() + dw);
 		this.height.set(this.height.get() + dh);
@@ -300,13 +264,6 @@ public class SlideRegion implements ReadOnlySlideRegion, Copyable, Identifiable 
 		if (this.height.get() < MIN_SIZE) {
 			this.height.set(MIN_SIZE);
 		}
-		
-		return new Rectangle(this.x.get(), this.y.get(), this.width.get(), this.height.get());
-	}
-	
-	public void translate(double dx, double dy) {
-		this.x.set(this.x.get() + dx);
-		this.y.set(this.y.get() + dy);
 	}
 	
 	/* (non-Javadoc)

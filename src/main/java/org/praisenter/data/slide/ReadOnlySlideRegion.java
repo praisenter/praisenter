@@ -15,8 +15,6 @@ import javafx.beans.property.ReadOnlyStringProperty;
 
 public interface ReadOnlySlideRegion extends Copyable, Identifiable {
 	public String getName();
-	public double getX();
-	public double getY();
 	public double getWidth();
 	public double getHeight();
 	public SlidePaint getBackground();
@@ -24,8 +22,6 @@ public interface ReadOnlySlideRegion extends Copyable, Identifiable {
 	public double getOpacity();
 
 	public ReadOnlyStringProperty nameProperty();
-	public ReadOnlyDoubleProperty xProperty();
-	public ReadOnlyDoubleProperty yProperty();
 	public ReadOnlyDoubleProperty widthProperty();
 	public ReadOnlyDoubleProperty heightProperty();
 	public ReadOnlyObjectProperty<SlidePaint> backgroundProperty();

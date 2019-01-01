@@ -226,6 +226,7 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 		return this.name.get();
 	}
 	
+	@Override
 	@JsonProperty
 	public void setName(String name) {
 		this.name.set(name);
@@ -615,9 +616,7 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 		
 		// we need a transition if the position, size, background
 		// or border are different
-		if (this.x.get() != slide.x.get() ||
-			this.y.get() != slide.y.get() ||
-			this.width.get() != slide.width.get() || 
+		if (this.width.get() != slide.width.get() || 
 			this.height.get() != slide.height.get() ||
 			!Objects.equals(this.background.get(), slide.background.get()) ||
 			!Objects.equals(this.border.get(), slide.border.get()) ||

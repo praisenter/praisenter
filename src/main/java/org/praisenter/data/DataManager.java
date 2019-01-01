@@ -20,6 +20,7 @@ import org.praisenter.data.search.SearchCriteria;
 import org.praisenter.data.search.SearchIndex;
 import org.praisenter.data.search.SearchResult;
 
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableSet;
@@ -27,12 +28,24 @@ import javafx.collections.ObservableSet;
 public final class DataManager {
 	private final ConcurrentMap<Class<?>, PersistentStore<?>> adapters;
 	private final SearchIndex index;
+	
+	private final Map<UUID, Persistable> itemLookup;
+	
+	private final ObservableList<Persistable> items;
+	private final ObservableList<Persistable> itemsReadOnly;
+	
 	private final ObservableSet<Tag> tags;
 	private final ObservableSet<Tag> tagsReadOnly;
 	
 	public DataManager(SearchIndex index) {
 		this.adapters = new ConcurrentHashMap<>();
 		this.index = index;
+		
+		this.itemLookup = new HashMap<>();
+		
+		this.items = FXCollections.observableArrayList();
+		this.itemsReadOnly = FXCollections.unmodifiableObservableList(this.items);
+		
 		this.tags = FXCollections.observableSet(new HashSet<>());
 		this.tagsReadOnly = FXCollections.unmodifiableObservableSet(this.tags);
 	}
@@ -43,14 +56,23 @@ public final class DataManager {
 			this.adapters.put(clazz, store);
 			return items;
 		}).thenCompose(AsyncHelper.onJavaFXThreadAndWait((items) -> {
+			// add all items to the lookup and
 			// initialize the set of all saved tags
 			for (T item : items) {
+				this.itemLookup.put(item.getId(), item);
 				Set<Tag> tags = item.getTagsUnmodifiable();
 				if (tags != null && !tags.isEmpty()) {
 					this.tags.addAll(tags);
 				}
 			}
+			
+			// add all items to the full list
+			this.items.addAll(items);
 		}));
+	}
+	
+	public ObservableList<Persistable> getItemsUnmodifiable() {
+		return this.itemsReadOnly;
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -62,10 +84,27 @@ public final class DataManager {
 	
 	@SuppressWarnings("unchecked")
 	public <T extends Persistable> T getItem(Class<T> clazz, UUID id) {
-		PersistentStore<?> adapter = this.adapters.get(clazz);
-		if (adapter == null) return null;
-		return (T)adapter.getItem(id);
+//		PersistentStore<?> adapter = this.adapters.get(clazz);
+//		if (adapter == null) return null;
+//		return (T)adapter.getItem(id);
+		Persistable o = this.getPersistableById(id);
+		if (o != null) {
+			if (o.getClass() == clazz) {
+				return (T)o;
+			} else {
+				// this shouldn't happen, but lets throw just in case
+				throw new ClassCastException("The type requested was '" + clazz.getName() + "' but the object with id '" + id + "' was of type '" + o.getClass().getName() + "'.");
+			}
+		}
+		return null;
 	}
+	
+//	@SuppressWarnings("unchecked")
+//	private <T extends Persistable> T getItemByClass(Class<T> clazz, UUID id) {
+//		PersistentStore<?> adapter = this.adapters.get(clazz);
+//		if (adapter == null) return null;
+//		return (T)adapter.getItem(id);
+//	}
 	
 	@SuppressWarnings("unchecked")
 	public <T extends Persistable> CompletableFuture<Void> create(T item) {
@@ -73,6 +112,12 @@ public final class DataManager {
 		PersistentStore<T> store = (PersistentStore<T>)this.adapters.get(clazz);
 		if (store == null) throw new UnsupportedOperationException("A persistence adapter was not found for class '" + clazz + "'.");
 		return store.create(item).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
+			// add to lookup
+			this.itemLookup.put(item.getId(), item);
+			
+			// add to the main list
+			this.items.add(item);
+			
 			// make sure any new tags are added to the main set
 			this.addItemTags(item);
 		}));
@@ -84,6 +129,8 @@ public final class DataManager {
 		PersistentStore<T> store = (PersistentStore<T>)this.adapters.get(clazz);
 		if (store == null) throw new UnsupportedOperationException("A persistence adapter was not found for class '" + clazz + "'.");
 		return store.update(item).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
+			// update the main list
+			this.updateListItem(item);
 			// make sure any new tags are added to the main set
 			this.addItemTags(item);
 		}));
@@ -94,7 +141,13 @@ public final class DataManager {
 		Class<?> clazz = item.getClass();
 		PersistentStore<T> store = (PersistentStore<T>)this.adapters.get(clazz);
 		if (store == null) throw new UnsupportedOperationException("A persistence adapter was not found for class '" + clazz + "'.");
-		return store.delete(item);
+		return store.delete(item).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
+			// remove from the lookup
+			this.itemLookup.remove(item.getId());
+			
+			// remove from the main list
+			this.items.removeIf(i -> i.getId().equals(item.getId()));
+		}));
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -102,6 +155,19 @@ public final class DataManager {
 		PersistentStore<T> store = (PersistentStore<T>)this.adapters.get(clazz);
 		if (store == null) throw new UnsupportedOperationException("A persistence adapter was not found for class '" + clazz + "'.");
 		return store.importData(path).thenCompose(AsyncHelper.onJavaFXThreadAndWait((result) -> {
+			// add created lookups
+			for (Persistable item : result.getCreated()) {
+				this.itemLookup.put(item.getId(), item);
+			}
+			
+			// add created
+			this.items.addAll(result.getCreated());
+			
+			// update updated
+			for (Persistable item : result.getUpdated()) {
+				this.updateListItem(item);
+			}
+			
 			// make sure we capture any new tags from the import
 			this.addDataImportResultTags(result);
 			return result;
@@ -110,21 +176,51 @@ public final class DataManager {
 	
 	@SuppressWarnings("unchecked")
 	public CompletableFuture<Void> importData(Path path, Class<Persistable>... classes) {
-		final List<CompletableFuture<DataImportResult<?>>> futures = new ArrayList<>();
+		final List<CompletableFuture<DataImportResult<? extends Persistable>>> futures = new ArrayList<>();
 		
 		for (Class<Persistable> clazz : classes) {
 			PersistentStore<?> store = this.adapters.get(clazz);
 			if (store == null) throw new UnsupportedOperationException("A persistence adapter was not found for class '" + clazz + "'.");
-			futures.add(store.importData(path).thenApply((l) -> (DataImportResult<?>)l));
+			futures.add(store.importData(path).thenApply((l) -> (DataImportResult<? extends Persistable>)l));
 		}
 		
 		return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
 			// make sure we capture any new tags from the import
-			for (CompletableFuture<DataImportResult<?>> future : futures) {
-				DataImportResult<?> result = future.get();
+			for (CompletableFuture<DataImportResult<? extends Persistable>> future : futures) {
+				DataImportResult<? extends Persistable> result = future.get();
+
+				// add created lookups
+				for (Persistable item : result.getCreated()) {
+					this.itemLookup.put(item.getId(), item);
+				}
+				
+				// add created
+				this.items.addAll(result.getCreated());
+				
+				// update updated
+				for (Persistable item : result.getUpdated()) {
+					this.updateListItem(item);
+				}
+				
+				// make sure we capture any new tags from the import
 				this.addDataImportResultTags(result);
 			}
 		}));
+	}
+	
+	private void updateListItem(Persistable item) {
+		this.itemLookup.put(item.getId(), item);
+		
+		int index = -1;
+		for (int i = 0; i < this.items.size(); i++) {
+			Persistable test = this.items.get(i);
+			if (test.getId().equals(item.getId())) {
+				index = i;
+			}
+		}
+		if (index >= 0 && index < this.items.size()) {
+			this.items.set(index, item);
+		}
 	}
 	
 	private <T> void addDataImportResultTags(DataImportResult<T> result) {
@@ -196,16 +292,17 @@ public final class DataManager {
 	}
 	
 	public Persistable getPersistableById(UUID id) {
-		for (PersistentStore<?> store : this.adapters.values()) {
-			Persistable item = store.getItem(id);
-			if (item != null) {
-				return item;
-			}
-		}
-		return null;
+		this.throwIfNotJavaFXThread();
+		return this.itemLookup.get(id);
 	}
 	
 	public ObservableSet<Tag> getTagsUmodifiable() {
 		return this.tagsReadOnly;
+	}
+
+	private void throwIfNotJavaFXThread() {
+		if (!Platform.isFxApplicationThread()) {
+			throw new IllegalStateException("The getItem method must be called on the Java FX UI thread.");
+		}
 	}
 }

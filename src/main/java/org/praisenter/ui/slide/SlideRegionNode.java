@@ -82,8 +82,6 @@ abstract class SlideRegionNode<T extends SlideRegion> extends StackPane implemen
 //		this.content.setBorder(new Border(new BorderStroke(Color.YELLOW, new BorderStrokeStyle(StrokeType.CENTERED, StrokeLineJoin.MITER, StrokeLineCap.SQUARE, 1.0, 0.0, null), null, new BorderWidths(2.0))));
 //		this.borderPane.setBorder(new Border(new BorderStroke(Color.MAGENTA, new BorderStrokeStyle(StrokeType.CENTERED, StrokeLineJoin.MITER, StrokeLineCap.SQUARE, 1.0, 0.0, null), null, new BorderWidths(2.0))));
 		
-		this.layoutXProperty().bind(this.region.xProperty());
-		this.layoutYProperty().bind(this.region.yProperty());
 		this.prefWidthProperty().bind(this.region.widthProperty());
 		this.prefHeightProperty().bind(this.region.heightProperty());
 		this.minWidthProperty().bind(this.region.widthProperty());

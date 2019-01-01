@@ -3,6 +3,8 @@ package org.praisenter.ui.slide;
 import java.util.Objects;
 import java.util.UUID;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.praisenter.data.media.Media;
 import org.praisenter.data.media.MediaType;
 import org.praisenter.data.slide.effects.SlideColorAdjust;
@@ -31,7 +33,8 @@ import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
 
 final class PaintPane extends StackPane implements Playable {
-
+	private static final Logger LOGGER = LogManager.getLogger();
+	
 	private final GlobalContext context;
 	private final ObjectProperty<SlideMode> mode;
 	private final ObjectProperty<SlidePaint> paint;
@@ -124,6 +127,8 @@ final class PaintPane extends StackPane implements Playable {
 				if (mp != null) {
 					mp.setMute(mo1.isMuted());
 					mp.setCycleCount(mo1.isLoopEnabled() ? MediaPlayer.INDEFINITE : 1);
+				} else {
+					LOGGER.warn("The previous media player was null, so we were not able to update the mute and cycle count properties.");
 				}
 			}
 			// otherwise there's nothing to update
@@ -170,8 +175,14 @@ final class PaintPane extends StackPane implements Playable {
 								m1, 
 								mo1.isLoopEnabled(), 
 								mode == SlideMode.PREVIEW || mo1.isMuted());
+					} else {
+						LOGGER.warn("The media type '" + type + "' with the current mode '" + mode + "' is not accounted for.");
 					}
+				} else {
+					LOGGER.warn("The media was not found.");
 				}
+			} else {
+				LOGGER.warn("Unsupported paint type '" + sp.getClass().getName() + "'.");
 			}
 		}
 		

@@ -2,11 +2,18 @@ package org.praisenter.ui.document;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 
+import org.praisenter.data.bible.Bible;
+import org.praisenter.data.Persistable;
+import org.praisenter.data.slide.Slide;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.MappedList;
+import org.praisenter.ui.bible.BibleSelectionEditor;
+import org.praisenter.ui.slide.SlideSelectionEditor;
 
 import javafx.beans.binding.Bindings;
+import javafx.beans.property.ObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
@@ -61,7 +68,8 @@ final class CurrentDocumentSelectionEditor extends VBox {
 				Class<?> dc = nv.getDocumentClass();
 				DocumentSelectionEditor<?> dse = selectionEditorMapping.get(dc);
 				if (dse == null) {
-					DocumentSelectionEditor<?> dse2 = EditorRegistrations.createSelectionEditor(context, context.currentDocumentProperty());
+					//DocumentSelectionEditor<?> dse2 = EditorRegistrations.createSelectionEditor(context, context.currentDocumentProperty());
+					DocumentSelectionEditor<?> dse2 = createSelectionEditor(this.context, this.context.currentDocumentProperty());
 					
 					Node node = (Node)dse2;
 					node.visibleProperty().bind(dse2.documentContextProperty().isNotNull());
@@ -77,6 +85,41 @@ final class CurrentDocumentSelectionEditor extends VBox {
 		});
 		
 		Bindings.bindContent(this.getChildren(), this.mapping);
+	}
+	
+	private <T extends Persistable> DocumentSelectionEditor<T> createSelectionEditor(GlobalContext gc, ObjectProperty<DocumentContext<?>> binder) {
+		final DocumentContext<?> ctx = binder.get();
+		final Class<?> clazz = ctx.getDocumentClass();
+		
+		DocumentSelectionEditor<T> dse = null;
+		if (clazz == Bible.class) {
+			dse = (DocumentSelectionEditor<T>)(new BibleSelectionEditor(gc));
+		} else if (clazz == Slide.class) {
+			dse = (DocumentSelectionEditor<T>)(new SlideSelectionEditor(gc));
+		} else {
+			throw new RuntimeException("No selection editor for class '" + clazz.getName() + "'.");
+		}
+		
+		dse.documentContextProperty().bind(Bindings.createObjectBinding(() -> {
+			DocumentContext<? extends Persistable> current = gc.getCurrentDocument();
+			if (current != null && current.getDocumentClass() == clazz) {
+				return (DocumentContext<T>)current;
+			}
+			return null;
+		}, gc.currentDocumentProperty()));
+		return dse;
+		
+//		Function<GlobalContext, DocumentSelectionEditor<?>> fn = SELECTION_EDITORS.get(clazz);
+//		DocumentSelectionEditor<T> ed = (DocumentSelectionEditor<T>) fn.apply(gc);
+//		ed.documentContextProperty().bind(Bindings.createObjectBinding(() -> {
+//			DocumentContext<?> ctx2 = binder.get();
+//			Class<?> clazz2 = ctx.getDocumentClass();
+//			if (clazz2 == clazz) {
+//				return (DocumentContext<T>)ctx2;
+//			}
+//			return null;
+//		}, binder));
+//		return ed;
 	}
 	
 //	private <T> void bind(ObjectProperty<T> left, ObjectProperty<DocumentContext<? extends Persistable>> right) {
