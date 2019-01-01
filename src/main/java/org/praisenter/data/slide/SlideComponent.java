@@ -28,6 +28,7 @@ import org.praisenter.Watchable;
 import org.praisenter.data.Copyable;
 import org.praisenter.data.Identifiable;
 import org.praisenter.data.slide.effects.SlideShadow;
+import org.praisenter.data.slide.graphics.Rectangle;
 import org.praisenter.data.slide.media.MediaComponent;
 import org.praisenter.data.slide.text.CountdownComponent;
 import org.praisenter.data.slide.text.DateTimeComponent;
@@ -39,7 +40,9 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
+import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
 
 /**
@@ -59,11 +62,16 @@ import javafx.beans.property.SimpleObjectProperty;
   @Type(value = MediaComponent.class, name = "mediaComponent")
 })
 public abstract class SlideComponent extends SlideRegion implements ReadOnlySlideComponent, ReadOnlySlideRegion, Copyable, Identifiable {
+	protected final DoubleProperty x;
+	protected final DoubleProperty y;
+	
 	private final ObjectProperty<SlideShadow> shadow;
 	private final ObjectProperty<SlideShadow> glow;
 	
 	public SlideComponent() {
 		super();
+		this.x = new SimpleDoubleProperty(0);
+		this.y = new SimpleDoubleProperty(0);
 		this.shadow = new SimpleObjectProperty<>();
 		this.glow = new SimpleObjectProperty<>();
 	}
@@ -71,9 +79,91 @@ public abstract class SlideComponent extends SlideRegion implements ReadOnlySlid
 	public abstract SlideComponent copy();
 	
 	protected void copyTo(SlideComponent component) {
-		this.copyTo(component);
-		component.glow.set(this.glow.get().copy());
-		component.shadow.set(this.shadow.get().copy());
+		super.copyTo(component);
+		component.x.set(this.x.get());
+		component.y.set(this.y.get());
+		
+		SlideShadow glow = this.glow.get();
+		if (glow != null) {
+			component.glow.set(glow.copy());
+		} else {
+			component.glow.set(null);
+		}
+		
+		SlideShadow shadow = this.shadow.get();
+		if (shadow != null) {
+			component.shadow.set(shadow.copy());
+		} else {
+			component.shadow.set(null);
+		}
+	}
+
+	@Override
+	public Rectangle getBounds() {
+		return new Rectangle(this.x.get(), this.y.get(), this.width.get(), this.height.get());
+	}
+	
+	public void adjust(double pw, double ph) {
+		// adjust width/height
+		super.adjust(pw, ph);
+		
+		// adjust positioning
+		this.x.set(Math.ceil(this.x.get() * pw));
+		this.y.set(Math.ceil(this.y.get() * ph));
+	}
+
+	public void translate(double dx, double dy) {
+		this.x.set(this.x.get() + dx);
+		this.y.set(this.y.get() + dy);
+	}
+	
+	@Override
+	public boolean isOverlapping(ReadOnlySlideComponent component) {
+		double ax1 = this.x.get();
+		double ay1 = this.y.get();
+		double ax2 = ax1 + this.width.get();
+		double ay2 = ay1 + this.height.get();
+		
+		double bx1 = component.getX();
+		double by1 = component.getY();
+		double bx2 = ax1 + component.getWidth();
+		double by2 = ay1 + component.getHeight();
+		
+		return ax1 < bx2 && ax2 > bx1 && ay1 < by2 && ay2 > by1;
+		
+		//return false;
+	}
+	
+	@Override
+	@JsonProperty
+	public double getX() {
+		return this.x.get();
+	}
+	
+	@JsonProperty
+	public void setX(double x) {
+		this.x.set(x);
+	}
+	
+	@Override
+	public DoubleProperty xProperty() {
+		return this.x;
+	}
+	
+	@Override
+	@JsonProperty
+	public double getY() {
+		return this.y.get();
+	}
+	
+	@JsonProperty
+	public void setY(double y) {
+		this.y.set(y);
+	}
+	
+	@Override
+	public DoubleProperty yProperty() {
+		return this.y;
 	}
 	
 	@Override

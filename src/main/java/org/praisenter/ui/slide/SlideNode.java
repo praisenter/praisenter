@@ -10,7 +10,7 @@ import org.praisenter.ui.MappedList;
 import javafx.beans.binding.Bindings;
 import javafx.scene.layout.Pane;
 
-public final class SlideNode extends SlideRegionNode<Slide> implements Playable {
+final class SlideNode extends SlideRegionNode<Slide> implements Playable {
 	private final Pane components;
 	private final MappedList<SlideComponentNode<?>, SlideComponent> mapping;
 	

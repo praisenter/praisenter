@@ -23,15 +23,27 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.EventType;
+import javafx.geometry.Pos;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DataFormat;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.BorderStroke;
+import javafx.scene.layout.BorderStrokeStyle;
+import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.StrokeLineCap;
+import javafx.scene.shape.StrokeLineJoin;
+import javafx.scene.shape.StrokeType;
 
-// FEATURE grouping, UUID group property on each slide component, when grouped sizing and moving work on the group, can't select individual when grouped
+// FEATURE grouping, UUID group property on each slide component, when grouped sizing and moving work on the group, can't select individual when grouped; or grouped at selection level only
 
+// TODO background, shadow, center
 // context menu
 public final class SlideEditor extends BorderPane implements DocumentEditor<Slide> {
 	private static final Logger LOGGER = LogManager.getLogger();
@@ -109,7 +121,15 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 //		this.slideView.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
 		
 		this.setCenter(this.view);
+		BorderPane.setAlignment(this.view, Pos.CENTER);
 		//this.setBorder(new Border(new BorderStroke(Color.BLACK, new BorderStrokeStyle(StrokeType.CENTERED, StrokeLineJoin.MITER, StrokeLineCap.SQUARE, 4, 0, null), null, new BorderWidths(4))));
+		
+		this.addEventHandler(MouseEvent.ANY, e -> {
+			EventType<?> et = e.getEventType();
+			if (et == MouseEvent.MOUSE_CLICKED || et == MouseEvent.MOUSE_PRESSED || et == MouseEvent.MOUSE_RELEASED) {
+				this.selected.set(null);
+			}
+		});
 	}
 	
 	private void clearSelectionExceptFor(EditNode node) {

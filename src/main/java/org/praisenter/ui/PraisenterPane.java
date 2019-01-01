@@ -1,11 +1,16 @@
 package org.praisenter.ui;
 
+import org.praisenter.data.Persistable;
 import org.praisenter.data.bible.Bible;
+import org.praisenter.data.configuration.Configuration;
+import org.praisenter.data.slide.Slide;
 import org.praisenter.ui.document.DocumentContext;
 import org.praisenter.ui.document.DocumentsPane;
 import org.praisenter.ui.library.LibraryList;
 
 import javafx.beans.binding.Bindings;
+import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
 import javafx.scene.control.Button;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
@@ -14,10 +19,13 @@ import javafx.scene.control.ProgressBar;
 import javafx.scene.control.Spinner;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
 public class PraisenterPane extends BorderPane {
 	private final GlobalContext context;
+	
+	private final ObservableList<Persistable> items;
 	
 	public PraisenterPane(GlobalContext context) {
 		this.context = context;
@@ -170,14 +178,26 @@ public class PraisenterPane extends BorderPane {
 //			return new BibleListCell(bible);
 //		});
 		
-		LibraryList bblListing = new LibraryList(context);
-		Bindings.bindContent(bblListing.getItems(), context.getDataManager().getItemsUnmodifiable(Bible.class));
+//		LibraryList bblListing = new LibraryList(context);
+//		Bindings.bindContent(bblListing.getItems(), context.getDataManager().getItemsUnmodifiable(Bible.class));
+		
+		this.items = new FilteredList<>(context.getDataManager().getItemsUnmodifiable(), (i) -> {
+			if (i instanceof Configuration) {
+				return false;
+			}
+			return true;
+		});
+		
+		LibraryList itemListing = new LibraryList(context);
+		Bindings.bindContent(itemListing.getItems(), this.items);
 		
 		//BorderPane bp = new BorderPane();
 		this.setTop(mainMenu);
-		this.setCenter(new VBox(5, bblListing, dep));
+		this.setCenter(new VBox(5, itemListing, dep));
 		this.setLeft(ab);
 //		this.setRight(cpp);
+		
+		VBox.setVgrow(dep, Priority.ALWAYS);
 
 		Spinner<Integer> spnIndex = new Spinner<>(0,5,0);
 		Button btnLoadDocument = new Button("Print Undo State");

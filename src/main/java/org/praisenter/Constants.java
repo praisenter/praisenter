@@ -144,7 +144,7 @@ public final class Constants {
 	
 	// /user/home/dir/Praisenter3/slides
 	/** The absolute path to the slides folder */
-	public static final String SLIDESHOWS_ABSOLUTE_PATH = Constants.ROOT_PATH + SLIDES_RELATIVE_PATH;
+	public static final String SLIDESHOWS_ABSOLUTE_PATH = Constants.ROOT_PATH + SLIDESHOWS_RELATIVE_PATH;
 	
 	///////////////////////////
 	// BIBLES

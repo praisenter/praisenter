@@ -16,6 +16,9 @@ abstract class SlideComponentNode<T extends SlideComponent> extends SlideRegionN
 	protected SlideComponentNode(GlobalContext context, T region) {
 		super(context, region);
 		
+		this.layoutXProperty().bind(this.region.xProperty());
+		this.layoutYProperty().bind(this.region.yProperty());
+		
 		this.container.effectProperty().bind(Bindings.createObjectBinding(() -> {
 			return this.computeEffect();
 		}, this.region.shadowProperty(), this.region.glowProperty()));

@@ -1,7 +1,5 @@
 package org.praisenter.ui.slide;
 
-import java.util.UUID;
-
 import org.praisenter.ui.undo.Edit;
 
 import javafx.beans.property.DoubleProperty;

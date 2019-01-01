@@ -292,7 +292,6 @@ public final class LibraryList extends BorderPane implements ActionPane {
 				this.createMenuItem(Action.SELECT_NONE),
 				new SeparatorMenuItem(),
 				this.createMenuItem(Action.COPY),
-				this.createMenuItem(Action.CUT),
 				this.createMenuItem(Action.PASTE),
 				new SeparatorMenuItem(),
 				this.createMenuItem(Action.RENAME),

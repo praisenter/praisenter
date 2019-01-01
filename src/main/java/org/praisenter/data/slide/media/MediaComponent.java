@@ -67,7 +67,14 @@ public final class MediaComponent extends SlideComponent implements ReadOnlyMedi
 	public MediaComponent copy() {
 		MediaComponent component = new MediaComponent();
 		this.copyTo(component);
-		component.media.set(this.media.get());
+		
+		MediaObject mo = this.media.get();
+		if (mo != null) {
+			component.media.set(mo.copy());
+		} else {
+			component.media.set(null);
+		}
+		
 		return component;
 	}
 	

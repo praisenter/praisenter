@@ -29,13 +29,13 @@ public class LibraryListCell extends FlowListCell<Persistable> {
     	if (data instanceof ReadOnlyMedia) {
     		final ReadOnlyMedia media = (ReadOnlyMedia)data;
     		thumb.imageProperty().bind(Bindings.createObjectBinding(() -> {
-    			return new Image(media.getMediaThumbnailPath().toString());
+    			return new Image(media.getMediaThumbnailPath().toUri().toURL().toExternalForm());
     		}, media.mediaThumbnailPathProperty()));
     		label.textProperty().bind(media.nameProperty());
     	} else if (data instanceof ReadOnlySlide) {
     		final ReadOnlySlide slide = (ReadOnlySlide)data;
     		thumb.imageProperty().bind(Bindings.createObjectBinding(() -> {
-    			return new Image(slide.getThumbnailPath().toString());
+    			return new Image(slide.getThumbnailPath().toUri().toURL().toExternalForm());
     		}, slide.thumbnailPathProperty()));
     		label.textProperty().bind(slide.nameProperty());
     	} else if (data instanceof ReadOnlySlideShow) {
