@@ -21,7 +21,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.Constants;
 import org.praisenter.Editable;
-import org.praisenter.Watchable;
 import org.praisenter.async.AsyncHelper;
 import org.praisenter.async.BackgroundTask;
 import org.praisenter.data.KnownFormat;
@@ -210,7 +209,7 @@ public final class LibraryList extends BorderPane implements ActionPane {
 				currentValue = typeOptions.get(0);
 			} else if (typeOptions.size() > 1) {
 				// if there's more than one type, add the all option
-				typeOptions.add(new Option<>());
+				typeOptions.add(0, new Option<>());
 				
 				// does the current type filter exist in the new set?
 				Option<LibraryListType> currentTypeFilter = this.typeFilter.get();
@@ -426,13 +425,10 @@ public final class LibraryList extends BorderPane implements ActionPane {
 					task.setProgress(1.0);
 				}).exceptionally((t) -> {
 					// log the exception
-					LOGGER.error("Failed to delete one or more items (see subsequent errors for details)");
+					LOGGER.error("Failed to delete one or more items (see prior error logs for details)");
 					
 					// get the root exceptions from the futures
 					List<Throwable> exceptions = AsyncHelper.getExceptions(futures);
-					for (Throwable ex : exceptions) {
-						LOGGER.error(ex);
-					}
 					
 					// update the task
 					task.setException(exceptions.get(0));
@@ -593,7 +589,10 @@ public final class LibraryList extends BorderPane implements ActionPane {
 				int i = 0;
 				final CompletableFuture<?>[] futures = new CompletableFuture<?>[items.size()];
 				for (Persistable item : items) {
-					futures[i++] = this.context.getDataManager().create(item);
+					futures[i++] = this.context.getDataManager().create(item).exceptionally(t -> {
+						LOGGER.error("Failed to paste item '" + item.getName() + "' due to: " + t.getMessage(), t);
+						throw new CompletionException(t);
+					});
 				}
 				
 				this.context.addBackgroundTask(task);
@@ -601,13 +600,10 @@ public final class LibraryList extends BorderPane implements ActionPane {
 					task.setProgress(1.0);
 				}).exceptionally((t) -> {
 					// log the exception
-					LOGGER.error("Failed to paste items (see subsequent errors for details)");
+					LOGGER.error("Failed to paste items (see prior error logs for details)");
 					
 					// get the root exceptions from the futures
 					List<Throwable> exceptions = AsyncHelper.getExceptions(futures);
-					for (Throwable ex : exceptions) {
-						LOGGER.error(ex);
-					}
 					
 					// update the task
 					task.setException(exceptions.get(0));
@@ -681,5 +677,17 @@ public final class LibraryList extends BorderPane implements ActionPane {
 		}
 		
 		return CompletableFuture.completedFuture(null);
+	}
+	
+	public boolean isMultiSelectEnabled() {
+		return this.view.isMultipleSelectionEnabled();
+	}
+	
+	public void setMultiSelectEnabled(boolean enabled) {
+		this.view.setMultipleSelectionEnabled(enabled);
+	}
+	
+	public BooleanProperty multiSelectEnabledProperty() {
+		return this.view.multipleSelectionProperty();
 	}
 }

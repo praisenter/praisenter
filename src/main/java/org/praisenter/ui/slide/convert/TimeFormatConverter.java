@@ -30,13 +30,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javafx.util.Pair;
+import javafx.util.StringConverter;
 
 /**
  * A class containing methods for converting the time format that the user specifies into a printf format.
  * @author William Bittle
  * @version 3.0.0
  */
-public final class TimeFormatConverter {
+public final class TimeFormatConverter extends StringConverter<String> {
 	/** The format mappings */
 	private static final List<Pair<String, String>> FORMAT_MAPPING;
 	
@@ -57,15 +58,8 @@ public final class TimeFormatConverter {
 		FORMAT_MAPPING.add(new Pair<String, String>("s", "%6$01d"));
 	}
 	
-	/** Hidden constructor */
-	private TimeFormatConverter() {}
-	
-	/**
-	 * Converts the user-defined format into the printf format.
-	 * @param format the user-defined format
-	 * @return String
-	 */
-	public static final String toPattern(String format) {
+	@Override
+	public String fromString(String format) {
 		if (format != null && format.trim().length() > 0) {
 			String fmt = format;
 			for (Pair<String, String> pair : FORMAT_MAPPING) {
@@ -76,12 +70,8 @@ public final class TimeFormatConverter {
 		return null;
 	}
 	
-	/**
-	 * Converts the printf format to the user-defined format.
-	 * @param pattern the printf format
-	 * @return String
-	 */
-	public static final String fromPattern(String pattern) {
+	@Override
+	public String toString(String pattern) {
 		if (pattern != null && pattern.trim().length() > 0) {
 			String fmt = pattern;
 			for (Pair<String, String> pair : FORMAT_MAPPING) {

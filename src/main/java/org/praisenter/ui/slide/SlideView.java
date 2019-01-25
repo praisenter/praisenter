@@ -14,23 +14,11 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.geometry.Pos;
-import javafx.scene.Group;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundImage;
 import javafx.scene.layout.BackgroundRepeat;
-import javafx.scene.layout.Border;
-import javafx.scene.layout.BorderStroke;
-import javafx.scene.layout.BorderStrokeStyle;
-import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
-import javafx.scene.shape.StrokeLineCap;
-import javafx.scene.shape.StrokeLineJoin;
-import javafx.scene.shape.StrokeType;
 import javafx.scene.transform.Scale;
 
 public class SlideView extends Pane implements Playable {
@@ -38,6 +26,9 @@ public class SlideView extends Pane implements Playable {
 	
 	private final ObjectProperty<Slide> slide;
 	private final ObjectProperty<SlideNode> slideNode;
+	
+	private final DoubleProperty slideWidth;
+	private final DoubleProperty slideHeight;
 	
 	private final ObjectProperty<SlideMode> mode;
 	
@@ -49,6 +40,10 @@ public class SlideView extends Pane implements Playable {
 	public SlideView(GlobalContext context) {
 		this.slide = new SimpleObjectProperty<>();
 		this.slideNode = new SimpleObjectProperty<>();
+		
+		this.slideWidth = new SimpleDoubleProperty();
+		this.slideHeight = new SimpleDoubleProperty();
+		
 		this.mode = new SimpleObjectProperty<>(SlideMode.VIEW);
 		
 		this.viewScalingEnabled = new SimpleBooleanProperty(false);
@@ -63,8 +58,12 @@ public class SlideView extends Pane implements Playable {
 		
 		this.slide.addListener((obs, ov, nv) -> {
 			if (nv != null) {
+				this.slideWidth.bind(nv.widthProperty());
+				this.slideHeight.bind(nv.heightProperty());
 				this.slideNode.set(new SlideNode(context, nv));
 			} else {
+				this.slideHeight.unbind();
+				this.slideWidth.unbind();
 				this.slideNode.set(null);
 			}
 		});
@@ -120,17 +119,29 @@ public class SlideView extends Pane implements Playable {
 		// using the current available space and the slide's 
 		// target resolution
 		
+//		this.slideWidth.addListener((obs, ov, nv) -> {
+//			System.out.println("width updated" + nv);
+//		});
+//		
+//		this.slideHeight.addListener((obs, ov, nv) -> {
+//			System.out.println("height updated" + nv);
+//		});
+		
 		this.viewScale.bind(Bindings.createObjectBinding(() -> {
 			double tw = this.getWidth();
 			double th = this.getHeight();
 			Slide slide = this.slide.get();
 			if (slide == null) return Scaling.getNoScaling(tw, th);
-			double sw = slide.getWidth();
-			double sh = slide.getHeight();
+			// NOTE: we can't access the slide.getWidth/getHeight methods here, instead we need to 
+			//		 access the local slideWidth/slideHeight properties or we don't get notifications
+			//		 of them changing. See the following link for more details:
+			// https://stackoverflow.com/questions/40690022/javafx-custom-bindings-not-working
+			double sw = this.slideWidth.get();
+			double sh = this.slideHeight.get();
 			if (!this.viewScalingEnabled.get()) return Scaling.getNoScaling(sw, sh);
 			Scaling scale = Scaling.getUniformScaling(sw, sh, tw, th);
 			return scale;
-		}, this.slide, this.widthProperty(), this.heightProperty(), this.viewScalingEnabled));
+		}, this.slideWidth, this.slideHeight, this.widthProperty(), this.heightProperty(), this.viewScalingEnabled));
 		
 		this.viewScaleX.bind(Bindings.createDoubleBinding(() -> {
 			Scaling scaling = this.viewScale.get();

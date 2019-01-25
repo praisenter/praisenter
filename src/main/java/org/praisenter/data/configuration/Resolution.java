@@ -122,6 +122,12 @@ public final class Resolution implements ReadOnlyResolution, Copyable, Comparabl
 		}
 	}
 	
+	public double getDiagonalLength() {
+		double w = this.width.get();
+		double h = this.height.get();
+		return Math.sqrt(w * w + h * h);
+	}
+	
 	@Override
 	@JsonProperty
 	public int getWidth() {

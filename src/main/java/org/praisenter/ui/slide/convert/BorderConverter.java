@@ -30,9 +30,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.data.slide.graphics.DashPattern;
 import org.praisenter.data.slide.graphics.SlideColor;
-import org.praisenter.data.slide.graphics.SlideLinearGradient;
+import org.praisenter.data.slide.graphics.SlideGradient;
 import org.praisenter.data.slide.graphics.SlidePaint;
-import org.praisenter.data.slide.graphics.SlideRadialGradient;
 import org.praisenter.data.slide.graphics.SlideStroke;
 import org.praisenter.data.slide.graphics.SlideStrokeCap;
 import org.praisenter.data.slide.graphics.SlideStrokeJoin;
@@ -218,10 +217,8 @@ public final class BorderConverter {
 		Paint paint = null;
 		if (sp instanceof SlideColor) {
 			paint = PaintConverter.toJavaFX((SlideColor)sp);
-		} else if (sp instanceof SlideLinearGradient) {
-			paint = PaintConverter.toJavaFX((SlideLinearGradient)sp);
-		} else if (sp instanceof SlideRadialGradient) {
-			paint = PaintConverter.toJavaFX((SlideRadialGradient)sp);
+		} else if (sp instanceof SlideGradient) {
+			paint = PaintConverter.toJavaFX((SlideGradient)sp);
 		} else {
 			LOGGER.warn("Media paints are not supported with borders.");
 		}

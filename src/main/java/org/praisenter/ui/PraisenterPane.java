@@ -1,28 +1,52 @@
 package org.praisenter.ui;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.praisenter.async.AsyncHelper;
+import org.praisenter.async.BackgroundTask;
+import org.praisenter.data.DataImportResult;
 import org.praisenter.data.Persistable;
 import org.praisenter.data.bible.Bible;
 import org.praisenter.data.configuration.Configuration;
+import org.praisenter.data.media.Media;
 import org.praisenter.data.slide.Slide;
+import org.praisenter.data.slide.SlideShow;
+import org.praisenter.ui.controls.Alerts;
 import org.praisenter.ui.document.DocumentContext;
 import org.praisenter.ui.document.DocumentsPane;
 import org.praisenter.ui.library.LibraryList;
+import org.praisenter.ui.translations.Translations;
 
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.Spinner;
+import javafx.scene.control.SplitPane;
+import javafx.scene.input.DragEvent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
 public class PraisenterPane extends BorderPane {
+	private static final Logger LOGGER = LogManager.getLogger();
+	
 	private final GlobalContext context;
 	
 	private final ObservableList<Persistable> items;
@@ -191,9 +215,13 @@ public class PraisenterPane extends BorderPane {
 		LibraryList itemListing = new LibraryList(context);
 		Bindings.bindContent(itemListing.getItems(), this.items);
 		
+		SplitPane split = new SplitPane(itemListing, dep);
+		split.setDividerPositions(0.25);
+		
 		//BorderPane bp = new BorderPane();
 		this.setTop(mainMenu);
-		this.setCenter(new VBox(5, itemListing, dep));
+		//this.setCenter(new VBox(5, itemListing, dep));
+		this.setCenter(split);
 		this.setLeft(ab);
 //		this.setRight(cpp);
 		
@@ -233,7 +261,27 @@ public class PraisenterPane extends BorderPane {
 //			if (ov != null) ov.setOnActionStateChanged(null);
 //			if (nv != null) nv.setOnActionStateChanged(eh);
 //		});
+		
+		this.setOnDragOver(this::dragOver);
+		this.setOnDragDropped(this::dragDropped);
+		this.setOnDragDone(this::dragDone);
+	}
+
+	private void dragOver(DragEvent e) {
+		if (e.getDragboard().hasFiles()) {
+			e.acceptTransferModes(TransferMode.COPY);
+		}
 	}
 	
+	private void dragDropped(DragEvent e) {
+		Dragboard db = e.getDragboard();
+		if (db.hasFiles()) {
+			this.context.importFiles(db.getFiles());
+			e.setDropCompleted(true);
+		}
+	}
 	
+	private void dragDone(DragEvent e) {
+		// nothing to do
+	}
 }

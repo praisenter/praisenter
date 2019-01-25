@@ -13,6 +13,7 @@ import org.praisenter.Watchable;
 
 import javafx.beans.Observable;
 import javafx.beans.property.Property;
+import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -82,8 +83,10 @@ final class EditWatcher implements Watcher {
 					} else if (returnValue instanceof ObservableSet) {
 						ObservableSet<?> set = ((ObservableSet<?>)returnValue);
 						this.register(name, target, set);
+					} else if (returnValue instanceof ReadOnlyStringWrapper) {
+						// ignore this
 					} else {
-						LOGGER.warn("Unknown return value type. Skipping.");
+						LOGGER.warn("Unknown return value type '" + returnValue.getClass().getName() + "' from '" + method.getName() + "' on '" + clazz.getName() + "'. Skipping.");
 					}
 				}
 			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {

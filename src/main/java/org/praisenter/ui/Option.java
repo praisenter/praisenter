@@ -29,6 +29,11 @@ import java.util.Objects;
 
 import org.praisenter.ui.translations.Translations;
 
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+
 /**
  * Class used to represent an option in a list.
  * @author William Bittle
@@ -40,17 +45,16 @@ public final class Option<T> implements Comparable<Option<T>> {
 	private static final Collator COLLATOR = Collator.getInstance();
 	
 	/** The option name */
-	final String name;
+	private final StringProperty name;
 	
 	/** The option's value */
-	final T value;
+	private final ObjectProperty<T> value;
 	
 	/**
 	 * Creates an "all" option.
 	 */
 	public Option() {
-		this.name = Translations.get("options.all");
-		this.value = null;
+		this(Translations.get("options.all"), null);
 	}
 	
 	/**
@@ -59,8 +63,8 @@ public final class Option<T> implements Comparable<Option<T>> {
 	 * @param value the value
 	 */
 	public Option(String name, T value) {
-		this.name = name;
-		this.value = value;
+		this.name = new SimpleStringProperty(name);
+		this.value = new SimpleObjectProperty<>(value);
 	}
 	
 	/* (non-Javadoc)
@@ -68,7 +72,7 @@ public final class Option<T> implements Comparable<Option<T>> {
 	 */
 	@Override
 	public int hashCode() {
-		return value == null ? -1 : value.hashCode();
+		return this.value.get() == null ? -1 : this.value.get().hashCode();
 	}
 	
 	/* (non-Javadoc)
@@ -80,7 +84,7 @@ public final class Option<T> implements Comparable<Option<T>> {
 		if (obj == this) return true;
 		if (obj instanceof Option) {
 			Option<?> mtf = (Option<?>)obj;
-			if (Objects.equals(mtf.value, this.value)) {
+			if (Objects.equals(mtf.value.get(), this.value.get())) {
 				return true;
 			}
 		}
@@ -92,7 +96,7 @@ public final class Option<T> implements Comparable<Option<T>> {
 	 */
 	@Override
 	public String toString() {
-		return this.name;
+		return this.name.get();
 	}
 	
 	/* (non-Javadoc)
@@ -100,7 +104,7 @@ public final class Option<T> implements Comparable<Option<T>> {
 	 */
 	@Override
 	public int compareTo(Option<T> o) {
-		return COLLATOR.compare(this.name, o.name);
+		return COLLATOR.compare(this.name.get(), o.name.get());
 	}
 	
 	/**
@@ -108,6 +112,14 @@ public final class Option<T> implements Comparable<Option<T>> {
 	 * @return String
 	 */
 	public String getName() {
+		return this.name.get();
+	}
+	
+	public void setName(String name) {
+		this.name.set(name);
+	}
+	
+	public StringProperty nameProperty() {
 		return this.name;
 	}
 	
@@ -116,6 +128,14 @@ public final class Option<T> implements Comparable<Option<T>> {
 	 * @return T
 	 */
 	public T getValue() {
+		return this.value.get();
+	}
+	
+	public void setValue(T value) {
+		this.value.set(value);
+	}
+	
+	public ObjectProperty<T> valueProperty() {
 		return this.value;
 	}
 }

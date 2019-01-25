@@ -72,6 +72,15 @@ public final class SlideFont implements ReadOnlySlideFont, Copyable {
 	}
 	
 	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("'").append(this.family).append("'");
+		sb.append(" ").append(this.posture).append(" ").append(this.weight);
+		sb.append(" @ ").append(this.size);
+		return sb.toString();
+	}
+	
+	@Override
 	@JsonProperty
 	public String getFamily() {
 		return this.family.get();

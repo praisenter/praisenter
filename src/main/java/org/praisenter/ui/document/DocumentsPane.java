@@ -27,6 +27,8 @@ import javafx.scene.layout.Priority;
 // JAVABUG (L) 09/28/18 [workaround] Focus tab content when tab is selected https://stackoverflow.com/questions/19025268/javafx-tabpane-switch-tabs-only-when-focused/19046535#19046535, https://stackoverflow.com/questions/15646724/javafx-setfocus-after-tabpaine-change/15648609#15648609
 // JAVABUG (L) 10/06/18 Tab down button (when lots of tabs) doesn't fully hide when clicked twice https://bugs.openjdk.java.net/browse/JDK-8186176
 
+// TODO use split pane
+
 public final class DocumentsPane extends HBox implements ActionPane {
 	private final GlobalContext context;
 	

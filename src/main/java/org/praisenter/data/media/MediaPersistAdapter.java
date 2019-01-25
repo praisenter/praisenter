@@ -75,7 +75,13 @@ public final class MediaPersistAdapter implements PersistAdapter<Media> {
 						try (InputStream is = Files.newInputStream(file)) {
 							Media m = JsonIO.read(is, Media.class);
 							m.setMediaPath(this.pathResolver.getMediaPath(m));
-							m.setMediaImagePath(this.pathResolver.getImagePath(m));
+							if (m.getMediaType() == MediaType.IMAGE) {
+								m.setMediaImagePath(this.pathResolver.getMediaPath(m));
+							} else if (m.getMediaType() == MediaType.AUDIO) {
+								m.setMediaImagePath(this.pathResolver.getThumbPath(m));
+							} else {
+								m.setMediaImagePath(this.pathResolver.getImagePath(m));
+							}
 							m.setMediaThumbnailPath(this.pathResolver.getThumbPath(m));
 							items.add(m);
 						} catch (Exception ex) {
@@ -270,7 +276,13 @@ public final class MediaPersistAdapter implements PersistAdapter<Media> {
 				if (format != null && format.is(Media.class)) {
 					bais.reset();
 					Media media = JsonIO.read(bais, Media.class);
-					media.setMediaImagePath(this.pathResolver.getImagePath(media));
+					if (media.getMediaType() == MediaType.IMAGE) {
+						media.setMediaImagePath(this.pathResolver.getMediaPath(media));	
+					} else if (media.getMediaType() == MediaType.AUDIO) {
+						media.setMediaImagePath(this.pathResolver.getThumbPath(media));
+					} else {
+						media.setMediaImagePath(this.pathResolver.getImagePath(media));
+					}
 					media.setMediaPath(this.pathResolver.getPath(media));
 					media.setMediaThumbnailPath(this.pathResolver.getThumbPath(media));
 					return media;

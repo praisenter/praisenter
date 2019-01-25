@@ -52,11 +52,10 @@ import javafx.beans.property.SimpleObjectProperty;
  */
 @JsonTypeInfo(
   use = JsonTypeInfo.Id.NAME, 
-  include = JsonTypeInfo.As.PROPERTY, 
-  property = "type")
+  include = JsonTypeInfo.As.PROPERTY)
 @JsonSubTypes({ 
   @Type(value = TextComponent.class, name = "textComponent"), 
-  @Type(value = TextPlaceholderComponent.class, name = "placeholderComponent"),
+  @Type(value = TextPlaceholderComponent.class, name = "textPlaceholderComponent"),
   @Type(value = CountdownComponent.class, name = "countdownComponent"),
   @Type(value = DateTimeComponent.class, name = "dateTimeComponent"),
   @Type(value = MediaComponent.class, name = "mediaComponent")

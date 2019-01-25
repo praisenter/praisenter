@@ -8,6 +8,7 @@ import org.praisenter.data.slide.text.FontScaleType;
 import org.praisenter.data.slide.text.HorizontalTextAlignment;
 import org.praisenter.data.slide.text.SlideFont;
 import org.praisenter.data.slide.text.TextComponent;
+import org.praisenter.data.slide.text.TextPlaceholderComponent;
 import org.praisenter.data.slide.text.VerticalTextAlignment;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.TextMeasurer;
@@ -16,10 +17,15 @@ import org.praisenter.ui.slide.convert.EffectConverter;
 import org.praisenter.ui.slide.convert.FontConverter;
 import org.praisenter.ui.slide.convert.PaintConverter;
 import org.praisenter.ui.slide.convert.TextAlignmentConverter;
+import org.praisenter.ui.translations.Translations;
 
 import javafx.beans.binding.Bindings;
 import javafx.scene.effect.Effect;
 import javafx.scene.effect.InnerShadow;
+import javafx.scene.layout.Border;
+import javafx.scene.layout.BorderStroke;
+import javafx.scene.layout.BorderStrokeStyle;
+import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.StrokeLineCap;
@@ -40,16 +46,26 @@ final class TextComponentNode extends SlideComponentNode<TextComponent> {
 		super(context, region);
 		
 		this.wrapper = new VBox();
+		
 		this.text = new Text();
 		
 		this.text.setBoundsType(TextBoundsType.LOGICAL);
 		this.wrapper.getChildren().add(this.text);
 		this.content.getChildren().add(this.wrapper);
 		
+//		this.wrapper.setMaxSize(USE_PREF_SIZE, USE_PREF_SIZE);
+		
+//		this.wrapper.setBorder(new Border(new BorderStroke(Color.BLACK, new BorderStrokeStyle(StrokeType.CENTERED, StrokeLineJoin.MITER, StrokeLineCap.SQUARE, 4, 0, null), null, new BorderWidths(4))));
+//		this.content.setBorder(new Border(new BorderStroke(Color.YELLOW, new BorderStrokeStyle(StrokeType.CENTERED, StrokeLineJoin.MITER, StrokeLineCap.SQUARE, 4, 0, null), null, new BorderWidths(4))));
+		
 		// listen for changes
 		
-		// TODO for placeholders or any text component that doesn't have text we should show a default (but only in edit mode) - maybe we can show this on the EditNode
-		this.text.textProperty().bind(this.region.textProperty());
+		this.text.textProperty().bind(Bindings.createStringBinding(() -> {
+			if (this.region instanceof TextPlaceholderComponent && this.mode.get() == SlideMode.EDIT) {
+				return Translations.get("slide.text.placeholder");
+			}
+			return this.region.getText();
+		}, this.region.textProperty(), this.mode));
 		
 		this.text.fillProperty().bind(Bindings.createObjectBinding(() -> {
 			// NOTE: this should work for now, but won't work in the future if we allow image based text paints
@@ -107,7 +123,7 @@ final class TextComponentNode extends SlideComponentNode<TextComponent> {
 			HorizontalTextAlignment ha = this.region.getHorizontalTextAlignment();
 			VerticalTextAlignment va = this.region.getVerticalTextAlignment();
 			return TextAlignmentConverter.toJavaFX(va, ha);
-		}, this.region.horizontalTextAlignmentProperty()));
+		}, this.region.horizontalTextAlignmentProperty(), this.region.verticalTextAlignmentProperty()));
 		
 		this.wrapper.paddingProperty().bind(Bindings.createObjectBinding(() -> {
 			SlidePadding sp = this.region.getPadding();
@@ -156,7 +172,7 @@ final class TextComponentNode extends SlideComponentNode<TextComponent> {
 	
 	private Effect computeTextEffect() {
 		SlideShadow ss = this.region.getTextShadow();
-		SlideShadow sg = this.region.getGlow();
+		SlideShadow sg = this.region.getTextGlow();
 		EffectBuilder builder = EffectBuilder.create();
 		Effect shadow = EffectConverter.toJavaFX(ss);
 		Effect glow = EffectConverter.toJavaFX(sg);

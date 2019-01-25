@@ -41,8 +41,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 	include = JsonTypeInfo.As.PROPERTY)
 @JsonSubTypes({
 	@Type(value = SlideColor.class, name = "color"),
-	@Type(value = SlideLinearGradient.class, name = "linearGradient"),
-	@Type(value = SlideRadialGradient.class, name = "radialGradient"),
+	@Type(value = SlideGradient.class, name = "gradient"),
 	@Type(value = MediaObject.class, name = "mediaObject")
 })
 public interface SlidePaint extends Copyable {

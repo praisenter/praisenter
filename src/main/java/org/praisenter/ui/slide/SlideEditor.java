@@ -2,6 +2,7 @@ package org.praisenter.ui.slide;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 import org.apache.logging.log4j.LogManager;
@@ -18,6 +19,7 @@ import org.praisenter.ui.document.DocumentEditor;
 import org.praisenter.ui.events.ActionStateChangedEvent;
 import org.praisenter.ui.undo.UndoManager;
 
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -75,7 +77,7 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 		
 		this.view = new StackPane();
 		this.slideView = new SlideView(context);
-		this.slideView.setViewMode(SlideMode.VIEW);
+		this.slideView.setViewMode(SlideMode.EDIT);
 		this.slideView.setViewScalingEnabled(true);
 		
 		this.undoManager = document.getUndoManager();
@@ -93,6 +95,16 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 		this.componentMapping = new MappedList<>(this.components, (c) -> {
 			EditNode n = new EditNode(document, c);
 			n.scaleProperty().bind(this.slideView.viewScaleXProperty());
+			// restore selection (this happens when nodes are rearranged
+			// in the source list - since they have to be removed then
+			// re-added)
+			EditNode selected = this.selected.get();
+			if (selected != null && selected.getComponent() == c && !n.isSelected()) {
+				n.setSelected(true);
+				Platform.runLater(() -> {
+					n.setSelected(true);
+				});
+			}
 			n.selectedProperty().addListener((obs, ov, nv) -> {
 				if (nv) {
 					this.selected.set(n);
@@ -104,7 +116,11 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 		this.selected.addListener((obs, ov, nv) -> {
 			// TODO allow multi select
 			clearSelectionExceptFor(nv);
-			this.document.getSelectedItems().setAll(nv);
+			if (nv != null) {
+				this.document.getSelectedItems().setAll(nv);
+			} else {
+				this.document.getSelectedItems().clear();
+			}
 		});
 
 		this.slideView.slideProperty().bind(document.documentProperty());
@@ -123,7 +139,9 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 		this.setCenter(this.view);
 		BorderPane.setAlignment(this.view, Pos.CENTER);
 		//this.setBorder(new Border(new BorderStroke(Color.BLACK, new BorderStrokeStyle(StrokeType.CENTERED, StrokeLineJoin.MITER, StrokeLineCap.SQUARE, 4, 0, null), null, new BorderWidths(4))));
-		
+		this.addEventFilter(MouseEvent.ANY, e -> {
+			this.requestFocus();
+		});
 		this.addEventHandler(MouseEvent.ANY, e -> {
 			EventType<?> et = e.getEventType();
 			if (et == MouseEvent.MOUSE_CLICKED || et == MouseEvent.MOUSE_PRESSED || et == MouseEvent.MOUSE_RELEASED) {
@@ -217,35 +235,47 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 //		}
 	}
 	
-	private ClipboardContent getClipboardContentForSelection() throws Exception {
-		List<Object> items = new ArrayList<Object>(this.document.getSelectedItems());
-		
-		// in the case of Drag n' Drop, we don't need to serialize it
-		String data = JsonIO.write(items);
-		ClipboardContent content = new ClipboardContent();
-//		content.putString(String.join(Constants.NEW_LINE, textData));
-		// TODO output PowerPoint data too?
-		content.put(SLIDE_COMPONENT_DATA, data);
-		
-		return content;
-	}
+//	private ClipboardContent getClipboardContentForSelection() throws Exception {
+//		List<Object> items = new ArrayList<Object>(this.document.getSelectedItems());
+//		
+//		// in the case of Drag n' Drop, we don't need to serialize it
+//		String data = JsonIO.write(items);
+//		ClipboardContent content = new ClipboardContent();
+////		content.putString(String.join(Constants.NEW_LINE, textData));
+//		// TODO output PowerPoint data too?
+//		content.put(SLIDE_COMPONENT_DATA, data);
+//		
+//		return content;
+//	}
 	
 	private CompletableFuture<Void> copy(boolean isCut) {
 		List<Object> selected = new ArrayList<>(this.document.getSelectedItems());
 		if (selected.size() > 0) {
 			try {
-				ClipboardContent content = this.getClipboardContentForSelection();
-				Clipboard clipboard = Clipboard.getSystemClipboard();
-				clipboard.setContent(content);
-				
-				if (isCut) {
-					for (Object o : selected) {
-						this.slide.get().getComponents().remove(o);
+				List<SlideComponent> items = new ArrayList<>();
+				for (Object o : selected) {
+					if (o instanceof EditNode) {
+						SlideComponent sc = ((EditNode)o).getComponent();
+						items.add(sc);
 					}
 				}
 				
-				// handle the selection state changing
-				this.fireEvent(new ActionStateChangedEvent(this, this, ActionStateChangedEvent.CLIPBOARD));
+				if (items.size() > 0) {
+					String data = JsonIO.write(items.toArray(new SlideComponent[0]));
+					ClipboardContent content = new ClipboardContent();
+					// TODO output PowerPoint data too?
+					content.put(SLIDE_COMPONENT_DATA, data);
+					
+					Clipboard clipboard = Clipboard.getSystemClipboard();
+					clipboard.setContent(content);
+					
+					if (isCut) {
+						this.slide.get().getComponents().removeAll(items);
+					}
+					
+					// handle the selection state changing
+					this.fireEvent(new ActionStateChangedEvent(this, this, ActionStateChangedEvent.CLIPBOARD));
+				}
 			} catch (Exception ex) {
 				LOGGER.warn("Failed to create ClipboardContent for current selection (copy/cut)", ex);
 			}
@@ -259,6 +289,11 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 		if (clipboard.hasContent(SLIDE_COMPONENT_DATA)) {
 			try {
 				SlideComponent[] components = JsonIO.read((String)clipboard.getContent(SLIDE_COMPONENT_DATA), SlideComponent[].class);
+				// offset them slightly
+				for (SlideComponent sc : components) {
+					sc.setId(UUID.randomUUID());
+					sc.translate(20, 20);
+				}
 				this.slide.get().getComponents().addAll(components);
 			} catch (Exception ex) {
 				LOGGER.warn("Failed to paste clipboard content (likely due to a JSON deserialization error", ex);
@@ -270,12 +305,20 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 	
 	private CompletableFuture<Void> delete() {
 		List<Object> items = new ArrayList<Object>(this.document.getSelectedItems());
-		this.undoManager.beginBatch("Delete");
 		try {
+			List<SlideComponent> toRemove = new ArrayList<>();
 			for (Object item : items) {
-				this.slide.get().getComponents().remove(item);
+				if (item instanceof EditNode) {
+					SlideComponent sc = ((EditNode)item).getComponent();
+					toRemove.add(sc);
+				}
 			}
-			this.undoManager.completeBatch();
+			
+			if (!toRemove.isEmpty()) {
+				this.undoManager.beginBatch("Delete");
+				this.slide.get().getComponents().removeAll(toRemove);
+				this.undoManager.completeBatch();
+			}
 		} catch (Exception ex) {
 			LOGGER.error("Failed to delete the selected items", ex);
 			this.undoManager.discardBatch();

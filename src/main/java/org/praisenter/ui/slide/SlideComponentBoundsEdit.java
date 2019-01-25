@@ -4,7 +4,7 @@ import org.praisenter.ui.undo.Edit;
 
 import javafx.beans.property.DoubleProperty;
 
-final class BoundsEdit implements Edit {
+final class SlideComponentBoundsEdit implements Edit {
 	private final DoubleProperty x;
 	private final DoubleProperty y;
 	private final DoubleProperty width;
@@ -20,7 +20,7 @@ final class BoundsEdit implements Edit {
 	private final double newWidth;
 	private final double newHeight;
 	
-	public BoundsEdit(
+	public SlideComponentBoundsEdit(
 			DoubleProperty x, 
 			DoubleProperty y, 
 			DoubleProperty width, 
@@ -55,7 +55,7 @@ final class BoundsEdit implements Edit {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("(")
+		sb.append("bounds[(")
 		.append(this.oldX).append(", ")
 		.append(this.oldY).append(") ")
 		.append(this.oldWidth).append("x")
@@ -63,7 +63,7 @@ final class BoundsEdit implements Edit {
 		.append(this.newX).append(", ")
 		.append(this.newY).append(") ")
 		.append(this.newWidth).append("x")
-		.append(this.newHeight);
+		.append(this.newHeight).append("]");
 		return sb.toString();
 	}
 

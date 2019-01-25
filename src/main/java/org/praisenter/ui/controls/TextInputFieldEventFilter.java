@@ -1,4 +1,7 @@
-package org.praisenter.ui;
+package org.praisenter.ui.controls;
+
+import org.praisenter.ui.Action;
+import org.praisenter.ui.ActionPane;
 
 import javafx.event.Event;
 import javafx.event.EventHandler;

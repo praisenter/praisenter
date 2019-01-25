@@ -31,7 +31,6 @@ import java.util.stream.Collectors;
 import org.controlsfx.control.textfield.AutoCompletionBinding.ISuggestionRequest;
 import org.controlsfx.control.textfield.TextFields;
 import org.praisenter.data.Tag;
-import org.praisenter.ui.TextInputFieldEventFilter;
 import org.praisenter.ui.translations.Translations;
 
 import javafx.beans.binding.Bindings;

@@ -29,7 +29,6 @@ public final class LastValueDoubleStringConverter extends StringConverter<Double
 		try {
 			return converter.fromString(string);
 		} catch (NumberFormatException ex) {
-			System.out.println("failed to parse: " + string);
 			this.onInvalid.accept(this.converter.toString(this.lastValue));
 			return this.lastValue;
 		}

@@ -21,9 +21,13 @@ final class SlideNode extends SlideRegionNode<Slide> implements Playable {
 		
 		this.mapping = new MappedList<SlideComponentNode<?>, SlideComponent>(region.getComponents(), (SlideComponent c) -> {
 			if (c instanceof TextComponent) {
-				return new TextComponentNode(context, (TextComponent)c);
+				TextComponentNode tcn = new TextComponentNode(context, (TextComponent)c);
+				tcn.modeProperty().bind(this.mode);
+				return tcn;
 			} else if (c instanceof MediaComponent) {
-				return new MediaComponentNode(context, (MediaComponent)c);
+				MediaComponentNode mcn = new MediaComponentNode(context, (MediaComponent)c);
+				mcn.modeProperty().bind(this.mode);
+				return mcn;
 			} else {
 				throw new IllegalArgumentException("Unknown type '" + c.getClass().getName() + "' when generating slide UI.");
 			}

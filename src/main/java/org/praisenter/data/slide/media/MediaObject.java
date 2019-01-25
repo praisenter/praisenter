@@ -97,8 +97,6 @@ public final class MediaObject implements ReadOnlyMediaObject, SlidePaint, Copya
 	public int hashCode() {
 		return Objects.hash(
 				this.mediaId.get(),
-				this.mediaName.get(),
-				this.mediaType.get(),
 				this.scaleType.get(),
 				this.colorAdjust.get(),
 				this.loopEnabled.get(),
@@ -121,6 +119,19 @@ public final class MediaObject implements ReadOnlyMediaObject, SlidePaint, Copya
 					Objects.equals(this.colorAdjust.get(), mo.colorAdjust.get());
 		}
 		return false;
+	}
+	
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("MediaObject[")
+			.append(this.mediaName.get()).append(", ")
+			.append(this.mediaType.get()).append(", ")
+			.append(this.scaleType.get()).append(", ")
+			.append(this.muted.get()).append(", ")
+			.append(this.loopEnabled.get())
+		.append("]");
+		return sb.toString();
 	}
 	
 	@Override
@@ -226,7 +237,7 @@ public final class MediaObject implements ReadOnlyMediaObject, SlidePaint, Copya
 	}
 	
 	@JsonProperty
-	public void setScaleType(SlideColorAdjust colorAdjust) {
+	public void setColorAdjust(SlideColorAdjust colorAdjust) {
 		this.colorAdjust.set(colorAdjust);
 	}
 	

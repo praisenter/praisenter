@@ -127,7 +127,12 @@ public final class AsyncHelper {
 			try {
 				future.join();
 			} catch (CompletionException ex) {
-				exceptions.add(ex.getCause());
+				// handle re-wrapped completion exceptions
+				Throwable t = ex.getCause();
+				while (t instanceof CompletionException) {
+					t = t.getCause();
+				}
+				exceptions.add(t);
 			} catch (Exception ex) {
 				exceptions.add(ex);
 			}

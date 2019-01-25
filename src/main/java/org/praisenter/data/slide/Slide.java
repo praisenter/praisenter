@@ -27,7 +27,6 @@ package org.praisenter.data.slide;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -114,7 +113,7 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 	private final ObservableList<SlideComponent> componentsReadOnly;
 	private final ObservableList<SlideAnimation> animations;
 	private final ObservableList<SlideAnimation> animationsReadOnly;
-
+	
 	public Slide() {
 		this.format = new SimpleStringProperty(Constants.FORMAT_NAME);
 		this.version = new SimpleStringProperty(Constants.VERSION);
@@ -462,11 +461,13 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 			int size = components.size();
 			int index = components.indexOf(component);
 			// see if the component is already in the last position
-			if (components.get(size - 1).equals(component)) {
+			if (index + 1 == size) {
 				// if it is, then just return
 				return;
 			} else {
-				Collections.swap(components, index, index + 1);
+				components.remove(component);
+				components.add(index + 1, component);
+				//Collections.swap(components, index, index + 1);
 			}
 		}
 	}
@@ -480,11 +481,13 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 		if (components.contains(component) && components.size() > 0) {
 			int index = components.indexOf(component);
 			// see if the component is already in the first position
-			if (components.get(0).equals(component)) {
+			if (index == 0) {
 				// if it is, then just return its order
 				return;
 			} else {
-				Collections.swap(components, index, index - 1);
+				components.remove(component);
+				components.add(index - 1, component);
+//				Collections.swap(components, index, index - 1);
 			}
 		}
 	}

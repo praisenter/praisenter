@@ -195,18 +195,20 @@ public final class UndoManager {
 	}
 	
 	public void addEdit(Edit edit) {
-		int size = this.undos.size();
-		if (size > 0) {
-			Edit top = this.undos.get(size - 1);
-			if (top.isMergeSupported(edit)) {
-				Edit merged = edit.merge(top);
-				LOGGER.trace(() -> "Merged edit '" + edit + "' with '" + top + "' to produce '" + merged + "'");
-				this.undos.set(size - 1, merged);
-				return;
+		if (!this.isOperating) {
+			int size = this.undos.size();
+			if (size > 0) {
+				Edit top = this.undos.get(size - 1);
+				if (top.isMergeSupported(edit)) {
+					Edit merged = edit.merge(top);
+					LOGGER.trace(() -> "Merged edit '" + edit + "' with '" + top + "' to produce '" + merged + "'");
+					this.undos.set(size - 1, merged);
+					return;
+				}
 			}
+			this.undos.add(edit);
+			this.redos.clear();
 		}
-		this.undos.add(edit);
-		this.redos.clear();
 	}
 	
 	public void print() {

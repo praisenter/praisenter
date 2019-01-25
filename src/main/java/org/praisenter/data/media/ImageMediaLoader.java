@@ -123,8 +123,8 @@ final class ImageMediaLoader extends AbstractMediaLoader implements MediaLoader 
 					media.setWidth(image.getWidth());
 					media.setSize(this.getFileSize(target));
 					
-					media.setMediaImagePath(this.pathResolver.getImagePath(media));
 					media.setMediaPath(this.pathResolver.getMediaPath(media));
+					media.setMediaImagePath(this.pathResolver.getMediaPath(media));
 					media.setMediaThumbnailPath(this.pathResolver.getThumbPath(media));
 
 					try {
@@ -135,13 +135,13 @@ final class ImageMediaLoader extends AbstractMediaLoader implements MediaLoader 
 						throw new MediaImportException("Failed to store media metadata for '" + media.getName() + "'.", ex);
 					}
 					
-					try {
-						// write the image
-						ImageIO.write(image, this.pathResolver.getImageExtension(), this.pathResolver.getImagePath(media).toFile());
-					} catch (Exception ex) {
-						this.delete(target, this.pathResolver.getPath(media));
-						throw new MediaImportException("Failed to store image for media '" + media.getName() + "'.", ex);
-					}
+//					try {
+//						// write the image
+//						ImageIO.write(image, fmt, this.pathResolver.getImagePath(media).toFile());
+//					} catch (Exception ex) {
+//						this.delete(target, this.pathResolver.getPath(media));
+//						throw new MediaImportException("Failed to store image for media '" + media.getName() + "'.", ex);
+//					}
 					
 					try {
 						// write the thumbnail

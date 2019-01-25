@@ -34,6 +34,13 @@ public final class Reference<T> {
 	/** The data */
 	private T data;
 	
+	public Reference() {
+	}
+	
+	public Reference(T data) {
+		this.data = data;
+	}
+	
 	/**
 	 * Returns the data.
 	 * @return T

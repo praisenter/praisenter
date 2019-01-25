@@ -14,6 +14,12 @@ final class MediaComponentNode extends SlideComponentNode<MediaComponent> {
 		this.media.paintProperty().bind(this.region.mediaProperty());
 		this.media.modeProperty().bind(this.mode);
 		
+		// this allows the scaling to work properly
+		this.media.prefWidthProperty().bind(this.region.widthProperty());
+		this.media.prefHeightProperty().bind(this.region.heightProperty());
+		this.media.maxWidthProperty().bind(this.region.widthProperty());
+		this.media.maxHeightProperty().bind(this.region.heightProperty());
+		
 		this.content.getChildren().add(this.media);
 	}
 
