@@ -31,6 +31,17 @@ package org.praisenter.ui.slide;
  */
 public enum SlideMode {
 	/**
+	 * For previewing a slide while editing
+	 * <p>
+	 * All video media will use the single frame. Audio media and 
+	 * animations will not be included. Placeholders will use their
+	 * text if present and will use a default text if not. 
+	 * <p>
+	 * Quality: DEFAULT
+	 */
+	EDIT,
+	
+	/**
 	 * For previewing a slide before presentation.
 	 * <p>
 	 * All video media will use the single frame. Audio media and 

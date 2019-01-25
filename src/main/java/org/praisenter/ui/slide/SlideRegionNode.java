@@ -98,6 +98,8 @@ abstract class SlideRegionNode<T extends SlideRegion> extends StackPane implemen
 		
 		this.content.prefWidthProperty().bind(this.region.widthProperty());
 		this.content.prefHeightProperty().bind(this.region.heightProperty());
+		this.content.maxWidthProperty().bind(this.region.widthProperty());
+		this.content.maxHeightProperty().bind(this.region.heightProperty());
 		
 		this.borderPane.prefWidthProperty().bind(this.region.widthProperty());
 		this.borderPane.prefHeightProperty().bind(this.region.heightProperty());

@@ -190,6 +190,20 @@ public final class ImageManipulator {
 	 * @param source the source image
 	 * @param target the target image
 	 */
+	public static final BufferedImage convertToJpgCompatibleImage(BufferedImage source, Color backgroundColor) {
+		if (source.getType() == BufferedImage.TYPE_INT_RGB) return source;
+		BufferedImage target = new BufferedImage(source.getWidth(), source.getHeight(), BufferedImage.TYPE_INT_RGB);
+		copyImage(source, target, backgroundColor);
+		return target;
+	}
+	
+	/**
+	 * Clears the target image and renders the source image to the target image.
+	 * <p>
+	 * This method uses a 100% transparent color to clear the target image.
+	 * @param source the source image
+	 * @param target the target image
+	 */
 	public static final void copyImage(BufferedImage source, BufferedImage target) {
 		copyImage(source, target, TRANSPARENT);
 	}

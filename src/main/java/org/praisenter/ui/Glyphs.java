@@ -249,28 +249,28 @@ public final class Glyphs {
 	
 //	/** Font scale icon */
 //	public static final Glyph FONT_SCALING = FONT_AWESOME.create(FontAwesome.Glyph.TEXT_HEIGHT);
-//	
-//	/** Text left horizontal alignment icon */
-//	public static final Glyph HALIGN_LEFT = FONT_AWESOME.create(FontAwesome.Glyph.ALIGN_LEFT);
-//	
-//	/** Text right horizontal alignment icon */
-//	public static final Glyph HALIGN_RIGHT = FONT_AWESOME.create(FontAwesome.Glyph.ALIGN_RIGHT);
-//	
-//	/** Text center horizontal alignment icon */
-//	public static final Glyph HALIGN_CENTER = FONT_AWESOME.create(FontAwesome.Glyph.ALIGN_CENTER);
-//	
-//	/** Text justify horizontal alignment icon */
-//	public static final Glyph HALIGN_JUSTIFY = FONT_AWESOME.create(FontAwesome.Glyph.ALIGN_JUSTIFY);
-//	
-//	/** Text top vertical alignment icon */
-//	public static final Glyph VALIGN_TOP = OPEN_ICONIC.create(OpenIconic.Glyph.VERTICAL_ALIGN_TOP);
-//	
-//	/** Text center vertical alignment icon */
-//	public static final Glyph VALIGN_CENTER = OPEN_ICONIC.create(OpenIconic.Glyph.VERTICAL_ALIGN_CENTER);
-//	
-//	/** Text bottom vertical alignment icon */
-//	public static final Glyph VALIGN_BOTTOM = OPEN_ICONIC.create(OpenIconic.Glyph.VERTICAL_ALIGN_BOTTOM);
-//	
+	
+	/** Text left horizontal alignment icon */
+	public static final Glyph HALIGN_LEFT = FONT_AWESOME.create(FontAwesome.Glyph.ALIGN_LEFT);
+	
+	/** Text right horizontal alignment icon */
+	public static final Glyph HALIGN_RIGHT = FONT_AWESOME.create(FontAwesome.Glyph.ALIGN_RIGHT);
+	
+	/** Text center horizontal alignment icon */
+	public static final Glyph HALIGN_CENTER = FONT_AWESOME.create(FontAwesome.Glyph.ALIGN_CENTER);
+	
+	/** Text justify horizontal alignment icon */
+	public static final Glyph HALIGN_JUSTIFY = FONT_AWESOME.create(FontAwesome.Glyph.ALIGN_JUSTIFY);
+	
+	/** Text top vertical alignment icon */
+	public static final Glyph VALIGN_TOP = OPEN_ICONIC.create(OpenIconic.Glyph.VERTICAL_ALIGN_TOP);
+	
+	/** Text center vertical alignment icon */
+	public static final Glyph VALIGN_CENTER = OPEN_ICONIC.create(OpenIconic.Glyph.VERTICAL_ALIGN_CENTER);
+	
+	/** Text bottom vertical alignment icon */
+	public static final Glyph VALIGN_BOTTOM = OPEN_ICONIC.create(OpenIconic.Glyph.VERTICAL_ALIGN_BOTTOM);
+	
 //	/** Text wrapping toggle icon */
 //	public static final Glyph WRAP_TEXT = FONT_AWESOME.create(FontAwesome.Glyph.PARAGRAPH);
 //	

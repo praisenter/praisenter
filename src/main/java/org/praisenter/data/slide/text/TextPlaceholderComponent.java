@@ -33,6 +33,8 @@ import org.praisenter.data.slide.ReadOnlySlideComponent;
 import org.praisenter.data.slide.ReadOnlySlideRegion;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -45,6 +47,10 @@ import javafx.beans.property.SimpleObjectProperty;
  * @author William Bittle
  * @version 3.0.0
  */
+@JsonTypeInfo(
+	use = JsonTypeInfo.Id.NAME,
+	include = JsonTypeInfo.As.PROPERTY)
+@JsonTypeName(value = "textPlaceholderComponent")
 public final class TextPlaceholderComponent extends TextComponent implements ReadOnlyTextPlaceholderComponent, ReadOnlyTextComponent, ReadOnlySlideComponent, ReadOnlySlideRegion, Copyable, Identifiable {
 	private final ObjectProperty<TextType> placeholderType;
 	private final ObjectProperty<TextVariant> placeholderVariant;

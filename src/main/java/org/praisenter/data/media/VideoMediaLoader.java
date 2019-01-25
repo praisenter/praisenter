@@ -136,7 +136,7 @@ final class VideoMediaLoader extends AbstractMediaLoader implements MediaLoader 
 		media.setId(id);
 		media.setLength(metadata.getLength());
 		media.setMediaFormat(metadata.getFormat());
-		media.setMediaType(MediaType.AUDIO);
+		media.setMediaType(MediaType.VIDEO);
 		media.setMimeType(MimeType.get(target));
 		media.setName(path.getFileName().toString());
 		media.setWidth(metadata.getWidth());

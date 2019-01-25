@@ -37,6 +37,8 @@ import org.praisenter.data.slide.graphics.SlidePaint;
 import org.praisenter.data.slide.graphics.SlideStroke;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
@@ -52,6 +54,10 @@ import javafx.beans.property.StringProperty;
  * @author William Bittle
  * @version 3.0.0
  */
+@JsonTypeInfo(
+	use = JsonTypeInfo.Id.NAME,
+	include = JsonTypeInfo.As.PROPERTY)
+@JsonTypeName(value = "textComponent")
 public class TextComponent extends SlideComponent implements ReadOnlyTextComponent, ReadOnlySlideComponent, ReadOnlySlideRegion, Copyable, Identifiable {
 	protected final ObjectProperty<SlidePaint> textPaint;
 	protected final ObjectProperty<SlideStroke> textBorder;
@@ -128,7 +134,10 @@ public class TextComponent extends SlideComponent implements ReadOnlyTextCompone
 		component.horizontalTextAlignment.set(this.horizontalTextAlignment.get());
 		component.lineSpacing.set(this.lineSpacing.get());
 		component.textWrapping.set(this.textWrapping.get());
-		component.text.set(this.text.get());
+		// subclasses may bind the text
+		if (!component.text.isBound()) {
+			component.text.set(this.text.get());
+		}
 	}
 	
 	@Override
@@ -332,7 +341,9 @@ public class TextComponent extends SlideComponent implements ReadOnlyTextCompone
 	
 	@JsonProperty
 	public void setText(String text) {
-		this.text.set(text);
+		if (!this.text.isBound()) {
+			this.text.set(text);
+		}
 	}
 	
 	@Override

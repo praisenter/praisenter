@@ -28,11 +28,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.praisenter.data.slide.graphics.SlideColor;
+import org.praisenter.data.slide.graphics.SlideGradient;
 import org.praisenter.data.slide.graphics.SlideGradientCycleType;
 import org.praisenter.data.slide.graphics.SlideGradientStop;
-import org.praisenter.data.slide.graphics.SlideLinearGradient;
+import org.praisenter.data.slide.graphics.SlideGradientType;
 import org.praisenter.data.slide.graphics.SlidePaint;
-import org.praisenter.data.slide.graphics.SlideRadialGradient;
+import org.praisenter.slide.graphics.SlideLinearGradient;
 
 import javafx.scene.paint.Color;
 import javafx.scene.paint.CycleMethod;
@@ -56,6 +57,7 @@ public final class PaintConverter {
 	 * @return Color
 	 */
 	public static Color toJavaFX(SlideColor color) {
+		if (color == null) return Color.BLACK;
 		return new Color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
 	}
 	
@@ -65,6 +67,7 @@ public final class PaintConverter {
 	 * @return {@link SlideColor}
 	 */
 	public static SlideColor fromJavaFX(Color color) {
+		if (color == null) return new SlideColor();
 		return new SlideColor(color.getRed(), color.getGreen(), color.getBlue(), color.getOpacity());
 	}
 	
@@ -77,10 +80,8 @@ public final class PaintConverter {
 		Paint bgPaint = null;
 		if (paint instanceof SlideColor) {
 			bgPaint = toJavaFX((SlideColor)paint);
-		} else if (paint instanceof SlideLinearGradient) {
-			bgPaint = toJavaFX((SlideLinearGradient)paint);
-		} else if (paint instanceof SlideRadialGradient) {
-			bgPaint = toJavaFX((SlideRadialGradient)paint);
+		} else if (paint instanceof SlideGradient) {
+			bgPaint = toJavaFX((SlideGradient)paint);
 		}
 		return bgPaint;
 	}
@@ -91,6 +92,9 @@ public final class PaintConverter {
 	 * @return CycleMethod
 	 */
 	public static CycleMethod toJavaFX(SlideGradientCycleType cycle) {
+		if (cycle == null) 
+			return CycleMethod.NO_CYCLE;
+		
 		switch (cycle) {
 			case REPEAT:
 				return CycleMethod.REPEAT;
@@ -102,37 +106,12 @@ public final class PaintConverter {
 	}
 	
 	/**
-	 * Converts the given CycleMethod into a {@link SlideGradientCycleType}.
-	 * @param cycle the cycle type
-	 * @return {@link SlideGradientCycleType}
-	 */
-	public static SlideGradientCycleType fromJavaFX(CycleMethod cycle) {
-		switch (cycle) {
-			case REPEAT:
-				return SlideGradientCycleType.REPEAT;
-			case REFLECT:
-				return SlideGradientCycleType.REFLECT;
-			default:
-				return SlideGradientCycleType.NONE;
-		}
-	}
-	
-	/**
 	 * Converts the given {@link SlideGradientStop} into a Stop.
 	 * @param stop the stop
 	 * @return Stop
 	 */
 	private static Stop toJavaFX(SlideGradientStop stop) {
 		return new Stop(stop.getOffset(), toJavaFX(stop.getColor()));
-	}
-	
-	/**
-	 * Converts the given Stop into a {@link SlideGradientStop}.
-	 * @param stop the stop
-	 * @return {@link SlideGradientStop}
-	 */
-	private static SlideGradientStop fromJavaFX(Stop stop) {
-		return new SlideGradientStop(stop.getOffset(), fromJavaFX(stop.getColor()));
 	}
 	
 	/**
@@ -153,101 +132,41 @@ public final class PaintConverter {
 	}
 	
 	/**
-	 * Converts the given Stops into a list of {@link SlideGradientStop}s.
-	 * @param stops the stops
-	 * @return List&lt;{@link SlideGradientStop}&gt;
-	 */
-	private static List<SlideGradientStop> fromJavaFX(List<Stop> stops) {
-		if (stops == null) {
-			return null;
-		}
-		
-		List<SlideGradientStop> stps = new ArrayList<SlideGradientStop>();
-		for (Stop s : stops) {
-			stps.add(fromJavaFX(s));
-		}
-		return stps;
-	}
-
-	/**
 	 * Converts the given {@link SlideLinearGradient} into a LinearGradient.
 	 * @param gradient the gradient
 	 * @return LinearGradient
 	 */
-	public static LinearGradient toJavaFX(SlideLinearGradient gradient) {
+	public static Paint toJavaFX(SlideGradient gradient) {
 		if (gradient == null) {
 			return null;
 		}
 		
-		return new LinearGradient(
-				gradient.getStartX(), 
-				gradient.getStartY(), 
-				gradient.getEndX(), 
-				gradient.getEndY(), 
-				true, 
-				toJavaFX(gradient.getCycleType()), 
-				toJavaFX(gradient.getStops()));
-	}
-	
-	/**
-	 * Converts the given LinearGradient into a {@link SlideLinearGradient}.
-	 * @param gradient the gradient
-	 * @return {@link SlideLinearGradient}
-	 */
-	public static SlideLinearGradient fromJavaFX(LinearGradient gradient) {
-		if (gradient == null) {
-			return null;
+		if (gradient.getType() == SlideGradientType.RADIAL) {
+			double x1 = gradient.getStartX();
+			double x2 = gradient.getEndX();
+			double y1 = gradient.getStartY();
+			double y2 = gradient.getEndY();
+			double dx = x2 - x1;
+			double dy = y2 - y1;
+			double r = Math.sqrt(dx * dx + dy * dy);
+			return new RadialGradient(
+					0.0, 
+					0.0, 
+					gradient.getStartX(), 
+					gradient.getStartY(), 
+					r,
+					true, 
+					toJavaFX(gradient.getCycleType()), 
+					toJavaFX(gradient.getStops()));
+		} else {
+			return new LinearGradient(
+					gradient.getStartX(), 
+					gradient.getStartY(), 
+					gradient.getEndX(), 
+					gradient.getEndY(), 
+					true, 
+					toJavaFX(gradient.getCycleType()), 
+					toJavaFX(gradient.getStops()));
 		}
-		
-		SlideLinearGradient slg = new SlideLinearGradient();
-		slg.setStartX(gradient.getStartX());
-		slg.setStartY(gradient.getStartY());
-		slg.setEndX(gradient.getEndX());
-		slg.setEndY(gradient.getEndY());
-		slg.setCycleType(fromJavaFX(gradient.getCycleMethod()));
-		slg.setStops(fromJavaFX(gradient.getStops()));
-		
-		return slg;
-	}
-
-	/**
-	 * Converts the given {@link SlideRadialGradient} into a RadialGradient.
-	 * @param gradient the gradient
-	 * @return RadialGradient
-	 */
-	public static RadialGradient toJavaFX(SlideRadialGradient gradient) {
-		if (gradient == null) {
-			return null;
-		}
-		
-		return new RadialGradient(
-				0.0, 
-				0.0, 
-				gradient.getCenterX(), 
-				gradient.getCenterY(), 
-				gradient.getRadius(),
-				true, 
-				toJavaFX(gradient.getCycleType()), 
-				toJavaFX(gradient.getStops()));
-	}
-	
-	/**
-	 * Converts the given RadialGradient into a {@link SlideRadialGradient}.
-	 * @param gradient the gradient
-	 * @return {@link SlideRadialGradient}
-	 */
-	public static SlideRadialGradient fromJavaFX(RadialGradient gradient) {
-		if (gradient == null) {
-			return null;
-		}
-		
-		SlideRadialGradient srg = new SlideRadialGradient();
-		srg.setCenterX(gradient.getCenterX());
-		srg.setCenterY(gradient.getCenterY());
-		srg.setRadius(gradient.getRadius());
-		srg.setCycleType(fromJavaFX(gradient.getCycleMethod()));
-		srg.setStops(fromJavaFX(gradient.getStops()));
-		
-		return srg;
 	}
 }

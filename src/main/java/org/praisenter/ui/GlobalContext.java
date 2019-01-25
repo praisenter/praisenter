@@ -1,5 +1,6 @@
 package org.praisenter.ui;
 
+import java.io.File;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,14 +16,21 @@ import org.apache.logging.log4j.Logger;
 import org.praisenter.async.AsyncHelper;
 import org.praisenter.async.BackgroundTask;
 import org.praisenter.async.ReadOnlyBackgroundTask;
+import org.praisenter.data.bible.Bible;
 import org.praisenter.data.DataManager;
 import org.praisenter.data.Persistable;
+import org.praisenter.data.UnknownFormatException;
 import org.praisenter.data.configuration.Configuration;
 import org.praisenter.data.configuration.Resolution;
+import org.praisenter.data.media.Media;
+import org.praisenter.data.slide.Slide;
+import org.praisenter.data.slide.SlideShow;
 import org.praisenter.ui.controls.Alerts;
 import org.praisenter.ui.document.DocumentContext;
 import org.praisenter.ui.events.ActionStateChangedEvent;
 import org.praisenter.ui.translations.Translations;
+
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -50,6 +58,7 @@ import javafx.scene.control.IndexRange;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.DataFormat;
+import javafx.stage.FileChooser;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 
@@ -215,7 +224,8 @@ public final class GlobalContext {
 		this.textSelected.addListener((obs, ov, nv) -> this.onActionStateChanged("TEXT_SELECTED=" + nv));
 		
 		this.taskExecuting.bind(Bindings.createBooleanBinding(() -> {
-			return this.tasks.stream().anyMatch(t -> t.getProgress() >= 0 && t.getProgress() < 1.0);
+			boolean isTaskExecuting = this.tasks.stream().anyMatch(t -> !t.isComplete());
+			return isTaskExecuting;
 		}, this.tasks));
 		
 		this.taskFailed.bind(Bindings.createBooleanBinding(() -> {
@@ -347,6 +357,13 @@ public final class GlobalContext {
 		ActionPane ap = this.closestActionPane.get();
 		
 		switch (action) {
+			case SAVE:
+			case SAVE_ALL:
+			case UNDO:
+			case REDO:
+				return this.openDocuments.size() > 0;
+			case CUT:
+				return ap != null && ap.isActionEnabled(action);
 			case RENUMBER:
 			case REORDER:
 			case NEW_BOOK:
@@ -367,8 +384,7 @@ public final class GlobalContext {
 		// handle global actions (i.e. no context related to the action)
 		switch (action) {
 			case IMPORT:
-				// TODO show the file lookup
-				break;
+				return this.promptImport();
 			case NEW:
 				// TODO show a new dialog
 				break;
@@ -477,6 +493,8 @@ public final class GlobalContext {
 		}
 	}
 
+	// actions
+	
 	private CompletableFuture<Void> undo() {
 		DocumentContext<?> ctx = this.currentDocument.get();
 		if (ctx != null) {
@@ -492,6 +510,8 @@ public final class GlobalContext {
 		}
 		return AsyncHelper.nil();
 	}
+	
+	// TODO i don't really like methods that show UI elements in this class
 	
 	private CompletableFuture<Void> save() {
 		DocumentContext<?> ctx = this.currentDocument.get();
@@ -573,6 +593,51 @@ public final class GlobalContext {
 			});
 		}
 		return AsyncHelper.nil();
+	}
+	
+	private CompletableFuture<Void> promptImport() {
+		FileChooser fc = new FileChooser();
+		fc.setTitle(Translations.get("action.import"));
+		List<File> files = fc.showOpenMultipleDialog(this.stage);
+		return this.importFiles(files);
+	}
+	
+	public CompletableFuture<Void> importFiles(List<File> files) {
+		if (files == null || files.isEmpty()) return CompletableFuture.completedFuture(null);
+		
+		final BackgroundTask bt = new BackgroundTask();
+		bt.setName(Translations.get("action.import"));
+		bt.setMessage(Translations.get("action.import"));
+		
+		List<CompletableFuture<Void>> futures = new ArrayList<>();
+		
+		for (File file : files) {
+			System.out.println("Starting load of " + file);
+			CompletableFuture<Void> future = this.dataManager.importData(file.toPath(), Bible.class, Slide.class, SlideShow.class, Media.class).exceptionally(t -> {
+				LOGGER.error("Failed to import file '" + file.toPath().toAbsolutePath().toString() + "' due to: " + t.getMessage(), t);
+				if (t instanceof CompletionException) throw (CompletionException)t; 
+				throw new CompletionException(t);
+			});
+			futures.add(future);
+		}
+		
+		this.addBackgroundTask(bt);
+		
+		CompletableFuture<?>[] farray = futures.toArray(new CompletableFuture[0]);
+		return CompletableFuture.allOf(farray).thenRun(() -> {
+			bt.setProgress(1.0);
+		}).exceptionally(t -> {
+			List<Throwable> exceptions = AsyncHelper.getExceptions(farray);
+			
+			Platform.runLater(() -> {
+				Alert alert = Alerts.exception(this.stage, null, null, null, exceptions);
+				alert.show();
+			});
+
+			bt.setException(exceptions.get(0));
+			
+			return null;
+		});
 	}
 	
 	public Application getApplication() {

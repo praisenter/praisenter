@@ -39,6 +39,8 @@ import org.praisenter.data.slide.ReadOnlySlideComponent;
 import org.praisenter.data.slide.ReadOnlySlideRegion;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
@@ -51,6 +53,10 @@ import javafx.beans.property.SimpleObjectProperty;
  * @author William Bittle
  * @version 3.0.0
  */
+@JsonTypeInfo(
+	use = JsonTypeInfo.Id.NAME,
+	include = JsonTypeInfo.As.PROPERTY)
+@JsonTypeName(value = "dateTimeComponent")
 public final class DateTimeComponent extends TextComponent implements ReadOnlyDateTimeComponent, ReadOnlyTextComponent, ReadOnlySlideComponent, ReadOnlySlideRegion, Copyable, Identifiable {
 	private final ObjectProperty<SimpleDateFormat> dateTimeFormat;
 	

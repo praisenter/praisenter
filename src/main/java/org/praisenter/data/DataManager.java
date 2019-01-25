@@ -174,11 +174,10 @@ public final class DataManager {
 		}));
 	}
 	
-	@SuppressWarnings("unchecked")
-	public CompletableFuture<Void> importData(Path path, Class<Persistable>... classes) {
+	public CompletableFuture<Void> importData(Path path, Class<?>... classes) {
 		final List<CompletableFuture<DataImportResult<? extends Persistable>>> futures = new ArrayList<>();
 		
-		for (Class<Persistable> clazz : classes) {
+		for (Class<?> clazz : classes) {
 			PersistentStore<?> store = this.adapters.get(clazz);
 			if (store == null) throw new UnsupportedOperationException("A persistence adapter was not found for class '" + clazz + "'.");
 			futures.add(store.importData(path).thenApply((l) -> (DataImportResult<? extends Persistable>)l));

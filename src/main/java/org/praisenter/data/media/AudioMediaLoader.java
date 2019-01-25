@@ -134,7 +134,7 @@ final class AudioMediaLoader extends AbstractMediaLoader implements MediaLoader 
 		media.setSize(this.getFileSize(target));
 		
 		media.setMediaPath(this.pathResolver.getPath(media));
-		media.setMediaImagePath(this.pathResolver.getImagePath(media));
+		media.setMediaImagePath(this.pathResolver.getThumbPath(media));
 		media.setMediaThumbnailPath(this.pathResolver.getThumbPath(media));
 
 		try {
@@ -146,16 +146,16 @@ final class AudioMediaLoader extends AbstractMediaLoader implements MediaLoader 
 		}
 		
 		// images
-		// TODO consider album art
-		BufferedImage image = ClasspathLoader.getBufferedImage("org/praisenter/data/media/default-audio-image.png");
+		BufferedImage image = ClasspathLoader.getBufferedImage("/org/praisenter/data/media/default-audio-image.png");
 		
-		try {
-			// write the image
-			ImageIO.write(image, this.pathResolver.getImageExtension(), this.pathResolver.getImagePath(media).toFile());
-		} catch (Exception ex) {
-			this.delete(target, this.pathResolver.getPath(media));
-			throw new MediaImportException("Failed to store image for audio media from the classpath default.", ex);
-		}
+		// TODO consider album art
+//		try {
+//			// write the image
+//			ImageIO.write(image, this.pathResolver.getImageExtension(), this.pathResolver.getImagePath(media).toFile());
+//		} catch (Exception ex) {
+//			this.delete(target, this.pathResolver.getPath(media));
+//			throw new MediaImportException("Failed to store image for audio media from the classpath default.", ex);
+//		}
 		
 		try {
 			// write the thumbnail

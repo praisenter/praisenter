@@ -29,6 +29,12 @@ https://stackoverflow.com/questions/50011276/javafx-treeview-expand-collapse-dis
     -fx-rotate: 90;
 }
 
+/** for transparent backgrounds */
+.transparent-bg {
+	-fx-background-image: url("/org/praisenter/images/transparent.png");
+	-fx-background-repeat: repeat;
+}
+
 /* ============== Reusable Components ================= */
 
 
@@ -82,31 +88,40 @@ https://stackoverflow.com/questions/50011276/javafx-treeview-expand-collapse-dis
 .p-bible-properties {}
 
 
-
-
-
-
-
-
-
-
-/* BibleListCell */
-.library-list-cell {
+/* LibraryListCell */
+.p-library-list-cell {
 	-fx-alignment: top-center;
 	-fx-pref-width: 110;
 }
-.library-list-cell > .image-wrapper > .bible {
-	-fx-image: url("/org/praisenter/images/bible-icon.png");
-	-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.25), 2, 0, 2, 2);
-}
-.library-list-cell > .image-wrapper {
+.p-library-list-cell > .image-wrapper {
 	-fx-alignment: bottom-center;
 	-fx-pref-height: 100;
 	-fx-max-height: 100;
 	-fx-min-height: 100;
 }
-.library-list-cell > Label {
+.p-library-list-cell > .image-wrapper > .image-underlay > .bible {
+	-fx-image: url("/org/praisenter/images/bible-icon.png");
+}
+.p-library-list-cell > .image-wrapper > .image-underlay {
+}
+.p-library-list-cell > .image-wrapper > .dropshadow-underlay {
+	-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.25), 2, 0, 2, 2);
+}
+.p-library-list-cell > .image-wrapper > .transparent-underlay {
+	-fx-background-image: url("/org/praisenter/images/transparent.png");
+	-fx-background-repeat: repeat;
+}
+.p-library-list-cell > Label {
 	-fx-text-alignment: center;
 	-fx-padding: 5 0 0 0;
 	-fx-wrap-text: true;
 }
+
+
+
+
+
+
+
+
+

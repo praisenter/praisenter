@@ -431,7 +431,7 @@ final class EditNode extends StackPane {
 			sy != ny ||
 			sw != nw ||
 			sh != nh) {
-			BoundsEdit be = new BoundsEdit(
+			SlideComponentBoundsEdit be = new SlideComponentBoundsEdit(
 					component.xProperty(), 
 					component.yProperty(),
 					component.widthProperty(),

@@ -10,8 +10,8 @@ import org.praisenter.data.bible.Book;
 import org.praisenter.data.bible.Chapter;
 import org.praisenter.data.bible.Verse;
 import org.praisenter.ui.GlobalContext;
-import org.praisenter.ui.TextInputFieldEventFilter;
 import org.praisenter.ui.controls.TagListView;
+import org.praisenter.ui.controls.TextInputFieldEventFilter;
 import org.praisenter.ui.document.DocumentContext;
 import org.praisenter.ui.document.DocumentSelectionEditor;
 import org.praisenter.ui.translations.Translations;
@@ -27,10 +27,12 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
+import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.layout.VBox;
 
 public final class BibleSelectionEditor extends VBox implements DocumentSelectionEditor<Bible> {
@@ -270,11 +272,15 @@ public final class BibleSelectionEditor extends VBox implements DocumentSelectio
 				lblVerseNumber, spnVerseNumber,
 				lblVerseText, txtVerseText));
 		
-		this.getChildren().addAll(
+		ScrollPane scroller = new ScrollPane(new VBox(
 				ttlBible,
 				ttlBook,
 				ttlChapter,
-				ttlVerse);
+				ttlVerse));
+		scroller.setHbarPolicy(ScrollBarPolicy.NEVER);
+		scroller.setFitToWidth(true);
+		
+		this.getChildren().addAll(scroller);
 		
 		// hide/show
 		

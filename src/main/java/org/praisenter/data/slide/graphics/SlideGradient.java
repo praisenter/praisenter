@@ -31,7 +31,9 @@ import org.praisenter.data.Copyable;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -41,17 +43,64 @@ import javafx.collections.ObservableList;
  * @author William Bittle
  * @version 3.0.0
  */
-public abstract class SlideGradient implements ReadOnlySlideGradient, SlidePaint, Copyable {
-	protected final ObjectProperty<SlideGradientCycleType> cycleType;
-	protected final ObservableList<SlideGradientStop> stops;
+public class SlideGradient implements ReadOnlySlideGradient, SlidePaint, Copyable {
+	private final ObjectProperty<SlideGradientType> type;
+	private final DoubleProperty startX;
+	private final DoubleProperty startY;
+	private final DoubleProperty endX;
+	private final DoubleProperty endY;
+	private final ObjectProperty<SlideGradientCycleType> cycleType;
+	private final ObservableList<SlideGradientStop> stops;
 	private final ObservableList<SlideGradientStop> stopsReadOnly;
 	
 	public SlideGradient() {
+		this.type = new SimpleObjectProperty<>(SlideGradientType.LINEAR);
+		this.startX = new SimpleDoubleProperty(0);
+		this.startY = new SimpleDoubleProperty(0);
+		this.endX = new SimpleDoubleProperty(1);
+		this.endY = new SimpleDoubleProperty(1);
 		this.cycleType = new SimpleObjectProperty<>(SlideGradientCycleType.NONE);
 		this.stops = FXCollections.observableArrayList(
 				new SlideGradientStop(0, 0, 0, 0, 1),
 				new SlideGradientStop(1, 1, 1, 1, 1));
 		this.stopsReadOnly = FXCollections.unmodifiableObservableList(this.stops);
+	}
+
+	@Override
+	public SlideGradient copy() {
+		SlideGradient gradient = new SlideGradient();
+		gradient.type.set(this.type.get());
+		gradient.startX.set(this.startX.get());
+		gradient.startY.set(this.startY.get());
+		gradient.endX.set(this.endX.get());
+		gradient.endY.set(this.endY.get());
+		gradient.cycleType.set(this.cycleType.get());
+		gradient.stops.clear();
+		for (SlideGradientStop stop : this.stops) {
+			gradient.stops.add(stop.copy());
+		}
+		return gradient;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("GRADIENT")
+		  .append("[(")
+		  .append(this.type.get()).append(", ")
+		  .append(this.startX.get()).append(", ")
+		  .append(this.startY.get()).append("), (")
+		  .append(this.endX.get()).append(", ")
+		  .append(this.endY.get()).append("), ")
+		  .append(this.cycleType.get()).append(", [");
+		for (SlideGradientStop stop : this.stops) {
+			sb.append(stop).append(", ");
+		}
+		sb.append("]]");
+		return sb.toString();
 	}
 	
 	/* (non-Javadoc)
@@ -60,13 +109,21 @@ public abstract class SlideGradient implements ReadOnlySlideGradient, SlidePaint
 	@Override
 	public int hashCode() {
 		SlideGradientCycleType cycleType = this.cycleType.get();
+		SlideGradientType type = this.type.get();
 		
 		int hash = 37;
+		if (type != null) hash = hash * 31 + type.hashCode();
 		if (cycleType != null) hash = hash * 31 + cycleType.hashCode();
 		for (int i = 0; i < this.stops.size(); i++) {
 			SlideGradientStop stop = stops.get(i);
 			hash = 31 * hash + stop.hashCode();
 		}
+		hash = hash * 31 + super.hashCode();
+		hash = hash * 31 + Objects.hash(
+				this.startX.get(),
+				this.startY.get(),
+				this.endX.get(),
+				this.endY.get());
 		return hash;
 	}
 	
@@ -79,7 +136,16 @@ public abstract class SlideGradient implements ReadOnlySlideGradient, SlidePaint
 		if (obj == this) return true;
 		if (obj instanceof SlideGradient) {
 			SlideGradient g = (SlideGradient)obj;
+			if (!Objects.equals(g.type.get(), this.type.get())) {
+				return false;
+			}
 			if (!Objects.equals(g.cycleType.get(), this.cycleType.get())) {
+				return false;
+			}
+			if (this.startX.get() != g.startX.get() ||
+				this.startY.get() != g.startY.get() ||
+				this.endX.get() != g.endX.get() ||
+				this.endY.get() != g.endY.get()) {
 				return false;
 			}
 			if (g.stops.size() != this.stops.size()) {
@@ -93,6 +159,85 @@ public abstract class SlideGradient implements ReadOnlySlideGradient, SlidePaint
 			return true;
 		}
 		return false;
+	}
+
+	@Override
+	@JsonProperty
+	public SlideGradientType getType() {
+		return this.type.get();
+	}
+	
+	@JsonProperty
+	public void setType(SlideGradientType type) {
+		this.type.set(type);
+	}
+	
+	public ObjectProperty<SlideGradientType> typeProperty() {
+		return this.type;
+	}
+	
+	@Override
+	@JsonProperty
+	public double getStartX() {
+		return this.startX.get();
+	}
+	
+	@JsonProperty
+	public void setStartX(double x) {
+		this.startX.set(x);
+	}
+	
+	@Override
+	public DoubleProperty startXProperty() {
+		return this.startX;
+	}
+
+	@Override
+	@JsonProperty
+	public double getStartY() {
+		return this.startY.get();
+	}
+	
+	@JsonProperty
+	public void setStartY(double y) {
+		this.startY.set(y);
+	}
+	
+	@Override
+	public DoubleProperty startYProperty() {
+		return this.startY;
+	}
+	
+	@Override
+	@JsonProperty
+	public double getEndX() {
+		return this.endX.get();
+	}
+	
+	@JsonProperty
+	public void setEndX(double x) {
+		this.endX.set(x);
+	}
+	
+	@Override
+	public DoubleProperty endXProperty() {
+		return this.endX;
+	}
+	
+	@Override
+	@JsonProperty
+	public double getEndY() {
+		return this.endY.get();
+	}
+	
+	@JsonProperty
+	public void setEndY(double y) {
+		this.endY.set(y);
+	}
+	
+	@Override
+	public DoubleProperty endYProperty() {
+		return this.endY;
 	}
 	
 	@Override
