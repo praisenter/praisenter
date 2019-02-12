@@ -39,7 +39,6 @@ final class DocumentTab extends Tab {
 		// check for unsaved changes on close of a tab
 		this.setOnCloseRequest(e -> {
 			if (document.hasUnsavedChanges()) {
-				// TODO prompt to save first, then remove regardless of what the user chooses
 				Alert alert = Alerts.yesNoCancel(
 						this.context.getStage(), 
 						Modality.WINDOW_MODAL, 

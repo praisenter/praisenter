@@ -16,10 +16,9 @@ import org.apache.logging.log4j.Logger;
 import org.praisenter.async.AsyncHelper;
 import org.praisenter.async.BackgroundTask;
 import org.praisenter.async.ReadOnlyBackgroundTask;
-import org.praisenter.data.bible.Bible;
 import org.praisenter.data.DataManager;
 import org.praisenter.data.Persistable;
-import org.praisenter.data.UnknownFormatException;
+import org.praisenter.data.bible.Bible;
 import org.praisenter.data.configuration.Configuration;
 import org.praisenter.data.configuration.Resolution;
 import org.praisenter.data.media.Media;
@@ -29,8 +28,6 @@ import org.praisenter.ui.controls.Alerts;
 import org.praisenter.ui.document.DocumentContext;
 import org.praisenter.ui.events.ActionStateChangedEvent;
 import org.praisenter.ui.translations.Translations;
-
-import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -612,7 +609,7 @@ public final class GlobalContext {
 		List<CompletableFuture<Void>> futures = new ArrayList<>();
 		
 		for (File file : files) {
-			System.out.println("Starting load of " + file);
+			LOGGER.info("Beginning import of '{}'", file.toPath().toAbsolutePath().toString());
 			CompletableFuture<Void> future = this.dataManager.importData(file.toPath(), Bible.class, Slide.class, SlideShow.class, Media.class).exceptionally(t -> {
 				LOGGER.error("Failed to import file '" + file.toPath().toAbsolutePath().toString() + "' due to: " + t.getMessage(), t);
 				if (t instanceof CompletionException) throw (CompletionException)t; 
@@ -764,6 +761,32 @@ public final class GlobalContext {
 		if (Objects.equals(document, this.currentDocument.get())) {
 			this.currentDocument.set(null);
 		}
+	}
+
+	/**
+	 * Closes the document for the given item.
+	 * @param item the item of the document to close
+	 */
+	public void closeDocument(Persistable item) {
+		this.openDocuments.removeIf(d -> Objects.equals(d.getDocument(), item));
+		DocumentContext<?> currentDocument = this.currentDocument.get();
+		if (currentDocument != null && Objects.equals(currentDocument.getDocument(), item)) {
+			this.currentDocument.set(null);
+		}
+	}
+	
+	/**
+	 * Returns the document context for the given item or null if one doesn't exist (its not open).
+	 * @param item the item
+	 * @return
+	 */
+	public DocumentContext<? extends Persistable> getOpenDocument(Persistable item) {
+		for (DocumentContext<? extends Persistable> dc : this.openDocuments) {
+			if (Objects.equals(dc.getDocument(), item)) {
+				return dc;
+			}
+		}
+		return null;
 	}
 	
 	/**

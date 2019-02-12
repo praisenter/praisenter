@@ -100,7 +100,6 @@ public final class DocumentContext<T extends Persistable> {
 		if (document != null) {
 			return document.hashCode();
 		}
-		// TODO what's the hashcode of null?
 		return 0;
 	}
 	

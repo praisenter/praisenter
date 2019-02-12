@@ -1,5 +1,6 @@
 package org.praisenter.ui.bind;
 
+import java.lang.ref.WeakReference;
 import java.util.Objects;
 
 import org.praisenter.Reference;
@@ -53,9 +54,13 @@ public final class BindingHelper {
 	 */
 	public static final <T, E> void bindBidirectional(Property<T> from, Property<E> to, ObjectConverter<T, E> mapper) {
 		final Reference<Boolean> isOperating = new Reference<>(false);
+		// NOTE: use weak references to the properties so we don't leak memory by never allowing these to get GC-ed
 		from.addListener(new ChangeListener<T>() {
+			final WeakReference<Property<E>> propRef = new WeakReference<Property<E>>(to);
 			@Override
 			public void changed(ObservableValue<? extends T> observable, T oldValue, T newValue) {
+				Property<E> to = propRef.get();
+				if (to == null) return;
 				if (isOperating.get()) return;
 				isOperating.set(true);
 				to.setValue(mapper.convertFrom(newValue));
@@ -63,8 +68,11 @@ public final class BindingHelper {
 			}
 		});
 		to.addListener(new ChangeListener<E>() {
+			final WeakReference<Property<T>> propRef = new WeakReference<Property<T>>(from);
 			@Override
 			public void changed(ObservableValue<? extends E> observable, E oldValue, E newValue) {
+				Property<T> from = propRef.get();
+				if (from == null) return;
 				if (isOperating.get()) return;
 				isOperating.set(true);
 				from.setValue(mapper.convertTo(newValue));

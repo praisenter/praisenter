@@ -2,7 +2,10 @@ package org.praisenter.ui.slide;
 
 import org.praisenter.data.slide.SlideRegion;
 import org.praisenter.data.slide.graphics.SlideStroke;
+import org.praisenter.data.slide.graphics.SlideStrokeStyle;
+import org.praisenter.data.slide.graphics.SlideStrokeType;
 import org.praisenter.ui.GlobalContext;
+import org.praisenter.ui.Playable;
 import org.praisenter.ui.slide.convert.BorderConverter;
 
 import javafx.beans.binding.Bindings;
@@ -15,6 +18,8 @@ import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.Shape;
 import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
 import javafx.scene.shape.StrokeType;
@@ -125,6 +130,13 @@ abstract class SlideRegionNode<T extends SlideRegion> extends StackPane implemen
 //			return this.getBorderBasedClip(border);
 //		}, this.region.borderProperty()));
 		
+		this.background.clipProperty().bind(Bindings.createObjectBinding(() -> {
+			SlideStroke border = this.region.getBorder();
+			double width = this.getWidth();
+			double height = this.getHeight();
+			return this.getBorderBasedClip(border, width, height);
+		}, this.region.borderProperty(), this.widthProperty(), this.heightProperty()));
+		
 		this.borderPane.borderProperty().bind(Bindings.createObjectBinding(() -> {
 			SlideStroke border = this.region.getBorder();
 			return new Border(BorderConverter.toJavaFX(border));
@@ -132,6 +144,33 @@ abstract class SlideRegionNode<T extends SlideRegion> extends StackPane implemen
 		
 		this.container.getChildren().addAll(this.background, this.borderPane, this.content);
 		this.getChildren().add(this.container);
+	}
+
+	private final Shape getBorderBasedClip(SlideStroke stroke, double width, double height) {
+		if (stroke != null) {
+			double radius = stroke.getRadius();
+			double sw = stroke.getWidth();
+			SlideStrokeStyle style = stroke.getStyle();
+			if (radius > 0) {
+				double xoffset = 0;
+				double yoffset = 0;
+				// for inside type, we want the background to still fill
+				if (style != null && style.getType() == SlideStrokeType.INSIDE) {
+					xoffset = yoffset = sw * 0.5;
+					width -= sw;
+					height -= sw;
+				}
+				Rectangle r = new Rectangle();
+				r.setX(xoffset);
+				r.setY(yoffset);
+				r.setWidth(width);
+				r.setHeight(height);
+				r.setArcHeight(2 * radius);
+				r.setArcWidth(2 * radius);
+				return r;
+			}
+		}
+		return null;
 	}
 	
 	@Override

@@ -42,11 +42,13 @@ public interface ReadOnlyConfiguration extends MediaConfiguration, SlideConfigur
 	public ReadOnlyIntegerProperty thumbnailHeightProperty();
 	public ReadOnlyBooleanProperty audioTranscodingEnabledProperty();
 	public ReadOnlyBooleanProperty videoTranscodingEnabledProperty();
+	public ReadOnlyBooleanProperty volumeAdjustmentEnabledProperty();
 	public ReadOnlyStringProperty audioTranscodeExtensionProperty();
 	public ReadOnlyStringProperty videoTranscodeExtensionProperty();
 	public ReadOnlyStringProperty audioTranscodeCommandProperty();
 	public ReadOnlyStringProperty videoTranscodeCommandProperty();
 	public ReadOnlyStringProperty videoFrameExtractCommandProperty();
+	public ReadOnlyDoubleProperty targetMeanVolumeProperty();
 	
 	public ReadOnlyBooleanProperty waitForTransitionsToCompleteEnabledProperty();
 	

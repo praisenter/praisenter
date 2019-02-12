@@ -14,6 +14,7 @@ import org.praisenter.data.slide.graphics.SlideGradient;
 import org.praisenter.data.slide.graphics.SlidePaint;
 import org.praisenter.data.slide.media.MediaObject;
 import org.praisenter.ui.GlobalContext;
+import org.praisenter.ui.Playable;
 import org.praisenter.ui.slide.convert.EffectConverter;
 import org.praisenter.ui.slide.convert.MediaConverter;
 import org.praisenter.ui.slide.convert.PaintConverter;
@@ -30,18 +31,10 @@ import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BackgroundImage;
 import javafx.scene.layout.BackgroundPosition;
 import javafx.scene.layout.BackgroundRepeat;
-import javafx.scene.layout.Border;
-import javafx.scene.layout.BorderStroke;
-import javafx.scene.layout.BorderStrokeStyle;
-import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.StrokeLineCap;
-import javafx.scene.shape.StrokeLineJoin;
-import javafx.scene.shape.StrokeType;
 
 final class PaintPane extends StackPane implements Playable {
 	private static final Logger LOGGER = LogManager.getLogger();

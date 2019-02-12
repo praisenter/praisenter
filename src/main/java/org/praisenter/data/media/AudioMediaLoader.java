@@ -89,7 +89,7 @@ final class AudioMediaLoader extends AbstractMediaLoader implements MediaLoader 
 		Path target = this.pathResolver.getMediaPath().resolve(this.pathResolver.getFileName(id, extension));
 		
 		// are we doing transcoding?
-		if (this.configuration.isAudioTranscodingEnabled()) {
+		if (this.configuration.isAudioTranscodingEnabled() && this.isValidTranscodeCommand(MediaType.AUDIO)) {
 			extension = this.configuration.getAudioTranscodeExtension();
 			// get the proper target path
 			target = this.pathResolver.getMediaPath().resolve(this.pathResolver.getFileName(id, extension));
@@ -133,7 +133,7 @@ final class AudioMediaLoader extends AbstractMediaLoader implements MediaLoader 
 		media.setWidth(0);
 		media.setSize(this.getFileSize(target));
 		
-		media.setMediaPath(this.pathResolver.getPath(media));
+		media.setMediaPath(this.pathResolver.getMediaPath(media));
 		media.setMediaImagePath(this.pathResolver.getThumbPath(media));
 		media.setMediaThumbnailPath(this.pathResolver.getThumbPath(media));
 
@@ -148,7 +148,7 @@ final class AudioMediaLoader extends AbstractMediaLoader implements MediaLoader 
 		// images
 		BufferedImage image = ClasspathLoader.getBufferedImage("/org/praisenter/data/media/default-audio-image.png");
 		
-		// TODO consider album art
+		// FEATURE (L-H) consider calling an external service to get album art
 //		try {
 //			// write the image
 //			ImageIO.write(image, this.pathResolver.getImageExtension(), this.pathResolver.getImagePath(media).toFile());

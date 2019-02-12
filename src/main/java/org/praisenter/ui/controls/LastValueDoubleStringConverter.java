@@ -9,6 +9,10 @@ public final class LastValueDoubleStringConverter extends StringConverter<Double
 	private Double lastValue;
 	private final DoubleStringConverter converter = new DoubleStringConverter();
 	private final Consumer<String> onInvalid;
+
+	public LastValueDoubleStringConverter() {
+		this(null);
+	}
 	
 	public LastValueDoubleStringConverter(Consumer<String> onInvalid) {
 		this.onInvalid = onInvalid;
@@ -23,13 +27,17 @@ public final class LastValueDoubleStringConverter extends StringConverter<Double
 	@Override
 	public Double fromString(String string) {
 		if (string == null || string.isEmpty()) {
-			this.onInvalid.accept(this.converter.toString(this.lastValue));
+			if (this.onInvalid != null) {
+				this.onInvalid.accept(this.converter.toString(this.lastValue));
+			}
 			return this.lastValue;
 		}
 		try {
 			return converter.fromString(string);
 		} catch (NumberFormatException ex) {
-			this.onInvalid.accept(this.converter.toString(this.lastValue));
+			if (this.onInvalid != null) {
+				this.onInvalid.accept(this.converter.toString(this.lastValue));
+			}
 			return this.lastValue;
 		}
 	}

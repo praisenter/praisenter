@@ -39,6 +39,7 @@ import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.praisenter.Constants;
 import org.praisenter.Editable;
+import org.praisenter.Version;
 import org.praisenter.Watchable;
 import org.praisenter.data.Copyable;
 import org.praisenter.data.Identifiable;
@@ -116,7 +117,7 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 	
 	public Slide() {
 		this.format = new SimpleStringProperty(Constants.FORMAT_NAME);
-		this.version = new SimpleStringProperty(Constants.VERSION);
+		this.version = new SimpleStringProperty(Version.STRING);
 		this.createdDate = new SimpleObjectProperty<>(Instant.now());
 		this.modifiedDate = new SimpleObjectProperty<>(this.createdDate.get());
 		this.time = new SimpleLongProperty(0);

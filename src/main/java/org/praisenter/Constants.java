@@ -35,10 +35,6 @@ public final class Constants {
 	/** Hidden constructor */
 	private Constants() {}
 	
-	/** The version string */
-	// TODO change to version class
-	public static final String VERSION = "3.0.0";
-	
 	/** The application name */
 	public static final String NAME = "Praisenter";
 	
@@ -63,7 +59,7 @@ public final class Constants {
 	
 	/** The absolute path to the logs directory */
 	public static final String LOGS_ABSOLUTE_PATH = Constants.ROOT_PATH + "logs";
-	
+
 	///////////////////////////
 	// SEARCH INDEX
 	

@@ -165,7 +165,7 @@ public final class BiblePersistAdapter implements PersistAdapter<Bible> {
 					results = provider.read(path);
 					break;
 				} catch (Exception ex) {
-					LOGGER.warn("Failed to read '" + path.toAbsolutePath()+ "' using format provider '" + provider.getClass().getName() + "'.", ex);
+					LOGGER.warn("Failed to read '" + path.toAbsolutePath() + "' using format provider '" + provider.getClass().getName() + "'.", ex);
 				}
 			}
 		}

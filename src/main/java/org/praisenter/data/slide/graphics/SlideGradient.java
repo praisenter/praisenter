@@ -241,11 +241,11 @@ public class SlideGradient implements ReadOnlySlideGradient, SlidePaint, Copyabl
 	}
 	
 	@Override
-	@JsonProperty
 	public ObservableList<SlideGradientStop> getStopsUnmodifiable() {
 		return this.stopsReadOnly;
 	}
 	
+	@JsonProperty
 	public ObservableList<SlideGradientStop> getStops() {
 		return this.stops;
 	}

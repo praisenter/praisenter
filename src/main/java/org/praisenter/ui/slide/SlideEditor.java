@@ -46,7 +46,7 @@ import javafx.scene.shape.StrokeType;
 // FEATURE grouping, UUID group property on each slide component, when grouped sizing and moving work on the group, can't select individual when grouped; or grouped at selection level only
 
 // TODO background, shadow, center
-// context menu
+// TODO context menu?
 public final class SlideEditor extends BorderPane implements DocumentEditor<Slide> {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
@@ -114,7 +114,7 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 		});
 		
 		this.selected.addListener((obs, ov, nv) -> {
-			// TODO allow multi select
+			// FEATURE allow multi select
 			clearSelectionExceptFor(nv);
 			if (nv != null) {
 				this.document.getSelectedItems().setAll(nv);
@@ -234,19 +234,6 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 //				return false;
 //		}
 	}
-	
-//	private ClipboardContent getClipboardContentForSelection() throws Exception {
-//		List<Object> items = new ArrayList<Object>(this.document.getSelectedItems());
-//		
-//		// in the case of Drag n' Drop, we don't need to serialize it
-//		String data = JsonIO.write(items);
-//		ClipboardContent content = new ClipboardContent();
-////		content.putString(String.join(Constants.NEW_LINE, textData));
-//		// TODO output PowerPoint data too?
-//		content.put(SLIDE_COMPONENT_DATA, data);
-//		
-//		return content;
-//	}
 	
 	private CompletableFuture<Void> copy(boolean isCut) {
 		List<Object> selected = new ArrayList<>(this.document.getSelectedItems());

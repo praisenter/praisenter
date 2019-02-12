@@ -78,7 +78,6 @@ public class PraisenterPane extends BorderPane {
 //			Alert a = new Alert(AlertType.INFORMATION, "testing");
 //			a.showAndWait();
 //		});
-		// TODO set focus on tab focus
 //		tabs.getTabs().add(new Tab("bible1", bibleEditorPane1));
 //		tabs.getTabs().add(new Tab("bible2", bibleEditorPane2));
 //		

@@ -1,5 +1,7 @@
 package org.praisenter.ui.slide.controls;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.praisenter.data.media.MediaType;
 import org.praisenter.data.slide.graphics.SlideColor;
 import org.praisenter.data.slide.graphics.SlideGradient;
@@ -22,7 +24,9 @@ import javafx.scene.control.ColorPicker;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
-public final class PaintPicker extends VBox {
+public final class SlidePaintPicker extends VBox {
+	private static final Logger LOGGER = LogManager.getLogger();
+	
 	private final ObjectProperty<SlidePaint> value;
 	
 	private final ObjectProperty<PaintType> type;
@@ -30,11 +34,11 @@ public final class PaintPicker extends VBox {
 	private final ObjectProperty<SlideGradient> gradient;
 	private final ObjectProperty<MediaObject> media;
 	
-	public PaintPicker(GlobalContext context) {
+	public SlidePaintPicker(GlobalContext context) {
 		this(context, true, true, true, true, true);
 	}
 	
-	public PaintPicker(
+	public SlidePaintPicker(
 			GlobalContext context,
 			boolean allowNone,
 			boolean allowColor,
@@ -95,7 +99,7 @@ public final class PaintPicker extends VBox {
 		}
 		
 		if (allowed != null && allowed.length > 0) {
-			MediaPicker pkrMedia = new MediaPicker(context, allowed);
+			MediaObjectPicker pkrMedia = new MediaObjectPicker(context, allowed);
 			pkrMedia.valueProperty().bindBidirectional(this.media);
 			
 			pkrMedia.visibleProperty().bind(Bindings.createBooleanBinding(() -> {
@@ -110,7 +114,7 @@ public final class PaintPicker extends VBox {
 		BindingHelper.bindBidirectional(this.type, this.value, new ObjectConverter<PaintType, SlidePaint>() {
 			@Override
 			public SlidePaint convertFrom(PaintType t) {
-				return PaintPicker.this.getControlValues();
+				return SlidePaintPicker.this.getControlValues();
 			}
 			@Override
 			public PaintType convertTo(SlidePaint e) {
@@ -118,7 +122,7 @@ public final class PaintPicker extends VBox {
 				if (e instanceof SlideColor) return PaintType.COLOR;
 				if (e instanceof SlideGradient) return PaintType.GRADIENT;
 				if (e instanceof MediaObject) return PaintType.MEDIA;
-				// TODO log warning
+				LOGGER.warn("The SlidePaint of type '" + e.getClass().getName() + "' is unknown.");
 				return PaintType.NONE;
 			}
 		});
@@ -126,7 +130,7 @@ public final class PaintPicker extends VBox {
 		BindingHelper.bindBidirectional(this.color, this.value, new ObjectConverter<Color, SlidePaint>() {
 			@Override
 			public SlidePaint convertFrom(Color t) {
-				return PaintPicker.this.getControlValues();
+				return SlidePaintPicker.this.getControlValues();
 			}
 			@Override
 			public Color convertTo(SlidePaint e) {
@@ -139,7 +143,7 @@ public final class PaintPicker extends VBox {
 		BindingHelper.bindBidirectional(this.gradient, this.value, new ObjectConverter<SlideGradient, SlidePaint>() {
 			@Override
 			public SlidePaint convertFrom(SlideGradient t) {
-				return PaintPicker.this.getControlValues();
+				return SlidePaintPicker.this.getControlValues();
 			}
 			@Override
 			public SlideGradient convertTo(SlidePaint e) {
@@ -151,7 +155,7 @@ public final class PaintPicker extends VBox {
 		BindingHelper.bindBidirectional(this.media, this.value, new ObjectConverter<MediaObject, SlidePaint>() {
 			@Override
 			public SlidePaint convertFrom(MediaObject t) {
-				return PaintPicker.this.getControlValues();
+				return SlidePaintPicker.this.getControlValues();
 			}
 			@Override
 			public MediaObject convertTo(SlidePaint e) {
@@ -159,10 +163,6 @@ public final class PaintPicker extends VBox {
 				return (MediaObject)e;
 			}
 		});
-		
-//		this.value.addListener((obs, ov, nv) -> {
-//			System.out.println(ov + " -> " + nv);
-//		});
 	}
 	
 	private SlidePaint getControlValues() {
@@ -178,7 +178,7 @@ public final class PaintPicker extends VBox {
 			case MEDIA:
 				return this.media.get();
 			default:
-				// TODO warning
+				LOGGER.warn("Unknown paint type '" + type + "'.");
 				return null;
 		}
 	}

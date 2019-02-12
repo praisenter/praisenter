@@ -6,6 +6,7 @@ import org.praisenter.data.slide.media.MediaComponent;
 import org.praisenter.data.slide.text.TextComponent;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.MappedList;
+import org.praisenter.ui.Playable;
 
 import javafx.beans.binding.Bindings;
 import javafx.scene.layout.Pane;

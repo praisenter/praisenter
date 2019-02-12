@@ -98,9 +98,11 @@ public final class SlidePersistAdapter implements PersistAdapter<Slide> {
 			if (Files.exists(path)) {
 				throw new FileAlreadyExistsException(path.toAbsolutePath().toString());
 			}
+			Path thumbnailPath = this.pathResolver.getThumbPath(item);
 			BufferedImage image = this.renderer.renderThumbnail(item, this.configuration.getThumbnailWidth(), this.configuration.getThumbnailHeight());
-			ImageIO.write(image, this.pathResolver.getThumbExtension(), this.pathResolver.getThumbPath(item).toFile());
+			ImageIO.write(image, this.pathResolver.getThumbExtension(), thumbnailPath.toFile());
 			JsonIO.write(path, item);
+			item.setThumbnailPath(thumbnailPath);
 		}
 	}
 	

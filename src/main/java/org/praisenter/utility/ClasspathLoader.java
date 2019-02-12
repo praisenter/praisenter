@@ -36,9 +36,6 @@ import java.nio.file.Path;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import javafx.scene.image.Image;
 
 /**
@@ -47,9 +44,6 @@ import javafx.scene.image.Image;
  * @version 3.0.0
  */
 public final class ClasspathLoader {
-	/** The class-level logger */
-	private static final Logger LOGGER = LogManager.getLogger();
-	
 	/** Hidden default constructor */
 	private ClasspathLoader() {}
 	
@@ -62,9 +56,9 @@ public final class ClasspathLoader {
 	public static final BufferedImage getBufferedImage(String path) {
 		try {
 			URL url = ClasspathLoader.class.getResource(path);
+			if (url == null) return null;
 			return ImageIO.read(url);
 		} catch (Exception e) {
-			LOGGER.warn("Failed to load path '" + path + "' from classpath.", e);
 			return null;
 		}
 	}
@@ -88,10 +82,10 @@ public final class ClasspathLoader {
 	public static final ImageIcon getIcon(String path) {
 		try {
 			URL url = ClasspathLoader.class.getResource(path);
+			if (url == null) return null;
 			BufferedImage image = ImageIO.read(url);
 			return new ImageIcon(image);
 		} catch (Exception e) {
-			LOGGER.warn("Failed to load path '" + path + "' from classpath.", e);
 			return null;
 		}
 	}

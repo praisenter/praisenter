@@ -86,7 +86,7 @@ final class VideoMediaLoader extends AbstractMediaLoader implements MediaLoader 
 		Path target = this.pathResolver.getMediaPath().resolve(this.pathResolver.getFileName(id, extension));
 		
 		// are we doing transcoding?
-		if (this.configuration.isVideoTranscodingEnabled()) {
+		if (this.configuration.isVideoTranscodingEnabled() && this.isValidTranscodeCommand(MediaType.VIDEO)) {
 			extension = this.configuration.getVideoTranscodeExtension();
 			// get the proper target path
 			target = this.pathResolver.getMediaPath().resolve(this.pathResolver.getFileName(id, extension));
@@ -142,7 +142,7 @@ final class VideoMediaLoader extends AbstractMediaLoader implements MediaLoader 
 		media.setWidth(metadata.getWidth());
 		media.setSize(this.getFileSize(target));
 		
-		media.setMediaPath(this.pathResolver.getPath(media));
+		media.setMediaPath(this.pathResolver.getMediaPath(media));
 		media.setMediaImagePath(this.pathResolver.getImagePath(media));
 		media.setMediaThumbnailPath(this.pathResolver.getThumbPath(media));
 

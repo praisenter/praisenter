@@ -22,6 +22,7 @@ import org.praisenter.data.slide.graphics.SlideColor;
 import org.praisenter.data.slide.graphics.SlidePadding;
 import org.praisenter.data.slide.graphics.SlidePaint;
 import org.praisenter.data.slide.graphics.SlideStroke;
+import org.praisenter.data.slide.graphics.SlideStrokeType;
 import org.praisenter.data.slide.media.MediaComponent;
 import org.praisenter.data.slide.media.MediaObject;
 import org.praisenter.data.slide.text.CountdownComponent;
@@ -37,6 +38,7 @@ import org.praisenter.ui.Glyphs;
 import org.praisenter.ui.MappedList;
 import org.praisenter.ui.Option;
 import org.praisenter.ui.bind.BindingHelper;
+import org.praisenter.ui.bind.ObjectConverter;
 import org.praisenter.ui.controls.DateTimePicker;
 import org.praisenter.ui.controls.IntegerSpinnerValueFactory;
 import org.praisenter.ui.controls.IntegerStringConverter;
@@ -48,10 +50,12 @@ import org.praisenter.ui.controls.TextInputFieldEventFilter;
 import org.praisenter.ui.controls.TimeStringConverter;
 import org.praisenter.ui.document.DocumentContext;
 import org.praisenter.ui.document.DocumentSelectionEditor;
-import org.praisenter.ui.slide.controls.MediaPicker;
-import org.praisenter.ui.slide.controls.PaintPicker;
+import org.praisenter.ui.slide.controls.MediaObjectPicker;
 import org.praisenter.ui.slide.controls.SlideFontPicker;
+import org.praisenter.ui.slide.controls.SlidePaddingPicker;
+import org.praisenter.ui.slide.controls.SlidePaintPicker;
 import org.praisenter.ui.slide.controls.SlideShadowPicker;
+import org.praisenter.ui.slide.controls.SlideStrokePicker;
 import org.praisenter.ui.slide.convert.TimeFormatConverter;
 import org.praisenter.ui.translations.Translations;
 import org.praisenter.ui.undo.UndoManager;
@@ -94,9 +98,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Screen;
 
-// TODO font paint selection control
-// TODO border selection control
-// TODO padding selection control
 // TODO animation control
 public final class SlideSelectionEditor extends VBox implements DocumentSelectionEditor<Slide> {
 	private static final Logger LOGGER = LogManager.getLogger();
@@ -168,6 +169,7 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 	private final BooleanBinding componentSelected;
 	private final BooleanBinding mediaComponentSelected;
 	private final BooleanBinding textComponentSelected;
+	private final BooleanBinding basicTextComponentSelected;
 	private final BooleanBinding placeholderComponentSelected;
 	private final BooleanBinding dateTimeComponentSelected;
 	private final BooleanBinding countdownComponentSelected;
@@ -250,6 +252,10 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 		this.componentSelected = this.selectedComponent.isNotNull();
 		this.mediaComponentSelected = this.selectedMediaComponent.isNotNull();
 		this.textComponentSelected = this.selectedTextComponent.isNotNull();
+		this.basicTextComponentSelected = Bindings.createBooleanBinding(() -> {
+			SlideComponent selected = this.selectedComponent.get();
+			return selected != null && selected.getClass() == TextComponent.class;
+		} , this.selectedComponent);
 		this.placeholderComponentSelected = this.selectedTextPlaceholderComponent.isNotNull();
 		this.dateTimeComponentSelected = this.selectedDateTimeComponent.isNotNull();
 		this.countdownComponentSelected = this.selectedCountdownComponent.isNotNull();
@@ -437,7 +443,7 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 		TextField txtName = new TextField();
 		txtName.textProperty().bindBidirectional(this.name);
 		
-		Label lblTargetSize = new Label("slide.target");
+		Label lblTargetSize = new Label(Translations.get("slide.target"));
 		ComboBox<Option<Resolution>> cmbTargetSize = new ComboBox<>(this.resolutions);
 		
 		Spinner<Integer> spnWidth = new Spinner<>();
@@ -527,8 +533,13 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 			}
 		});
 		
-		PaintPicker pkrBackground = new PaintPicker(context, true, true, true, true, true);
+		Label lblBackground = new Label(Translations.get("slide.background"));
+		SlidePaintPicker pkrBackground = new SlidePaintPicker(context, true, true, true, true, true);
 		pkrBackground.valueProperty().bindBidirectional(this.background);
+		
+		Label lblBorder = new Label(Translations.get("slide.border"));
+		SlideStrokePicker pkrBorder = new SlideStrokePicker(SlideStrokeType.INSIDE);
+		pkrBorder.valueProperty().bindBidirectional(this.border);
 		
 		Button btnInsertText = new Button("t");
 		Button btnInsertPlaceholder = new Button("p");
@@ -686,8 +697,12 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 		});
 		
 		Label lblComponentBackground = new Label(Translations.get("slide.background"));
-		PaintPicker pkrComponentBackground = new PaintPicker(context, true, true, true, true, true);
+		SlidePaintPicker pkrComponentBackground = new SlidePaintPicker(context, true, true, true, true, true);
 		pkrComponentBackground.valueProperty().bindBidirectional(this.componentBackground);
+		
+		Label lblComponentBorder = new Label(Translations.get("slide.border"));
+		SlideStrokePicker pkrComponentBorder = new SlideStrokePicker(SlideStrokeType.CENTERED);
+		pkrComponentBorder.valueProperty().bindBidirectional(this.componentBorder);
 		
 		Label lblComponentOpacity = new Label(Translations.get("slide.opacity"));
 		Slider sldComponentOpacity = new Slider(0, 1, 1);
@@ -703,8 +718,8 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 		
 		// media component
 		
-		Label lblComponentMedia = new Label(Translations.get("slide.media"));
-		MediaPicker pkrComponentMedia = new MediaPicker(context, MediaType.AUDIO, MediaType.VIDEO, MediaType.IMAGE);
+		Label lblComponentMedia = new Label(Translations.get("media"));
+		MediaObjectPicker pkrComponentMedia = new MediaObjectPicker(context, MediaType.AUDIO, MediaType.VIDEO, MediaType.IMAGE);
 		pkrComponentMedia.valueProperty().bindBidirectional(this.componentMedia);
 		
 		// basic text component
@@ -715,8 +730,13 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 		txtComponentText.textProperty().bindBidirectional(this.componentText);
 		
 		Label lblComponentTextPaint = new Label(Translations.get("slide.text.paint"));
-		PaintPicker pkrComponentTextPaint = new PaintPicker(context, false, true, true, false, false);
+		SlidePaintPicker pkrComponentTextPaint = new SlidePaintPicker(context, false, true, true, false, false);
 		pkrComponentTextPaint.valueProperty().bindBidirectional(this.componentTextPaint);
+
+		// NOTE: for performance, the text border HAS to be of type CENTERED
+		Label lblComponentTextBorder = new Label(Translations.get("slide.text.border"));
+		SlideStrokePicker pkrComponentTextBorder = new SlideStrokePicker(SlideStrokeType.CENTERED);
+		pkrComponentTextBorder.valueProperty().bindBidirectional(this.componentTextBorder);
 		
 		Label lblComponentFont = new Label(Translations.get("slide.font"));
 		SlideFontPicker pkrComponentFont = new SlideFontPicker();
@@ -765,6 +785,10 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 		BindingHelper.bindBidirectional(this.componentVerticalTextAlignment, tglVAlignCenter.selectedProperty(), VerticalTextAlignment.CENTER);
 		BindingHelper.bindBidirectional(this.componentVerticalTextAlignment, tglVAlignBottom.selectedProperty(), VerticalTextAlignment.BOTTOM);
 		HBox segComponentVAlignment = new HBox(1, tglVAlignTop, tglVAlignCenter, tglVAlignBottom);
+		
+		Label lblComponentPadding = new Label(Translations.get("slide.text.padding"));
+		SlidePaddingPicker pkrComponentPadding = new SlidePaddingPicker();
+		pkrComponentPadding.valueProperty().bindBidirectional(this.componentPadding);
 		
 		Label lblComponentLineSpacing = new Label(Translations.get("slide.text.linespacing"));
 		Spinner<Double> spnComponentLineSpacing = new Spinner<>(-Double.MAX_VALUE, Double.MAX_VALUE, 1, 0.1);
@@ -839,9 +863,18 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 		countdownFormatOptions.add("mm:ss");
 		countdownFormatOptions.add("ss");
 		ComboBox<String> cmbComponentCountdownFormat = new ComboBox<>(countdownFormatOptions);
-		cmbComponentCountdownFormat.setConverter(new TimeFormatConverter());
 		cmbComponentCountdownFormat.setEditable(true);
-		cmbComponentCountdownFormat.valueProperty().bindBidirectional(this.componentCountdownFormat);
+		BindingHelper.bindBidirectional(cmbComponentCountdownFormat.valueProperty(), this.componentCountdownFormat, new ObjectConverter<String, String>() {
+			final TimeFormatConverter tfc = new TimeFormatConverter();
+			@Override
+			public String convertFrom(String t) {
+				return tfc.fromString(t);
+			}
+			@Override
+			public String convertTo(String e) {
+				return tfc.toString(e);
+			}
+		});
 		
 		CheckBox chkComponentCountdownTimeOnly = new CheckBox(Translations.get("slide.countdown.timeonly"));
 		chkComponentCountdownTimeOnly.selectedProperty().bindBidirectional(this.componentCountdownTimeOnly);
@@ -860,20 +893,29 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 				lblTime, spnTime,
 				lblOpacity, sldOpacity,
 				viewTags,
+				lblBackground,
 				pkrBackground,
+				lblBorder,
+				pkrBorder,
 				new HBox(btnInsertText, btnInsertMedia, btnInsertDateTime, btnInsertCountdown, btnInsertPlaceholder)));
 		
+		VBox layoutText = new VBox(
+				lblComponentText, txtComponentText);
 		VBox layoutTextComponent = new VBox(
-				lblComponentText, txtComponentText,
+				layoutText,
 				lblComponentTextPaint, pkrComponentTextPaint,
+				lblComponentTextBorder, pkrComponentTextBorder,
 				lblComponentFont, pkrComponentFont,
 				lblComponentFontScaleType, cbComponentFontScaleType,
 				lblComponentTextHAlignment, segComponentHAlignment,
 				lblComponentTextVAlignment, segComponentVAlignment,
+				lblComponentPadding, pkrComponentPadding,
 				lblComponentLineSpacing, spnComponentLineSpacing,
 				chkComponentTextWrapping,
 				lblComponentTextShadow, pkrComponentTextShadow,
 				lblComponentTextGlow, pkrComponentTextGlow);
+		layoutText.visibleProperty().bind(this.basicTextComponentSelected);
+		layoutText.managedProperty().bind(layoutText.visibleProperty());
 		layoutTextComponent.visibleProperty().bind(this.textComponentSelected);
 		layoutTextComponent.managedProperty().bind(layoutTextComponent.visibleProperty());
 		
@@ -905,6 +947,7 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 				lblComponentOrder,
 				new HBox(btnComponentMoveBack, btnComponentMoveDown, btnComponentMoveUp, btnComponentMoveFront),
 				lblComponentBackground, pkrComponentBackground,
+				lblComponentBorder, pkrComponentBorder,
 				lblComponentOpacity, sldComponentOpacity,
 				lblComponentShadow, pkrComponentShadow,
 				lblComponentGlow, pkrComponentGlow,

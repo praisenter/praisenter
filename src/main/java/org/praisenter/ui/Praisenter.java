@@ -24,9 +24,18 @@
  */
 package org.praisenter.ui;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
@@ -44,15 +53,20 @@ import org.apache.lucene.store.FSDirectory;
 import org.controlsfx.glyphfont.FontAwesome;
 import org.controlsfx.glyphfont.GlyphFontRegistry;
 import org.praisenter.Constants;
+import org.praisenter.Version;
 import org.praisenter.async.AsyncHelper;
 import org.praisenter.data.DataManager;
 import org.praisenter.data.configuration.Configuration;
 import org.praisenter.data.configuration.ConfigurationPersistAdapter;
+import org.praisenter.data.media.Media;
 import org.praisenter.data.search.SearchIndex;
+import org.praisenter.data.slide.Slide;
 import org.praisenter.ui.controls.Alerts;
 import org.praisenter.ui.fonts.OpenIconic;
+import org.praisenter.ui.slide.JavaFXSlideRenderer;
 import org.praisenter.ui.themes.Theme;
 import org.praisenter.ui.translations.Translations;
+import org.praisenter.utility.ClasspathLoader;
 import org.praisenter.utility.RuntimeProperties;
 
 import javafx.animation.Animation;
@@ -62,6 +76,7 @@ import javafx.animation.SequentialTransition;
 import javafx.application.Application;
 import javafx.application.ConditionalFeature;
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -133,14 +148,24 @@ public final class Praisenter extends Application {
 		System.setProperty("praisenter.logs.dir", Constants.LOGS_ABSOLUTE_PATH);
 		
 		// set the log4j configuration file path
-		// TODO this will need to change so we can write the file on first start up
-		System.setProperty(XmlConfigurationFactory.CONFIGURATION_FILE_PROPERTY, "./log4j2.xml");
+		Path log4jPath = Paths.get(Constants.ROOT_PATH, "log4j2.xml");
+		if (!Files.exists(log4jPath)) {
+			// read the file from 
+			try {
+				ClasspathLoader.copy("/org/praisenter/config/log4j2.xml", log4jPath);
+			} catch (Exception e) {
+				// attempt to write to something
+				e.printStackTrace();
+			}
+		}
+		
+		System.setProperty(XmlConfigurationFactory.CONFIGURATION_FILE_PROPERTY, log4jPath.toAbsolutePath().toString());
 		
 		// create a logger for this class after the log4j has been initialized
 		LOGGER = LogManager.getLogger();
     	
 		// log some system info
-    	LOGGER.info(Constants.NAME + " " + Constants.VERSION);
+    	LOGGER.info(Constants.NAME + " v" + Version.STRING);
     	LOGGER.info("OS:        " + (RuntimeProperties.IS_WINDOWS_OS ? "[Windows] " : RuntimeProperties.IS_MAC_OS ? "[MacOS] " : RuntimeProperties.IS_LINUX_OS ? "[Linux] " : "[Other] ") + RuntimeProperties.OPERATING_SYSTEM + " " + RuntimeProperties.ARCHITECTURE);
     	LOGGER.info("Java:      " + RuntimeProperties.JAVA_VERSION + " " + RuntimeProperties.JAVA_VENDOR);
     	LOGGER.info("JVM Args:  " + RuntimeProperties.JVM_ARGUMENTS);
@@ -203,7 +228,7 @@ public final class Praisenter extends Application {
     	LOGGER.info("Required features present.");
     	
     	// title
-    	stage.setTitle(Constants.NAME + " " + Constants.VERSION);
+    	stage.setTitle(Constants.NAME + " " + Version.STRING);
     	
     	// icons
     	stage.getIcons().add(new Image("org/praisenter/logo/icon16x16alt.png", 16, 16, true, true));
@@ -308,11 +333,22 @@ public final class Praisenter extends Application {
     		});
     		
     		// add bindings
-    		context.configuration.applicationXProperty().bind(stage.xProperty());
-    		context.configuration.applicationYProperty().bind(stage.yProperty());
-    		context.configuration.applicationWidthProperty().bind(stage.widthProperty());
-    		context.configuration.applicationHeightProperty().bind(stage.heightProperty());
     		context.configuration.applicationMaximizedProperty().bind(stage.maximizedProperty());
+    		
+    		// only bind the x, y, width, height when the window is not maximized
+    		stage.maximizedProperty().addListener((obs, ov, nv) -> {
+    			if (nv) {
+    				context.configuration.applicationXProperty().unbind();
+            		context.configuration.applicationYProperty().unbind();
+            		context.configuration.applicationWidthProperty().unbind();
+            		context.configuration.applicationHeightProperty().unbind();
+    			} else {
+    				context.configuration.applicationXProperty().bind(stage.xProperty());
+            		context.configuration.applicationYProperty().bind(stage.yProperty());
+            		context.configuration.applicationWidthProperty().bind(stage.widthProperty());
+            		context.configuration.applicationHeightProperty().bind(stage.heightProperty());
+    			}
+    		});
     		
     		// when debug mode changes, update the log level
     		context.configuration.debugModeEnabledProperty().addListener((obs, ov, nv) -> {
@@ -339,12 +375,7 @@ public final class Praisenter extends Application {
     		LOGGER.info("Starting load");
     		loadingPane.start().thenRun(() -> {
     			Platform.runLater(() -> {
-    				// TODO fix missing slide thumbnails?
     				// TODO setup display manager
-//    				// generate any missing slide thumbnails
-//    				LOGGER.info("Generating missing slide thumbnails.");
-//    				context.getSlideLibrary().generateMissingThumbnails();
-//    				
 //    				// setup the screen manager
 //    				LOGGER.info("Initializing the screen manager.");
 //    				context.getDisplayManager().initialize(context.getJavaFXContext().getStage().getScene());
@@ -375,8 +406,6 @@ public final class Praisenter extends Application {
 //    					context.configuration.applicationHeightProperty()));
     	    		
     	    		PraisenterPane main = new PraisenterPane(context);
-    	    		
-    	    		// TODO replace with main UI
     	    		layout.getChildren().add(0, main);
     	    		
     				// fade out the loader
@@ -480,7 +509,6 @@ public final class Praisenter extends Application {
         return false;
     }
     
-    // TODO handle still running tasks
 //    private void waitForIncompleteTasks(Stage stage) {
 //    	LOGGER.info("Checking for background threads that have not completed yet.");
 //		// this stuff could be null if we blow up before its created

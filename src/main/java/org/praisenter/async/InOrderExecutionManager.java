@@ -13,16 +13,16 @@ public final class InOrderExecutionManager {
 	}
 	
 	public synchronized CompletableFuture<Void> execute(Function<Object, CompletableFuture<Void>> operation) {
-		System.out.println("Setting next operation");
+		//System.out.println("Setting next operation");
 		final Function<Object, CompletableFuture<Void>> nextOperation = this.nextOperation;
 		this.nextOperation = operation;
 		if (nextOperation == null) {
-			System.out.println("Updating the future to include a run of the next operation");
+			//System.out.println("Updating the future to include a run of the next operation");
 			this.lastOperation = this.lastOperation.thenComposeAsync((o) -> {
-				System.out.println("Next operation is about to be called, so clearing it");
+				//System.out.println("Next operation is about to be called, so clearing it");
 				final Function<Object, CompletableFuture<Void>> toExecute = this.nextOperation;
 				this.nextOperation = null;
-				System.out.println("Running the next operation");
+				//System.out.println("Running the next operation");
 				return toExecute.apply(o);
 			});
 		}

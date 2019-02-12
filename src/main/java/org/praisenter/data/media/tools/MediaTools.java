@@ -36,6 +36,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.imageio.ImageIO;
 
@@ -179,11 +181,36 @@ public final class MediaTools {
 	 * @throws InterruptedException if the process is interrupted while waiting for it to complete
 	 * @throws MediaToolExecutionException if the tools fails to perform its action
 	 */
-	public void ffmpegTranscode(String template, Path source, Path target) throws IOException, InterruptedException {
+	public void ffmpegTranscode(TranscodeSettings settings, Path source, Path target) throws IOException, InterruptedException {
 		Map<String, String> parameters = new HashMap<String, String>();
 		parameters.put("{ffmpeg}", this.ffmpeg.toAbsolutePath().toString());
 		parameters.put("{source}", source.toAbsolutePath().toString());
 		parameters.put("{target}", target.toAbsolutePath().toString());
+		
+		String template = settings.getCommandTemplate();
+		
+		// does the command template have volumeadjust token?
+		if (template.contains("{volumeadjust}")) {
+			// is volume adjustment enabled?
+			if (settings.isAdjustVolumeEnabled()) {
+				// get the volume offset
+				int adjustment = this.ffmpegGetNormalizedDecibelOffset(source, settings.getTargetMeanVolume());
+				if (adjustment != 0) {
+					// it's non-zero, so we need to adjust
+					// the adjustment needs to be two parameters so replace the single token with two tokens
+					template = template.replaceAll("\\{volumeadjust\\}", "{audiofilter} {volumeoffset}");
+					// then set the two token's values
+					parameters.put("{audiofilter}", "-af");
+					parameters.put("{volumeoffset}", "\"volume=" + adjustment + "dB\"");
+				} else {
+					// it's zero, so no adjustment needed, clear the token
+					parameters.put("{volumeadjust}", "");
+				}
+			} else {
+				// not enabled, so clear this token
+				parameters.put("{volumeadjust}", "");
+			}
+		}
 		
 		synchronized (this.getFFmpegLock()) {
 			CommandLine.execute(this.parseCommand(template, parameters));
@@ -254,6 +281,71 @@ public final class MediaTools {
 			     });
 			}
 		}
+	}
+	
+	/**
+	 * Uses the FFmpeg tool to detect the mean volume and returns a volume adjustment in dB.
+	 * <p>
+	 * Java FX had problems with volume control with audio/video with a mean_volume in the range of -20dB. Adjusting
+	 * the volume to something like -40dB allowed volume control to work properly.
+	 * @param media the media file
+	 * @param targetMeanVolume the target mean volume
+	 * @return int
+	 * @throws IOException if an IO error occurs
+	 * @throws InterruptedException if the process is interrupted while waiting for it to complete
+	 * @throws MediaToolExecutionException if the tools fails to perform its action
+	 */
+	public int ffmpegGetNormalizedDecibelOffset(Path media, final double targetMeanVolume) throws IOException, InterruptedException {
+		Map<String, String> parameters = new HashMap<String, String>();
+		parameters.put("{ffmpeg}", this.ffmpeg.toAbsolutePath().toString());
+		parameters.put("{media}", media.toAbsolutePath().toString());
+		parameters.put("{null}", RuntimeProperties.IS_WINDOWS_OS ? "NUL" : "/dev/null");
+		
+		synchronized (this.getFFmpegLock()) {
+			// run the command
+			String output = CommandLine.execute(this.parseCommand("{ffmpeg} -i {media} -af \"volumedetect\" -vn -sn -dn -f null {null}", parameters));
+			
+			// somewhere around -40 dB is the target for the mean volume
+			// the max_volume doesn't seem to matter as much
+			Matcher matcher = null;
+
+			// for now, I'm not worring about the max_volume
+//			double maxVolume = targetMeanVolume;
+//			Matcher matcher = Pattern.compile("(max_volume:.+dB)").matcher(output);
+//			if (matcher.find() && matcher.groupCount() >= 1) {
+//				String maxVolumeOutput = matcher.group(1);
+//				String[] parts = maxVolumeOutput.split("\\s+");
+//				if (parts.length >= 3) {
+//					try {
+//						maxVolume = Double.parseDouble(parts[1].trim());
+//					} catch (NumberFormatException ex) {
+//						LOGGER.warn("Failed to parse max_volume: '" + parts[1].trim() + "'");
+//					}
+//				}
+//			}
+			
+			double meanVolume = targetMeanVolume;
+			matcher = Pattern.compile("(mean_volume:.+dB)").matcher(output);
+			if (matcher.find() && matcher.groupCount() >= 1) {
+				String maxVolumeOutput = matcher.group(1);
+				String[] parts = maxVolumeOutput.split("\\s+");
+				if (parts.length >= 3) {
+					try {
+						meanVolume = Double.parseDouble(parts[1].trim());
+					} catch (NumberFormatException ex) {
+						LOGGER.warn("Failed to parse mean_volume: '" + parts[1].trim() + "'");
+					}
+				}
+			}
+			
+			int meanTarget = (int)Math.ceil(targetMeanVolume);
+			int meanNorm = (int)Math.ceil(meanVolume);
+			if (meanNorm > targetMeanVolume) {
+				return meanTarget - meanNorm;
+			}
+		}
+		
+		return 0;
 	}
 	
 	/**

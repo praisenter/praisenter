@@ -13,6 +13,7 @@ import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.praisenter.Constants;
 import org.praisenter.Editable;
+import org.praisenter.Version;
 import org.praisenter.Watchable;
 import org.praisenter.data.Copyable;
 import org.praisenter.data.Identifiable;
@@ -62,7 +63,7 @@ public final class SlideShow implements ReadOnlySlideShow, Indexable, Persistabl
 	
 	public SlideShow() {
 		this.format = new SimpleStringProperty(Constants.FORMAT_NAME);
-		this.version = new SimpleStringProperty(Constants.VERSION);
+		this.version = new SimpleStringProperty(Version.STRING);
 		this.id = new SimpleObjectProperty<UUID>(UUID.randomUUID());
 		this.name = new SimpleStringProperty();
 		this.createdDate = new SimpleObjectProperty<>(Instant.now());
