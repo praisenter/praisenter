@@ -87,7 +87,6 @@ public final class CountdownComponent extends TextComponent implements ReadOnlyC
 				if (target.isBefore(LocalDateTime.now())) {
 					target = target.plusDays(1);
 				}
-				return formatCountdown(format, target);
 			}
 			return formatCountdown(format, target);
 		}, this.countdownTarget, this.countdownFormat, this.countdownTimeOnly));

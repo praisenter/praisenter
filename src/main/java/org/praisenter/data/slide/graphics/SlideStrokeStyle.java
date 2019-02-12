@@ -33,6 +33,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 
+// FEATURE (L-L) add a miter limit (right now we just use the width)
+// FEATURE (L-L) add a stroke dash offset (this may only be needed if we support multiple borders)
+
 /**
  * Represents the style of a stroke.
  * @author William Bittle

@@ -3,9 +3,14 @@ package org.praisenter.ui.undo;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import javafx.beans.property.Property;
 
 class PropertyEdit<T> implements Edit {
+	private static final Logger LOGGER = LogManager.getLogger();
+	
 	private final Instant timestamp;
 	private final String name;
 	private final Property<T> property;
@@ -36,11 +41,19 @@ class PropertyEdit<T> implements Edit {
 	
 	@Override
 	public void undo() {
+		if (this.property.isBound()) {
+			LOGGER.warn("The property '" + this.name + "' is bound, so it cannot be set.");
+			return;
+		}
 		this.property.setValue(this.oldValue);
 	}
 	
 	@Override
 	public void redo() {
+		if (this.property.isBound()) {
+			LOGGER.warn("The property '" + this.name + "' is bound, so it cannot be set.");
+			return;
+		}
 		this.property.setValue(this.newValue);
 	}
 	

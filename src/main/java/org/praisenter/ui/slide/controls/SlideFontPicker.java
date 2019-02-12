@@ -96,6 +96,7 @@ public final class SlideFontPicker extends VBox {
 		
 		ComboBox<String> cmbFamily = new ComboBox<>(this.families);
 		cmbFamily.setMinWidth(0);
+		cmbFamily.setPrefWidth(250);
 		cmbFamily.valueProperty().bindBidirectional(this.family);
 		
 		ToggleButton tglBold = new ToggleButton("b");

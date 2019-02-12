@@ -183,17 +183,17 @@ public final class Glyphs {
 	
 	// media player
 	
-//	/** Media player play icon */
-//	public static final Glyph PLAYER_PLAY = FONT_AWESOME.create(FontAwesome.Glyph.PLAY);
-//	
-//	/** Media player pause icon */
-//	public static final Glyph PLAYER_PAUSE = FONT_AWESOME.create(FontAwesome.Glyph.PAUSE);
-//	
-//	/** Media player volume mute icon */
-//	public static final Glyph PLAYER_VOLUME_MUTE = FONT_AWESOME.create(FontAwesome.Glyph.VOLUME_OFF);
-//	
-//	/** Media player volume non-muted icon */
-//	public static final Glyph PLAYER_VOLUME_CONTROL = FONT_AWESOME.create(FontAwesome.Glyph.VOLUME_UP);
+	/** Media player play icon */
+	public static final Glyph PLAYER_PLAY = FONT_AWESOME.create(FontAwesome.Glyph.PLAY);
+	
+	/** Media player pause icon */
+	public static final Glyph PLAYER_PAUSE = FONT_AWESOME.create(FontAwesome.Glyph.PAUSE);
+	
+	/** Media player volume mute icon */
+	public static final Glyph PLAYER_VOLUME_MUTE = FONT_AWESOME.create(FontAwesome.Glyph.VOLUME_OFF);
+	
+	/** Media player volume non-muted icon */
+	public static final Glyph PLAYER_VOLUME_CONTROL = FONT_AWESOME.create(FontAwesome.Glyph.VOLUME_UP);
 	
 	// slide editing
 	

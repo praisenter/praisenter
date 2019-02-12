@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import org.apache.lucene.document.Document;
 import org.praisenter.Constants;
+import org.praisenter.Version;
 import org.praisenter.data.Copyable;
 import org.praisenter.data.Identifiable;
 import org.praisenter.data.Persistable;
@@ -60,11 +61,13 @@ public final class Configuration implements ReadOnlyConfiguration, MediaConfigur
 	private final IntegerProperty thumbnailHeight;
 	private final BooleanProperty audioTranscodingEnabled;
 	private final BooleanProperty videoTranscodingEnabled;
+	private final BooleanProperty volumeAdjustmentEnabled;
 	private final StringProperty audioTranscodeExtension;
 	private final StringProperty videoTranscodeExtension;
 	private final StringProperty audioTranscodeCommand;
 	private final StringProperty videoTranscodeCommand;
 	private final StringProperty videoFrameExtractCommand;
+	private final DoubleProperty targetMeanVolume;
 	
 	private final BooleanProperty waitForTransitionsToCompleteEnabled;
 	
@@ -84,7 +87,7 @@ public final class Configuration implements ReadOnlyConfiguration, MediaConfigur
 	
 	public Configuration() {
 		this.format = new SimpleStringProperty(Constants.FORMAT_NAME);
-		this.version = new SimpleStringProperty(Constants.VERSION);
+		this.version = new SimpleStringProperty(Version.STRING);
 		this.id = new SimpleObjectProperty<UUID>(UUID.randomUUID());
 		this.name = new SimpleStringProperty("Application Configuration");
 		this.createdDate = new SimpleObjectProperty<Instant>(Instant.now());
@@ -99,11 +102,13 @@ public final class Configuration implements ReadOnlyConfiguration, MediaConfigur
 		this.thumbnailHeight = new SimpleIntegerProperty(Constants.THUMBNAIL_SIZE);
 		this.audioTranscodingEnabled = new SimpleBooleanProperty(true);
 		this.videoTranscodingEnabled = new SimpleBooleanProperty(true);
+		this.volumeAdjustmentEnabled = new SimpleBooleanProperty(true);
 		this.audioTranscodeExtension = new SimpleStringProperty(MediaConfiguration.DEFAULT_AUDIO_EXTENSION);
 		this.videoTranscodeExtension = new SimpleStringProperty(MediaConfiguration.DEFAULT_VIDEO_EXTENSION);
 		this.audioTranscodeCommand = new SimpleStringProperty(MediaConfiguration.DEFAULT_TRANSCODE_COMMAND);
 		this.videoTranscodeCommand = new SimpleStringProperty(MediaConfiguration.DEFAULT_TRANSCODE_COMMAND);
 		this.videoFrameExtractCommand = new SimpleStringProperty(MediaConfiguration.DEFAULT_VIDEO_FRAME_EXTRACT_COMMAND);
+		this.targetMeanVolume = new SimpleDoubleProperty(MediaConfiguration.DEFAULT_TARGET_MEAN_VOLUME);
 		
 		this.waitForTransitionsToCompleteEnabled = new SimpleBooleanProperty(true);
 		
@@ -169,9 +174,11 @@ public final class Configuration implements ReadOnlyConfiguration, MediaConfigur
 		config.videoTranscodingEnabled.set(this.videoTranscodingEnabled.get());
 		config.audioTranscodeExtension.set(this.audioTranscodeExtension.get());
 		config.videoTranscodeExtension.set(this.videoTranscodeExtension.get());
+		config.volumeAdjustmentEnabled.set(this.volumeAdjustmentEnabled.get());
 		config.audioTranscodeCommand.set(this.audioTranscodeCommand.get());
 		config.videoTranscodeCommand.set(this.videoTranscodeCommand.get());
 		config.videoFrameExtractCommand.set(this.videoFrameExtractCommand.get());
+		config.targetMeanVolume.set(this.targetMeanVolume.get());
 		
 		config.waitForTransitionsToCompleteEnabled.set(this.waitForTransitionsToCompleteEnabled.get());
 		
@@ -431,6 +438,22 @@ public final class Configuration implements ReadOnlyConfiguration, MediaConfigur
 	
 	@Override
 	@JsonProperty
+	public boolean isVolumeAdjustmentEnabled() {
+		return this.volumeAdjustmentEnabled.get();
+	}
+	
+	@JsonProperty
+	public void setVolumeAdjustmentEnabled(boolean enabled) {
+		this.volumeAdjustmentEnabled.set(enabled);
+	}
+	
+	@Override
+	public BooleanProperty volumeAdjustmentEnabledProperty() {
+		return this.volumeAdjustmentEnabled;
+	}
+	
+	@Override
+	@JsonProperty
 	public String getAudioTranscodeExtension() {
 		return this.audioTranscodeExtension.get();
 	}
@@ -507,6 +530,22 @@ public final class Configuration implements ReadOnlyConfiguration, MediaConfigur
 	@Override
 	public StringProperty videoFrameExtractCommandProperty() {
 		return this.videoFrameExtractCommand;
+	}
+	
+	@Override
+	@JsonProperty
+	public double getTargetMeanVolume() {
+		return this.targetMeanVolume.get();
+	}
+	
+	@JsonProperty
+	public void setTargetMeanVolume(double x) {
+		this.targetMeanVolume.set(x);
+	}
+	
+	@Override
+	public DoubleProperty targetMeanVolumeProperty() {
+		return this.targetMeanVolume;
 	}
 	
 	@Override

@@ -39,8 +39,10 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.data.media.tools.MediaTools;
+import org.praisenter.data.media.tools.TranscodeSettings;
 import org.praisenter.data.media.MediaImportException;
 import org.praisenter.utility.ImageManipulator;
+import org.praisenter.utility.StringManipulator;
 
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.metadata.Metadata;
@@ -175,6 +177,22 @@ abstract class AbstractMediaLoader implements MediaLoader {
 	}
 
 	/**
+	 * Verifies if the transcoding command for the given media type is valid.
+	 * <p>
+	 * For now this only checks if its non-null and non-empty
+	 * @param type the media type
+	 * @return boolean
+	 */
+	protected final boolean isValidTranscodeCommand(MediaType type) {
+		// split the command by whitespace
+		String command = (type == MediaType.VIDEO 
+				 ? this.configuration.getVideoTranscodeCommand()
+				 : this.configuration.getAudioTranscodeCommand());
+		
+		return !StringManipulator.isNullOrEmpty(command);
+	}
+	
+	/**
 	 * Transcodes the given source file from its current format to a supported format using FFmpeg CLI.
 	 * <p>
 	 * This method blocks until transcoding is complete.
@@ -188,9 +206,14 @@ abstract class AbstractMediaLoader implements MediaLoader {
 		String command = (type == MediaType.VIDEO 
 				 ? this.configuration.getVideoTranscodeCommand()
 				 : this.configuration.getAudioTranscodeCommand());
-		
+
 		try {
-			this.tools.ffmpegTranscode(command, source, target);
+			TranscodeSettings settings = new TranscodeSettings();
+			// we can assume at this point that command is non-null and non-empty
+			settings.setCommandTemplate(command);
+			settings.setAdjustVolumeEnabled(this.configuration.isVolumeAdjustmentEnabled());
+			settings.setTargetMeanVolume(this.configuration.getTargetMeanVolume());
+			this.tools.ffmpegTranscode(settings, source, target);
 		} catch (IOException ex) {
 			throw new MediaImportException("Failed to transcode media '" + source.toAbsolutePath().toString() + "'.", ex);
 		} catch (InterruptedException ex) {

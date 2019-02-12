@@ -23,6 +23,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.LockMap;
 import org.praisenter.data.DataImportResult;
+import org.praisenter.data.DeleteFilesShutdownHook;
 import org.praisenter.data.KnownFormat;
 import org.praisenter.data.PersistAdapter;
 import org.praisenter.data.json.JsonIO;
@@ -114,11 +115,26 @@ public final class MediaPersistAdapter implements PersistAdapter<Media> {
 		synchronized (this.exportLock) {
 			Path path = this.pathResolver.getPath(item);
 			synchronized (this.locks.get(item.getId())) {
+				// delete the item data first - this ensures that it doesn't show
+				// up in the UI any more
 				Files.deleteIfExists(path);
-				Files.deleteIfExists(this.pathResolver.getMediaPath(item));
-				Files.deleteIfExists(this.pathResolver.getImagePath(item));
-				Files.deleteIfExists(this.pathResolver.getThumbPath(item));
+				
+				// now, it's possible that media could be playing at the time this code
+				// executes, so the best thing we can do is to try to delete when the
+				// app shutsdown - deleting this stuff is really only for clean up anyway
+				this.deleteWithShutdownFallback(this.pathResolver.getMediaPath(item));
+				this.deleteWithShutdownFallback(this.pathResolver.getImagePath(item));
+				this.deleteWithShutdownFallback(this.pathResolver.getThumbPath(item));
 			}
+		}
+	}
+	
+	private void deleteWithShutdownFallback(Path path) {
+		try {
+			Files.deleteIfExists(path);
+		} catch (Exception ex) {
+			LOGGER.warn("Failed to delete path '" + path.toAbsolutePath().toString() + "' due to: " + ex.getMessage() + ". Will try again at shutdown.");
+			DeleteFilesShutdownHook.deleteOnShutdown(path);
 		}
 	}
 	

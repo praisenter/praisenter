@@ -34,8 +34,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.StageStyle;
 
-public final class MediaPicker extends VBox {
-	
+public final class MediaObjectPicker extends VBox {
 	private final ObjectProperty<MediaObject> value;
 	
 	private final ObjectProperty<Media> media;
@@ -44,7 +43,7 @@ public final class MediaPicker extends VBox {
 	private final ObjectProperty<ScaleType> scaleType;
 	private final ObjectProperty<SlideColorAdjust> colorAdjust;
 	
-	public MediaPicker(
+	public MediaObjectPicker(
 			GlobalContext context,
 			MediaType... allowedTypes) {
 		this.value = new SimpleObjectProperty<>();
@@ -65,7 +64,7 @@ public final class MediaPicker extends VBox {
 		Bindings.bindContent(lstMedia.getItems(), filtered); 
 		
 		Dialog<Media> dlgMedia = new Dialog<>();
-		dlgMedia.setTitle(Translations.get("slide.media"));
+		dlgMedia.setTitle(Translations.get("media"));
 		dlgMedia.getDialogPane().setContent(lstMedia);
 		dlgMedia.setResultConverter((button) -> {
 			List<?> selected = lstMedia.getSelectedItems();
@@ -97,7 +96,7 @@ public final class MediaPicker extends VBox {
 		scaleTypes.add(new Option<>(Translations.get("slide.media.scale." + ScaleType.NONUNIFORM), ScaleType.NONUNIFORM));
 		ChoiceBox<Option<ScaleType>> cbScaleType = new ChoiceBox<>(scaleTypes);
 		
-		ColorAdjustPicker pkrColorAdjust = new ColorAdjustPicker();
+		SlideColorAdjustPicker pkrColorAdjust = new SlideColorAdjustPicker();
 		pkrColorAdjust.valueProperty().bindBidirectional(this.colorAdjust);
 		
 		HBox loopMute = new HBox(chkLoop, chkMute);
@@ -120,7 +119,7 @@ public final class MediaPicker extends VBox {
 		BindingHelper.bindBidirectional(this.scaleType, this.value, new ObjectConverter<ScaleType, MediaObject>() {
 			@Override
 			public MediaObject convertFrom(ScaleType t) {
-				return MediaPicker.this.getControlValues();
+				return MediaObjectPicker.this.getControlValues();
 			}
 			@Override
 			public ScaleType convertTo(MediaObject e) {
@@ -132,7 +131,7 @@ public final class MediaPicker extends VBox {
 		BindingHelper.bindBidirectional(this.loopEnabled, this.value, new ObjectConverter<Boolean, MediaObject>() {
 			@Override
 			public MediaObject convertFrom(Boolean t) {
-				return MediaPicker.this.getControlValues();
+				return MediaObjectPicker.this.getControlValues();
 			}
 			@Override
 			public Boolean convertTo(MediaObject e) {
@@ -144,7 +143,7 @@ public final class MediaPicker extends VBox {
 		BindingHelper.bindBidirectional(this.mute, this.value, new ObjectConverter<Boolean, MediaObject>() {
 			@Override
 			public MediaObject convertFrom(Boolean t) {
-				return MediaPicker.this.getControlValues();
+				return MediaObjectPicker.this.getControlValues();
 			}
 			@Override
 			public Boolean convertTo(MediaObject e) {
@@ -156,7 +155,7 @@ public final class MediaPicker extends VBox {
 		BindingHelper.bindBidirectional(this.media, this.value, new ObjectConverter<Media, MediaObject>() {
 			@Override
 			public MediaObject convertFrom(Media t) {
-				return MediaPicker.this.getControlValues();
+				return MediaObjectPicker.this.getControlValues();
 			}
 			@Override
 			public Media convertTo(MediaObject e) {
@@ -169,7 +168,7 @@ public final class MediaPicker extends VBox {
 		BindingHelper.bindBidirectional(this.colorAdjust, this.value, new ObjectConverter<SlideColorAdjust, MediaObject>() {
 			@Override
 			public MediaObject convertFrom(SlideColorAdjust t) {
-				return MediaPicker.this.getControlValues();
+				return MediaObjectPicker.this.getControlValues();
 			}
 			@Override
 			public SlideColorAdjust convertTo(MediaObject e) {

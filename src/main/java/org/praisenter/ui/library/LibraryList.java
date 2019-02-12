@@ -14,6 +14,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.zip.ZipOutputStream;
 
@@ -34,6 +35,7 @@ import org.praisenter.ui.Option;
 import org.praisenter.ui.controls.Alerts;
 import org.praisenter.ui.controls.FlowListCell;
 import org.praisenter.ui.controls.FlowListView;
+import org.praisenter.ui.document.DocumentContext;
 import org.praisenter.ui.events.ActionStateChangedEvent;
 import org.praisenter.ui.events.FlowListViewSelectionEvent;
 import org.praisenter.ui.translations.Translations;
@@ -61,6 +63,7 @@ import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
@@ -283,6 +286,9 @@ public final class LibraryList extends BorderPane implements ActionPane {
         top.setPrefWrapLength(0);
         
         top.getChildren().addAll(pFilter, pSort);
+        
+        LibraryItemDetails details = new LibraryItemDetails(context);
+        details.itemProperty().bind(this.view.getSelectionModel().selectedItemProperty());
 		
 		ContextMenu menu = new ContextMenu();
 		menu.getItems().addAll(
@@ -302,6 +308,7 @@ public final class LibraryList extends BorderPane implements ActionPane {
 		
 		this.setTop(top);
 		this.setCenter(this.view);
+		this.setRight(details);
 	}
 
 	private MenuItem createMenuItem(Action action) {
@@ -396,7 +403,29 @@ public final class LibraryList extends BorderPane implements ActionPane {
 	}
 	
 	private CompletableFuture<Void> delete() {
-		List<Persistable> items = new ArrayList<>(this.view.getSelectionModel().getSelectedItems());
+		// take a snapshot of the selected items
+		final List<Persistable> items = new ArrayList<>(this.view.getSelectionModel().getSelectedItems());
+		
+		// clear the selection to free up any MediaPlayers that need to be disposed
+		this.view.getSelectionModel().clear();
+		
+		// execute later on the Java FX thread to give the MediaPlayers time to be disposed properly
+		CompletableFuture<Void> future = new CompletableFuture<Void>();
+		Platform.runLater(() -> {
+			// then attempt to delete the files
+			// NOTE: the MediaAdapter should gracefully handle a media file still being open at this time
+			this.confirmDelete(items).thenRun(() -> {
+				future.complete(null);
+			}).exceptionally((t) -> {
+				future.completeExceptionally(t);
+				return null;
+			});
+		});
+		
+		return future;
+	}
+	
+	private CompletableFuture<Void> confirmDelete(List<Persistable> items) {
 		int n = items.size();
 		if (n > 0) {
 			Alert alert = Alerts.confirm(
@@ -414,7 +443,10 @@ public final class LibraryList extends BorderPane implements ActionPane {
 				CompletableFuture<?>[] futures = new CompletableFuture<?>[n];
 				int i = 0;
 				for (Persistable item : items) {
-					futures[i++] = this.context.getDataManager().delete(item).exceptionally((t) -> {
+					futures[i++] = this.context.getDataManager().delete(item).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
+						// close the document if its open
+						this.context.closeDocument(item);
+					})).exceptionally((t) -> {
 						LOGGER.error("Failed to delete item '" + item.getName() + "': " + t.getMessage(), t);
 						throw new CompletionException(t);
 					});
@@ -477,7 +509,14 @@ public final class LibraryList extends BorderPane implements ActionPane {
 					task.setMessage(Translations.get("action.rename.task", oldName, newName));
 					
 					this.context.addBackgroundTask(task);
-					return this.context.getDataManager().update(copy).thenRun(() -> {
+					return this.context.getDataManager().update(copy).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
+		    			// is it open as a document?
+		    			DocumentContext<? extends Persistable> document = this.context.getOpenDocument(item);
+		    			if (document != null) {
+		    				// if its open, then set the name of the open document (it should be a copy always)
+		    				document.getDocument().setName(newName);
+		    			}
+					})).thenRun(() -> {
 						task.setProgress(1.0);
 					}).exceptionally((t) -> {
 						if (t instanceof CompletionException) {

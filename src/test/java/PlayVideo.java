@@ -4,6 +4,7 @@
 import java.io.File;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.layout.StackPane;
 import javafx.scene.media.Media;
@@ -24,31 +25,31 @@ public class PlayVideo extends Application {
     public void start(Stage primaryStage) {
         primaryStage.setTitle("It's a video!");
         
-        Media media = new Media(new File("D:\\Personal\\Praisenter\\20051210-w50s.flv").toURI().toString());
-//        Media media = new Media(new File("C:\\Users\\William\\Desktop\\test\\033_JumpBack.avi.mp4").toURI().toString());
+        Media media = new Media(new File("path/to/file").toURI().toString());
         MediaException ex = media.getError();
-        if (ex != null) ex.printStackTrace();
-        System.out.println(media.getDuration());
-        System.out.println(media.getHeight());
-        System.out.println(media.getWidth());
+        if (ex != null) {
+        	ex.printStackTrace();
+        	return;
+        }
+        
         MediaPlayer mp = new MediaPlayer(media);
         ex = mp.getError();
-        if (ex != null) ex.printStackTrace();
+        if (ex != null) {
+        	ex.printStackTrace();
+        	return;
+        }
+        
+        // attempt to set volume
+        Platform.runLater(() -> {
+        	mp.setVolume(0.7);
+        });
+        
         MediaView mv = new MediaView(mp);
-//        mp.setCycleCount(Integer.MAX_VALUE);
         mv.setFitWidth(800);
         mv.setFitHeight(600);
-//        mv.setPreserveRatio(true);
         
-//        Media media2 = new Media(new File("C:\\Users\\William\\Desktop\\test\\trailer_1080p.ogg.mp4").toURI().toString());
-//        MediaPlayer mp2 = new MediaPlayer(media2);
-//        MediaView mv2 = new MediaView(mp2);
-//        mv2.setFitWidth(300);
-//        mv2.setFitHeight(300);
-        
-        Text text = new Text("Hey this is some text on top of a video.");
+        Text text = new Text("Trying to test volume control");
         text.setFill(Color.BLACK);
-        text.setFont(Font.font("Segoe UI Light", 20));
         
         StackPane root = new StackPane();
         
@@ -57,8 +58,10 @@ public class PlayVideo extends Application {
         primaryStage.show();
         
         mp.play();
+        
         ex = mp.getError();
-        if (ex != null) ex.printStackTrace();
-//        mp2.play();
+        if (ex != null) {
+        	ex.printStackTrace();
+        }
     }
 }

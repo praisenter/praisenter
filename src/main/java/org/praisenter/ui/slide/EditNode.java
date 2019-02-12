@@ -42,7 +42,6 @@ import javafx.scene.shape.StrokeType;
 // FEATURE add quick UI for common changes (font alignment, color, etc)
 
 // TODO right click
-// TODO selection
 
 final class EditNode extends StackPane {
 	private static final double THUMB_SIZE = 10;

@@ -62,7 +62,7 @@ final class TextComponentNode extends SlideComponentNode<TextComponent> {
 		
 		this.text.textProperty().bind(Bindings.createStringBinding(() -> {
 			if (this.region instanceof TextPlaceholderComponent && this.mode.get() == SlideMode.EDIT) {
-				return Translations.get("slide.text.placeholder");
+				return Translations.get("slide.placeholder");
 			}
 			return this.region.getText();
 		}, this.region.textProperty(), this.mode));
@@ -103,9 +103,6 @@ final class TextComponentNode extends SlideComponentNode<TextComponent> {
 			return PaintConverter.toJavaFX(ss.getPaint());
 		}, this.region.textBorderProperty()));
 
-		// TODO we don't have miter limit
-		// TODO we don't have stroke dash offset
-		
 		// TODO need a fix for binding the dashes
 		//Bindings.bindContent(text.getStrokeDashArray(), this.region.borderProperty().get().getStyle().dashesProperty());
 		

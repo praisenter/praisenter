@@ -2,6 +2,7 @@ package org.praisenter.ui.slide;
 
 import org.praisenter.data.slide.Slide;
 import org.praisenter.ui.GlobalContext;
+import org.praisenter.ui.Playable;
 import org.praisenter.utility.ClasspathLoader;
 import org.praisenter.utility.Scaling;
 
@@ -19,6 +20,8 @@ import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundImage;
 import javafx.scene.layout.BackgroundRepeat;
 import javafx.scene.layout.Pane;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.Shape;
 import javafx.scene.transform.Scale;
 
 public class SlideView extends Pane implements Playable {
@@ -37,6 +40,9 @@ public class SlideView extends Pane implements Playable {
 	private final DoubleProperty viewScaleX;
 	private final DoubleProperty viewScaleY;
 	
+	private final BooleanProperty clipEnabled;
+	private final Rectangle clip;
+	
 	public SlideView(GlobalContext context) {
 		this.slide = new SimpleObjectProperty<>();
 		this.slideNode = new SimpleObjectProperty<>();
@@ -50,6 +56,8 @@ public class SlideView extends Pane implements Playable {
 		this.viewScale = new SimpleObjectProperty<>(Scaling.getNoScaling(10, 10));
 		this.viewScaleX = new SimpleDoubleProperty(1);
 		this.viewScaleY = new SimpleDoubleProperty(1);
+		
+		this.clipEnabled = new SimpleBooleanProperty(false);
 
 		this.setSnapToPixel(true);
 		
@@ -119,14 +127,6 @@ public class SlideView extends Pane implements Playable {
 		// using the current available space and the slide's 
 		// target resolution
 		
-//		this.slideWidth.addListener((obs, ov, nv) -> {
-//			System.out.println("width updated" + nv);
-//		});
-//		
-//		this.slideHeight.addListener((obs, ov, nv) -> {
-//			System.out.println("height updated" + nv);
-//		});
-		
 		this.viewScale.bind(Bindings.createObjectBinding(() -> {
 			double tw = this.getWidth();
 			double th = this.getHeight();
@@ -168,14 +168,26 @@ public class SlideView extends Pane implements Playable {
 //		sppane.setBorder(new Border(new BorderStroke(Color.DARKTURQUOISE, new BorderStrokeStyle(StrokeType.CENTERED, StrokeLineJoin.MITER, StrokeLineCap.SQUARE, 1.0, 0.0, null), null, new BorderWidths(4.0))));
 
 		viewBackground.backgroundProperty().bind(Bindings.createObjectBinding(() -> {
+			Slide slide = this.slide.get();
 			SlideMode mode = this.mode.get();
-			if (mode != SlideMode.PRESENT && mode != SlideMode.TELEPROMPT) {
+			if (mode != SlideMode.PRESENT && mode != SlideMode.TELEPROMPT && slide != null) {
 				return new Background(new BackgroundImage(TRANSPARENT_PATTERN, BackgroundRepeat.REPEAT, BackgroundRepeat.REPEAT, null, null));
 			}
 			return null;
-		}, this.mode));
+		}, this.mode, this.slide));
 		
-		viewBackground.setClip(null);
+		this.clip = new Rectangle();
+		this.clip.setX(0);
+		this.clip.setY(0);
+		this.clip.widthProperty().bind(viewBackground.widthProperty());
+		this.clip.heightProperty().bind(viewBackground.heightProperty());
+		
+		viewBackground.clipProperty().bind(Bindings.createObjectBinding(() -> {
+			if (this.clipEnabled.get()) {
+				return this.clip;
+			}
+			return null;
+		}, this.clipEnabled));
 
 		Scale s = new Scale();
 		s.xProperty().bind(this.viewScaleX);
@@ -278,5 +290,17 @@ public class SlideView extends Pane implements Playable {
 	
 	public ReadOnlyDoubleProperty viewScaleYProperty() {
 		return this.viewScaleY;
+	}
+	
+	public boolean isClipEnabled() {
+		return this.clipEnabled.get();
+	}
+	
+	public void setClipEnabled(boolean flag) {
+		this.clipEnabled.set(flag);
+	}
+	
+	public BooleanProperty clipEnabledProperty() {
+		return this.clipEnabled;
 	}
 }

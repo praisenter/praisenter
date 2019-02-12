@@ -3,7 +3,6 @@ package org.praisenter.ui.slide.controls;
 import org.praisenter.data.slide.effects.SlideColorAdjust;
 import org.praisenter.ui.bind.BindingHelper;
 import org.praisenter.ui.bind.ObjectConverter;
-import org.praisenter.ui.controls.TextInputFieldEventFilter;
 import org.praisenter.ui.translations.Translations;
 
 import javafx.beans.property.BooleanProperty;
@@ -15,16 +14,13 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
-import javafx.scene.control.Spinner;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.util.StringConverter;
 
 // JAVABUG (L) 08/09/17 [workaround] LabelFormatter doesn't give enough control of the labels https://bugs.openjdk.java.net/browse/JDK-8091345
 // JAVABUG (H) 08/09/17 [workaround] The ticks aren't evenly spaced; setting the LabelFormatter seemed to fix it https://bugs.openjdk.java.net/browse/JDK-8164328
 
-final class ColorAdjustPicker extends VBox {
+public final class SlideColorAdjustPicker extends VBox {
 	private final ObjectProperty<SlideColorAdjust> value = new SimpleObjectProperty<SlideColorAdjust>();
 	
 	private final BooleanProperty enabled;
@@ -38,20 +34,20 @@ final class ColorAdjustPicker extends VBox {
 	private final ObjectProperty<Double> brightnessAsObject;
 	private final ObjectProperty<Double> contrastAsObject;
 	
-	private static final StringConverter<Double> SLIDER_FORMATTER = new StringConverter<Double>() {
-		@Override
-		public String toString(Double object) {
-			if (Math.abs(object) <= 1e-10)
-				return "0.0";
-			return String.format("%2.1f", object);
-		}
-		@Override
-		public Double fromString(String string) {
-			return Double.parseDouble(string);
-		}
-	};
-	
-	public ColorAdjustPicker() {
+//	private static final StringConverter<Double> SLIDER_FORMATTER = new StringConverter<Double>() {
+//		@Override
+//		public String toString(Double object) {
+//			if (Math.abs(object) <= 1e-10)
+//				return "0.0";
+//			return String.format("%2.1f", object);
+//		}
+//		@Override
+//		public Double fromString(String string) {
+//			return Double.parseDouble(string);
+//		}
+//	};
+//	
+	public SlideColorAdjustPicker() {
 		this.enabled = new SimpleBooleanProperty();
 		
 		this.hue = new SimpleDoubleProperty();
@@ -109,23 +105,10 @@ final class ColorAdjustPicker extends VBox {
 //		spnContrast.getValueFactory().valueProperty().bindBidirectional(this.contrastAsObject);
 		sldContrast.valueProperty().bindBidirectional(this.contrast);
 		
-//		this.hue.addListener((obs, ov, nv) -> {
-//			System.out.println("hue " + ov + " -> " + nv);
-//		});
-//		this.saturation.addListener((obs, ov, nv) -> {
-//			System.out.println("sat " + ov + " -> " + nv);
-//		});
-//		this.brightness.addListener((obs, ov, nv) -> {
-//			System.out.println("bri " + ov + " -> " + nv);
-//		});
-//		this.contrast.addListener((obs, ov, nv) -> {
-//			System.out.println("con " + ov + " -> " + nv);
-//		});
-		
 		BindingHelper.bindBidirectional(this.enabled, this.value, new ObjectConverter<Boolean, SlideColorAdjust>() {
 			@Override
 			public SlideColorAdjust convertFrom(Boolean t) {
-				return ColorAdjustPicker.this.getControlValues();
+				return SlideColorAdjustPicker.this.getControlValues();
 			}
 			@Override
 			public Boolean convertTo(SlideColorAdjust e) {
@@ -137,7 +120,7 @@ final class ColorAdjustPicker extends VBox {
 		BindingHelper.bindBidirectional(this.hueAsObject, this.value, new ObjectConverter<Double, SlideColorAdjust>() {
 			@Override
 			public SlideColorAdjust convertFrom(Double t) {
-				return ColorAdjustPicker.this.getControlValues();
+				return SlideColorAdjustPicker.this.getControlValues();
 			}
 			@Override
 			public Double convertTo(SlideColorAdjust e) {
@@ -149,7 +132,7 @@ final class ColorAdjustPicker extends VBox {
 		BindingHelper.bindBidirectional(this.saturationAsObject, this.value, new ObjectConverter<Double, SlideColorAdjust>() {
 			@Override
 			public SlideColorAdjust convertFrom(Double t) {
-				return ColorAdjustPicker.this.getControlValues();
+				return SlideColorAdjustPicker.this.getControlValues();
 			}
 			@Override
 			public Double convertTo(SlideColorAdjust e) {
@@ -161,7 +144,7 @@ final class ColorAdjustPicker extends VBox {
 		BindingHelper.bindBidirectional(this.brightnessAsObject, this.value, new ObjectConverter<Double, SlideColorAdjust>() {
 			@Override
 			public SlideColorAdjust convertFrom(Double t) {
-				return ColorAdjustPicker.this.getControlValues();
+				return SlideColorAdjustPicker.this.getControlValues();
 			}
 			@Override
 			public Double convertTo(SlideColorAdjust e) {
@@ -173,7 +156,7 @@ final class ColorAdjustPicker extends VBox {
 		BindingHelper.bindBidirectional(this.contrastAsObject, this.value, new ObjectConverter<Double, SlideColorAdjust>() {
 			@Override
 			public SlideColorAdjust convertFrom(Double t) {
-				return ColorAdjustPicker.this.getControlValues();
+				return SlideColorAdjustPicker.this.getControlValues();
 			}
 			@Override
 			public Double convertTo(SlideColorAdjust e) {
