@@ -73,6 +73,7 @@ final class CurrentDocumentSelectionEditor extends VBox {
 					
 					Node node = (Node)dse2;
 					node.visibleProperty().bind(dse2.documentContextProperty().isNotNull());
+					node.managedProperty().bind(node.visibleProperty());
 					
 					selectionEditors.add(dse2);
 					selectionEditorMapping.put(dc, dse2);

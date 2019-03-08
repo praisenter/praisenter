@@ -53,6 +53,9 @@ public final class DocumentsPane extends HBox implements ActionPane {
 		this.documentTabs.setTabClosingPolicy(TabClosingPolicy.ALL_TABS);
 		
 		this.documentSelectionEditor = new CurrentDocumentSelectionEditor(context);
+		this.documentSelectionEditor.setMaxWidth(250);
+		this.documentSelectionEditor.setMinWidth(250);
+		this.documentSelectionEditor.setPrefWidth(250);
 		
 		this.currentDocumentEditor = new SimpleObjectProperty<>();
 		this.documentSelectedItems = FXCollections.observableArrayList();

@@ -89,7 +89,7 @@ public final class JavaFXSlideRenderer implements SlideRenderer {
 			// use a Pane to contain the slide's display pane so that we avoid the
 			// issue of positioning based on what the display pane's type is
 			// NOTE: there's also a callback version of the snapshot method
-			LOGGER.debug("Taking snapshow of slide");
+			LOGGER.debug("Taking snapshot of slide");
 			return new Pane(nSlide).snapshot(sp, null);
 		};
 		

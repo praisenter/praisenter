@@ -51,12 +51,14 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ChoiceBox;
@@ -71,9 +73,17 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DataFormat;
+import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.BorderStroke;
+import javafx.scene.layout.BorderStrokeStyle;
+import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.StrokeLineCap;
+import javafx.scene.shape.StrokeLineJoin;
+import javafx.scene.shape.StrokeType;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Modality;
@@ -102,7 +112,7 @@ public final class LibraryList extends BorderPane implements ActionPane {
 	private final ObservableList<Persistable> source;
 	private final FlowListView<Persistable> view;
 	
-	public LibraryList(GlobalContext context) {
+	public LibraryList(GlobalContext context, Orientation orientation) {
 		this.context = context;
 		
 		this.textFilter = new SimpleStringProperty();
@@ -110,7 +120,7 @@ public final class LibraryList extends BorderPane implements ActionPane {
 		this.sortField = new SimpleObjectProperty<>(new Option<LibraryListSortField>(LibraryListSortField.NAME.getName(), LibraryListSortField.NAME));
 		this.sortAscending = new SimpleBooleanProperty(true);
 		
-		this.view = new FlowListView<>(Orientation.HORIZONTAL, (item) -> {
+		this.view = new FlowListView<>(orientation, (item) -> {
 			return new LibraryListCell(item);
 		});
 		
@@ -118,7 +128,7 @@ public final class LibraryList extends BorderPane implements ActionPane {
 		final FilteredList<Persistable> filtered = new FilteredList<Persistable>(this.source, (p) -> true);
 		final SortedList<Persistable> sorted = new SortedList<>(filtered, (a, b) -> 0);
 		
-		final InvalidationListener filterSortListener = (obs) -> {
+		final Runnable filterSortListener = () -> {
 			final String search = this.textFilter.get();
 			final String term = !StringManipulator.isNullOrEmpty(search) ? search.trim().toLowerCase() : null;
 			final Option<LibraryListType> optTypeFilter = this.typeFilter.get();
@@ -179,11 +189,11 @@ public final class LibraryList extends BorderPane implements ActionPane {
 			});
 		};
 		
-		this.textFilter.addListener(filterSortListener);
-		this.typeFilter.addListener(filterSortListener);
-		this.sortField.addListener(filterSortListener);
-		this.sortAscending.addListener(filterSortListener);
-		filterSortListener.invalidated(null);
+		this.textFilter.addListener((obs, ov, nv) -> filterSortListener.run());
+		this.typeFilter.addListener((obs, ov, nv) -> filterSortListener.run());
+		this.sortField.addListener((obs, ov, nv) -> filterSortListener.run());
+		this.sortAscending.addListener((obs, ov, nv) -> filterSortListener.run());
+		filterSortListener.run();
 		
 		Bindings.bindContent(this.view.getItems(), sorted);
 		
@@ -197,7 +207,7 @@ public final class LibraryList extends BorderPane implements ActionPane {
         });
 		
 		ObservableList<Option<LibraryListType>> typeFilters = FXCollections.observableArrayList();
-		InvalidationListener sourceListener = (obs) -> {
+		ListChangeListener<? super Persistable> sourceListener = (ListChangeListener.Change<? extends Persistable> changes) -> {
 			List<Option<LibraryListType>> typeOptions = new ArrayList<>();
 			typeOptions.addAll(this.source.stream()
 					.map(i -> LibraryListType.from(i))
@@ -243,7 +253,8 @@ public final class LibraryList extends BorderPane implements ActionPane {
 			});
 		};
 		this.source.addListener(sourceListener);
-		sourceListener.invalidated(null);
+		sourceListener.onChanged(null);
+		//sourceListener.invalidated(null);
 		
 		// filtering and sorting
 		
@@ -290,6 +301,9 @@ public final class LibraryList extends BorderPane implements ActionPane {
         LibraryItemDetails details = new LibraryItemDetails(context);
         details.itemProperty().bind(this.view.getSelectionModel().selectedItemProperty());
 		
+//        top.setBorder(new Border(new BorderStroke(Color.GREEN, new BorderStrokeStyle(StrokeType.CENTERED, StrokeLineJoin.MITER, StrokeLineCap.SQUARE, 1.0, 0.0, null), null, new BorderWidths(4.0))));
+//        details.setBorder(new Border(new BorderStroke(Color.MAGENTA, new BorderStrokeStyle(StrokeType.CENTERED, StrokeLineJoin.MITER, StrokeLineCap.SQUARE, 1.0, 0.0, null), null, new BorderWidths(4.0))));
+        
 		ContextMenu menu = new ContextMenu();
 		menu.getItems().addAll(
 				this.createMenuItem(Action.SELECT_ALL),
@@ -306,6 +320,8 @@ public final class LibraryList extends BorderPane implements ActionPane {
 			);
 		this.view.setContextMenu(menu);
 		
+//		this.view.setBorder(new Border(new BorderStroke(Color.RED, new BorderStrokeStyle(StrokeType.CENTERED, StrokeLineJoin.MITER, StrokeLineCap.SQUARE, 1.0, 0.0, null), null, new BorderWidths(4.0))));
+		
 		this.setTop(top);
 		this.setCenter(this.view);
 		this.setRight(details);
@@ -319,6 +335,7 @@ public final class LibraryList extends BorderPane implements ActionPane {
 		// NOTE: due to bug in JavaFX, we don't apply the accelerator here
 		//mnu.setAccelerator(value);
 		mnu.setOnAction(e -> this.executeAction(action));
+		mnu.disableProperty().bind(this.context.getActionEnabledProperty(action).not());
 		mnu.setUserData(action);
 		return mnu;
 	}

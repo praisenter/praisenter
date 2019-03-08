@@ -27,12 +27,13 @@ package org.praisenter.ui.controls;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.praisenter.ui.MappedList;
 import org.praisenter.ui.events.FlowListViewSelectionEvent;
 
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
-import javafx.beans.binding.ObjectBinding;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -67,11 +68,13 @@ public final class FlowListSelectionModel<T> {
 	/** The current selection when only one item is selected */
 	private final ObjectProperty<T> selection = new SimpleObjectProperty<T>();
 	
+	/** The mapping for the selected data from the selected cells */
 	private final MappedList<T, FlowListCell<T>> mapping;
 	
 	/** The list of selected items */
 	private final ObservableList<T> selections = FXCollections.observableArrayList();
 	
+	/** The readonly selections */
 	private final ObservableList<T> selectionsReadOnly = FXCollections.unmodifiableObservableList(this.selections);
 	
 	/** True if multi-selection is enabled */
@@ -99,41 +102,36 @@ public final class FlowListSelectionModel<T> {
 		this.view.getLayoutChildren().addListener(new ListChangeListener<Node>() {
 			@Override
 			public void onChanged(ListChangeListener.Change<? extends Node> changes) {
-				// iterate the changes
-				while (changes.next()) {
-                    selected.removeAll(changes.getRemoved());
-		        }
+				// record what was selected before
+				List<T> old = selected.stream().map(n -> ((FlowListCell<T>)n).getData()).collect(Collectors.toList());
+				// now reselect what we can
+				if (old.size() > 0) {
+					// NOTE: we need to do this later so that the change to the source can
+					// be applied
+					Platform.runLater(() -> {
+						selectOnly(old);
+					});
+				}
 			}
  		});
 		
 		// make sure we update the publicly facing selections when the 
 		// internal selections are changed
-//		this.selected.addListener((ListChangeListener.Change<? extends FlowListCell<T>> change) -> {
-//			while (change.next()) {
-//				this.selections.setAll(change.getList().stream().map(c -> c.getData()).collect(Collectors.toList()));
-//			}
-//		});
-		
 		this.mapping = new MappedList<>(this.selected, (item) -> {
 			return item.getData();
 		});
 		
+		// bind the selections to the mapping
 		Bindings.bindContent(this.selections, this.mapping);
 		
 		// make sure the single selection property is updated when the
 		// multi-selection property is changed
-		this.selection.bind(new ObjectBinding<T>() {
-			{
-				bind(selections);
+		this.selection.bind(Bindings.createObjectBinding(() -> {
+			if (this.selections.size() == 1) {
+				return this.selections.get(0);
 			}
-			@Override
-			protected T computeValue() {
-				if (selections.size() == 1) {
-					return selections.get(0);
-				}
-				return null;
-			}
-		});
+			return null;
+		}, this.selections));
 	}
 
 	// PUBLIC INTERFACE
@@ -345,6 +343,9 @@ public final class FlowListSelectionModel<T> {
 	 */
 	@SuppressWarnings("unchecked")
 	void selectCellOnly(FlowListCell<T> cell) {
+		// avoid clear+select by checking if it's already selected first
+		if (this.selected.size() == 1 && this.selected.contains(cell)) return;
+		
 		for (FlowListCell<T> c : this.selected) {
 			c.pseudoClassStateChanged(SELECTED, false);
 		}
@@ -515,8 +516,6 @@ public final class FlowListSelectionModel<T> {
 				// then its a single select
 				if (select) {
 					this.selectCellOnly(cell);
-				} else {
-					this.deselectCell(cell);
 				}
 			}
 		}
@@ -533,6 +532,10 @@ public final class FlowListSelectionModel<T> {
 		return this.selectionsReadOnly;
 	}
 	
+	/**
+	 * Returns the selected item when only one item is selected.
+	 * @return T
+	 */
 	public T getSelectedItem() {
 		return this.selection.get();
 	}
@@ -545,6 +548,10 @@ public final class FlowListSelectionModel<T> {
 		return this.selection;
 	}
 	
+	/**
+	 * Returns true if multiselection is enabled.
+	 * @return boolean
+	 */
 	public boolean isMultiSelect() {
 		return this.multiselect.get();
 	}

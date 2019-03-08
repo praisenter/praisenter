@@ -74,7 +74,7 @@ public final class ImageCache {
 		if (this.images.containsKey(key)) {
 			Image image = this.images.get(key).get();
 			if (image != null) {
-				LOGGER.debug("Image for key: {} found in cache.", key);
+				LOGGER.trace("Image for key: {} found in cache.", key);
 				return image;
 			}
 		}
@@ -84,7 +84,7 @@ public final class ImageCache {
 			LOGGER.debug("Image loaded for key: {}", key);
 			this.images.put(key, new SoftReference<Image>(image));
 		} else {
-			LOGGER.debug("Image was loaded but was null.", key);
+			LOGGER.warn("Image was loaded but was null.", key);
 		}
 		return image;
 	}

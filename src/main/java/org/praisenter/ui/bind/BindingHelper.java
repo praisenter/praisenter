@@ -6,6 +6,7 @@ import java.util.Objects;
 import org.praisenter.Reference;
 import org.praisenter.ui.Option;
 
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;

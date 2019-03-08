@@ -128,6 +128,18 @@ public final class Scaling {
 	 * @return {@link Scaling}
 	 */
 	public static Scaling getUniformScaling(double w, double h, double tw, double th) {
+		return Scaling.getUniformScaling(w, h, tw, th, true, true);
+	}
+	
+	/**
+	 * Returns a uniform {@link Scaling} for the given parameters. 
+	 * @param w the width
+	 * @param h the height
+	 * @param tw the target width
+	 * @param th the target height
+	 * @return {@link Scaling}
+	 */
+	public static Scaling getUniformScaling(double w, double h, double tw, double th, boolean scaleByWidth, boolean scaleByHeight) {
 		double ow = w;
 		double oh = h;
 		
@@ -136,18 +148,30 @@ public final class Scaling {
 		double sh = th / h;
 
 		double factor;
-		// to scale uniformly we need to 
-		// scale by the smallest factor
-		if (sw < sh) {
+		if (scaleByWidth && scaleByHeight) {
+			// to scale uniformly we need to 
+			// scale by the smallest factor
+			if (sw < sh) {
+				w = tw;
+				h = sw * h;
+				factor = sw;
+			} else {
+				w = sh * w;
+				h = th;
+				factor = sh;
+			}
+		} else if (scaleByWidth) {
 			w = tw;
 			h = sw * h;
 			factor = sw;
-		} else {
+		} else if (scaleByHeight) {
 			w = sh * w;
 			h = th;
 			factor = sh;
+		} else {
+			return Scaling.getNoScaling(ow, oh);
 		}
-
+		
 		// center the image
 		double x = (tw - w) / 2.0;
 		double y = (th - h) / 2.0;

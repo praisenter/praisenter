@@ -263,50 +263,63 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 		this.documentContext.addListener((obs, ov, nv) -> {
 			this.slide.unbind();
 			this.selectedItem.unbind();
+			
+			this.slide.set(null);
+			this.selectedItem.set(null);
+			
 			if (nv != null) {
 				this.slide.bind(nv.documentProperty());
 				this.selectedItem.bind(nv.selectedItemProperty());
-			} else {
-				this.slide.set(null);
-				this.selectedItem.set(null);
 			}
 		});
 		
 		this.selectedItem.addListener((obs, ov, nv) -> {
+			// it was realy important to clear the selection first
+			// to make sure everything was unbound before applying a
+			// new value
+			this.selectedComponent.set(null);
 			if (nv != null && nv instanceof EditNode) {
 				EditNode node = (EditNode)nv;
 				this.selectedComponent.set(node.getComponent());
-			} else {
-				this.selectedComponent.set(null);
 			}
 		});
 		
 		this.selectedComponent.addListener((obs, ov, nv) -> {
+			if (ov != null) {
+				this.componentBackground.unbindBidirectional(ov.backgroundProperty());
+				this.componentBorder.unbindBidirectional(ov.borderProperty());
+				this.componentGlow.unbindBidirectional(ov.glowProperty());
+				this.componentOpacity.unbindBidirectional(ov.opacityProperty());
+				this.componentShadow.unbindBidirectional(ov.shadowProperty());
+			}
+			
+			if (nv != null) {
+				this.componentBackground.bindBidirectional(nv.backgroundProperty());
+				this.componentBorder.bindBidirectional(nv.borderProperty());
+				this.componentGlow.bindBidirectional(nv.glowProperty());
+				this.componentOpacity.bindBidirectional(nv.opacityProperty());
+				this.componentShadow.bindBidirectional(nv.shadowProperty());
+			}
+			
+			this.selectedMediaComponent.set(null);
+			this.selectedTextComponent.set(null);
+			this.selectedCountdownComponent.set(null);
+			this.selectedDateTimeComponent.set(null);
+			this.selectedTextPlaceholderComponent.set(null);
+			
 			if (nv != null) {
 				if (nv instanceof TextComponent) {
-					this.selectedMediaComponent.set(null);
 					this.selectedTextComponent.set((TextComponent)nv);
-				} else {
-					this.selectedTextComponent.set(null);
-					this.selectedCountdownComponent.set(null);
-					this.selectedDateTimeComponent.set(null);
-					this.selectedTextPlaceholderComponent.set(null);
 				}
 				
 				if (nv instanceof MediaComponent) {
 					this.selectedMediaComponent.set((MediaComponent)nv);
 				} else if (nv instanceof TextPlaceholderComponent) {
 					this.selectedTextPlaceholderComponent.set((TextPlaceholderComponent)nv);
-					this.selectedCountdownComponent.set(null);
-					this.selectedDateTimeComponent.set(null);
 				} else if (nv instanceof DateTimeComponent) {
 					this.selectedDateTimeComponent.set((DateTimeComponent)nv);
-					this.selectedCountdownComponent.set(null);
-					this.selectedTextPlaceholderComponent.set(null);
 				} else if (nv instanceof CountdownComponent) {
 					this.selectedCountdownComponent.set((CountdownComponent)nv);
-					this.selectedDateTimeComponent.set(null);
-					this.selectedTextPlaceholderComponent.set(null);
 				}
 			}
 		});
@@ -338,23 +351,6 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 				
 				Bindings.bindContentBidirectional(this.tags, nv.getTags());
 				Bindings.bindContentBidirectional(this.animations, nv.getAnimations());
-			}
-		});
-		
-		this.selectedComponent.addListener((obs, ov, nv) -> {
-			if (ov != null) {
-				this.componentBackground.unbindBidirectional(ov.backgroundProperty());
-				this.componentBorder.unbindBidirectional(ov.borderProperty());
-				this.componentGlow.unbindBidirectional(ov.glowProperty());
-				this.componentOpacity.unbindBidirectional(ov.opacityProperty());
-				this.componentShadow.unbindBidirectional(ov.shadowProperty());
-			}
-			if (nv != null) {
-				this.componentBackground.bindBidirectional(nv.backgroundProperty());
-				this.componentBorder.bindBidirectional(nv.borderProperty());
-				this.componentGlow.bindBidirectional(nv.glowProperty());
-				this.componentOpacity.bindBidirectional(nv.opacityProperty());
-				this.componentShadow.bindBidirectional(nv.shadowProperty());
 			}
 		});
 		
@@ -439,7 +435,7 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 		
 		// UI
 		
-		Label lblName = new Label(Translations.get("slide.name"));
+		Label lblName = new Label(Translations.get("item.name"));
 		TextField txtName = new TextField();
 		txtName.textProperty().bindBidirectional(this.name);
 		

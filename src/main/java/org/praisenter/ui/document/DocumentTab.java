@@ -102,8 +102,6 @@ final class DocumentTab extends Tab {
 				return bep;
 			} else if (document.getClass() == Slide.class) {
 				SlideEditor sep = new SlideEditor(this.context, (DocumentContext<Slide>)this.document);
-				sep.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
-				sep.setMinSize(0, 0);
 				this.setContent(sep);
 				return sep;
 			} else {

@@ -28,6 +28,7 @@ import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.geometry.Orientation;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Menu;
@@ -211,11 +212,12 @@ public class PraisenterPane extends BorderPane {
 			return true;
 		});
 		
-		LibraryList itemListing = new LibraryList(context);
+		LibraryList itemListing = new LibraryList(context, Orientation.HORIZONTAL);
 		Bindings.bindContent(itemListing.getItems(), this.items);
 		
-		SplitPane split = new SplitPane(itemListing, dep);
-		split.setDividerPositions(0.25);
+		SplitPane split = new SplitPane(dep, itemListing);
+		split.setDividerPositions(0.80);
+		split.setOrientation(Orientation.VERTICAL);
 		
 		//BorderPane bp = new BorderPane();
 		this.setTop(mainMenu);

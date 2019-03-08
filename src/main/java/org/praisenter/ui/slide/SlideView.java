@@ -1,5 +1,15 @@
 package org.praisenter.ui.slide;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+
+import org.praisenter.async.AsyncHelper;
+import org.praisenter.data.Persistable;
+import org.praisenter.data.media.Media;
+import org.praisenter.data.media.MediaType;
 import org.praisenter.data.slide.Slide;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.Playable;
@@ -19,13 +29,24 @@ import javafx.scene.image.Image;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundImage;
 import javafx.scene.layout.BackgroundRepeat;
+import javafx.scene.layout.Border;
+import javafx.scene.layout.BorderStroke;
+import javafx.scene.layout.BorderStrokeStyle;
+import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
+import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
-import javafx.scene.shape.Shape;
+import javafx.scene.shape.StrokeLineCap;
+import javafx.scene.shape.StrokeLineJoin;
+import javafx.scene.shape.StrokeType;
 import javafx.scene.transform.Scale;
 
-public class SlideView extends Pane implements Playable {
+public class SlideView extends Region implements Playable {
 	private static final Image TRANSPARENT_PATTERN = ClasspathLoader.getImage("org/praisenter/images/transparent.png");
+	
+	private final GlobalContext context;
 	
 	private final ObjectProperty<Slide> slide;
 	private final ObjectProperty<SlideNode> slideNode;
@@ -35,15 +56,18 @@ public class SlideView extends Pane implements Playable {
 	
 	private final ObjectProperty<SlideMode> mode;
 	
-	private final BooleanProperty viewScalingEnabled;
+	private final BooleanProperty fitToWidthEnabled;
+	private final BooleanProperty fitToHeightEnabled;
 	private final ObjectProperty<Scaling> viewScale;
-	private final DoubleProperty viewScaleX;
-	private final DoubleProperty viewScaleY;
+	private final DoubleProperty viewScaleFactor;
+	private final BooleanProperty viewScaleAlignCenter;
 	
 	private final BooleanProperty clipEnabled;
 	private final Rectangle clip;
 	
 	public SlideView(GlobalContext context) {
+		this.context = context;
+		
 		this.slide = new SimpleObjectProperty<>();
 		this.slideNode = new SimpleObjectProperty<>();
 		
@@ -52,10 +76,11 @@ public class SlideView extends Pane implements Playable {
 		
 		this.mode = new SimpleObjectProperty<>(SlideMode.VIEW);
 		
-		this.viewScalingEnabled = new SimpleBooleanProperty(false);
 		this.viewScale = new SimpleObjectProperty<>(Scaling.getNoScaling(10, 10));
-		this.viewScaleX = new SimpleDoubleProperty(1);
-		this.viewScaleY = new SimpleDoubleProperty(1);
+		this.viewScaleFactor = new SimpleDoubleProperty(1);
+		this.viewScaleAlignCenter = new SimpleBooleanProperty(false);
+		this.fitToWidthEnabled = new SimpleBooleanProperty(false);
+		this.fitToHeightEnabled = new SimpleBooleanProperty(false);
 		
 		this.clipEnabled = new SimpleBooleanProperty(false);
 
@@ -65,14 +90,14 @@ public class SlideView extends Pane implements Playable {
 		Pane scaleContainer = new Pane();
 		
 		this.slide.addListener((obs, ov, nv) -> {
+			this.slideHeight.unbind();
+			this.slideWidth.unbind();
+			this.slideNode.set(null);
+			
 			if (nv != null) {
 				this.slideWidth.bind(nv.widthProperty());
 				this.slideHeight.bind(nv.heightProperty());
 				this.slideNode.set(new SlideNode(context, nv));
-			} else {
-				this.slideHeight.unbind();
-				this.slideWidth.unbind();
-				this.slideNode.set(null);
 			}
 		});
 		
@@ -138,17 +163,11 @@ public class SlideView extends Pane implements Playable {
 			// https://stackoverflow.com/questions/40690022/javafx-custom-bindings-not-working
 			double sw = this.slideWidth.get();
 			double sh = this.slideHeight.get();
-			if (!this.viewScalingEnabled.get()) return Scaling.getNoScaling(sw, sh);
-			Scaling scale = Scaling.getUniformScaling(sw, sh, tw, th);
+			Scaling scale = Scaling.getUniformScaling(sw, sh, tw, th, this.fitToWidthEnabled.get(), this.fitToHeightEnabled.get());
 			return scale;
-		}, this.slideWidth, this.slideHeight, this.widthProperty(), this.heightProperty(), this.viewScalingEnabled));
+		}, this.slide, this.slideWidth, this.slideHeight, this.widthProperty(), this.heightProperty(), this.fitToWidthEnabled, this.fitToHeightEnabled));
 		
-		this.viewScaleX.bind(Bindings.createDoubleBinding(() -> {
-			Scaling scaling = this.viewScale.get();
-			return scaling.factor;
-		}, this.viewScale));
-		
-		this.viewScaleY.bind(Bindings.createDoubleBinding(() -> {
+		this.viewScaleFactor.bind(Bindings.createDoubleBinding(() -> {
 			Scaling scaling = this.viewScale.get();
 			return scaling.factor;
 		}, this.viewScale));
@@ -165,7 +184,7 @@ public class SlideView extends Pane implements Playable {
 			return scaling.height;
 		}, this.viewScale));
 		
-//		sppane.setBorder(new Border(new BorderStroke(Color.DARKTURQUOISE, new BorderStrokeStyle(StrokeType.CENTERED, StrokeLineJoin.MITER, StrokeLineCap.SQUARE, 1.0, 0.0, null), null, new BorderWidths(4.0))));
+//		viewBackground.setBorder(new Border(new BorderStroke(Color.DARKTURQUOISE, new BorderStrokeStyle(StrokeType.CENTERED, StrokeLineJoin.MITER, StrokeLineCap.SQUARE, 1.0, 0.0, null), null, new BorderWidths(4.0))));
 
 		viewBackground.backgroundProperty().bind(Bindings.createObjectBinding(() -> {
 			Slide slide = this.slide.get();
@@ -175,6 +194,18 @@ public class SlideView extends Pane implements Playable {
 			}
 			return null;
 		}, this.mode, this.slide));
+		
+		viewBackground.layoutXProperty().bind(Bindings.createDoubleBinding(() -> {
+			if (!this.viewScaleAlignCenter.get()) return 0.0;
+			Scaling scaling = this.viewScale.get();
+			return scaling.x;
+		}, this.viewScale, this.viewScaleAlignCenter));
+		
+		viewBackground.layoutYProperty().bind(Bindings.createDoubleBinding(() -> {
+			if (!this.viewScaleAlignCenter.get()) return 0.0;
+			Scaling scaling = this.viewScale.get();
+			return scaling.y;
+		}, this.viewScale, this.viewScaleAlignCenter));
 		
 		this.clip = new Rectangle();
 		this.clip.setX(0);
@@ -190,14 +221,41 @@ public class SlideView extends Pane implements Playable {
 		}, this.clipEnabled));
 
 		Scale s = new Scale();
-		s.xProperty().bind(this.viewScaleX);
-		s.yProperty().bind(this.viewScaleY);
+		s.xProperty().bind(this.viewScaleFactor);
+		s.yProperty().bind(this.viewScaleFactor);
 		s.setPivotX(0);
 		s.setPivotY(0);
 		scaleContainer.getTransforms().add(s);
 		
+//		scaleContainer.setBorder(new Border(new BorderStroke(Color.RED, new BorderStrokeStyle(StrokeType.CENTERED, StrokeLineJoin.MITER, StrokeLineCap.SQUARE, 1.0, 0.0, null), null, new BorderWidths(4.0))));
+		
 		viewBackground.getChildren().add(scaleContainer);
 		this.getChildren().addAll(viewBackground);
+	}
+	
+	// TODO would be nice if there was a mechanism to wait for the SlideNode to load as well (when media players are ready for example) for better PRESENT interaction
+	private CompletableFuture<Void> loadMediaForSlide(Slide slide) {
+		final Set<UUID> mediaIds = slide.getReferencedMedia();
+		final List<Media> mediaToLoad = new ArrayList<>();
+		
+		for (UUID mediaId : mediaIds) {
+			Media media = this.context.getDataManager().getItem(Media.class, mediaId);
+			if (media != null) {
+				mediaToLoad.add(media);
+			}
+		}
+		
+		return CompletableFuture.runAsync(() -> {
+			for (Media media : mediaToLoad) {
+				if (media.getMediaType() == MediaType.IMAGE) {
+					// load the image
+					this.context.getImageCache().getOrLoadImage(media.getId(), media.getMediaPath());
+				} else if (media.getMediaType() == MediaType.VIDEO && this.mode.get() != SlideMode.PRESENT) {
+					// load the video frame (NOTE: we don't need this for present mode)
+					this.context.getImageCache().getOrLoadImage(media.getId(), media.getMediaImagePath());
+				}
+			}
+		});
 	}
 
 	@Override
@@ -244,6 +302,13 @@ public class SlideView extends Pane implements Playable {
 		return this.slide;
 	}
 	
+	public CompletableFuture<Void> setSlideAsync(Slide slide) {
+		// TODO have a loading... message with configurable text
+		return this.loadMediaForSlide(slide).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
+			this.slide.set(slide);
+		}));
+	}
+	
 	public SlideMode getViewMode() {
 		return this.mode.get();
 	}
@@ -256,18 +321,6 @@ public class SlideView extends Pane implements Playable {
 		return this.mode;
 	}
 	
-	public boolean isViewScalingEnabled() {
-		return this.viewScalingEnabled.get();
-	}
-	
-	public void setViewScalingEnabled(boolean flag) {
-		this.viewScalingEnabled.set(flag);
-	}
-	
-	public BooleanProperty viewScalingEnabledProperty() {
-		return this.viewScalingEnabled;
-	}
-	
 	public Scaling getViewScale() {
 		return this.viewScale.get();
 	}
@@ -276,20 +329,48 @@ public class SlideView extends Pane implements Playable {
 		return this.viewScale;
 	}
 	
-	public double getViewScaleX() {
-		return this.viewScaleX.get();
+	public double getViewScaleFactor() {
+		return this.viewScaleFactor.get();
 	}
 	
-	public ReadOnlyDoubleProperty viewScaleXProperty() {
-		return this.viewScaleX;
+	public ReadOnlyDoubleProperty viewScaleFactorProperty() {
+		return this.viewScaleFactor;
+	}
+
+	public boolean isFitToWidthEnabled() {
+		return this.fitToWidthEnabled.get();
 	}
 	
-	public double getViewScaleY() {
-		return this.viewScaleY.get();
+	public void setFitToWidthEnabled(boolean flag) {
+		this.fitToWidthEnabled.set(flag);
 	}
 	
-	public ReadOnlyDoubleProperty viewScaleYProperty() {
-		return this.viewScaleY;
+	public BooleanProperty fitToWidthEnabledProperty() {
+		return this.fitToWidthEnabled;
+	}
+	
+	public boolean isFitToHeightEnabled() {
+		return this.fitToHeightEnabled.get();
+	}
+	
+	public void setFitToHeightEnabled(boolean flag) {
+		this.fitToHeightEnabled.set(flag);
+	}
+	
+	public BooleanProperty fitToHeightEnabledProperty() {
+		return this.fitToHeightEnabled;
+	}
+	
+	public boolean isViewScaleAlignCenter() {
+		return this.viewScaleAlignCenter.get();
+	}
+	
+	public void setViewScaleAlignCenter(boolean flag) {
+		this.viewScaleAlignCenter.set(flag);
+	}
+	
+	public BooleanProperty viewScaleAlignCenterProperty() {
+		return this.viewScaleAlignCenter;
 	}
 	
 	public boolean isClipEnabled() {
