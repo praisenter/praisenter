@@ -302,8 +302,7 @@ public final class MediaPreview extends BorderPane implements Playable {
     	
         Status status = player.getStatus();
 
-        if (status == Status.UNKNOWN || 
-    		status == Status.DISPOSED) {
+        if (status == Status.DISPOSED) {
         	// check the error
         	MediaException mex = player.getError();
         	if (mex != null) {
@@ -353,9 +352,9 @@ public final class MediaPreview extends BorderPane implements Playable {
     @Override
     public void dispose() {
     	MediaPlayer player = this.player.get();
+    	this.player.set(null);
     	if (player != null) {
     		player.dispose();
     	}
-    	this.player.set(null);
     }
 }

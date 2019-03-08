@@ -167,7 +167,7 @@ public class FlowListView<T> extends ScrollPane {
         this.layout.setOrientation(orientation);
         
         // make the min height of the listing pane the height of the split pane 
- 		this.layout.minHeightProperty().bind(this.heightProperty().subtract(20));
+ 		//this.layout.minHeightProperty().bind(this.heightProperty().subtract(20));
         
  		this.mapping = new MappedList<>(this.items, (T item) -> {
  			return createCell(item);

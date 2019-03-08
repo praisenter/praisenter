@@ -18,6 +18,7 @@ import org.praisenter.ui.document.DocumentContext;
 import org.praisenter.ui.document.DocumentEditor;
 import org.praisenter.ui.events.ActionStateChangedEvent;
 import org.praisenter.ui.undo.UndoManager;
+import org.praisenter.utility.Scaling;
 
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
@@ -78,7 +79,9 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 		this.view = new StackPane();
 		this.slideView = new SlideView(context);
 		this.slideView.setViewMode(SlideMode.EDIT);
-		this.slideView.setViewScalingEnabled(true);
+		this.slideView.setFitToWidthEnabled(true);
+		this.slideView.setFitToHeightEnabled(true);
+		this.slideView.setViewScaleAlignCenter(true);
 		
 		this.undoManager = document.getUndoManager();
 		
@@ -91,10 +94,10 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 			}
 		});
 		
-		this.slide.bind(document.documentProperty());
+//		this.slide.bind(document.documentProperty());
 		this.componentMapping = new MappedList<>(this.components, (c) -> {
 			EditNode n = new EditNode(document, c);
-			n.scaleProperty().bind(this.slideView.viewScaleXProperty());
+			n.scaleProperty().bind(this.slideView.viewScaleFactorProperty());
 			// restore selection (this happens when nodes are rearranged
 			// in the source list - since they have to be removed then
 			// re-added)
@@ -123,9 +126,25 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 			}
 		});
 
-		this.slideView.slideProperty().bind(document.documentProperty());
+//		this.slideView.slideProperty().bind(document.documentProperty());
+		// load the document async
+//		context.load(document.getDocument()).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
+//			this.slideView.setSlide(document.getDocument());
+//			this.slide.bind(document.documentProperty());
+//		}));
+		this.slideView.setSlideAsync(document.getDocument()).thenRun(() -> {
+			this.slide.bind(document.documentProperty());
+		});
 		
 		Pane editContainer = new Pane();
+		editContainer.maxWidthProperty().bind(Bindings.createDoubleBinding(() -> {
+			Scaling s = this.slideView.getViewScale();
+			return s.width;
+		}, this.slideView.viewScaleProperty()));
+		editContainer.maxHeightProperty().bind(Bindings.createDoubleBinding(() -> {
+			Scaling s = this.slideView.getViewScale();
+			return s.height;
+		}, this.slideView.viewScaleProperty()));
 		Bindings.bindContent(editContainer.getChildren(), this.componentMapping);
 		
 		
@@ -139,9 +158,9 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 		this.setCenter(this.view);
 		BorderPane.setAlignment(this.view, Pos.CENTER);
 		//this.setBorder(new Border(new BorderStroke(Color.BLACK, new BorderStrokeStyle(StrokeType.CENTERED, StrokeLineJoin.MITER, StrokeLineCap.SQUARE, 4, 0, null), null, new BorderWidths(4))));
-		this.addEventFilter(MouseEvent.ANY, e -> {
-			this.requestFocus();
-		});
+//		this.addEventFilter(MouseEvent.ANY, e -> {
+//			this.requestFocus();
+//		});
 		this.addEventHandler(MouseEvent.ANY, e -> {
 			EventType<?> et = e.getEventType();
 			if (et == MouseEvent.MOUSE_CLICKED || et == MouseEvent.MOUSE_PRESSED || et == MouseEvent.MOUSE_RELEASED) {

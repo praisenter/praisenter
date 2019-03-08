@@ -114,7 +114,7 @@ https://stackoverflow.com/questions/50011276/javafx-treeview-expand-collapse-dis
 .p-library-list-cell > Label {
 	-fx-text-alignment: center;
 	-fx-padding: 5 0 0 0;
-	-fx-wrap-text: true;
+	/*-fx-wrap-text: true;*/
 }
 
 

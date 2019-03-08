@@ -24,6 +24,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.geometry.Orientation;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
@@ -54,7 +55,7 @@ public final class MediaObjectPicker extends VBox {
 		this.scaleType = new SimpleObjectProperty<>();
 		this.colorAdjust = new SimpleObjectProperty<>();
 		
-		LibraryList lstMedia = new LibraryList(context);
+		LibraryList lstMedia = new LibraryList(context, Orientation.HORIZONTAL);
 		lstMedia.setMultiSelectEnabled(false);
 		FilteredList<Media> filtered = new FilteredList<>(context.getDataManager().getItemsUnmodifiable(Media.class));
 		filtered.setPredicate(m -> {
