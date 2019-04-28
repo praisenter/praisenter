@@ -65,6 +65,7 @@ public final class BorderConverter {
 	 * @return StrokeLineCap
 	 */
 	public static StrokeLineCap toJavaFX(SlideStrokeCap cap) {
+		if (cap == null) return null;
 		switch (cap) {
 			case BUTT:
 				return StrokeLineCap.BUTT;
@@ -81,6 +82,7 @@ public final class BorderConverter {
 	 * @return {@link SlideStrokeCap}
 	 */
 	public static SlideStrokeCap fromJavaFX(StrokeLineCap cap) {
+		if (cap == null) return null;
 		switch (cap) {
 			case BUTT:
 				return SlideStrokeCap.BUTT;
@@ -97,6 +99,7 @@ public final class BorderConverter {
 	 * @return StrokeLineJoin
 	 */
 	public static StrokeLineJoin toJavaFX(SlideStrokeJoin join) {
+		if (join == null) return null;
 		switch (join) {
 			case BEVEL:
 				return StrokeLineJoin.BEVEL;
@@ -113,6 +116,7 @@ public final class BorderConverter {
 	 * @return {@link SlideStrokeJoin}
 	 */
 	public static SlideStrokeJoin fromJavaFX(StrokeLineJoin join) {
+		if (join == null) return null;
 		switch (join) {
 			case BEVEL:
 				return SlideStrokeJoin.BEVEL;
@@ -129,6 +133,7 @@ public final class BorderConverter {
 	 * @return StrokeType
 	 */
 	public static StrokeType toJavaFX(SlideStrokeType type) {
+		if (type == null) return null;
 		switch (type) {
 			case INSIDE:
 				return StrokeType.INSIDE;
@@ -145,6 +150,7 @@ public final class BorderConverter {
 	 * @return {@link SlideStrokeType}
 	 */
 	public static SlideStrokeType fromJavaFX(StrokeType type) {
+		if (type == null) return null;
 		switch (type) {
 			case INSIDE:
 				return SlideStrokeType.INSIDE;

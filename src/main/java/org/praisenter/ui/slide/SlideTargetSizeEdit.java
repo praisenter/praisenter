@@ -4,29 +4,20 @@ import java.util.function.BiConsumer;
 
 import org.praisenter.ui.undo.Edit;
 
-import javafx.beans.property.ObjectProperty;
-
 final class SlideTargetSizeEdit implements Edit {
-	private final ObjectProperty<Integer> width;
-	private final ObjectProperty<Integer> height;
+	private final double oldWidth;
+	private final double oldHeight;
+	private final double newWidth;
+	private final double newHeight;
 	
-	private final int oldWidth;
-	private final int oldHeight;
-	private final int newWidth;
-	private final int newHeight;
-	
-	private final BiConsumer<Integer, Integer> onUndoRedo;
+	private final BiConsumer<Double, Double> onUndoRedo;
 	
 	public SlideTargetSizeEdit(
-			ObjectProperty<Integer> width,
-			ObjectProperty<Integer> height,
-			int oldWidth,
-			int oldHeight,
-			int newWidth,
-			int newHeight,
-			BiConsumer<Integer, Integer> onUndoRedo) {
-		this.width = width;
-		this.height = height;
+			double oldWidth,
+			double oldHeight,
+			double newWidth,
+			double newHeight,
+			BiConsumer<Double, Double> onUndoRedo) {
 		this.newWidth = newWidth;
 		this.newHeight = newHeight;
 		this.oldWidth = oldWidth;
@@ -50,15 +41,11 @@ final class SlideTargetSizeEdit implements Edit {
 
 	@Override
 	public void undo() {
-		this.width.set(this.oldWidth);
-		this.height.set(this.oldHeight);
 		this.onUndoRedo.accept(this.oldWidth, this.oldHeight);
 	}
 
 	@Override
 	public void redo() {
-		this.width.set(this.newWidth);
-		this.height.set(this.newHeight);
 		this.onUndoRedo.accept(this.newWidth, this.newHeight);
 	}
 

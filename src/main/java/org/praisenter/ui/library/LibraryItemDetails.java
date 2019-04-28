@@ -45,8 +45,13 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
 import javafx.geometry.HPos;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.ScrollPane.ScrollBarPolicy;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderPane;
@@ -65,8 +70,9 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
 import javafx.scene.shape.StrokeType;
+import javafx.scene.text.Font;
 
-final class LibraryItemDetails extends VBox {
+final class LibraryItemDetails extends BorderPane {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
 	private final GlobalContext context;
@@ -189,6 +195,12 @@ final class LibraryItemDetails extends VBox {
 			}
 		});
 		
+		VBox content = new VBox(5);
+		
+		ScrollPane scrLayout = new ScrollPane(content);
+		scrLayout.setFitToWidth(true);
+		scrLayout.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
+		
 		// song data
 		// TODO song info
 		
@@ -211,6 +223,8 @@ final class LibraryItemDetails extends VBox {
 		Label lblShowSlideCountValue = new Label();
 		
 		lblNameValue.textProperty().bind(this.name);
+		lblNameValue.setFont(Font.font(lblNameValue.getFont().getFamily(), lblNameValue.getFont().getSize() + 5));
+		
 		lblModifiedValue.textProperty().bind(Bindings.createStringBinding(() -> {
 			Instant dt = this.modified.get();
 			if (dt == null) return null;
@@ -247,7 +261,7 @@ final class LibraryItemDetails extends VBox {
 		SlideView slide = new SlideView(context);
 		slide.setClipEnabled(true);
 		slide.setViewMode(SlideMode.VIEW);
-		slide.prefWidthProperty().bind(this.widthProperty());
+		slide.prefWidthProperty().bind(content.widthProperty());
 		slide.managedProperty().bind(slide.visibleProperty());
 		slide.setFitToWidthEnabled(true);
 		slide.setViewScaleAlignCenter(false);
@@ -266,17 +280,30 @@ final class LibraryItemDetails extends VBox {
 				if (type == MediaType.IMAGE) {
 					// TODO load async
 					return this.context.getImageCache().getOrLoadImage(media.getId(), media.getMediaImagePath());
+				} else if (type == MediaType.AUDIO) {
+					return this.context.getImageCache().getOrLoadClasspathImage("/org/praisenter/images/audio-default-thumbnail.png");
 				}
+			} else if (item instanceof Bible) {
+				return this.context.getImageCache().getOrLoadClasspathImage("/org/praisenter/images/bible-icon.png");
 			}
 			return null;
 		}, this.item));
 		image.setPreserveRatio(true);
-		image.fitWidthProperty().bind(this.widthProperty());
+		image.fitWidthProperty().bind(Bindings.createDoubleBinding(() -> {
+			double tw = this.widthProperty().get() - 35;
+			Image img = image.imageProperty().get();
+			if (img != null) {
+				double iw = img.getWidth();
+				tw = Math.min(tw, iw);
+			}
+			return tw;
+		}, this.widthProperty(), image.imageProperty()));
 		image.managedProperty().bind(image.visibleProperty());
 		image.setVisible(false);
 
 		// media player for audio/video
 		MediaPreview player = new MediaPreview();
+		player.maxWidthProperty().bind(this.widthProperty().subtract(35));
 		player.managedProperty().bind(player.visibleProperty());
 		player.setVisible(false);
 		player.mediaPlayerProperty().bind(Bindings.createObjectBinding(() -> {
@@ -339,6 +366,8 @@ final class LibraryItemDetails extends VBox {
 //		cc2.setHalignment(HPos.RIGHT);
 		labels.getColumnConstraints().addAll(cc1, cc2);
 		labels.setMaxWidth(Double.MAX_VALUE);
+		labels.setVgap(2);
+		labels.setHgap(2);
 		
 		labels.add(lblCreated, 0, r); labels.add(lblCreatedValue, 1, r++);
 		labels.add(lblModified, 0, r); labels.add(lblModifiedValue, 1, r++);
@@ -372,39 +401,41 @@ final class LibraryItemDetails extends VBox {
 //				context.load(nv).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
 //					slide.setSlide((Slide)nv);
 //				}));
-				slide.setSlideAsync((Slide)nv);
-				slide.setVisible(true);
-				labels.showRowsOnly(2,3,4,5,10);
+				slide.setSlideAsync((Slide)nv).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
+					slide.setVisible(true);
+				}));
+				
+				labels.showRowsOnly(0,1,2,3,4,5,10);
 			} else if (nv instanceof Media) {
 				Media media = (Media)nv;
 				if (media.getMediaType() == MediaType.IMAGE) {
 					image.setVisible(true);
-					labels.showRowsOnly(2,3,5,10);
+					labels.showRowsOnly(0,1,2,3,5,10);
 				} else if (media.getMediaType() == MediaType.AUDIO) {
+					image.setVisible(true);
 					player.setVisible(true);
-					labels.showRowsOnly(4,5,9,10);
+					labels.showRowsOnly(0,1,4,5,9,10);
 				} else if (media.getMediaType() == MediaType.VIDEO) {
 					player.setVisible(true);
-					labels.showRowsOnly(2,3,4,5,9,10);
+					labels.showRowsOnly(0,1,2,3,4,5,9,10);
 				}
-				
 			} else if (nv instanceof Bible) {
-				labels.showRowsOnly(5,6,7,8,10);
+				image.setVisible(true);
+				labels.showRowsOnly(0,1,5,6,7,8,10);
 			} else {
 				// TODO properties for songs and other stuff
 				labels.showRowsOnly();
 			}
 		});
 		
-		this.getChildren().addAll(
-				lblNameValue
+		content.setPadding(new Insets(10));
+		content.getChildren().addAll(lblNameValue
 				,image
 				,slide
 				,player
-				,labels
-
-
-				);
+				,labels);
+		
+		this.setCenter(scrLayout);
 		
 		this.setMaxWidth(250);
 		this.setPrefWidth(250);

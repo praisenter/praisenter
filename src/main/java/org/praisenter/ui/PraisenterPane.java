@@ -216,7 +216,7 @@ public class PraisenterPane extends BorderPane {
 		Bindings.bindContent(itemListing.getItems(), this.items);
 		
 		SplitPane split = new SplitPane(dep, itemListing);
-		split.setDividerPositions(0.80);
+		split.setDividerPositions(0.75);
 		split.setOrientation(Orientation.VERTICAL);
 		
 		//BorderPane bp = new BorderPane();

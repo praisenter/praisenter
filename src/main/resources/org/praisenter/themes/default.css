@@ -1,18 +1,23 @@
 /** tree cell drag n drop styles */
 .tree-cell:drag-over-parent {
-	-fx-background-color: rgba(153, 209, 255, 0.5);
+	-fx-background-color: -fx-faint-focus-color;
 }
 
 .tree-cell:drag-over-sibling-top {
-	-fx-border-color: black;
+	-fx-border-color: -fx-text-base-color;
     -fx-border-style: solid;
     -fx-border-width: 1 0 0 0;
 }
 
 .tree-cell:drag-over-sibling-bottom {
-	-fx-border-color: black;
+	-fx-border-color: -fx-text-base-color;
     -fx-border-style: solid;
     -fx-border-width: 0 0 1 0;
+}
+
+/** force glyphs to color the same way as the text */
+.tree-cell:selected .glyph-font {
+	-fx-text-fill: -fx-focused-text-base-color;
 }
 
 /* 
@@ -37,7 +42,6 @@ https://stackoverflow.com/questions/50011276/javafx-treeview-expand-collapse-dis
 
 /* ============== Reusable Components ================= */
 
-
 /* FlowListView */
 .flow-list-view {}
 .flow-list-view-tiles {
@@ -54,20 +58,28 @@ https://stackoverflow.com/questions/50011276/javafx-treeview-expand-collapse-dis
 	-fx-alignment: top-center;
 }
 .flow-list-view-cell:hover { 
-	-fx-background-color: rgba(153, 209, 255, 0.5);
+	-fx-background-color: -fx-faint-focus-color; /*rgba(153, 209, 255, 0.5)*/
 }
 .flow-list-view-cell:selected {
-	-fx-background-color: rgb(204, 232, 255);
-	-fx-border-color: rgb(153, 209, 255);
+	-fx-background-color: derive(-fx-faint-focus-color, 20%); /*rgb(204, 232, 255);*/
+	-fx-border-color: -fx-faint-focus-color; /*rgb(153, 209, 255)*/
 	-fx-border-width: 1;
 	-fx-border-style: solid;
 }
 .flow-list-view-drag-selection-area {
-	-fx-fill: rgba(255, 204, 204, 0.5);
-	-fx-stroke: rgb(255, 153, 153);
+	-fx-fill: -fx-faint-focus-color; /*rgba(255, 204, 204, 0.5);*/
+	-fx-stroke: -fx-focus-color; /*rgb(255, 153, 153);*/
 	-fx-smooth: false;
 	-fx-stroke-width: 1;
 }
+
+/** TagListView */
+.tag-list-view {}
+.tag-list-view-tags {
+	-fx-vgap: 2;
+	-fx-hgap: 2;
+}
+.tag-list-view .tag-list-view-tags .tag {}
 
 /* ============== Praisenter Views ================= */
 
@@ -84,9 +96,8 @@ https://stackoverflow.com/questions/50011276/javafx-treeview-expand-collapse-dis
 	-fx-font-size: 0.8em;
 }
 
-/* BiblePropertiesPane */
-.p-bible-properties {}
-
+/* BibleSelectionEditor */
+.p-bible-selection-editor {}
 
 /* LibraryListCell */
 .p-library-list-cell {

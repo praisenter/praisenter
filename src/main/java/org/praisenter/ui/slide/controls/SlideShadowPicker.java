@@ -5,103 +5,110 @@ import org.praisenter.data.slide.effects.SlideShadow;
 import org.praisenter.ui.Option;
 import org.praisenter.ui.bind.BindingHelper;
 import org.praisenter.ui.bind.ObjectConverter;
+import org.praisenter.ui.controls.EditGridPane;
+import org.praisenter.ui.controls.LastValueNumberStringConverter;
 import org.praisenter.ui.controls.TextInputFieldEventFilter;
 import org.praisenter.ui.slide.convert.PaintConverter;
 import org.praisenter.ui.translations.Translations;
 
-import javafx.beans.binding.Bindings;
-import javafx.beans.binding.BooleanBinding;
+import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ColorPicker;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
-import javafx.scene.control.Spinner;
-import javafx.scene.layout.HBox;
+import javafx.scene.control.TextField;
+import javafx.scene.control.TextFormatter;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
 public final class SlideShadowPicker extends VBox {
+	private static final Color DEFAULT_COLOR = new Color(0.0, 0.0, 0.0, 0.8);
+	
 	private final ObjectProperty<SlideShadow> value;
 	
-	private final ComboBox<Option<ShadowType>> cmbType;
-	private final ColorPicker pkrColor;
-	private final Spinner<Double> spnX;
-	private final Spinner<Double> spnY;
-	private final Slider sldRadius;
-	private final Slider sldSpread;
-	
-	private final BooleanBinding isShadowSelected;
-	
-	public SlideShadowPicker() {
+	private final ObjectProperty<ShadowType> type;
+	private final ObjectProperty<Color> color;
+	private final ObjectProperty<Double> x;
+	private final ObjectProperty<Double> y;
+	private final DoubleProperty radius;
+	private final DoubleProperty spread;
+		
+	public SlideShadowPicker(String label) {
 		this.value = new SimpleObjectProperty<>();
+		
+		this.type = new SimpleObjectProperty<>(null);
+		this.color = new SimpleObjectProperty<>(DEFAULT_COLOR);
+		this.x = new SimpleObjectProperty<>(0.0);
+		this.y = new SimpleObjectProperty<>(0.0);
+		this.radius = new SimpleDoubleProperty(5.0);
+		this.spread = new SimpleDoubleProperty(0.8);
 		
 		ObservableList<Option<ShadowType>> types = FXCollections.observableArrayList();
 		types.add(new Option<ShadowType>(Translations.get("slide.shadow.type.NONE"), null));
 		types.add(new Option<ShadowType>(Translations.get("slide.shadow.type." + ShadowType.OUTER), ShadowType.OUTER));
 		types.add(new Option<ShadowType>(Translations.get("slide.shadow.type." + ShadowType.INNER), ShadowType.INNER));
 		
-		this.cmbType = new ComboBox<Option<ShadowType>>(types);
-		this.pkrColor = new ColorPicker();
-		this.spnX = new Spinner<Double>(-Double.MAX_VALUE, Double.MAX_VALUE, 0.0, 1.0);
-		this.spnY = new Spinner<Double>(-Double.MAX_VALUE, Double.MAX_VALUE, 0.0, 1.0);
+		ChoiceBox<Option<ShadowType>> cbType = new ChoiceBox<Option<ShadowType>>(types);
+		cbType.setMaxWidth(Double.MAX_VALUE);
+		cbType.setValue(types.get(0));
+		BindingHelper.bindBidirectional(cbType.valueProperty(), this.type);
+		
+		ColorPicker pkrColor = new ColorPicker();
+		pkrColor.setMaxWidth(Double.MAX_VALUE);
+		pkrColor.valueProperty().bindBidirectional(this.color);
+		
+		TextField txtX = new TextField();
+		TextFormatter<Double> tfX = new TextFormatter<Double>(LastValueNumberStringConverter.forDouble());
+		txtX.setTextFormatter(tfX);
+		tfX.valueProperty().bindBidirectional(this.x);
+
+		TextField txtY = new TextField();
+		TextFormatter<Double> tfY = new TextFormatter<Double>(LastValueNumberStringConverter.forDouble());
+		txtY.setTextFormatter(tfY);
+		tfY.valueProperty().bindBidirectional(this.y);
 		
 		// max-mins based on JavaFX max-min for DropShadow and InnerGlow
-		this.sldRadius = new Slider(0.0, 127.0, 10.0);
-		this.sldSpread = new Slider(0.0, 1.0, 0.0);
+		Slider sldRadius = new Slider(0.0, 127.0, 10.0);
+		sldRadius.valueProperty().bindBidirectional(this.radius);
 		
-		this.isShadowSelected = Bindings.createBooleanBinding(() -> {
-			Option<ShadowType> value = this.cmbType.getValue();
-			return value != null && value.getValue() != null;
-		}, this.cmbType.valueProperty());
-		
-		// setup values
-		this.cmbType.setValue(types.get(0));
-		this.pkrColor.setValue(Color.BLACK);
+		Slider sldSpread = new Slider(0.0, 1.0, 0.0);
+		sldSpread.valueProperty().bindBidirectional(this.spread);
 
-		// setup look
-		this.pkrColor.getStyleClass().add(ColorPicker.STYLE_CLASS_SPLIT_BUTTON);
-		this.pkrColor.setStyle("-fx-color-label-visible: false;");
-		this.spnX.setEditable(true);
-		this.spnY.setEditable(true);
-		
-		Label lblOffset = new Label(Translations.get("slide.shadow.offset"));
-		Label lblRadius = new Label(Translations.get("slide.shadow.radius"));
-		Label lblSpread = new Label(Translations.get("slide.shadow.spread"));
-		
 		// bindings
 		
-		BindingHelper.bindBidirectional(this.cmbType.valueProperty(), this.value, new ObjectConverter<Option<ShadowType>, SlideShadow>() {
+		BindingHelper.bindBidirectional(this.type, this.value, new ObjectConverter<ShadowType, SlideShadow>() {
 			@Override
-			public SlideShadow convertFrom(Option<ShadowType> t) {
-				return SlideShadowPicker.this.getControlValues();
+			public SlideShadow convertFrom(ShadowType t) {
+				return SlideShadowPicker.this.getCurrentValue();
 			}
 			@Override
-			public Option<ShadowType> convertTo(SlideShadow e) {
-				if (e == null) return new Option<ShadowType>();
-				return new Option<ShadowType>(null, e.getType());
+			public ShadowType convertTo(SlideShadow e) {
+				if (e == null) return null;
+				return e.getType();
 			}
 		});
 		
-		BindingHelper.bindBidirectional(this.pkrColor.valueProperty(), this.value, new ObjectConverter<Color, SlideShadow>() {
+		BindingHelper.bindBidirectional(this.color, this.value, new ObjectConverter<Color, SlideShadow>() {
 			@Override
 			public SlideShadow convertFrom(Color t) {
-				return SlideShadowPicker.this.getControlValues();
+				return SlideShadowPicker.this.getCurrentValue();
 			}
 			@Override
 			public Color convertTo(SlideShadow e) {
-				if (e == null) return Color.BLACK;
+				if (e == null) return DEFAULT_COLOR;
 				return PaintConverter.toJavaFX(e.getColor());
 			}
 		});
 		
-		BindingHelper.bindBidirectional(this.spnX.getValueFactory().valueProperty(), this.value, new ObjectConverter<Double, SlideShadow>() {
+		BindingHelper.bindBidirectional(this.x, this.value, new ObjectConverter<Double, SlideShadow>() {
 			@Override
 			public SlideShadow convertFrom(Double t) {
-				return SlideShadowPicker.this.getControlValues();
+				return SlideShadowPicker.this.getCurrentValue();
 			}
 			@Override
 			public Double convertTo(SlideShadow e) {
@@ -110,10 +117,10 @@ public final class SlideShadowPicker extends VBox {
 			}
 		});
 		
-		BindingHelper.bindBidirectional(this.spnY.getValueFactory().valueProperty(), this.value, new ObjectConverter<Double, SlideShadow>() {
+		BindingHelper.bindBidirectional(this.y, this.value, new ObjectConverter<Double, SlideShadow>() {
 			@Override
 			public SlideShadow convertFrom(Double t) {
-				return SlideShadowPicker.this.getControlValues();
+				return SlideShadowPicker.this.getCurrentValue();
 			}
 			@Override
 			public Double convertTo(SlideShadow e) {
@@ -122,10 +129,10 @@ public final class SlideShadowPicker extends VBox {
 			}
 		});
 		
-		BindingHelper.bindBidirectional(this.sldRadius.valueProperty(), this.value, new ObjectConverter<Number, SlideShadow>() {
+		BindingHelper.bindBidirectional(this.radius, this.value, new ObjectConverter<Number, SlideShadow>() {
 			@Override
 			public SlideShadow convertFrom(Number t) {
-				return SlideShadowPicker.this.getControlValues();
+				return SlideShadowPicker.this.getCurrentValue();
 			}
 			@Override
 			public Number convertTo(SlideShadow e) {
@@ -134,10 +141,10 @@ public final class SlideShadowPicker extends VBox {
 			}
 		});
 		
-		BindingHelper.bindBidirectional(this.sldSpread.valueProperty(), this.value, new ObjectConverter<Number, SlideShadow>() {
+		BindingHelper.bindBidirectional(this.spread, this.value, new ObjectConverter<Number, SlideShadow>() {
 			@Override
 			public SlideShadow convertFrom(Number t) {
-				return SlideShadowPicker.this.getControlValues();
+				return SlideShadowPicker.this.getCurrentValue();
 			}
 			@Override
 			public Number convertTo(SlideShadow e) {
@@ -146,55 +153,44 @@ public final class SlideShadowPicker extends VBox {
 			}
 		});
 		
-		lblOffset.visibleProperty().bind(this.isShadowSelected);
-		lblRadius.visibleProperty().bind(this.isShadowSelected);
-		lblSpread.visibleProperty().bind(this.isShadowSelected);
-		
-		this.pkrColor.visibleProperty().bind(this.isShadowSelected);
-		this.spnX.visibleProperty().bind(this.isShadowSelected);
-		this.spnY.visibleProperty().bind(this.isShadowSelected);
-		this.sldRadius.visibleProperty().bind(this.isShadowSelected);
-		this.sldSpread.visibleProperty().bind(this.isShadowSelected);
-		
-		lblOffset.managedProperty().bind(lblOffset.visibleProperty());
-		lblRadius.managedProperty().bind(lblRadius.visibleProperty());
-		lblSpread.managedProperty().bind(lblSpread.visibleProperty());
-		
-		this.pkrColor.managedProperty().bind(this.pkrColor.visibleProperty());
-		this.spnX.managedProperty().bind(this.spnX.visibleProperty());
-		this.spnY.managedProperty().bind(this.spnY.visibleProperty());
-		this.sldRadius.managedProperty().bind(this.sldRadius.visibleProperty());
-		this.sldSpread.managedProperty().bind(this.sldSpread.visibleProperty());
-		
-		TextInputFieldEventFilter.applyTextInputFieldEventFilter(
-				this.spnX.getEditor(),
-				this.spnY.getEditor());
+		// layout
+
+		TextInputFieldEventFilter.applyTextInputFieldEventFilter(txtX, txtY);
 		
 		// layout
+		int r = 0;
+		EditGridPane grid = new EditGridPane();
+		grid.addRow(r++, new Label(label), cbType);
+		grid.addRow(r++, new Label(Translations.get("slide.shadow.color")), pkrColor);
+		grid.addRow(r++, new Label(Translations.get("slide.shadow.offset.x")), txtX);
+		grid.addRow(r++, new Label(Translations.get("slide.shadow.offset.y")), txtY);
+		grid.addRow(r++, new Label(Translations.get("slide.shadow.radius")), sldRadius);
+		grid.addRow(r++, new Label(Translations.get("slide.shadow.spread")), sldSpread);
 		
-		this.setSpacing(5);
-		this.getChildren().addAll(
-				new HBox(5, this.cmbType, this.pkrColor),
-				lblOffset,
-				new HBox(5, this.spnX, this.spnY),
-				lblRadius,
-				this.sldRadius,
-				lblSpread,
-				this.sldSpread);
+		grid.showRowsOnly(0);
 		
+		this.type.addListener((obs, ov, nv) -> {
+			if (nv == null) {
+				grid.showRowsOnly(0);
+			} else {
+				grid.showRowsOnly(0,1,2,3,4,5);
+			}
+		});
+		
+		this.getChildren().addAll(grid);
 	}
 
-	private SlideShadow getControlValues() {
+	private SlideShadow getCurrentValue() {
 		SlideShadow shadow = null;
-		Option<ShadowType> type = this.cmbType.getValue();
-		if (type != null && type.getValue() != null) {
+		ShadowType type = this.type.getValue();
+		if (type != null) {
 			shadow = new SlideShadow();
-			shadow.setType(type.getValue());
-			shadow.setColor(PaintConverter.fromJavaFX(this.pkrColor.getValue()));
-			shadow.setOffsetX(this.spnX.getValue());
-			shadow.setOffsetY(this.spnY.getValue());
-			shadow.setRadius(this.sldRadius.getValue());
-			shadow.setSpread(this.sldSpread.getValue());
+			shadow.setType(type);
+			shadow.setColor(PaintConverter.fromJavaFX(this.color.get()));
+			shadow.setOffsetX(this.x.get());
+			shadow.setOffsetY(this.y.get());
+			shadow.setRadius(this.radius.get());
+			shadow.setSpread(this.spread.get());
 		}
 		return shadow;
 	}

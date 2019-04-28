@@ -12,11 +12,11 @@ import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.Option;
 import org.praisenter.ui.bind.BindingHelper;
 import org.praisenter.ui.bind.ObjectConverter;
+import org.praisenter.ui.controls.EditGridPane;
 import org.praisenter.ui.library.LibraryList;
 import org.praisenter.ui.translations.Translations;
 
 import javafx.beans.binding.Bindings;
-import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -25,12 +25,13 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.geometry.Orientation;
+import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Dialog;
-import javafx.scene.layout.HBox;
+import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.StageStyle;
@@ -82,13 +83,15 @@ public final class MediaObjectPicker extends VBox {
 	    dlgMedia.getDialogPane().getButtonTypes().addAll(ButtonType.CANCEL, ButtonType.OK);
 		
 		Button btnMedia = new Button(Translations.get("slide.media.choose"));
+		btnMedia.setAlignment(Pos.BASELINE_LEFT);
+		btnMedia.setMaxWidth(Double.MAX_VALUE);
 		btnMedia.setOnAction(e -> {
 			dlgMedia.show();
 		});
 		
-		CheckBox chkLoop = new CheckBox(Translations.get("slide.media.loop"));
+		CheckBox chkLoop = new CheckBox();
 		chkLoop.selectedProperty().bindBidirectional(this.loopEnabled);
-		CheckBox chkMute = new CheckBox(Translations.get("slide.media.mute"));
+		CheckBox chkMute = new CheckBox();
 		chkMute.selectedProperty().bindBidirectional(this.mute);
 		
 		ObservableList<Option<ScaleType>> scaleTypes = FXCollections.observableArrayList();
@@ -96,25 +99,32 @@ public final class MediaObjectPicker extends VBox {
 		scaleTypes.add(new Option<>(Translations.get("slide.media.scale." + ScaleType.UNIFORM), ScaleType.UNIFORM));
 		scaleTypes.add(new Option<>(Translations.get("slide.media.scale." + ScaleType.NONUNIFORM), ScaleType.NONUNIFORM));
 		ChoiceBox<Option<ScaleType>> cbScaleType = new ChoiceBox<>(scaleTypes);
+		cbScaleType.setMaxWidth(Double.MAX_VALUE);
 		
 		SlideColorAdjustPicker pkrColorAdjust = new SlideColorAdjustPicker();
 		pkrColorAdjust.valueProperty().bindBidirectional(this.colorAdjust);
 		
-		HBox loopMute = new HBox(chkLoop, chkMute);
-		loopMute.visibleProperty().bind(this.createMediaTypeVisibleBinding(MediaType.AUDIO, MediaType.VIDEO));
-		loopMute.managedProperty().bind(loopMute.visibleProperty());
+		int r = 0;
+		EditGridPane grid = new EditGridPane();
+		grid.addRow(r++, new Label(Translations.get("media")), btnMedia);
+		grid.addRow(r++, new Label(Translations.get("slide.media.loop")), chkLoop);
+		grid.addRow(r++, new Label(Translations.get("slide.media.mute")), chkMute);
+		grid.addRow(r++, new Label(Translations.get("slide.media.scale.type")), cbScaleType);
+		grid.add(pkrColorAdjust, 0, r++, 2);
 		
-		cbScaleType.visibleProperty().bind(this.createMediaTypeVisibleBinding(MediaType.IMAGE, MediaType.VIDEO));
-		cbScaleType.managedProperty().bind(cbScaleType.visibleProperty());
+		this.getChildren().add(grid);
 		
-		pkrColorAdjust.visibleProperty().bind(this.createMediaTypeVisibleBinding(MediaType.IMAGE, MediaType.VIDEO));
-		pkrColorAdjust.managedProperty().bind(pkrColorAdjust.visibleProperty());
-		
-		this.getChildren().addAll(
-				btnMedia,
-				loopMute,
-				cbScaleType,
-				pkrColorAdjust);
+		this.media.addListener((obs, ov, nv) -> {
+			if (nv == null) {
+				grid.showRowsOnly(0);
+			} else if (nv.getMediaType() == MediaType.AUDIO) {
+				grid.showRowsOnly(0,1,2);
+			} else if (nv.getMediaType() == MediaType.IMAGE) {
+				grid.showRowsOnly(0,3,4);
+			} else if (nv.getMediaType() == MediaType.VIDEO) {
+				grid.showRowsOnly(0,1,2,3,4);
+			}
+		});
 		
 		BindingHelper.bindBidirectional(cbScaleType.valueProperty(), this.scaleType);
 		BindingHelper.bindBidirectional(this.scaleType, this.value, new ObjectConverter<ScaleType, MediaObject>() {
@@ -193,15 +203,6 @@ public final class MediaObjectPicker extends VBox {
 			return mo;
 		}
 		return null;
-	}
-	
-	private BooleanBinding createMediaTypeVisibleBinding(MediaType... visibleWhen) {
-		return Bindings.createBooleanBinding(() -> {
-			Media media = this.media.get();
-			if (media == null) return false;
-			if (Stream.of(visibleWhen).anyMatch(t -> t == media.getMediaType())) return true;
-			return false;
-		}, this.media);
 	}
 	
 	public MediaObject getValue() {

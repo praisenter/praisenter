@@ -3,6 +3,7 @@ package org.praisenter.ui.slide.controls;
 import org.praisenter.data.slide.effects.SlideColorAdjust;
 import org.praisenter.ui.bind.BindingHelper;
 import org.praisenter.ui.bind.ObjectConverter;
+import org.praisenter.ui.controls.EditGridPane;
 import org.praisenter.ui.translations.Translations;
 
 import javafx.beans.property.BooleanProperty;
@@ -14,7 +15,6 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 
 // JAVABUG (L) 08/09/17 [workaround] LabelFormatter doesn't give enough control of the labels https://bugs.openjdk.java.net/browse/JDK-8091345
@@ -34,19 +34,6 @@ public final class SlideColorAdjustPicker extends VBox {
 	private final ObjectProperty<Double> brightnessAsObject;
 	private final ObjectProperty<Double> contrastAsObject;
 	
-//	private static final StringConverter<Double> SLIDER_FORMATTER = new StringConverter<Double>() {
-//		@Override
-//		public String toString(Double object) {
-//			if (Math.abs(object) <= 1e-10)
-//				return "0.0";
-//			return String.format("%2.1f", object);
-//		}
-//		@Override
-//		public Double fromString(String string) {
-//			return Double.parseDouble(string);
-//		}
-//	};
-//	
 	public SlideColorAdjustPicker() {
 		this.enabled = new SimpleBooleanProperty();
 		
@@ -60,7 +47,7 @@ public final class SlideColorAdjustPicker extends VBox {
 		this.brightnessAsObject = this.brightness.asObject();
 		this.contrastAsObject = this.contrast.asObject();
 		
-		CheckBox enable = new CheckBox(Translations.get("slide.coloradjust.enabled"));
+		CheckBox enable = new CheckBox();
 		enable.selectedProperty().bindBidirectional(this.enabled);
 		
 		Slider sldHue = this.buildSlider();
@@ -73,25 +60,25 @@ public final class SlideColorAdjustPicker extends VBox {
 //		Spinner<Double> spnBrightness = this.buildSpinner();
 //		Spinner<Double> spnContrast = this.buildSpinner();
 		
-		GridPane layout = new GridPane();
-		layout.setVgap(2);
-		layout.setHgap(2);
-		layout.add(new Label(Translations.get("slide.coloradjust.hue")), 0, 0);
-		layout.add(sldHue, 1, 0);
-		layout.add(new Label(Translations.get("slide.coloradjust.saturation")), 0, 1);
-		layout.add(sldSaturation, 1, 1);
-		layout.add(new Label(Translations.get("slide.coloradjust.brightness")), 0, 2);
-		layout.add(sldBrightness, 1, 2);
-		layout.add(new Label(Translations.get("slide.coloradjust.contrast")), 0, 3);
-		layout.add(sldContrast, 1, 3);
+		int r = 0;
+		EditGridPane grid = new EditGridPane();
+		grid.addRow(r++, new Label(Translations.get("slide.coloradjust.enabled")), enable);
+		grid.addRow(r++, new Label(Translations.get("slide.coloradjust.hue")), sldHue);
+		grid.addRow(r++, new Label(Translations.get("slide.coloradjust.saturation")), sldSaturation);
+		grid.addRow(r++, new Label(Translations.get("slide.coloradjust.brightness")), sldBrightness);
+		grid.addRow(r++, new Label(Translations.get("slide.coloradjust.contrast")), sldContrast);
 		
-		layout.visibleProperty().bind(this.enabled);
-		layout.managedProperty().bind(layout.visibleProperty());
+		grid.showRowsOnly(0);
+		this.enabled.addListener((obs, ov, nv) -> {
+			if (nv) {
+				grid.showRows(0,1,2,3,4);
+			} else {
+				grid.showRowsOnly(0);
+			}
+		});
 		
-		this.setSpacing(2);
-		this.getChildren().addAll(
-				enable,
-				layout);
+//		this.setSpacing(2);
+		this.getChildren().addAll(grid);
 
 //		spnHue.getValueFactory().valueProperty().bindBidirectional(this.hueAsObject);
 		sldHue.valueProperty().bindBidirectional(this.hue);
@@ -108,7 +95,7 @@ public final class SlideColorAdjustPicker extends VBox {
 		BindingHelper.bindBidirectional(this.enabled, this.value, new ObjectConverter<Boolean, SlideColorAdjust>() {
 			@Override
 			public SlideColorAdjust convertFrom(Boolean t) {
-				return SlideColorAdjustPicker.this.getControlValues();
+				return SlideColorAdjustPicker.this.getCurrentValue();
 			}
 			@Override
 			public Boolean convertTo(SlideColorAdjust e) {
@@ -120,7 +107,7 @@ public final class SlideColorAdjustPicker extends VBox {
 		BindingHelper.bindBidirectional(this.hueAsObject, this.value, new ObjectConverter<Double, SlideColorAdjust>() {
 			@Override
 			public SlideColorAdjust convertFrom(Double t) {
-				return SlideColorAdjustPicker.this.getControlValues();
+				return SlideColorAdjustPicker.this.getCurrentValue();
 			}
 			@Override
 			public Double convertTo(SlideColorAdjust e) {
@@ -132,7 +119,7 @@ public final class SlideColorAdjustPicker extends VBox {
 		BindingHelper.bindBidirectional(this.saturationAsObject, this.value, new ObjectConverter<Double, SlideColorAdjust>() {
 			@Override
 			public SlideColorAdjust convertFrom(Double t) {
-				return SlideColorAdjustPicker.this.getControlValues();
+				return SlideColorAdjustPicker.this.getCurrentValue();
 			}
 			@Override
 			public Double convertTo(SlideColorAdjust e) {
@@ -144,7 +131,7 @@ public final class SlideColorAdjustPicker extends VBox {
 		BindingHelper.bindBidirectional(this.brightnessAsObject, this.value, new ObjectConverter<Double, SlideColorAdjust>() {
 			@Override
 			public SlideColorAdjust convertFrom(Double t) {
-				return SlideColorAdjustPicker.this.getControlValues();
+				return SlideColorAdjustPicker.this.getCurrentValue();
 			}
 			@Override
 			public Double convertTo(SlideColorAdjust e) {
@@ -156,7 +143,7 @@ public final class SlideColorAdjustPicker extends VBox {
 		BindingHelper.bindBidirectional(this.contrastAsObject, this.value, new ObjectConverter<Double, SlideColorAdjust>() {
 			@Override
 			public SlideColorAdjust convertFrom(Double t) {
-				return SlideColorAdjustPicker.this.getControlValues();
+				return SlideColorAdjustPicker.this.getCurrentValue();
 			}
 			@Override
 			public Double convertTo(SlideColorAdjust e) {
@@ -166,7 +153,7 @@ public final class SlideColorAdjustPicker extends VBox {
 		});
 	}
 	
-	private SlideColorAdjust getControlValues() {
+	private SlideColorAdjust getCurrentValue() {
 		if (this.enabled.get()) {
 			SlideColorAdjust adjust = new SlideColorAdjust();
 			adjust.setBrightness(this.brightness.get());
