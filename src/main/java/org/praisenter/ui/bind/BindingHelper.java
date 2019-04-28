@@ -36,6 +36,7 @@ public final class BindingHelper {
 		BindingHelper.bindBidirectional(from, to, new ObjectConverter<Option<T>, T>() {
 			@Override
 			public T convertFrom(Option<T> t) {
+				if (t == null) return null;
 				return t.getValue();
 			}
 			
@@ -55,6 +56,8 @@ public final class BindingHelper {
 	 */
 	public static final <T, E> void bindBidirectional(Property<T> from, Property<E> to, ObjectConverter<T, E> mapper) {
 		final Reference<Boolean> isOperating = new Reference<>(false);
+		// set the value of the to property to the current value of the from property
+		to.setValue(mapper.convertFrom(from.getValue()));
 		// NOTE: use weak references to the properties so we don't leak memory by never allowing these to get GC-ed
 		from.addListener(new ChangeListener<T>() {
 			final WeakReference<Property<E>> propRef = new WeakReference<Property<E>>(to);

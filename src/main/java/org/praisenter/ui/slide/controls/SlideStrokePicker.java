@@ -10,7 +10,8 @@ import org.praisenter.data.slide.graphics.SlideStrokeType;
 import org.praisenter.ui.Option;
 import org.praisenter.ui.bind.BindingHelper;
 import org.praisenter.ui.bind.ObjectConverter;
-import org.praisenter.ui.controls.LastValueDoubleStringConverter;
+import org.praisenter.ui.controls.EditGridPane;
+import org.praisenter.ui.controls.LastValueNumberStringConverter;
 import org.praisenter.ui.translations.Translations;
 
 import javafx.beans.binding.BooleanBinding;
@@ -45,7 +46,7 @@ public final class SlideStrokePicker extends VBox {
 	
 	private final BooleanBinding isValueSelected;
 	
-	public SlideStrokePicker(SlideStrokeType type) {
+	public SlideStrokePicker(SlideStrokeType type, String label) {
 		this.value = new SimpleObjectProperty<>();
 		
 		this.type = type;
@@ -57,21 +58,19 @@ public final class SlideStrokePicker extends VBox {
 		this.dashes = new SimpleObjectProperty<>(DashPattern.SOLID);
 		this.isValueSelected = this.paint.isNotNull();
 		
-		SlidePaintPicker pkrPaint = new SlidePaintPicker(null, true, true, true, false, false);
+		SlidePaintPicker pkrPaint = new SlidePaintPicker(null, true, true, true, false, false, label);
 		pkrPaint.valueProperty().bindBidirectional(this.paint);
 		
 		Label lblRadius = new Label(Translations.get("slide.border.radius"));
 		TextField txtRadius = new TextField();
-		TextFormatter<Double> tfRadius = new TextFormatter<Double>(new LastValueDoubleStringConverter());
+		TextFormatter<Double> tfRadius = new TextFormatter<Double>(LastValueNumberStringConverter.forDouble());
 		txtRadius.setTextFormatter(tfRadius);
-		txtRadius.setPrefWidth(50);
 		tfRadius.valueProperty().bindBidirectional(this.radius);
 
 		Label lblWidth = new Label(Translations.get("slide.border.width"));
 		TextField txtWidth = new TextField();
-		TextFormatter<Double> tfWidth = new TextFormatter<Double>(new LastValueDoubleStringConverter());
+		TextFormatter<Double> tfWidth = new TextFormatter<Double>(LastValueNumberStringConverter.forDouble());
 		txtWidth.setTextFormatter(tfWidth);
-		txtWidth.setPrefWidth(50);
 		tfWidth.valueProperty().bindBidirectional(this.width);
 		
 		Label lblCap = new Label(Translations.get("slide.border.cap"));
@@ -80,6 +79,7 @@ public final class SlideStrokePicker extends VBox {
 		capOptions.add(new Option<>(Translations.get("slide.stroke.cap." + SlideStrokeCap.SQUARE), SlideStrokeCap.SQUARE));
 		capOptions.add(new Option<>(Translations.get("slide.stroke.cap." + SlideStrokeCap.ROUND), SlideStrokeCap.ROUND));
 		ChoiceBox<Option<SlideStrokeCap>> cbCap = new ChoiceBox<>(capOptions);
+		cbCap.setMaxWidth(Double.MAX_VALUE);
 		BindingHelper.bindBidirectional(cbCap.valueProperty(), this.cap);
 
 		Label lblJoin = new Label(Translations.get("slide.border.join"));
@@ -88,6 +88,7 @@ public final class SlideStrokePicker extends VBox {
 		joinOptions.add(new Option<>(Translations.get("slide.stroke.join." + SlideStrokeJoin.BEVEL), SlideStrokeJoin.BEVEL));
 		joinOptions.add(new Option<>(Translations.get("slide.stroke.join." + SlideStrokeJoin.ROUND), SlideStrokeJoin.ROUND));
 		ChoiceBox<Option<SlideStrokeJoin>> cbJoin = new ChoiceBox<>(joinOptions);
+		cbJoin.setMaxWidth(Double.MAX_VALUE);
 		BindingHelper.bindBidirectional(cbJoin.valueProperty(), this.join);
 		
 		Label lbldashes = new Label(Translations.get("slide.border.dashes"));
@@ -107,31 +108,42 @@ public final class SlideStrokePicker extends VBox {
 			}
 		});
 		cmbDash.setButtonCell(createPatternListCell());
+		cmbDash.setMaxWidth(Double.MAX_VALUE);
 		cmbDash.valueProperty().bindBidirectional(this.dashes);
 		
-		this.getChildren().addAll(
-			pkrPaint,
-			lblWidth, txtWidth,
-			lblRadius, txtRadius,
-			lblCap, cbCap,
-			lblJoin, cbJoin,
-			lbldashes, cmbDash);
+		int r = 0;
+		EditGridPane grid = new EditGridPane();
+		grid.add(pkrPaint, 0, r++, 2);
+		grid.addRow(r++, lblWidth, txtWidth);
+		grid.addRow(r++, lblRadius, txtRadius);
+		grid.addRow(r++, lblCap, cbCap);
+		grid.addRow(r++, lblJoin, cbJoin);
+		grid.addRow(r++, lbldashes, cmbDash);
 		
-		txtWidth.visibleProperty().bind(this.isValueSelected);
-		txtWidth.managedProperty().bind(txtWidth.visibleProperty());
-		txtRadius.visibleProperty().bind(this.isValueSelected);
-		txtRadius.managedProperty().bind(txtRadius.visibleProperty());
-		cbCap.visibleProperty().bind(this.isValueSelected);
-		cbCap.managedProperty().bind(cbCap.visibleProperty());
-		cbJoin.visibleProperty().bind(this.isValueSelected);
-		cbJoin.managedProperty().bind(cbJoin.visibleProperty());
-		cmbDash.visibleProperty().bind(this.isValueSelected);
-		cmbDash.managedProperty().bind(cmbDash.visibleProperty());
+		this.getChildren().addAll(grid);
+		
+		grid.showRowsOnly(0);
+		
+		this.isValueSelected.addListener((obs, ov, nv) -> {
+			if (nv) grid.showRowsOnly(0,1,2,3,4,5);
+			else grid.showRowsOnly(0);
+		});
+		
+//		txtWidth.visibleProperty().bind(this.isValueSelected);
+//		txtWidth.managedProperty().bind(txtWidth.visibleProperty());
+//		txtRadius.visibleProperty().bind(this.isValueSelected);
+//		txtRadius.managedProperty().bind(txtRadius.visibleProperty());
+//		cbCap.visibleProperty().bind(this.isValueSelected);
+//		cbCap.managedProperty().bind(cbCap.visibleProperty());
+//		cbJoin.visibleProperty().bind(this.isValueSelected);
+//		cbJoin.managedProperty().bind(cbJoin.visibleProperty());
+//		cmbDash.visibleProperty().bind(this.isValueSelected);
+//		cmbDash.managedProperty().bind(cmbDash.visibleProperty());
 		
 		BindingHelper.bindBidirectional(this.paint, this.value, new ObjectConverter<SlidePaint, SlideStroke>() {
 			@Override
 			public SlideStroke convertFrom(SlidePaint t) {
-				return SlideStrokePicker.this.getControlValues();
+				return SlideStrokePicker.this.getCurrentValue();
 			}
 			@Override
 			public SlidePaint convertTo(SlideStroke e) {
@@ -143,7 +155,7 @@ public final class SlideStrokePicker extends VBox {
 		BindingHelper.bindBidirectional(this.radius, this.value, new ObjectConverter<Double, SlideStroke>() {
 			@Override
 			public SlideStroke convertFrom(Double t) {
-				return SlideStrokePicker.this.getControlValues();
+				return SlideStrokePicker.this.getCurrentValue();
 			}
 			@Override
 			public Double convertTo(SlideStroke e) {
@@ -155,7 +167,7 @@ public final class SlideStrokePicker extends VBox {
 		BindingHelper.bindBidirectional(this.width, this.value, new ObjectConverter<Double, SlideStroke>() {
 			@Override
 			public SlideStroke convertFrom(Double t) {
-				return SlideStrokePicker.this.getControlValues();
+				return SlideStrokePicker.this.getCurrentValue();
 			}
 			@Override
 			public Double convertTo(SlideStroke e) {
@@ -167,7 +179,7 @@ public final class SlideStrokePicker extends VBox {
 		BindingHelper.bindBidirectional(this.cap, this.value, new ObjectConverter<SlideStrokeCap, SlideStroke>() {
 			@Override
 			public SlideStroke convertFrom(SlideStrokeCap t) {
-				return SlideStrokePicker.this.getControlValues();
+				return SlideStrokePicker.this.getCurrentValue();
 			}
 			@Override
 			public SlideStrokeCap convertTo(SlideStroke e) {
@@ -181,7 +193,7 @@ public final class SlideStrokePicker extends VBox {
 		BindingHelper.bindBidirectional(this.join, this.value, new ObjectConverter<SlideStrokeJoin, SlideStroke>() {
 			@Override
 			public SlideStroke convertFrom(SlideStrokeJoin t) {
-				return SlideStrokePicker.this.getControlValues();
+				return SlideStrokePicker.this.getCurrentValue();
 			}
 			@Override
 			public SlideStrokeJoin convertTo(SlideStroke e) {
@@ -195,7 +207,7 @@ public final class SlideStrokePicker extends VBox {
 		BindingHelper.bindBidirectional(this.dashes, this.value, new ObjectConverter<DashPattern, SlideStroke>() {
 			@Override
 			public SlideStroke convertFrom(DashPattern t) {
-				return SlideStrokePicker.this.getControlValues();
+				return SlideStrokePicker.this.getCurrentValue();
 			}
 			@Override
 			public DashPattern convertTo(SlideStroke e) {
@@ -207,7 +219,7 @@ public final class SlideStrokePicker extends VBox {
 		});
 	}
 	
-	private SlideStroke getControlValues() {
+	private SlideStroke getCurrentValue() {
 		SlidePaint paint = this.paint.get();
 		if (paint != null) {
 			SlideStroke ss = new SlideStroke();

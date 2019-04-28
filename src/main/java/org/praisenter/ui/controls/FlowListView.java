@@ -550,20 +550,21 @@ public class FlowListView<T> extends ScrollPane {
 		double sy = this.getVvalue();
 		double h = this.layout.getBoundsInParent().getHeight();
 		double w = this.layout.getBoundsInParent().getWidth();
-		double dx = (w - b.getWidth()) * sx + 20;
-		double dy = (h - b.getHeight()) * sy + 20;
 		
-		double dw = b.getWidth() - 20;
-		double dh = b.getHeight() - 20;
-		if (dw < x) {
-			this.setHvalue(this.getHvalue() + 0.01);
-		} else if (x < dx) {
-			this.setHvalue(this.getHvalue() - 0.01);
+		// convert from layout coordinates to scroll coordinates
+		double dx = x - (w - b.getWidth()) * sx;
+		double dy = y - (h - b.getHeight()) * sy;
+		
+		if (dx > b.getWidth()) {
+			this.setHvalue(this.getHvalue() + 0.015);
+		} else if (dx < 0) {
+			this.setHvalue(this.getHvalue() - 0.015);
 		}
-		if (dh < y) {
-			this.setVvalue(this.getVvalue() + 0.01);
-		} else if (y < dy) {
-			this.setVvalue(this.getVvalue() - 0.01);
+		
+		if (dy > b.getHeight()) {
+			this.setVvalue(this.getVvalue() + 0.015);
+		} else if (dy < 0) {
+			this.setVvalue(this.getVvalue() - 0.015);
 		}
 	}
 	

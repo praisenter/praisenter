@@ -3,16 +3,20 @@ package org.praisenter.ui.slide.controls;
 import org.praisenter.data.slide.graphics.SlidePadding;
 import org.praisenter.ui.bind.BindingHelper;
 import org.praisenter.ui.bind.ObjectConverter;
-import org.praisenter.ui.controls.LastValueDoubleStringConverter;
-import org.praisenter.ui.translations.Translations;
+import org.praisenter.ui.controls.LastValueNumberStringConverter;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.scene.control.Label;
+import javafx.geometry.HPos;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.StrokeLineCap;
+import javafx.scene.shape.StrokeLineJoin;
+import javafx.scene.shape.StrokeType;
 
 public final class SlidePaddingPicker extends VBox {
 	private final ObjectProperty<SlidePadding> value;
@@ -31,50 +35,57 @@ public final class SlidePaddingPicker extends VBox {
 		this.left = new SimpleObjectProperty<>();
 		
 		TextField txtTop = new TextField();
-		TextFormatter<Double> tfTop = new TextFormatter<Double>(new LastValueDoubleStringConverter());
+		TextFormatter<Double> tfTop = new TextFormatter<Double>(LastValueNumberStringConverter.forDouble());
 		txtTop.setTextFormatter(tfTop);
-		txtTop.setPrefWidth(50);
+		txtTop.setMaxWidth(50);
 		tfTop.valueProperty().bindBidirectional(this.top);
 
 		TextField txtRight = new TextField();
-		TextFormatter<Double> tfRight = new TextFormatter<Double>(new LastValueDoubleStringConverter());
+		TextFormatter<Double> tfRight = new TextFormatter<Double>(LastValueNumberStringConverter.forDouble());
 		txtRight.setTextFormatter(tfRight);
-		txtRight.setPrefWidth(50);
+		txtRight.setMaxWidth(50);
 		tfRight.valueProperty().bindBidirectional(this.right);
 		
 		TextField txtBottom = new TextField();
-		TextFormatter<Double> tfBottom = new TextFormatter<Double>(new LastValueDoubleStringConverter());
+		TextFormatter<Double> tfBottom = new TextFormatter<Double>(LastValueNumberStringConverter.forDouble());
 		txtBottom.setTextFormatter(tfBottom);
-		txtBottom.setPrefWidth(50);
+		txtBottom.setMaxWidth(50);
 		tfBottom.valueProperty().bindBidirectional(this.bottom);
 		
 		TextField txtLeft = new TextField();
-		TextFormatter<Double> tfLeft = new TextFormatter<Double>(new LastValueDoubleStringConverter());
+		TextFormatter<Double> tfLeft = new TextFormatter<Double>(LastValueNumberStringConverter.forDouble());
 		txtLeft.setTextFormatter(tfLeft);
-		txtLeft.setPrefWidth(50);
+		txtLeft.setMaxWidth(50);
 		tfLeft.valueProperty().bindBidirectional(this.left);
 		
-		Label lblTop = new Label(Translations.get("slide.padding.top"));
-		Label lblRight = new Label(Translations.get("slide.padding.right"));
-		Label lblBottom = new Label(Translations.get("slide.padding.bottom"));
-		Label lblLeft = new Label(Translations.get("slide.padding.left"));
+		// TODO CSS some of these values
+		Rectangle r = new Rectangle(0, 0, 50, 50);
+		r.setStroke(Color.BLACK);
+		r.setStrokeWidth(1);
+		r.setStrokeType(StrokeType.OUTSIDE);
+		r.setStrokeLineCap(StrokeLineCap.BUTT);
+		r.setStrokeLineJoin(StrokeLineJoin.MITER);
+		r.setStrokeMiterLimit(10);
+		r.setFill(Color.TRANSPARENT);
 		
 		GridPane layout = new GridPane();
-		layout.add(lblTop, 0, 0);
-		layout.add(lblRight, 1, 0);
-		layout.add(lblBottom, 2, 0);
-		layout.add(lblLeft, 3, 0);
-		layout.add(txtTop, 0, 1);
-		layout.add(txtRight, 1, 1);
-		layout.add(txtBottom, 2, 1);
-		layout.add(txtLeft, 3, 1);
+		layout.setVgap(10);
+		layout.setHgap(10);
+		layout.add(txtTop, 1, 0);
+		layout.add(txtRight, 2, 1);
+		layout.add(txtBottom, 1, 2);
+		layout.add(txtLeft, 0, 1);
+		layout.add(r, 1, 1);
+		
+		GridPane.setHalignment(txtTop, HPos.CENTER);
+		GridPane.setHalignment(txtBottom, HPos.CENTER);
 		
 		this.getChildren().addAll(layout);
 		
 		BindingHelper.bindBidirectional(this.top, this.value, new ObjectConverter<Double, SlidePadding>() {
 			@Override
 			public SlidePadding convertFrom(Double t) {
-				return SlidePaddingPicker.this.getControlValues();
+				return SlidePaddingPicker.this.getCurrentValue();
 			}
 			@Override
 			public Double convertTo(SlidePadding e) {
@@ -86,7 +97,7 @@ public final class SlidePaddingPicker extends VBox {
 		BindingHelper.bindBidirectional(this.right, this.value, new ObjectConverter<Double, SlidePadding>() {
 			@Override
 			public SlidePadding convertFrom(Double t) {
-				return SlidePaddingPicker.this.getControlValues();
+				return SlidePaddingPicker.this.getCurrentValue();
 			}
 			@Override
 			public Double convertTo(SlidePadding e) {
@@ -98,7 +109,7 @@ public final class SlidePaddingPicker extends VBox {
 		BindingHelper.bindBidirectional(this.bottom, this.value, new ObjectConverter<Double, SlidePadding>() {
 			@Override
 			public SlidePadding convertFrom(Double t) {
-				return SlidePaddingPicker.this.getControlValues();
+				return SlidePaddingPicker.this.getCurrentValue();
 			}
 			@Override
 			public Double convertTo(SlidePadding e) {
@@ -110,7 +121,7 @@ public final class SlidePaddingPicker extends VBox {
 		BindingHelper.bindBidirectional(this.left, this.value, new ObjectConverter<Double, SlidePadding>() {
 			@Override
 			public SlidePadding convertFrom(Double t) {
-				return SlidePaddingPicker.this.getControlValues();
+				return SlidePaddingPicker.this.getCurrentValue();
 			}
 			@Override
 			public Double convertTo(SlidePadding e) {
@@ -120,12 +131,18 @@ public final class SlidePaddingPicker extends VBox {
 		});
 	}
 	
-	private SlidePadding getControlValues() {
+	private SlidePadding getCurrentValue() {
 		return new SlidePadding(
-			this.top.get(), 
-			this.right.get(), 
-			this.bottom.get(), 
-			this.left.get());
+				this.getDoubleValue(this.top), 
+				this.getDoubleValue(this.right), 
+				this.getDoubleValue(this.bottom), 
+				this.getDoubleValue(this.left));
+	}
+	
+	private double getDoubleValue(ObjectProperty<Double> property) {
+		Double value = property.get();
+		if (value == null) return 0.0;
+		return value.doubleValue();
 	}
 	
 	public SlidePadding getValue() {

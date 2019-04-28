@@ -78,10 +78,10 @@ public final class TagListView extends BorderPane {
 		this.tags = FXCollections.observableSet();
 		this.tagNodes = FXCollections.observableArrayList();
 		
-		this.getStyleClass().add("p-tag-list-view");
+		this.getStyleClass().add("tag-list-view");
 		
 		FlowPane btns = new FlowPane();
-		btns.getStyleClass().add("p-tag-list-view-tags");
+		btns.getStyleClass().add("tag-list-view-tags");
 		
 		// bind the children of this view to the tagNode list
 		Bindings.bindContent(btns.getChildren(), this.tagNodes);
@@ -159,7 +159,7 @@ public final class TagListView extends BorderPane {
 	 */
 	private final Button generateTagNode(Tag tag) {
 		Button btn = new Button(tag.getName(), generateX());
-		btn.getStyleClass().add("p-tag");
+		btn.getStyleClass().add("tag");
 		btn.setTooltip(new Tooltip(tag.getName()));
 		btn.setUserData(tag);
 		
@@ -190,7 +190,7 @@ public final class TagListView extends BorderPane {
     	MoveTo m2 = new MoveTo(7, 0);
     	LineTo l2 = new LineTo(0, 7);
     	x.getElements().addAll(m1, l1, m2, l2);
-    	x.getStyleClass().add("p-tag-list-view-tag-x");
+    	x.getStyleClass().add("tag-list-view-tag-x");
     	return x;
 	}
 	

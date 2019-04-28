@@ -102,7 +102,7 @@ public class HelloWorldJavaFx extends Application {
 //    	VBox.setVgrow(se, Priority.ALWAYS);
         
     	SlideGradientPicker sgp = new SlideGradientPicker();
-    	SlideShadowPicker ssp = new SlideShadowPicker();
+    	SlideShadowPicker ssp = new SlideShadowPicker("");
     	
     	VBox layout = new VBox(
     			sgp,

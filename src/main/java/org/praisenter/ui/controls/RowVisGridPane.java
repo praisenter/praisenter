@@ -54,7 +54,10 @@ public class RowVisGridPane extends GridPane {
 	
 	@Override
 	public void addRow(int rowIndex, Node... children) {
-		throw new UnsupportedOperationException();
+		int column = 0;
+		for (Node child : children) {
+			this.add(child, column++, rowIndex);
+		}
 	}
 	
 	public void hideRow(int rowIndex) {
@@ -113,18 +116,38 @@ public class RowVisGridPane extends GridPane {
 		this.reLayout();
 	}
 	
-	private void reLayout() {
-		this.getChildren().clear();
-		
+	protected int reLayout() {
 		int i = 0;
+		
+		// add or remove nodes
+		for (RowDefinition row : this.rows.values()) {
+			if (!row.visible) {
+				// remove all the column nodes
+				for (ColumnDefinition col : row.columns.values()) {
+					this.getChildren().remove(col.node);
+				}
+			}
+			if (row.visible) {
+				// add any column nodes that aren't already on the scene
+				for (ColumnDefinition col : row.columns.values()) {
+					if (!this.getChildren().contains(col.node)) {
+						this.getChildren().add(col.node);
+					}
+				}
+			}
+		}
+		
+		// reset the column constraints
 		for (RowDefinition row : this.rows.values()) {
 			if (row.visible) {
 				for (ColumnDefinition col : row.columns.values()) {
-					super.add(col.node, col.column, i, col.colspan, 1);
+					GridPane.setConstraints(col.node, col.column, i, col.colspan, 1);
 				}
 				i++;
 			}
 		}
+		
+		return i;
 	}
 	
 	private class ColumnDefinition {

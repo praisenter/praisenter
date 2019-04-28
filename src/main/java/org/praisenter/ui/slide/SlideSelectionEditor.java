@@ -40,9 +40,8 @@ import org.praisenter.ui.Option;
 import org.praisenter.ui.bind.BindingHelper;
 import org.praisenter.ui.bind.ObjectConverter;
 import org.praisenter.ui.controls.DateTimePicker;
-import org.praisenter.ui.controls.IntegerSpinnerValueFactory;
-import org.praisenter.ui.controls.IntegerStringConverter;
-import org.praisenter.ui.controls.LastValueDoubleStringConverter;
+import org.praisenter.ui.controls.EditGridPane;
+import org.praisenter.ui.controls.LastValueNumberStringConverter;
 import org.praisenter.ui.controls.LongSpinnerValueFactory;
 import org.praisenter.ui.controls.SimpleDateFormatConverter;
 import org.praisenter.ui.controls.TagListView;
@@ -77,6 +76,7 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableSet;
+import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -89,6 +89,7 @@ import javafx.scene.control.Slider;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextFormatter;
 import javafx.scene.control.TitledPane;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.HBox;
@@ -110,8 +111,10 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 
 	// slide
 	private final StringProperty name;
-	private final ObjectProperty<Integer> width;
-	private final ObjectProperty<Integer> height;
+	private final DoubleProperty width;
+	private final DoubleProperty height;
+	private final ObjectProperty<Double> widthAsObject;
+	private final ObjectProperty<Double> heightAsObject;
 	private final LongProperty time;
 	private final ObjectProperty<Long> timeAsObject;
 	private final ObjectProperty<SlidePaint> background;
@@ -186,8 +189,10 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 		this.selectedItem = new SimpleObjectProperty<>();
 		
 		this.name = new SimpleStringProperty();
-		this.width = new SimpleObjectProperty<>();
-		this.height = new SimpleObjectProperty<>();
+		this.width = new SimpleDoubleProperty();
+		this.height = new SimpleDoubleProperty();
+		this.widthAsObject = this.width.asObject();
+		this.heightAsObject = this.height.asObject();
 		this.time = new SimpleLongProperty();
 		this.timeAsObject = this.time.asObject();
 		this.background = new SimpleObjectProperty<>();
@@ -198,9 +203,11 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 		
 		ObservableList<Resolution> resolutions = FXCollections.observableArrayList();
 		resolutions.addAll(context.getConfiguration().getResolutions());
-		this.updateResolutions(resolutions);
+		this.updateScreenResolutions(resolutions);
+		this.updateSlideResolutions(resolutions);
 		
-		Screen.getScreens().addListener((InvalidationListener)(obs -> this.updateResolutions(resolutions)));
+		Screen.getScreens().addListener((InvalidationListener)(obs -> this.updateScreenResolutions(resolutions)));
+		this.context.getDataManager().getItemsUnmodifiable(Slide.class).addListener((InvalidationListener)obs -> this.updateSlideResolutions(resolutions));
 		
 		this.resolutions = new MappedList<Option<Resolution>, Resolution>(resolutions.sorted(), r -> {
 			Option<Resolution> option = new Option<>(null, r);
@@ -328,6 +335,8 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 			if (ov != null) {
 				this.name.unbindBidirectional(ov.nameProperty());
 				this.time.unbindBidirectional(ov.timeProperty());
+				this.width.unbindBidirectional(ov.widthProperty());
+				this.height.unbindBidirectional(ov.heightProperty());
 				this.background.unbindBidirectional(ov.backgroundProperty());
 				this.border.unbindBidirectional(ov.borderProperty());
 				this.opacity.unbindBidirectional(ov.opacityProperty());
@@ -340,11 +349,10 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 			}
 			
 			if (nv != null) {
-				this.width.set((int)Math.ceil(nv.getWidth()));
-				this.height.set((int)Math.ceil(nv.getHeight()));
-				
 				this.name.bindBidirectional(nv.nameProperty());
 				this.time.bindBidirectional(nv.timeProperty());
+				this.width.bindBidirectional(nv.widthProperty());
+				this.height.bindBidirectional(nv.heightProperty());
 				this.background.bindBidirectional(nv.backgroundProperty());
 				this.border.bindBidirectional(nv.borderProperty());
 				this.opacity.bindBidirectional(nv.opacityProperty());
@@ -434,107 +442,209 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 		});
 		
 		// UI
-		
-		Label lblName = new Label(Translations.get("item.name"));
 		TextField txtName = new TextField();
 		txtName.textProperty().bindBidirectional(this.name);
 		
-		Label lblTargetSize = new Label(Translations.get("slide.target"));
 		ComboBox<Option<Resolution>> cmbTargetSize = new ComboBox<>(this.resolutions);
-		
-		Spinner<Integer> spnWidth = new Spinner<>();
-		IntegerSpinnerValueFactory spnWidthVF = new IntegerSpinnerValueFactory(0, Integer.MAX_VALUE);
-		spnWidthVF.setConverter(new IntegerStringConverter(originalValueText -> {
-			Platform.runLater(() -> {
-				spnWidth.getEditor().setText(originalValueText);
-			});
-		}));
-		spnWidth.setValueFactory(spnWidthVF);
-		spnWidth.setEditable(true);
-		spnWidth.getValueFactory().valueProperty().bindBidirectional(this.width);
-
-		Spinner<Integer> spnHeight = new Spinner<>();
-		IntegerSpinnerValueFactory spnHeightVF = new IntegerSpinnerValueFactory(0, Integer.MAX_VALUE);
-		spnHeightVF.setConverter(new IntegerStringConverter(originalValueText -> {
-			Platform.runLater(() -> {
-				spnHeight.getEditor().setText(originalValueText);
-			});
-		}));
-		spnHeight.setValueFactory(spnHeightVF);
-		spnHeight.setEditable(true);
-		spnHeight.getValueFactory().valueProperty().bindBidirectional(this.height);
-		
 		cmbTargetSize.valueProperty().addListener((obs, ov, nv) -> {
 			if (nv != null) {
 				Resolution r = nv.getValue();
 				if (r != null) {
-					spnWidth.getValueFactory().setValue(r.getWidth());
-					spnHeight.getValueFactory().setValue(r.getHeight());
-				}
-			}
-		});
-		
-		Button btnApplySize = new Button("", Glyphs.WARN.duplicate());
-		Button btnResetSize = new Button("", Glyphs.UNDO.duplicate());
-		Button btnSaveSize = new Button("", Glyphs.SAVE.duplicate());
-		
-		btnApplySize.setOnAction(e -> {
-			DocumentContext<Slide> document = this.documentContext.get();
-			if (document != null) {
-				Slide slide = document.getDocument();
-				if (slide != null) {
-					int cw = (int)Math.ceil(slide.getWidth());
-					int ch = (int)Math.ceil(slide.getHeight());
-					int tw = spnWidth.getValue();
-					int th = spnHeight.getValue();
-					
-					if (cw != tw || ch != th) {
-						UndoManager undoManager = document.getUndoManager();
-						undoManager.addEdit(new SlideTargetSizeEdit(
-								this.width,
-								this.height,
-								cw, ch, tw, th,
-								(w, h) -> {
-									slide.fit(w, h);
-								}));
-						// update the slide
-						slide.fit(tw, th);
+					DocumentContext<Slide> document = this.documentContext.get();
+					if (document != null) {
+						Slide slide = document.getDocument();
+						if (slide != null) {
+							double cw = slide.getWidth();
+							double ch = slide.getHeight();
+							double tw = r.getWidth();
+							double th = r.getHeight();
+							
+							if (cw != tw || ch != th) {
+								UndoManager um = document.getUndoManager();
+								// add the undo record
+								um.addEdit(new SlideTargetSizeEdit(
+										cw, ch, tw, th,
+										(w, h) -> {
+											slide.fit(w, h);
+										}));
+								// since this will call the listeners below, just start
+								// a batch and discard it
+								um.beginBatch("discard");
+								slide.fit(tw, th);
+								um.discardBatch();
+							}
+						}
 					}
 				}
 			}
 		});
 		
-		btnResetSize.setOnAction(e -> {
+		// we need to track and add to undo manager when the width/height changes for the slide (For components this is handled separately via mouse click-drag)
+		
+		this.width.addListener((obs, ov, nv) -> {
 			DocumentContext<Slide> document = this.documentContext.get();
 			if (document != null) {
 				Slide slide = document.getDocument();
 				if (slide != null) {
-					int cw = (int)Math.ceil(slide.getWidth());
-					int ch = (int)Math.ceil(slide.getHeight());
-					
-					spnWidth.getValueFactory().setValue(cw);
-					spnHeight.getValueFactory().setValue(ch);
+					double cw = slide.getWidth();
+					double ch = slide.getHeight();
+					double tw = nv != null ? nv.doubleValue() : cw;
+					if (cw != tw) {
+						UndoManager um = document.getUndoManager();
+						um.addEdit(new SlideTargetSizeEdit(cw, ch, tw, ch, (w, h) -> {
+							slide.fit(w, h);
+						}));
+						slide.fit(tw, ch);
+					}
 				}
 			}
 		});
 		
-		btnSaveSize.setOnAction(e -> {
-			int tw = spnWidth.getValue();
-			int th = spnHeight.getValue();
-			Resolution nr = new Resolution(tw, th);
-			if (resolutions.indexOf(nr) < 0) {
-				resolutions.add(nr);
-				this.context.getConfiguration().getResolutions().add(nr);
-				this.context.saveConfiguration();
+		this.height.addListener((obs, ov, nv) -> {
+			DocumentContext<Slide> document = this.documentContext.get();
+			if (document != null) {
+				Slide slide = document.getDocument();
+				if (slide != null) {
+					double cw = slide.getWidth();
+					double ch = slide.getHeight();
+					double th = nv != null ? nv.doubleValue() : ch;
+					if (ch != th) {
+						UndoManager um = document.getUndoManager();
+						um.addEdit(new SlideTargetSizeEdit(cw, ch, cw, th, (w, h) -> {
+							slide.fit(w, h);
+						}));
+						slide.fit(cw, th);
+					}
+				}
 			}
 		});
 		
-		Label lblBackground = new Label(Translations.get("slide.background"));
-		SlidePaintPicker pkrBackground = new SlidePaintPicker(context, true, true, true, true, true);
+		ObjectConverter<Integer, Double> intToDoubleConverter = new ObjectConverter<Integer, Double>() {
+			@Override
+			public Double convertFrom(Integer t) {
+				if (t == null) return 0.0;
+				return t.doubleValue();
+			}
+			@Override
+			public Integer convertTo(Double e) {
+				if (e == null) return 0;
+				return e.intValue();
+			}
+		};
+		
+		TextField txtWidth = new TextField();
+		TextFormatter<Integer> tfWidth = new TextFormatter<Integer>(LastValueNumberStringConverter.forInteger(originalValueText -> {
+			Platform.runLater(() -> {
+				txtWidth.setText(originalValueText);
+			});
+		}));
+		txtWidth.setTextFormatter(tfWidth);
+		BindingHelper.bindBidirectional(tfWidth.valueProperty(), this.widthAsObject, intToDoubleConverter);
+
+		TextField txtHeight = new TextField();
+		TextFormatter<Integer> tfHeight = new TextFormatter<Integer>(LastValueNumberStringConverter.forInteger(originalValueText -> {
+			Platform.runLater(() -> {
+				txtHeight.setText(originalValueText);
+			});
+		}));
+		txtHeight.setTextFormatter(tfHeight);
+		BindingHelper.bindBidirectional(tfHeight.valueProperty(), this.heightAsObject, intToDoubleConverter);
+		
+		Spinner<Long> spnTime = new Spinner<>(0, Long.MAX_VALUE, 0, 5);
+		spnTime.setEditable(true);
+		LongSpinnerValueFactory spnTimeVF = new LongSpinnerValueFactory(0, Long.MAX_VALUE, 0, 5);
+		spnTimeVF.setConverter(new TimeStringConverter((originalValueText) -> {
+			Platform.runLater(() -> {
+				spnTime.getEditor().setText(originalValueText);
+			});
+		}));
+		spnTime.setValueFactory(spnTimeVF);
+		spnTime.getValueFactory().valueProperty().bindBidirectional(this.timeAsObject);
+		
+		Slider sldOpacity = new Slider(0, 1, 1);
+		sldOpacity.valueProperty().bindBidirectional(this.opacity);
+		
+//		Spinner<Integer> spnWidth = new Spinner<>();
+//		IntegerSpinnerValueFactory spnWidthVF = new IntegerSpinnerValueFactory(0, Integer.MAX_VALUE);
+//		spnWidthVF.setConverter(new IntegerStringConverter(originalValueText -> {
+//			Platform.runLater(() -> {
+//				spnWidth.getEditor().setText(originalValueText);
+//			});
+//		}));
+//		spnWidth.setValueFactory(spnWidthVF);
+//		spnWidth.setEditable(true);
+//		spnWidth.getValueFactory().valueProperty().bindBidirectional(this.width);
+//
+//		Spinner<Integer> spnHeight = new Spinner<>();
+//		IntegerSpinnerValueFactory spnHeightVF = new IntegerSpinnerValueFactory(0, Integer.MAX_VALUE);
+//		spnHeightVF.setConverter(new IntegerStringConverter(originalValueText -> {
+//			Platform.runLater(() -> {
+//				spnHeight.getEditor().setText(originalValueText);
+//			});
+//		}));
+//		spnHeight.setValueFactory(spnHeightVF);
+//		spnHeight.setEditable(true);
+//		spnHeight.getValueFactory().valueProperty().bindBidirectional(this.height);
+		
+//		Button btnApplySize = new Button("", Glyphs.WARN.duplicate());
+//		Button btnResetSize = new Button("", Glyphs.UNDO.duplicate());
+//		Button btnSaveSize = new Button("", Glyphs.SAVE.duplicate());
+//		
+//		btnApplySize.setOnAction(e -> {
+//			DocumentContext<Slide> document = this.documentContext.get();
+//			if (document != null) {
+//				Slide slide = document.getDocument();
+//				if (slide != null) {
+//					int cw = (int)Math.ceil(slide.getWidth());
+//					int ch = (int)Math.ceil(slide.getHeight());
+//					int tw = spnWidth.getValue();
+//					int th = spnHeight.getValue();
+//					
+//					if (cw != tw || ch != th) {
+//						UndoManager undoManager = document.getUndoManager();
+//						undoManager.addEdit(new SlideTargetSizeEdit(
+//								this.width,
+//								this.height,
+//								cw, ch, tw, th,
+//								(w, h) -> {
+//									slide.fit(w, h);
+//								}));
+//						// update the slide
+//						slide.fit(tw, th);
+//					}
+//				}
+//			}
+//		});
+//		
+//		btnResetSize.setOnAction(e -> {
+//			DocumentContext<Slide> document = this.documentContext.get();
+//			if (document != null) {
+//				Slide slide = document.getDocument();
+//				if (slide != null) {
+//					int cw = (int)Math.ceil(slide.getWidth());
+//					int ch = (int)Math.ceil(slide.getHeight());
+//					
+//					spnWidth.getValueFactory().setValue(cw);
+//					spnHeight.getValueFactory().setValue(ch);
+//				}
+//			}
+//		});
+//		
+//		btnSaveSize.setOnAction(e -> {
+//			int tw = spnWidth.getValue();
+//			int th = spnHeight.getValue();
+//			Resolution nr = new Resolution(tw, th);
+//			if (resolutions.indexOf(nr) < 0) {
+//				resolutions.add(nr);
+//				this.context.getConfiguration().getResolutions().add(nr);
+//				this.context.saveConfiguration();
+//			}
+//		});
+		
+		SlidePaintPicker pkrBackground = new SlidePaintPicker(context, true, true, true, true, true, Translations.get("slide.background"));
 		pkrBackground.valueProperty().bindBidirectional(this.background);
 		
-		Label lblBorder = new Label(Translations.get("slide.border"));
-		SlideStrokePicker pkrBorder = new SlideStrokePicker(SlideStrokeType.INSIDE);
+		SlideStrokePicker pkrBorder = new SlideStrokePicker(SlideStrokeType.INSIDE, Translations.get("slide.border"));
 		pkrBorder.valueProperty().bindBidirectional(this.border);
 		
 		Button btnInsertText = new Button("t");
@@ -611,22 +721,6 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 				slide.getComponents().add(mc);
 			}
 		});
-		
-		Label lblTime = new Label(Translations.get("slide.time"));
-		Spinner<Long> spnTime = new Spinner<>(0, Long.MAX_VALUE, 0, 5);
-		spnTime.setEditable(true);
-		LongSpinnerValueFactory spnTimeVF = new LongSpinnerValueFactory(0, Long.MAX_VALUE, 0, 5);
-		spnTimeVF.setConverter(new TimeStringConverter((originalValueText) -> {
-			Platform.runLater(() -> {
-				spnTime.getEditor().setText(originalValueText);
-			});
-		}));
-		spnTime.setValueFactory(spnTimeVF);
-		spnTime.getValueFactory().valueProperty().bindBidirectional(this.timeAsObject);
-		
-		Label lblOpacity = new Label(Translations.get("slide.opacity"));
-		Slider sldOpacity = new Slider(0, 1, 1);
-		sldOpacity.valueProperty().bindBidirectional(this.opacity);
 
 		TagListView viewTags = new TagListView(this.context.getDataManager().getTagsUmodifiable());
 		Bindings.bindContentBidirectional(viewTags.getTags(), this.tags);
@@ -692,61 +786,51 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 			}
 		});
 		
-		Label lblComponentBackground = new Label(Translations.get("slide.background"));
-		SlidePaintPicker pkrComponentBackground = new SlidePaintPicker(context, true, true, true, true, true);
+		SlidePaintPicker pkrComponentBackground = new SlidePaintPicker(context, true, true, true, true, true, Translations.get("slide.background"));
 		pkrComponentBackground.valueProperty().bindBidirectional(this.componentBackground);
 		
-		Label lblComponentBorder = new Label(Translations.get("slide.border"));
-		SlideStrokePicker pkrComponentBorder = new SlideStrokePicker(SlideStrokeType.CENTERED);
+		SlideStrokePicker pkrComponentBorder = new SlideStrokePicker(SlideStrokeType.CENTERED, Translations.get("slide.border"));
 		pkrComponentBorder.valueProperty().bindBidirectional(this.componentBorder);
 		
 		Label lblComponentOpacity = new Label(Translations.get("slide.opacity"));
 		Slider sldComponentOpacity = new Slider(0, 1, 1);
 		sldComponentOpacity.valueProperty().bindBidirectional(this.componentOpacity);
 		
-		Label lblComponentShadow = new Label(Translations.get("slide.shadow"));
-		SlideShadowPicker pkrComponentShadow = new SlideShadowPicker();
+		SlideShadowPicker pkrComponentShadow = new SlideShadowPicker(Translations.get("slide.shadow"));
 		pkrComponentShadow.valueProperty().bindBidirectional(this.componentShadow);
 
-		Label lblComponentGlow = new Label(Translations.get("slide.glow"));
-		SlideShadowPicker pkrComponentGlow = new SlideShadowPicker();
+		SlideShadowPicker pkrComponentGlow = new SlideShadowPicker(Translations.get("slide.glow"));
 		pkrComponentGlow.valueProperty().bindBidirectional(this.componentGlow);
 		
 		// media component
 		
-		Label lblComponentMedia = new Label(Translations.get("media"));
 		MediaObjectPicker pkrComponentMedia = new MediaObjectPicker(context, MediaType.AUDIO, MediaType.VIDEO, MediaType.IMAGE);
 		pkrComponentMedia.valueProperty().bindBidirectional(this.componentMedia);
 		
 		// basic text component
 		
-		Label lblComponentText = new Label(Translations.get("slide.text"));
 		TextArea txtComponentText = new TextArea();
 		txtComponentText.setWrapText(true);
 		txtComponentText.textProperty().bindBidirectional(this.componentText);
 		
-		Label lblComponentTextPaint = new Label(Translations.get("slide.text.paint"));
-		SlidePaintPicker pkrComponentTextPaint = new SlidePaintPicker(context, false, true, true, false, false);
+		SlidePaintPicker pkrComponentTextPaint = new SlidePaintPicker(context, false, true, true, false, false, Translations.get("slide.text.paint"));
 		pkrComponentTextPaint.valueProperty().bindBidirectional(this.componentTextPaint);
 
 		// NOTE: for performance, the text border HAS to be of type CENTERED
-		Label lblComponentTextBorder = new Label(Translations.get("slide.text.border"));
-		SlideStrokePicker pkrComponentTextBorder = new SlideStrokePicker(SlideStrokeType.CENTERED);
+		SlideStrokePicker pkrComponentTextBorder = new SlideStrokePicker(SlideStrokeType.CENTERED, Translations.get("slide.text.border"));
 		pkrComponentTextBorder.valueProperty().bindBidirectional(this.componentTextBorder);
 		
-		Label lblComponentFont = new Label(Translations.get("slide.font"));
-		SlideFontPicker pkrComponentFont = new SlideFontPicker();
+		SlideFontPicker pkrComponentFont = new SlideFontPicker(Translations.get("slide.font"));
 		pkrComponentFont.valueProperty().bindBidirectional(this.componentFont);
 		
-		Label lblComponentFontScaleType = new Label(Translations.get("slide.font.scale"));
 		ObservableList<Option<FontScaleType>> fontScaleOptions = FXCollections.observableArrayList();
 		for (FontScaleType type : FontScaleType.values()) {
 			fontScaleOptions.add(new Option<FontScaleType>(Translations.get("slide.font.scale." + type), type));
 		}
 		ChoiceBox<Option<FontScaleType>> cbComponentFontScaleType = new ChoiceBox<>(fontScaleOptions);
+		cbComponentFontScaleType.setMaxWidth(Double.MAX_VALUE);
 		BindingHelper.bindBidirectional(cbComponentFontScaleType.valueProperty(), this.componentFontScaleType);
 		
-		Label lblComponentTextHAlignment = new Label(Translations.get("slide.text.halignment"));
 //		ObservableList<Option<HorizontalTextAlignment>> hAlignmentOptions = FXCollections.observableArrayList();
 //		for (HorizontalTextAlignment alignment : HorizontalTextAlignment.values()) {
 //			hAlignmentOptions.add(new Option<HorizontalTextAlignment>(Translations.get("slide.text.halignment" + alignment), alignment));
@@ -766,7 +850,6 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 //		SegmentedButton segComponentHAlignment = new SegmentedButton(tglHAlignLeft, tglHAlignCenter, tglHAlignRight, tglHAlignJustify);
 		HBox segComponentHAlignment = new HBox(1, tglHAlignLeft, tglHAlignCenter, tglHAlignRight, tglHAlignJustify);
 
-		Label lblComponentTextVAlignment = new Label(Translations.get("slide.text.valignment"));
 //		ObservableList<Option<VerticalTextAlignment>> vAlignmentOptions = FXCollections.observableArrayList();
 //		for (VerticalTextAlignment alignment : VerticalTextAlignment.values()) {
 //			vAlignmentOptions.add(new Option<VerticalTextAlignment>(Translations.get("slide.text.valignment." + alignment), alignment));
@@ -782,35 +865,37 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 		BindingHelper.bindBidirectional(this.componentVerticalTextAlignment, tglVAlignBottom.selectedProperty(), VerticalTextAlignment.BOTTOM);
 		HBox segComponentVAlignment = new HBox(1, tglVAlignTop, tglVAlignCenter, tglVAlignBottom);
 		
-		Label lblComponentPadding = new Label(Translations.get("slide.text.padding"));
 		SlidePaddingPicker pkrComponentPadding = new SlidePaddingPicker();
 		pkrComponentPadding.valueProperty().bindBidirectional(this.componentPadding);
 		
-		Label lblComponentLineSpacing = new Label(Translations.get("slide.text.linespacing"));
-		Spinner<Double> spnComponentLineSpacing = new Spinner<>(-Double.MAX_VALUE, Double.MAX_VALUE, 1, 0.1);
-		spnComponentLineSpacing.setEditable(true);
-		spnComponentLineSpacing.getValueFactory().setConverter(new LastValueDoubleStringConverter((originalValueText) -> {
+		TextField txtLineSpacing = new TextField();
+		TextFormatter<Double> tfLineSpacing = new TextFormatter<Double>(LastValueNumberStringConverter.forDouble(originalValueText -> {
 			Platform.runLater(() -> {
-				spnComponentLineSpacing.getEditor().setText(originalValueText);
+				txtLineSpacing.setText(originalValueText);
 			});
 		}));
-		spnComponentLineSpacing.getValueFactory().valueProperty().bindBidirectional(this.componentLineSpacingAsObject);
+		txtLineSpacing.setTextFormatter(tfLineSpacing);
+		tfLineSpacing.valueProperty().bindBidirectional(this.componentLineSpacingAsObject);
+//		Spinner<Double> spnComponentLineSpacing = new Spinner<>(-Double.MAX_VALUE, Double.MAX_VALUE, 1, 0.1);
+//		spnComponentLineSpacing.setEditable(true);
+//		spnComponentLineSpacing.getValueFactory().setConverter(LastValueNumberStringConverter.forDouble((originalValueText) -> {
+//			Platform.runLater(() -> {
+//				spnComponentLineSpacing.getEditor().setText(originalValueText);
+//			});
+//		}));
+//		spnComponentLineSpacing.getValueFactory().valueProperty().bindBidirectional(this.componentLineSpacingAsObject);
 		
-//		Label lblComponentTextWrapping = new Label(Translations.get("slide.text.wrapping"));
-		CheckBox chkComponentTextWrapping = new CheckBox(Translations.get("slide.text.wrapping"));
+		CheckBox chkComponentTextWrapping = new CheckBox();
 		chkComponentTextWrapping.selectedProperty().bindBidirectional(this.componentTextWrapping);
 		
-		Label lblComponentTextShadow = new Label(Translations.get("slide.shadow"));
-		SlideShadowPicker pkrComponentTextShadow = new SlideShadowPicker();
+		SlideShadowPicker pkrComponentTextShadow = new SlideShadowPicker(Translations.get("slide.text.shadow"));
 		pkrComponentTextShadow.valueProperty().bindBidirectional(this.componentTextShadow);
 
-		Label lblComponentTextGlow = new Label(Translations.get("slide.glow"));
-		SlideShadowPicker pkrComponentTextGlow = new SlideShadowPicker();
+		SlideShadowPicker pkrComponentTextGlow = new SlideShadowPicker(Translations.get("slide.text.glow"));
 		pkrComponentTextGlow.valueProperty().bindBidirectional(this.componentTextGlow);
 		
 		// placeholder component
 		
-		Label lblComponentPlaceholderVariant = new Label(Translations.get("slide.placeholder.variant"));
 		ObservableList<Option<TextVariant>> placeholderVariantOptions = FXCollections.observableArrayList();
 		for (TextVariant variant : TextVariant.values()) {
 			placeholderVariantOptions.add(new Option<TextVariant>(Translations.get("slide.text.variant." + variant), variant));
@@ -818,7 +903,6 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 		ChoiceBox<Option<TextVariant>> cbComponentTextVariant = new ChoiceBox<>(placeholderVariantOptions);
 		BindingHelper.bindBidirectional(cbComponentTextVariant.valueProperty(), this.componentPlaceholderVariant);
 		
-		Label lblComponentPlaceholderType = new Label(Translations.get("slide.placeholder.type"));
 		ObservableList<Option<TextType>> placeholderTypeOptions = FXCollections.observableArrayList();
 		for (TextType textType : TextType.values()) {
 			placeholderTypeOptions.add(new Option<TextType>(Translations.get("slide.text.type." + textType), textType));
@@ -828,7 +912,6 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 
 		// datetime component
 		
-		Label lblComponentDateTimeFormat = new Label(Translations.get("slide.datetime.format"));
 		ObservableList<SimpleDateFormat> dateTimeFormatOptions = FXCollections.observableArrayList();
 		dateTimeFormatOptions.add(new SimpleDateFormat("EEEE MMMM, d yyyy"));
 		dateTimeFormatOptions.add(new SimpleDateFormat("EEEE MMMM, d yyyy h:mm a"));
@@ -846,11 +929,9 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 		
 		// countdown component
 		
-		Label lblComponentCountdownTarget = new Label(Translations.get("slide.countdown.target"));
 		DateTimePicker pkrComponentCountdownTarget = new DateTimePicker();
 		pkrComponentCountdownTarget.valueProperty().bindBidirectional(this.componentCountdownTarget);
 
-		Label lblComponentCountdownFormat = new Label(Translations.get("slide.countdown.format"));
 		ObservableList<String> countdownFormatOptions = FXCollections.observableArrayList();
 		countdownFormatOptions.add("YY:MM:DD:hh:mm:ss");
 		countdownFormatOptions.add("MM:DD:hh:mm:ss");
@@ -872,81 +953,121 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 			}
 		});
 		
-		CheckBox chkComponentCountdownTimeOnly = new CheckBox(Translations.get("slide.countdown.timeonly"));
+		CheckBox chkComponentCountdownTimeOnly = new CheckBox();
 		chkComponentCountdownTimeOnly.selectedProperty().bindBidirectional(this.componentCountdownTimeOnly);
 		
 		TextInputFieldEventFilter.applyTextInputFieldEventFilter(
 				txtName,
 				spnTime.getEditor(),
 				txtComponentText,
-				spnComponentLineSpacing.getEditor());
+				txtLineSpacing);
 		
-		TitledPane ttlSlide = new TitledPane(Translations.get("slide"), new VBox(
-				lblName, txtName,
-				lblTargetSize, 
-				new HBox(spnWidth, spnHeight, btnApplySize, btnResetSize, btnSaveSize),
-				cmbTargetSize,
-				lblTime, spnTime,
-				lblOpacity, sldOpacity,
-				viewTags,
-				lblBackground,
-				pkrBackground,
-				lblBorder,
-				pkrBorder,
-				new HBox(btnInsertText, btnInsertMedia, btnInsertDateTime, btnInsertCountdown, btnInsertPlaceholder)));
+		int r = 0;
+		EditGridPane grid1 = new EditGridPane();
+		grid1.addRow(r++, new Label(Translations.get("item.name")), txtName);
+		grid1.addRow(r++, new Label(Translations.get("slide.target")), cmbTargetSize);
+		grid1.addRow(r++, new Label(Translations.get("slide.width")), txtWidth);
+		grid1.addRow(r++, new Label(Translations.get("slide.height")), txtHeight);
+		grid1.addRow(r++, new Label(Translations.get("slide.time")), spnTime);
+		grid1.addRow(r++, new Label(Translations.get("slide.opacity")), sldOpacity);
+		grid1.addRow(r++, new Label(Translations.get("tags")), viewTags);
 		
-		VBox layoutText = new VBox(
-				lblComponentText, txtComponentText);
+		VBox slideControls = new VBox(
+			3,
+			grid1,
+			pkrBackground,
+			pkrBorder);
+		
+		TitledPane ttlSlide = new TitledPane(Translations.get("slide"), 
+				slideControls
+//				new VBox(
+//				lblName, txtName,
+//				lblTargetSize, 
+//				new HBox(spnWidth, spnHeight, btnApplySize, btnResetSize, btnSaveSize),
+//				cmbTargetSize,
+//				lblTime, spnTime,
+//				lblOpacity, sldOpacity,
+//				viewTags,
+//				lblBackground,
+//				pkrBackground,
+//				lblBorder,
+//				pkrBorder,
+//				new HBox(btnInsertText, btnInsertMedia, btnInsertDateTime, btnInsertCountdown, btnInsertPlaceholder))
+				);
+		
+		VBox layoutText = new VBox(txtComponentText);
+		
+		EditGridPane layoutFont = new EditGridPane();
+		layoutFont.addRow(0, new Label(Translations.get("slide.font.scale")), cbComponentFontScaleType);
+		layoutFont.addRow(1, new Label(Translations.get("slide.text.halignment")), segComponentHAlignment);
+		layoutFont.addRow(2, new Label(Translations.get("slide.text.valignment")), segComponentVAlignment);
+		layoutFont.addRow(3, new Label(Translations.get("slide.text.linespacing")), txtLineSpacing);
+		layoutFont.addRow(4, new Label(Translations.get("slide.text.wrapping")), chkComponentTextWrapping);
+		
 		VBox layoutTextComponent = new VBox(
-				layoutText,
-				lblComponentTextPaint, pkrComponentTextPaint,
-				lblComponentTextBorder, pkrComponentTextBorder,
-				lblComponentFont, pkrComponentFont,
-				lblComponentFontScaleType, cbComponentFontScaleType,
-				lblComponentTextHAlignment, segComponentHAlignment,
-				lblComponentTextVAlignment, segComponentVAlignment,
-				lblComponentPadding, pkrComponentPadding,
-				lblComponentLineSpacing, spnComponentLineSpacing,
-				chkComponentTextWrapping,
-				lblComponentTextShadow, pkrComponentTextShadow,
-				lblComponentTextGlow, pkrComponentTextGlow);
+				3,
+				pkrComponentPadding,
+				pkrComponentTextPaint,
+				pkrComponentTextBorder,
+				pkrComponentFont,
+				layoutFont,
+//				lblComponentFontScaleType, cbComponentFontScaleType,
+//				lblComponentTextHAlignment, segComponentHAlignment,
+//				lblComponentTextVAlignment, segComponentVAlignment,
+//				lblComponentLineSpacing, spnComponentLineSpacing,
+//				chkComponentTextWrapping,
+				pkrComponentTextShadow,
+				pkrComponentTextGlow,
+				layoutText);
+		pkrComponentPadding.setAlignment(Pos.CENTER);
 		layoutText.visibleProperty().bind(this.basicTextComponentSelected);
 		layoutText.managedProperty().bind(layoutText.visibleProperty());
 		layoutTextComponent.visibleProperty().bind(this.textComponentSelected);
 		layoutTextComponent.managedProperty().bind(layoutTextComponent.visibleProperty());
 		
-		VBox layoutPlaceholderComponent = new VBox(
-				lblComponentPlaceholderType, cbComponentTextType,
-				lblComponentPlaceholderVariant, cbComponentTextVariant);
+		EditGridPane layoutPlaceholderComponent = new EditGridPane();
+		layoutPlaceholderComponent.addRow(0, new Label(Translations.get("slide.placeholder.type")), cbComponentTextType);
+		layoutPlaceholderComponent.addRow(1, new Label(Translations.get("slide.placeholder.variant")), cbComponentTextVariant);
+//		VBox layoutPlaceholderComponent = new VBox(
+//				lblComponentPlaceholderType, cbComponentTextType,
+//				lblComponentPlaceholderVariant, cbComponentTextVariant);
 		layoutPlaceholderComponent.visibleProperty().bind(this.placeholderComponentSelected);
 		layoutPlaceholderComponent.managedProperty().bind(layoutPlaceholderComponent.visibleProperty());
 		
-		VBox layoutDateTimeComponent = new VBox(
-				lblComponentDateTimeFormat, cmbComponentDateTimeFormat);
+		EditGridPane layoutDateTimeComponent = new EditGridPane();
+		layoutDateTimeComponent.addRow(0, new Label(Translations.get("slide.datetime.format")), cmbComponentDateTimeFormat);
+//		VBox layoutDateTimeComponent = new VBox(
+//				lblComponentDateTimeFormat, cmbComponentDateTimeFormat);
 		layoutDateTimeComponent.visibleProperty().bind(this.dateTimeComponentSelected);
 		layoutDateTimeComponent.managedProperty().bind(layoutDateTimeComponent.visibleProperty());
 		
-		VBox layoutCountdownComponent = new VBox(
-				lblComponentCountdownTarget, pkrComponentCountdownTarget,
-				lblComponentCountdownFormat, cmbComponentCountdownFormat,
-				chkComponentCountdownTimeOnly);
+		EditGridPane layoutCountdownComponent = new EditGridPane();
+		layoutCountdownComponent.addRow(0, new Label(Translations.get("slide.countdown.target")), pkrComponentCountdownTarget);
+		layoutCountdownComponent.addRow(1, new Label(Translations.get("slide.countdown.format")), cmbComponentCountdownFormat);
+		layoutCountdownComponent.addRow(2, new Label(Translations.get("slide.countdown.timeonly")), chkComponentCountdownTimeOnly);
+//		VBox layoutCountdownComponent = new VBox(
+//				lblComponentCountdownTarget, pkrComponentCountdownTarget,
+//				lblComponentCountdownFormat, cmbComponentCountdownFormat,
+//				chkComponentCountdownTimeOnly);
 		layoutCountdownComponent.visibleProperty().bind(this.countdownComponentSelected);
 		layoutCountdownComponent.managedProperty().bind(layoutCountdownComponent.visibleProperty());
 		
-		VBox layoutMediaComponent = new VBox(
-				lblComponentMedia,
-				pkrComponentMedia);
+		VBox layoutMediaComponent = new VBox(pkrComponentMedia);
 		layoutMediaComponent.visibleProperty().bind(this.mediaComponentSelected);
 		layoutMediaComponent.managedProperty().bind(layoutMediaComponent.visibleProperty());
 		
+		EditGridPane grid4 = new EditGridPane();
+		grid4.addRow(0, lblComponentOpacity, sldComponentOpacity);
+		
 		TitledPane ttlComponent = new TitledPane(Translations.get("slide.component"), new VBox(
+				3,
 				lblComponentOrder,
 				new HBox(btnComponentMoveBack, btnComponentMoveDown, btnComponentMoveUp, btnComponentMoveFront),
-				lblComponentBackground, pkrComponentBackground,
-				lblComponentBorder, pkrComponentBorder,
-				lblComponentOpacity, sldComponentOpacity,
-				lblComponentShadow, pkrComponentShadow,
-				lblComponentGlow, pkrComponentGlow,
+				pkrComponentBackground,
+				pkrComponentBorder,
+				grid4,
+				pkrComponentShadow,
+				pkrComponentGlow,
 				layoutMediaComponent,
 				layoutTextComponent,
 				layoutPlaceholderComponent,
@@ -1011,7 +1132,23 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 		return new Pane(back3, back2, back1);
 	}
 	
-	private void updateResolutions(ObservableList<Resolution> resolutions) {
+	private void updateSlideResolutions(ObservableList<Resolution> resolutions) {
+		// add any screen sizes based on the current set of slides
+		List<Slide> slides = this.context.getDataManager().getItemsUnmodifiable(Slide.class);
+		List<Resolution> nr = new ArrayList<>();
+		for (Slide slide : slides) {
+			Resolution r = new Resolution((int)Math.ceil(slide.getWidth()), (int)Math.ceil(slide.getHeight()));
+			int index = resolutions.indexOf(r);
+			if (index < 0) {
+				// doesn't exist
+				nr.add(r);
+			}
+		}
+		resolutions.addAll(nr);
+	}
+	
+	private void updateScreenResolutions(ObservableList<Resolution> resolutions) {
+		// add any screen sizes based on the current displays
 		List<Resolution> nr = new ArrayList<>();
 		for (Screen screen : Screen.getScreens()) {
 			Rectangle2D bounds = screen.getBounds();

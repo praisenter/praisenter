@@ -27,6 +27,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
+import javafx.geometry.Insets;
 import javafx.scene.control.Accordion;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
@@ -68,7 +69,7 @@ public final class BibleSelectionEditor extends VBox implements DocumentSelectio
 	private final ObjectProperty<Integer> verseNumber2;
 	
 	public BibleSelectionEditor(GlobalContext context) {
-		this.getStyleClass().add("p-selection-properties");
+		this.getStyleClass().add("p-bible-selection-editor");
 		
 		this.context = context;
 		this.documentContext = new SimpleObjectProperty<>();
@@ -267,6 +268,7 @@ public final class BibleSelectionEditor extends VBox implements DocumentSelectio
 		bibleGrid.add(lblBibleNotes, 0, row++, 2);
 		bibleGrid.add(txtBibleNotes, 0, row++, 2);
 		bibleGrid.add(viewTags, 0, row++, 2);
+		bibleGrid.setPadding(new Insets(5));
 		TitledPane ttlBible = new TitledPane(Translations.get("bible"), bibleGrid);
 		ttlBible.setAnimated(false);
 //		ttlBible.setCollapsible(false);
@@ -279,6 +281,7 @@ public final class BibleSelectionEditor extends VBox implements DocumentSelectio
 		selectionGrid.add(lblVerseNumber, 0, row); selectionGrid.add(spnVerseNumber, 1, row++);
 		selectionGrid.add(lblVerseText, 0, row++, 2);
 		selectionGrid.add(txtVerseText, 0, row++, 2);
+		selectionGrid.setPadding(new Insets(5));
 		TitledPane ttlSelection = new TitledPane("", selectionGrid);
 		ttlSelection.setAnimated(false);
 //		ttlSelection.setCollapsible(false);
@@ -324,9 +327,7 @@ public final class BibleSelectionEditor extends VBox implements DocumentSelectio
 		scroller.setHbarPolicy(ScrollBarPolicy.NEVER);
 		scroller.setFitToWidth(true);
 		
-		this.getChildren().addAll(
-				ttlBible,
-				ttlSelection);
+		this.getChildren().addAll(scroller);
 		
 		// hide/show
 		

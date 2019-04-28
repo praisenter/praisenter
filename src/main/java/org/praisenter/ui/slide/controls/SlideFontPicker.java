@@ -24,21 +24,20 @@
  */
 package org.praisenter.ui.slide.controls;
 
-import java.util.List;
-
 import org.praisenter.data.slide.text.SlideFont;
 import org.praisenter.data.slide.text.SlideFontPosture;
 import org.praisenter.data.slide.text.SlideFontWeight;
+import org.praisenter.ui.Option;
 import org.praisenter.ui.bind.BindingHelper;
 import org.praisenter.ui.bind.ObjectConverter;
-import org.praisenter.ui.controls.LastValueDoubleStringConverter;
+import org.praisenter.ui.controls.EditGridPane;
+import org.praisenter.ui.controls.LastValueNumberStringConverter;
 import org.praisenter.ui.controls.TextInputFieldEventFilter;
+import org.praisenter.ui.translations.Translations;
 
 import javafx.application.Platform;
-import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -50,8 +49,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.Spinner;
-import javafx.scene.control.ToggleButton;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.util.Callback;
@@ -72,8 +69,8 @@ public final class SlideFontPicker extends VBox {
 	private final ObjectProperty<SlideFont> value = new SimpleObjectProperty<SlideFont>();
 
 	private final StringProperty family;
-	private final BooleanProperty bold;
-	private final BooleanProperty italic;
+	private final ObjectProperty<SlideFontWeight> weight;
+	private final ObjectProperty<SlideFontPosture> posture;
 	private final DoubleProperty size;
 	private final ObjectProperty<Double> sizeAsObject;
 	
@@ -81,7 +78,7 @@ public final class SlideFontPicker extends VBox {
 	 * Full constructor.
 	 * @param families the list of font families
 	 */
-	public SlideFontPicker() {
+	public SlideFontPicker(String label) {
 		// load the fonts
 		this.families = FXCollections.observableArrayList(Font.getFamilies());
 		
@@ -89,25 +86,39 @@ public final class SlideFontPicker extends VBox {
 		this.defaultJavaFXFont = (new Label()).getFont();
 		
 		this.family = new SimpleStringProperty(this.defaultJavaFXFont.getFamily());
-		this.bold = new SimpleBooleanProperty();
-		this.italic = new SimpleBooleanProperty();
+		this.weight = new SimpleObjectProperty<>();
+		this.posture = new SimpleObjectProperty<>();
 		this.size = new SimpleDoubleProperty();
 		this.sizeAsObject = this.size.asObject();
 		
 		ComboBox<String> cmbFamily = new ComboBox<>(this.families);
-		cmbFamily.setMinWidth(0);
-		cmbFamily.setPrefWidth(250);
+		cmbFamily.setMaxWidth(Double.MAX_VALUE);
 		cmbFamily.valueProperty().bindBidirectional(this.family);
 		
-		ToggleButton tglBold = new ToggleButton("b");
-		tglBold.selectedProperty().bindBidirectional(this.bold);
+		ObservableList<Option<SlideFontWeight>> weights = FXCollections.observableArrayList();
+		weights.add(new Option<>(Translations.get("slide.font.weight." + SlideFontWeight.BLACK), SlideFontWeight.BLACK));
+		weights.add(new Option<>(Translations.get("slide.font.weight." + SlideFontWeight.EXTRA_BOLD), SlideFontWeight.EXTRA_BOLD));
+		weights.add(new Option<>(Translations.get("slide.font.weight." + SlideFontWeight.BOLD), SlideFontWeight.BOLD));
+		weights.add(new Option<>(Translations.get("slide.font.weight." + SlideFontWeight.SEMI_BOLD), SlideFontWeight.SEMI_BOLD));
+		weights.add(new Option<>(Translations.get("slide.font.weight." + SlideFontWeight.MEDIUM), SlideFontWeight.MEDIUM));
+		weights.add(new Option<>(Translations.get("slide.font.weight." + SlideFontWeight.NORMAL), SlideFontWeight.NORMAL));
+		weights.add(new Option<>(Translations.get("slide.font.weight." + SlideFontWeight.LIGHT), SlideFontWeight.LIGHT));
+		weights.add(new Option<>(Translations.get("slide.font.weight." + SlideFontWeight.EXTRA_LIGHT), SlideFontWeight.EXTRA_LIGHT));
+		weights.add(new Option<>(Translations.get("slide.font.weight." + SlideFontWeight.THIN), SlideFontWeight.THIN));
+		ComboBox<Option<SlideFontWeight>> cmbWeight = new ComboBox<>(weights);
+		cmbWeight.setMaxWidth(Double.MAX_VALUE);
+		BindingHelper.bindBidirectional(cmbWeight.valueProperty(), this.weight);
 		
-		ToggleButton tglItalic = new ToggleButton("i");
-		tglItalic.selectedProperty().bindBidirectional(this.italic);
-		
+		ObservableList<Option<SlideFontPosture>> postures = FXCollections.observableArrayList();
+		postures.add(new Option<>(Translations.get("slide.font.posture." + SlideFontPosture.REGULAR), SlideFontPosture.REGULAR));
+		postures.add(new Option<>(Translations.get("slide.font.posture." + SlideFontPosture.ITALIC), SlideFontPosture.ITALIC));
+		ComboBox<Option<SlideFontPosture>> cmbPosture = new ComboBox<>(postures);
+		cmbPosture.setMaxWidth(Double.MAX_VALUE);
+		BindingHelper.bindBidirectional(cmbPosture.valueProperty(), this.posture);
+
 		Spinner<Double> spnSize = new Spinner<>(1, Double.MAX_VALUE, 20, 1);
 		spnSize.setEditable(true);
-		spnSize.getValueFactory().setConverter(new LastValueDoubleStringConverter((originalValueText) -> {
+		spnSize.getValueFactory().setConverter(LastValueNumberStringConverter.forDouble((originalValueText) -> {
 			Platform.runLater(() -> {
 				spnSize.getEditor().setText(originalValueText);
 			});
@@ -139,31 +150,31 @@ public final class SlideFontPicker extends VBox {
 			}
 			@Override
 			public SlideFont convertTo(String e) {
-				return SlideFontPicker.this.getControlValues();
+				return SlideFontPicker.this.getCurrentValue();
 			}
 		});
 		
-		BindingHelper.bindBidirectional(this.value, this.bold, new ObjectConverter<SlideFont, Boolean>() {
+		BindingHelper.bindBidirectional(this.value, this.weight, new ObjectConverter<SlideFont, SlideFontWeight>() {
 			@Override
-			public Boolean convertFrom(SlideFont t) {
-				if (t == null) return false;
-				return t.getWeight() == SlideFontWeight.BOLD;
+			public SlideFontWeight convertFrom(SlideFont t) {
+				if (t == null) return SlideFontWeight.NORMAL;
+				return t.getWeight();
 			}
 			@Override
-			public SlideFont convertTo(Boolean e) {
-				return SlideFontPicker.this.getControlValues();
+			public SlideFont convertTo(SlideFontWeight e) {
+				return SlideFontPicker.this.getCurrentValue();
 			}
 		});
 		
-		BindingHelper.bindBidirectional(this.value, this.italic, new ObjectConverter<SlideFont, Boolean>() {
+		BindingHelper.bindBidirectional(this.value, this.posture, new ObjectConverter<SlideFont, SlideFontPosture>() {
 			@Override
-			public Boolean convertFrom(SlideFont t) {
-				if (t == null) return false;
-				return t.getPosture() == SlideFontPosture.ITALIC;
+			public SlideFontPosture convertFrom(SlideFont t) {
+				if (t == null) return SlideFontPosture.REGULAR;
+				return t.getPosture();
 			}
 			@Override
-			public SlideFont convertTo(Boolean e) {
-				return SlideFontPicker.this.getControlValues();
+			public SlideFont convertTo(SlideFontPosture e) {
+				return SlideFontPicker.this.getCurrentValue();
 			}
 		});
 		
@@ -175,53 +186,56 @@ public final class SlideFontPicker extends VBox {
 			}
 			@Override
 			public SlideFont convertTo(Double e) {
-				return SlideFontPicker.this.getControlValues();
+				return SlideFontPicker.this.getCurrentValue();
 			}
 		});
 		
-		/**
-		 * Updates the visibility of the bold and italic buttons based on the
-		 * given font family's available styles.
-		 * <p>
-		 * This is done because Java FX (at the time of this class being created) doesn't support
-		 * deriving fonts like AWT did.  As a result, setting a font weight on a font that doesn't
-		 * support that weight has no effect.  So to reduce confusion we just hide the buttons
-		 * when they aren't supported.  If a later version of Java FX supports it we can remove this
-		 * as the underlying data model does support it.
-		 * @param family the font family
-		 */
-		cmbFamily.valueProperty().addListener((obs, ov, nv) -> {
-			boolean hasBold = false;
-			boolean hasItalic = false;
-			String family = this.family.get();
-			List<String> names = Font.getFontNames(family);
-			for (String name : names) {
-				String styles = name.replace(family, "").toUpperCase();
-				hasBold |= styles.contains("BOLD");
-				hasItalic |= styles.contains("ITALIC");
-			}
-			tglBold.setDisable(!hasBold);
-			tglItalic.setDisable(!hasItalic);
-		});
+//		/**
+//		 * Updates the visibility of the bold and italic buttons based on the
+//		 * given font family's available styles.
+//		 * <p>
+//		 * This is done because Java FX (at the time of this class being created) doesn't support
+//		 * deriving fonts like AWT did.  As a result, setting a font weight on a font that doesn't
+//		 * support that weight has no effect.  So to reduce confusion we just hide the buttons
+//		 * when they aren't supported.  If a later version of Java FX supports it we can remove this
+//		 * as the underlying data model does support it.
+//		 * @param family the font family
+//		 */
+//		cmbFamily.valueProperty().addListener((obs, ov, nv) -> {
+//			boolean hasBold = false;
+//			boolean hasItalic = false;
+//			String family = this.family.get();
+//			List<String> names = Font.getFontNames(family);
+//			for (String name : names) {
+//				String styles = name.replace(family, "").toUpperCase();
+//				hasBold |= styles.contains("BOLD");
+//				hasItalic |= styles.contains("ITALIC");
+//			}
+//			tglBold.setDisable(!hasBold);
+//			tglItalic.setDisable(!hasItalic);
+//		});
 		
-		TextInputFieldEventFilter.applyTextInputFieldEventFilter(
-				spnSize.getEditor());
+		TextInputFieldEventFilter.applyTextInputFieldEventFilter(spnSize.getEditor());
 
-		this.setSpacing(5);
-		this.getChildren().addAll(
-				new HBox(5, cmbFamily, new HBox(tglBold, tglItalic)), 
-				spnSize);
+		int r = 0;
+		EditGridPane grid = new EditGridPane();
+		grid.addRow(r++, new Label(label), cmbFamily);
+		grid.addRow(r++, new Label(Translations.get("slide.font.weight")), cmbWeight);
+		grid.addRow(r++, new Label(Translations.get("slide.font.style")), cmbPosture);
+		grid.addRow(r++, new Label(Translations.get("slide.font.size")), spnSize);
+		
+		this.getChildren().addAll(grid);
 	}
 	
 	/**
 	 * Creates a new font using the current values of the controls.
 	 * @return {@link SlideFont}
 	 */
-	private SlideFont getControlValues() {
+	private SlideFont getCurrentValue() {
 		return new SlideFont(
 				this.family.get(), 
-				this.bold.get() ? SlideFontWeight.BOLD : SlideFontWeight.NORMAL, 
-				this.italic.get() ? SlideFontPosture.ITALIC : SlideFontPosture.REGULAR, 
+				this.weight.get(), 
+				this.posture.get(), 
 				this.size.get());
 	}
 	

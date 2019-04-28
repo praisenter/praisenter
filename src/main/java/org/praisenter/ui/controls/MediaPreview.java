@@ -34,6 +34,7 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -93,7 +94,8 @@ public final class MediaPreview extends BorderPane implements Playable {
         
         this.setCenter(mediaView);
 
-        HBox controlsBar = new HBox();
+        HBox controlsBar = new HBox(2);
+        controlsBar.setPadding(new Insets(2, 0, 0, 0));
         controlsBar.getStyleClass().add("p-media-player-controls");
         controlsBar.setAlignment(Pos.CENTER);
         BorderPane.setAlignment(controlsBar, Pos.CENTER);
