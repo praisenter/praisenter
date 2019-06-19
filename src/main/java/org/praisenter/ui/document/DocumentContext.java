@@ -32,6 +32,7 @@ public final class DocumentContext<T extends Persistable> {
 	protected final BooleanProperty singleTypeSelected;
 	protected final IntegerProperty selectedCount;
 
+	protected final BooleanProperty isNew;
 	protected final BooleanProperty hasUnsavedChanges;
 	protected final StringProperty documentName;
 	
@@ -49,6 +50,7 @@ public final class DocumentContext<T extends Persistable> {
 		this.singleTypeSelected = new SimpleBooleanProperty();
 		this.selectedCount = new SimpleIntegerProperty();
 		
+		this.isNew = new SimpleBooleanProperty();
 		this.hasUnsavedChanges = new SimpleBooleanProperty();
 		this.documentName = new SimpleStringProperty();
 		
@@ -79,7 +81,7 @@ public final class DocumentContext<T extends Persistable> {
 			this.selectedItem.set(size == 1 ? this.selectedItems.get(0) : null);
 		});
 		
-		this.hasUnsavedChanges.bind(this.undoManager.notTopMarkedProperty());
+		this.hasUnsavedChanges.bind(this.undoManager.notTopMarkedProperty().or(this.isNew));
 		
 		this.documentName.bind((document).nameProperty());
 	}
@@ -156,6 +158,18 @@ public final class DocumentContext<T extends Persistable> {
 	
 	public ReadOnlyBooleanProperty singleTypeSelectedProperty() {
 		return this.singleTypeSelected;
+	}
+	
+	public boolean isNew() {
+		return this.isNew.get();
+	}
+	
+	public void setNew(boolean isNew) {
+		this.isNew.set(isNew);
+	}
+	
+	public BooleanProperty isNewProperty() {
+		return this.hasUnsavedChanges;
 	}
 	
 	public boolean hasUnsavedChanges() {

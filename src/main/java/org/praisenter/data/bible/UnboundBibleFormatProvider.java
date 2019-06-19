@@ -75,7 +75,7 @@ final class UnboundBibleFormatProvider implements DataFormatProvider<Bible> {
 					}
 				}
 			} catch (Exception ex) {
-				LOGGER.warn("Failed to determine if '" + path.toAbsolutePath() + "' was a unbound bible zip format.", ex);
+				LOGGER.trace("Failed to determine if '" + path.toAbsolutePath() + "' was a unbound bible zip format.", ex);
 			}
 		}
 		return false;

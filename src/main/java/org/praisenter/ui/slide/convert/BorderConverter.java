@@ -24,7 +24,7 @@
  */
 package org.praisenter.ui.slide.convert;
 
-import java.util.Arrays;
+import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -172,7 +172,7 @@ public final class BorderConverter {
 			return null;
 		}
 		
-		Double[] dashes = style.getDashes();
+		List<Double> dashes = style.getDashes();
 		DashPattern pattern = DashPattern.getDashPattern(dashes);
 		// does the style match a dash pattern?
 		// we don't need to scale in the case of SOLID and if
@@ -189,7 +189,7 @@ public final class BorderConverter {
 				toJavaFX(style.getCap()), 
 				Double.MAX_VALUE, 
 				0.0, 
-				Arrays.asList(dashes));
+				dashes);
 	}
 	
 	/**
@@ -206,7 +206,7 @@ public final class BorderConverter {
 				fromJavaFX(style.getType()), 
 				fromJavaFX(style.getLineJoin()), 
 				fromJavaFX(style.getLineCap()), 
-				style.getDashArray().toArray(new Double[0]));
+				style.getDashArray());
 	}
 	
 	/**

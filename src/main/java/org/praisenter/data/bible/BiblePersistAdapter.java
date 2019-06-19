@@ -162,6 +162,7 @@ public final class BiblePersistAdapter implements PersistAdapter<Bible> {
 			if (provider.isSupported(path)) {
 				// stop here and use this importer
 				try {
+					LOGGER.info("Reading '{}' using provider '{}'", path, provider.getClass());
 					results = provider.read(path);
 					break;
 				} catch (Exception ex) {

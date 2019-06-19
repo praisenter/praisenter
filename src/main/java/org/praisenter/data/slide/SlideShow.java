@@ -75,6 +75,11 @@ public final class SlideShow implements ReadOnlySlideShow, Indexable, Persistabl
 		this.tagsReadOnly = FXCollections.unmodifiableObservableSet(this.tags);
 	}
 
+	public SlideShow(String name) {
+		this();
+		this.name.set(name);
+	}
+	
 	@Override
 	public SlideShow copy() {
 		SlideShow show = new SlideShow();

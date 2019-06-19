@@ -57,22 +57,17 @@
     <dependency>
     	<groupId>org.apache.logging.log4j</groupId>
     	<artifactId>log4j-api</artifactId>
-    	<version>2.10.0</version>
+    	<version>2.11.2</version>
     </dependency>
     <dependency>
     	<groupId>org.apache.logging.log4j</groupId>
     	<artifactId>log4j-core</artifactId>
-    	<version>2.10.0</version>
-    </dependency>
-    <dependency>
-    	<groupId>org.apache.logging.log4j</groupId>
-    	<artifactId>log4j-slf4j-impl</artifactId>
-    	<version>2.10.0</version>
+    	<version>2.11.2</version>
     </dependency>
     <dependency>
     	<groupId>org.controlsfx</groupId>
     	<artifactId>controlsfx</artifactId>
-    	<version>8.40.14</version>
+    	<version>11.0.0</version>
     </dependency>
     <dependency>
     	<groupId>com.drewnoakes</groupId>
@@ -82,67 +77,82 @@
     <dependency>
     	<groupId>org.apache.commons</groupId>
     	<artifactId>commons-lang3</artifactId>
-    	<version>3.7</version>
+    	<version>3.9</version>
     </dependency>
     <dependency>
     	<groupId>org.apache.lucene</groupId>
     	<artifactId>lucene-core</artifactId>
-    	<version>7.1.0</version>
-    </dependency>
-    <dependency>
-    	<groupId>org.apache.lucene</groupId>
-    	<artifactId>lucene-analyzers-common</artifactId>
-    	<version>7.1.0</version>
+    	<version>8.1.1</version>
     </dependency>
     <dependency>
     	<groupId>org.apache.lucene</groupId>
     	<artifactId>lucene-memory</artifactId>
-    	<version>7.1.0</version>
+    	<version>8.1.1</version>
     </dependency>
     <dependency>
     	<groupId>org.apache.lucene</groupId>
     	<artifactId>lucene-suggest</artifactId>
-    	<version>7.1.0</version>
-    </dependency>
-    <dependency>
-    	<groupId>org.apache.lucene</groupId>
-    	<artifactId>lucene-queryparser</artifactId>
-    	<version>7.1.0</version>
+    	<version>8.1.1</version>
     </dependency>
     <dependency>
     	<groupId>org.apache.lucene</groupId>
     	<artifactId>lucene-highlighter</artifactId>
-    	<version>7.1.0</version>
+    	<version>8.1.1</version>
     </dependency>
     <dependency>
     	<groupId>com.twelvemonkeys.imageio</groupId>
     	<artifactId>imageio-jpeg</artifactId>
-    	<version>3.3.2</version>
+    	<version>3.4.1</version>
     </dependency>
     <dependency>
     	<groupId>com.twelvemonkeys.imageio</groupId>
     	<artifactId>imageio-tiff</artifactId>
-    	<version>3.3.2</version>
+    	<version>3.4.1</version>
     </dependency>
      <dependency>
 	    <groupId>org.apache.tika</groupId>
 	    <artifactId>tika-core</artifactId>
-	    <version>1.18</version>
+	    <version>1.21</version>
 	  </dependency>
      <dependency>
      	<groupId>com.fasterxml.jackson.core</groupId>
      	<artifactId>jackson-databind</artifactId>
-     	<version>2.9.5</version>
+     	<version>2.9.9</version>
      </dependency>
      <dependency>
      	<groupId>org.apache.pdfbox</groupId>
      	<artifactId>pdfbox</artifactId>
-     	<version>2.0.8</version>
+     	<version>2.0.15</version>
      </dependency>
      <dependency>
      	<groupId>com.sun.activation</groupId>
      	<artifactId>javax.activation</artifactId>
      	<version>1.2.0</version>
+     </dependency>
+     <dependency>
+     	<groupId>org.openjfx</groupId>
+     	<artifactId>javafx-base</artifactId>
+     	<version>12.0.1</version>
+     </dependency>
+     <dependency>
+     	<groupId>org.openjfx</groupId>
+     	<artifactId>javafx-controls</artifactId>
+     	<version>12.0.1</version>
+     </dependency>
+     <dependency>
+     	<groupId>org.openjfx</groupId>
+     	<artifactId>javafx-media</artifactId>
+     	<version>12.0.1</version>
+     </dependency>
+     <dependency>
+     	<groupId>org.openjfx</groupId>
+     	<artifactId>javafx-swing</artifactId>
+     	<version>12.0.1</version>
+     </dependency>
+     <dependency>
+     	<groupId>org.openjfx</groupId>
+     	<artifactId>javafx-web</artifactId>
+     	<version>12.0.1</version>
      </dependency>
   </dependencies>
   
@@ -156,6 +166,14 @@
                 <release>9</release>
             </configuration>
         </plugin>
+    <plugin>
+        <groupId>org.openjfx</groupId>
+        <artifactId>javafx-maven-plugin</artifactId>
+        <version>0.0.2</version>
+        <configuration>
+            <mainClass>org.praisenter.ui.Praisenter</mainClass>
+        </configuration>
+    </plugin>
 	  	<plugin>
 			<groupId>com.zenjava</groupId>
 			<artifactId>javafx-maven-plugin</artifactId>

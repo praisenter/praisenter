@@ -14,7 +14,7 @@ public interface MediaConfiguration {
 	public static final String DEFAULT_TRANSCODE_COMMAND = "{ffmpeg} -v fatal -i {source} -y -ignore_unknown {volumeadjust} {target}";
 	
 	/** The default command */
-	public static final String DEFAULT_VIDEO_FRAME_EXTRACT_COMMAND = "{ffmpeg} -v fatal -ss 3 -i {media} -vf \"select=gt(scene\\,0.2)\" -frames:v 10 -vsync vfr {frame}";
+	public static final String DEFAULT_VIDEO_FRAME_EXTRACT_COMMAND = "{ffmpeg} -v fatal -i {media} -vf \"select=gt(scene\\,0.0)\" -frames:v 10 -vsync vfr {frame}";
 	
 	public int getThumbnailWidth();
 	public int getThumbnailHeight();

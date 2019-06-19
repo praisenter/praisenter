@@ -21,6 +21,7 @@ import org.praisenter.data.slide.Slide;
 import org.praisenter.data.slide.SlideShow;
 import org.praisenter.data.slide.effects.SlideShadow;
 import org.praisenter.ui.GlobalContext;
+import org.praisenter.ui.bind.BindingHelper;
 import org.praisenter.ui.controls.RowVisGridPane;
 import org.praisenter.ui.controls.MediaPreview;
 import org.praisenter.ui.controls.TagListView;
@@ -272,13 +273,12 @@ final class LibraryItemDetails extends BorderPane {
 		// preview for image
 		// TODO create an extended image view for showing a loading while the image is being loaded
 		ImageView image = new ImageView();
-		image.imageProperty().bind(Bindings.createObjectBinding(() -> {
+		image.imageProperty().bind(BindingHelper.createAsyncObjectBinding(() -> {
 			Persistable item = this.item.get();
 			if (item instanceof Media) {
 				Media media = (Media)item;
 				MediaType type = media.getMediaType();
 				if (type == MediaType.IMAGE) {
-					// TODO load async
 					return this.context.getImageCache().getOrLoadImage(media.getId(), media.getMediaImagePath());
 				} else if (type == MediaType.AUDIO) {
 					return this.context.getImageCache().getOrLoadClasspathImage("/org/praisenter/images/audio-default-thumbnail.png");

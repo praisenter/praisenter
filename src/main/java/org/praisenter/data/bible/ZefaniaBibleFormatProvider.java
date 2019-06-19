@@ -87,7 +87,7 @@ final class ZefaniaBibleFormatProvider implements DataFormatProvider<Bible> {
 			    }
 			}
 		} catch (Exception ex) {
-			LOGGER.warn("Failed to read the path as an XML document.", ex);
+			LOGGER.trace("Failed to read the path as an XML document.", ex);
 		}
 		return false;
 	}
@@ -116,7 +116,7 @@ final class ZefaniaBibleFormatProvider implements DataFormatProvider<Bible> {
 			    }
 			}
 		} catch (Exception ex) {
-			LOGGER.warn("Failed to read the input stream as an XML document.", ex);
+			LOGGER.trace("Failed to read the input stream as an XML document.", ex);
 		}
 		return false;
 	}

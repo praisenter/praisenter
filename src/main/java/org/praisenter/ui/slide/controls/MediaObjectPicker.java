@@ -45,6 +45,8 @@ public final class MediaObjectPicker extends VBox {
 	private final ObjectProperty<ScaleType> scaleType;
 	private final ObjectProperty<SlideColorAdjust> colorAdjust;
 	
+	private Media originalMedia;
+	
 	public MediaObjectPicker(
 			GlobalContext context,
 			MediaType... allowedTypes) {
@@ -69,11 +71,14 @@ public final class MediaObjectPicker extends VBox {
 		dlgMedia.setTitle(Translations.get("media"));
 		dlgMedia.getDialogPane().setContent(lstMedia);
 		dlgMedia.setResultConverter((button) -> {
-			List<?> selected = lstMedia.getSelectedItems();
-			if (selected.size() > 0) {
-				return (Media)selected.get(0);
+			if (button == ButtonType.OK) {
+				List<?> selected = lstMedia.getSelectedItems();
+				if (selected.size() > 0) {
+					return (Media)selected.get(0);
+				}
 			}
-			return null;
+			// return the original value
+			return this.originalMedia;
 		});
 		dlgMedia.resultProperty().bindBidirectional(this.media);
 		dlgMedia.initOwner(context.getStage());
@@ -86,6 +91,7 @@ public final class MediaObjectPicker extends VBox {
 		btnMedia.setAlignment(Pos.BASELINE_LEFT);
 		btnMedia.setMaxWidth(Double.MAX_VALUE);
 		btnMedia.setOnAction(e -> {
+			this.originalMedia = this.media.get();
 			dlgMedia.show();
 		});
 		

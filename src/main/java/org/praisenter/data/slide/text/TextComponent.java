@@ -90,6 +90,11 @@ public class TextComponent extends SlideComponent implements ReadOnlyTextCompone
 		this.name.bind(this.text);
 	}
 	
+	public TextComponent(String text) {
+		this();
+		this.text.set(text);
+	}
+	
 	protected void copyTo(TextComponent component) {
 		super.copyTo(component);
 		

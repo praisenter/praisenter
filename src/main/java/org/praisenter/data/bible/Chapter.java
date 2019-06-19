@@ -67,7 +67,7 @@ public final class Chapter implements ReadOnlyChapter, Copyable, Comparable<Chap
 				max = n;
 			}
 		}
-		return max >= 0 ? max : 0;
+		return max >= 0 ? max : 1;
 	}
 	
 	@JsonProperty

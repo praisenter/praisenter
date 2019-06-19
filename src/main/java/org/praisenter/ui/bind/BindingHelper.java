@@ -2,11 +2,12 @@ package org.praisenter.ui.bind;
 
 import java.lang.ref.WeakReference;
 import java.util.Objects;
+import java.util.function.Supplier;
 
 import org.praisenter.Reference;
 import org.praisenter.ui.Option;
 
-import javafx.beans.binding.Bindings;
+import javafx.beans.Observable;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
@@ -83,5 +84,16 @@ public final class BindingHelper {
 				isOperating.set(false);
 			}
 		});
+	}
+	
+	/**
+	 * Creates a binding where the given function is executed off of the UI thread.
+	 * @param <T> the value type
+	 * @param func the function to run asynchronously
+	 * @param dependencies the dependencies
+	 * @return ObservableValue
+	 */
+	public static final <T> ObservableValue<T> createAsyncObjectBinding(Supplier<T> func, Observable... dependencies) {
+		return new AsyncBinding<T>(func, dependencies);
 	}
 }

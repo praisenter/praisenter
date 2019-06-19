@@ -1,5 +1,7 @@
 package org.praisenter.ui.slide.controls;
 
+import java.util.List;
+
 import org.praisenter.data.slide.graphics.DashPattern;
 import org.praisenter.data.slide.graphics.SlidePaint;
 import org.praisenter.data.slide.graphics.SlideStroke;
@@ -260,7 +262,7 @@ public final class SlideStrokePicker extends VBox {
 				if (empty || item == null) {
 					setGraphic(null);
 				} else {
-					Double[] dashes = item.getScaledDashPattern(2);
+					List<Double> dashes = item.getScaledDashPattern(2);
 					line.getStrokeDashArray().clear();
 					line.getStrokeDashArray().addAll(dashes);
 					setGraphic(line);

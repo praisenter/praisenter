@@ -57,7 +57,7 @@ public final class Book implements ReadOnlyBook, Copyable, Comparable<Book> {
 				max = n;
 			}
 		}
-		return max >= 0 ? max : 0;
+		return max >= 0 ? max : 1;
 	}
 	
 	/**

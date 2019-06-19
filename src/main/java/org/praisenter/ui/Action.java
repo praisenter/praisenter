@@ -13,6 +13,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 
 public enum Action {
+	DIVIDER(""),
 //	EDIT("action.edit"),
 //	CLOSE("action.close", () -> ApplicationGlyphs.MENU_CLOSE.duplicate()),
 	
@@ -26,6 +27,7 @@ public enum Action {
 //		return stack;
 //	}),
 	SAVE_ALL("action.saveall", new KeyCodeCombination(KeyCode.S, KeyCombination.SHIFT_DOWN, KeyCombination.SHORTCUT_DOWN), () -> {
+		// TODO need better icon or set background color for second one
 		StackPane stack = new StackPane();
 		StackPane pane = new StackPane(Glyphs.SAVE.duplicate().size(12));
 		pane.setTranslateX(3);
@@ -56,8 +58,6 @@ public enum Action {
 	IMPORT("action.import", () -> Glyphs.IMPORT.duplicate()),
 	EXPORT("action.export", () -> Glyphs.EXPORT.duplicate()),
 	
-	NEW("action.new", () -> Glyphs.NEW.duplicate()),
-	
 	// application
 	
 	PREFERENCES("action.preferences", () -> Glyphs.MENU_PREFERENCES.duplicate()),
@@ -73,8 +73,8 @@ public enum Action {
 	
 	// bible
 	
-//	NEW_BIBLE("action.new.bible"),
-	NEW_BOOK("action.new.book", () -> {
+	NEW_BIBLE("action.new.bible"),
+	NEW_BOOK("action.new.bible.book", () -> {
 		StackPane stack = new StackPane();
 		Node plus = Glyphs.ASTERISK.duplicate().size(8).color(Color.LIME);
 		plus.setTranslateX(3);
@@ -82,7 +82,7 @@ public enum Action {
 		StackPane.setAlignment(plus, Pos.TOP_RIGHT);
 		return stack;
 	}),
-	NEW_CHAPTER("action.new.chapter", () -> {
+	NEW_CHAPTER("action.new.bible.chapter", () -> {
 		StackPane stack = new StackPane();
 		Node plus = Glyphs.ASTERISK.duplicate().size(8).color(Color.LIME);
 		plus.setTranslateX(3);
@@ -90,7 +90,7 @@ public enum Action {
 		StackPane.setAlignment(plus, Pos.TOP_RIGHT);
 		return stack;
 	}),
-	NEW_VERSE("action.new.verse", () -> {
+	NEW_VERSE("action.new.bible.verse", () -> {
 		StackPane stack = new StackPane();
 		Node plus = Glyphs.ASTERISK.duplicate().size(8).color(Color.LIME);
 		plus.setTranslateX(3);
@@ -99,38 +99,65 @@ public enum Action {
 		return stack;
 	}),
 	RENUMBER("action.renumber", () -> Glyphs.RENUMBER.duplicate()),
-	REORDER("action.reorder", () -> Glyphs.REORDER.duplicate())
+	REORDER("action.reorder", () -> Glyphs.REORDER.duplicate()),
 	
 	// slide
 	
-//	NEW_SLIDE("action.new.slide"),
-//	NEW_SLIDE_SHOW("action.new.show"),
+	NEW_SLIDE("action.new.slide"),
+	NEW_SLIDE_TEXT_COMPONENT("action.new.slide.component.text"),
+	NEW_SLIDE_MEDIA_COMPONENT("action.new.slide.component.media"),
+	NEW_SLIDE_DATETIME_COMPONENT("action.new.slide.component.datetime"),
+	NEW_SLIDE_PLACEHOLDER_COMPONENT("action.new.slide.component.placeholder"),
+	NEW_SLIDE_COUNTDOWN_COMPONENT("action.new.slide.component.countdown"),
+	
+	NEW_SLIDE_SHOW("action.new.show"),
 	
 	// song
 	
-//	NEW_SONG("action.new.song")
+	NEW_SONG("action.new.song"),
+	
+	// the "new" menu
+	
+	NEW("action.new", () -> Glyphs.NEW.duplicate(), 
+			Action.NEW_SLIDE,
+			Action.NEW_SLIDE_SHOW,
+			Action.NEW_BIBLE,
+			Action.NEW_SONG,
+			Action.DIVIDER,
+			// bible related sub creates
+			Action.NEW_BOOK, 
+			Action.NEW_CHAPTER, 
+			Action.NEW_VERSE,
+			// slide related sub creates
+			Action.NEW_SLIDE_TEXT_COMPONENT,
+			Action.NEW_SLIDE_MEDIA_COMPONENT,
+			Action.NEW_SLIDE_DATETIME_COMPONENT,
+			Action.NEW_SLIDE_PLACEHOLDER_COMPONENT,
+			Action.NEW_SLIDE_COUNTDOWN_COMPONENT)
 	;
 	
 	private final String messageKey;
 	private final KeyCombination accelerator;
 	private final Supplier<Node> graphicSupplier;
+	private final Action[] actions;
 	
-	private Action(String messageKey) {
-		this(messageKey, null, null);
+	private Action(String messageKey, Action... actions) {
+		this(messageKey, null, null, actions);
 	}
 
-	private Action(String messageKey, KeyCombination accelerator) {
-		this(messageKey, accelerator, null);
+	private Action(String messageKey, KeyCombination accelerator, Action... actions) {
+		this(messageKey, accelerator, null, actions);
 	}
 	
-	private Action(String messageKey, Supplier<Node> graphicSupplier) {
-		this(messageKey, null, graphicSupplier);
+	private Action(String messageKey, Supplier<Node> graphicSupplier, Action... actions) {
+		this(messageKey, null, graphicSupplier, actions);
 	}
 	
-	private Action(String messageKey, KeyCombination accelerator, Supplier<Node> graphicSupplier) {
+	private Action(String messageKey, KeyCombination accelerator, Supplier<Node> graphicSupplier, Action... actions) {
 		this.messageKey = messageKey;
 		this.accelerator = accelerator;
 		this.graphicSupplier = graphicSupplier;
+		this.actions = actions;
 	}
 	
 	public KeyCombination getAccelerator() {
@@ -143,6 +170,10 @@ public enum Action {
 	
 	public Supplier<Node> getGraphicSupplier() {
 		return this.graphicSupplier;
+	}
+	
+	public Action[] getActions() {
+		return this.actions;
 	}
 	
 //	public MenuItem createMenuItem() {

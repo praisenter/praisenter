@@ -147,6 +147,14 @@ public final class Praisenter extends Application {
 		// set the log file path (used in the log4j2.xml file)
 		System.setProperty("praisenter.logs.dir", Constants.LOGS_ABSOLUTE_PATH);
 		
+		try {
+			Files.createDirectories(Paths.get(Constants.ROOT_PATH));
+		} catch (IOException e1) {
+			// attempt to write to something
+			e1.printStackTrace();
+			throw new RuntimeException("Failed to create the praisenter root path: '" + Constants.ROOT_PATH + "'", e1);
+		}
+		
 		// set the log4j configuration file path
 		Path log4jPath = Paths.get(Constants.ROOT_PATH, "log4j2.xml");
 		if (!Files.exists(log4jPath)) {
@@ -156,6 +164,7 @@ public final class Praisenter extends Application {
 			} catch (Exception e) {
 				// attempt to write to something
 				e.printStackTrace();
+				throw new RuntimeException("Failed to copy log4j2.xml configuration file from classpath to Praisenter root path", e);
 			}
 		}
 		

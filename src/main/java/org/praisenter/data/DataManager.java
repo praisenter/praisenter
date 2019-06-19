@@ -16,6 +16,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.zip.ZipOutputStream;
 
 import org.praisenter.async.AsyncHelper;
+import org.praisenter.data.search.Indexable;
 import org.praisenter.data.search.SearchCriteria;
 import org.praisenter.data.search.SearchIndex;
 import org.praisenter.data.search.SearchResult;
@@ -280,6 +281,17 @@ public final class DataManager {
 			} catch (Exception ex) {
 				throw new CompletionException(ex);
 			}
+		});
+	}
+	
+	public CompletableFuture<Void> reindex() {
+		List<? extends Indexable> items = new ArrayList<Persistable>(this.items);
+		return CompletableFuture.runAsync(() -> {
+			try {
+				this.index.reindex(items);
+			} catch (IOException e) {
+				throw new CompletionException(e);
+			}	
 		});
 	}
 	

@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -96,6 +97,11 @@ public final class Bible implements ReadOnlyBible, Indexable, Persistable, Copya
 		this.booksReadOnly = FXCollections.unmodifiableObservableList(this.books);
 		this.tags = FXCollections.observableSet(new HashSet<>());
 		this.tagsReadOnly = FXCollections.unmodifiableObservableSet(this.tags);
+	}
+	
+	public Bible(String name) {
+		this();
+		this.name.set(name);
 	}
 	
 	/* (non-Javadoc)
@@ -202,17 +208,14 @@ public final class Bible implements ReadOnlyBible, Indexable, Persistable, Copya
 			}
 		}
 		
-		Document document = new Document();
-		document.add(new StringField(FIELD_ID, this.getId().toString(), Field.Store.YES));
-		document.add(new StringField(FIELD_TYPE, DATA_TYPE_BIBLE, Field.Store.YES));
-		
-		StringBuilder sb = new StringBuilder();
-		for (Tag tag : this.tags) {
-			sb.append(" ").append(tag.getName());
+		String tags = this.tags.stream().map(t -> t.getName()).collect(Collectors.joining(" "));
+		if (!StringManipulator.isNullOrEmpty(tags)) {
+			Document document = new Document();
+			document.add(new StringField(FIELD_ID, this.getId().toString(), Field.Store.YES));
+			document.add(new StringField(FIELD_TYPE, DATA_TYPE_BIBLE, Field.Store.YES));
+			document.add(new StringField(FIELD_TEXT, tags, Field.Store.YES));
+			documents.add(document);
 		}
-		
-		document.add(new StringField(FIELD_TEXT, sb.toString(), Field.Store.YES));
-		documents.add(document);
 		
 		return documents;
 	}

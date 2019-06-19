@@ -277,7 +277,7 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 		switch (action) {
 			case NEW_BOOK:
 				int number = this.bible.getMaxBookNumber() + 1;
-				this.bible.getBooks().add(new Book(number, "New Book"));
+				this.bible.getBooks().add(new Book(number, Translations.get("action.new.bible.book")));
 				break;
 			case NEW_CHAPTER:
 				if (this.document.getSelectedCount() == 1 && this.document.getSelectedType() == Book.class) {
@@ -295,7 +295,7 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 					if (selected != null && selected instanceof Chapter) {
 						Chapter chapter = (Chapter)selected;
 						int n = chapter.getMaxVerseNumber();
-						chapter.getVerses().add(new Verse(n, "New verse"));
+						chapter.getVerses().add(new Verse(n, Translations.get("action.new.bible.verse")));
 					}
 				}
 				break;

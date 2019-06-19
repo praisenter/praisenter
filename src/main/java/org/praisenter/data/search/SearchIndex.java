@@ -67,13 +67,15 @@ public final class SearchIndex {
 		}
 	}
 	
-	public synchronized void reindex(Iterable<Indexable> items) throws IOException {
-		for (Indexable item : items) {
-			List<Document> docs = item.index();
-			if (docs == null || docs.isEmpty()) continue;
-			IndexWriterConfig config = new IndexWriterConfig(this.analyzer);
-			config.setOpenMode(OpenMode.CREATE_OR_APPEND);
-			try (IndexWriter writer = new IndexWriter(this.directory, config)) {
+	public synchronized void reindex(Iterable<? extends Indexable> items) throws IOException {
+		IndexWriterConfig config = new IndexWriterConfig(this.analyzer);
+		config.setOpenMode(OpenMode.CREATE);
+		try (IndexWriter writer = new IndexWriter(this.directory, config)) {
+			for (Indexable item : items) {
+				List<Document> docs = item.index();
+				if (docs == null || docs.isEmpty()) {
+					continue;
+				}
 				writer.updateDocuments(new Term(Indexable.FIELD_ID, item.getId().toString()), docs);	
 			}
 		}

@@ -11,6 +11,12 @@ import org.praisenter.async.AsyncHelper;
 import org.praisenter.data.json.JsonIO;
 import org.praisenter.data.slide.Slide;
 import org.praisenter.data.slide.SlideComponent;
+import org.praisenter.data.slide.graphics.SlideColor;
+import org.praisenter.data.slide.media.MediaComponent;
+import org.praisenter.data.slide.text.CountdownComponent;
+import org.praisenter.data.slide.text.DateTimeComponent;
+import org.praisenter.data.slide.text.TextComponent;
+import org.praisenter.data.slide.text.TextPlaceholderComponent;
 import org.praisenter.ui.Action;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.MappedList;
@@ -177,6 +183,18 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 		}
 	}
 	
+	private void selectComponent(SlideComponent component) {
+		Platform.runLater(() -> {
+			for (EditNode n : this.componentMapping) {
+				if (n.getComponent() == component) {
+					this.selected.set(n);
+					n.setSelected(true);
+					break;
+				}
+			}
+		});
+	}
+	
 	@Override
 	public DocumentContext<Slide> getDocumentContext() {
 		return this.document;
@@ -198,10 +216,16 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 				return this.copy(true);
 			case DELETE:
 				return this.delete();
-//			case NEW_BOOK:
-//			case NEW_CHAPTER:
-//			case NEW_VERSE:
-//				return this.create(action);
+			case NEW_SLIDE_TEXT_COMPONENT:
+				return this.createNewTextComponent();
+			case NEW_SLIDE_MEDIA_COMPONENT:
+				return this.createNewMediaComponent();
+			case NEW_SLIDE_PLACEHOLDER_COMPONENT:
+				return this.createNewPlaceholderComponent();
+			case NEW_SLIDE_DATETIME_COMPONENT:
+				return this.createNewDateTimeComponent();
+			case NEW_SLIDE_COUNTDOWN_COMPONENT:
+				return this.createNewCountdownComponent();
 			default:
 				return CompletableFuture.completedFuture(null);
 		}
@@ -219,20 +243,16 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 				return Clipboard.getSystemClipboard().hasContent(SLIDE_COMPONENT_DATA);
 			case DELETE:
 				return ctx.getSelectedCount() > 0;
-//			case NEW_BOOK:
-//				return ctx.getSelectedCount() == 1 && ctx.getSelectedType() == Bible.class;
-//			case NEW_CHAPTER:
-//				return ctx.getSelectedCount() == 1 && ctx.getSelectedType() == Book.class;
-//			case NEW_VERSE:
-//				return ctx.getSelectedCount() == 1 && ctx.getSelectedType() == Chapter.class;
+			case NEW_SLIDE_TEXT_COMPONENT:
+			case NEW_SLIDE_MEDIA_COMPONENT:
+			case NEW_SLIDE_PLACEHOLDER_COMPONENT:
+			case NEW_SLIDE_DATETIME_COMPONENT:
+			case NEW_SLIDE_COUNTDOWN_COMPONENT:
+				return true;
 			case REDO:
 				return ctx.getUndoManager().isRedoAvailable();
 			case UNDO:
 				return ctx.getUndoManager().isUndoAvailable();
-//			case RENUMBER:
-//				return ctx.getSelectedCount() == 1 && ctx.getSelectedType() != Verse.class;
-//			case REORDER:
-//				return ctx.getSelectedCount() == 1 && ctx.getSelectedType() != Verse.class;
 			default:
 				return false;
 		}
@@ -240,18 +260,17 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 	
 	@Override
 	public boolean isActionVisible(Action action) {
-		return false;
-//		// specifically show these actions
-//		switch (action) {
-//			case NEW_BOOK:
-//			case NEW_CHAPTER:
-//			case NEW_VERSE:
-//			case RENUMBER:
-//			case REORDER:
-//				return true;
-//			default:
-//				return false;
-//		}
+		// specifically show these actions
+		switch (action) {
+			case NEW_SLIDE_TEXT_COMPONENT:
+			case NEW_SLIDE_MEDIA_COMPONENT:
+			case NEW_SLIDE_PLACEHOLDER_COMPONENT:
+			case NEW_SLIDE_DATETIME_COMPONENT:
+			case NEW_SLIDE_COUNTDOWN_COMPONENT:
+				return true;
+			default:
+				return false;
+		}
 	}
 	
 	private CompletableFuture<Void> copy(boolean isCut) {
@@ -324,11 +343,88 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 				this.undoManager.beginBatch("Delete");
 				this.slide.get().getComponents().removeAll(toRemove);
 				this.undoManager.completeBatch();
+				// clear the selected items
+				this.document.getSelectedItems().clear();
 			}
 		} catch (Exception ex) {
 			LOGGER.error("Failed to delete the selected items", ex);
 			this.undoManager.discardBatch();
 		}
 		return AsyncHelper.nil();
+	}
+	
+	private CompletableFuture<Void> createNewTextComponent() {
+		TextComponent component = new TextComponent("hello world!");
+		Slide slide = this.slide.get();
+		if (slide != null) {
+			component.setWidth(slide.getWidth() * 0.75);
+			component.setHeight(100);
+			component.setX(slide.getWidth() * 0.125);
+			component.setY(slide.getHeight() * 0.125);
+			component.setFont(component.getFont().withSize(50.0));
+			slide.getComponents().add(component);
+			this.selectComponent(component);
+		}
+		return CompletableFuture.completedFuture(null);
+	}
+	
+	private CompletableFuture<Void> createNewMediaComponent() {
+		MediaComponent component = new MediaComponent();
+		Slide slide = this.slide.get();
+		if (slide != null) {
+			component.setBackground(new SlideColor());
+			component.setHeight(slide.getHeight() * 0.5);
+			component.setWidth(slide.getWidth() * 0.5);
+			component.setX(slide.getWidth() * 0.125);
+			component.setY(slide.getHeight() * 0.125);
+			slide.getComponents().add(component);
+			this.selectComponent(component);
+		}
+		return CompletableFuture.completedFuture(null);
+	}
+	
+	private CompletableFuture<Void> createNewPlaceholderComponent() {
+		TextPlaceholderComponent component = new TextPlaceholderComponent();
+		Slide slide = this.slide.get();
+		if (slide != null) {
+			component.setWidth(slide.getWidth() * 0.75);
+			component.setHeight(100);
+			component.setX(slide.getWidth() * 0.125);
+			component.setY(slide.getHeight() * 0.125);
+			component.setFont(component.getFont().withSize(50.0));
+			slide.getComponents().add(component);
+			this.selectComponent(component);
+		}
+		return CompletableFuture.completedFuture(null);
+	}
+	
+	private CompletableFuture<Void> createNewDateTimeComponent() {
+		DateTimeComponent component = new DateTimeComponent();
+		Slide slide = this.slide.get();
+		if (slide != null) {
+			component.setWidth(slide.getWidth() * 0.75);
+			component.setHeight(100);
+			component.setX(slide.getWidth() * 0.125);
+			component.setY(slide.getHeight() * 0.125);
+			component.setFont(component.getFont().withSize(50.0));
+			slide.getComponents().add(component);
+			this.selectComponent(component);
+		}
+		return CompletableFuture.completedFuture(null);
+	}
+	
+	private CompletableFuture<Void> createNewCountdownComponent() {
+		CountdownComponent component = new CountdownComponent();
+		Slide slide = this.slide.get();
+		if (slide != null) {
+			component.setWidth(slide.getWidth() * 0.75);
+			component.setHeight(100);
+			component.setX(slide.getWidth() * 0.125);
+			component.setY(slide.getHeight() * 0.125);
+			component.setFont(component.getFont().withSize(50.0));
+			slide.getComponents().add(component);
+			this.selectComponent(component);
+		}
+		return CompletableFuture.completedFuture(null);
 	}
 }
