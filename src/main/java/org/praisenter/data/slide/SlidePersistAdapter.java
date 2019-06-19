@@ -146,7 +146,7 @@ public final class SlidePersistAdapter implements PersistAdapter<Slide> {
 					results = provider.read(path);
 					break;
 				} catch (Exception ex) {
-					LOGGER.warn("Failed to read '" + path.toAbsolutePath()+ "' using format provider '" + provider.getClass().getName() + "'.", ex);
+					LOGGER.trace("Failed to read '" + path.toAbsolutePath()+ "' using format provider '" + provider.getClass().getName() + "'.", ex);
 				}
 			}
 		}
@@ -197,17 +197,17 @@ public final class SlidePersistAdapter implements PersistAdapter<Slide> {
 											LOGGER.info("No slides were found in '" + entry.getName() + "' by provider '" + provider.getClass().getName() + "'.");
 										}
 									} catch (Exception ex) {
-										LOGGER.warn("Failed to read '" + entry.getName() + "' using format provider '" + provider.getClass().getName() + "'.", ex);
+										LOGGER.trace("Failed to read '" + entry.getName() + "' using format provider '" + provider.getClass().getName() + "'.", ex);
 									}
 								}
 								bais.reset();
 							}
 							
 							if (itemResults == null || itemResults.isEmpty()) {
-								LOGGER.warn("The content of the file '" + entry.getName() + "' was not recognized by any supported format provider.");
+								LOGGER.trace("The content of the file '" + entry.getName() + "' was not recognized by any supported format provider.");
 							}
 						} else {
-							LOGGER.warn("The mime type '" + mimeType + "' of the file '" + entry.getName() + "' was not recognized by any supported format provider.");
+							LOGGER.trace("The mime type '" + mimeType + "' of the file '" + entry.getName() + "' was not recognized by any supported format provider.");
 						}
 					}
 				}

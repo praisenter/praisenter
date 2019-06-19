@@ -31,6 +31,7 @@ import javafx.collections.transformation.FilteredList;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
@@ -67,7 +68,27 @@ public class PraisenterPane extends BorderPane {
 //		    burgerTask.play();
 //		});
 		
-		Menu mnuFile = new Menu("file", null, new MenuItem("reindex"), new MenuItem("preferences", Glyphs.MENU_PREFERENCES.duplicate()));
+		MenuItem reindex = new MenuItem("reindex");
+		reindex.setOnAction((e) -> {
+			BackgroundTask task = new BackgroundTask();
+			task.setName(Translations.get("task.reindex"));
+			task.setMessage(Translations.get("task.reindex"));
+			this.context.addBackgroundTask(task);
+			
+			this.context.dataManager.reindex().thenApply(AsyncHelper.onJavaFXThreadAndWait(() -> {
+				task.setProgress(1);
+			})).exceptionally((ex) -> {
+				LOGGER.error("Failed to reindex the lucene search index: " + ex.getMessage(), ex);
+				task.setException(ex);
+				Platform.runLater(() -> {
+					Alert alert = Alerts.exception(this.context.stage, null, null, null, ex);
+					alert.show();
+				});
+				return null;
+			});
+		});
+		
+		Menu mnuFile = new Menu("file", null, reindex, new MenuItem("preferences", Glyphs.MENU_PREFERENCES.duplicate()));
 		Menu mnuHelp = new Menu("help", null, new MenuItem("logs"), new MenuItem("about", Glyphs.MENU_ABOUT.duplicate()));
 		MenuBar mainMenu = new MenuBar(mnuFile, mnuHelp);
 		
@@ -228,20 +249,22 @@ public class PraisenterPane extends BorderPane {
 		
 		VBox.setVgrow(dep, Priority.ALWAYS);
 
-		Spinner<Integer> spnIndex = new Spinner<>(0,5,0);
-		Button btnLoadDocument = new Button("Print Undo State");
-		btnLoadDocument.setOnAction(e -> {
-			DocumentContext<?> ctx = context.getCurrentDocument();
-			if (ctx != null) {
-				ctx.getUndoManager().print();
-			}
-		});
-		HBox buttons = new HBox(5, spnIndex, btnLoadDocument);
+//		Spinner<Integer> spnIndex = new Spinner<>(0,5,0);
+//		Button btnLoadDocument = new Button("Print Undo State");
+//		btnLoadDocument.setOnAction(e -> {
+//			DocumentContext<?> ctx = context.getCurrentDocument();
+//			if (ctx != null) {
+//				ctx.getUndoManager().print();
+//			}
+//		});
+//		HBox buttons = new HBox(5, spnIndex, btnLoadDocument);
 		
 		ProgressBar progress = new ProgressBar();
 		progress.visibleProperty().bind(context.taskExecutingProperty());
+		Label lblCurrentTask = new Label();
+		lblCurrentTask.textProperty().bind(context.taskNameProperty());
 		
-		this.setBottom(new HBox(5, buttons, progress));
+		this.setBottom(new HBox(5, progress, lblCurrentTask));
 		
 		//this.getChildren().addAll(bp);
 

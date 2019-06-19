@@ -80,6 +80,14 @@ public final class SlideFont implements ReadOnlySlideFont, Copyable {
 		return sb.toString();
 	}
 	
+	public SlideFont withSize(double size) {
+		return new SlideFont(
+				this.family.get(),
+				this.weight.get(),
+				this.posture.get(),
+				size);
+	}
+	
 	@Override
 	@JsonProperty
 	public String getFamily() {

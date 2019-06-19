@@ -136,6 +136,11 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 			this.updatePlaceholders();
 		});
 	}
+
+	public Slide(String name) {
+		this();
+		this.name.set(name);
+	}
 	
 	/* (non-Javadoc)
 	 * @see org.praisenter.slide.SlideRegion#copy()

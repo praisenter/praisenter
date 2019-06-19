@@ -24,6 +24,7 @@
  */
 package org.praisenter.data.slide.graphics;
 
+import java.util.List;
 import java.util.Objects;
 
 import org.praisenter.data.Copyable;
@@ -32,6 +33,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 
 // FEATURE (L-L) add a miter limit (right now we just use the width)
 // FEATURE (L-L) add a stroke dash offset (this may only be needed if we support multiple borders)
@@ -45,31 +48,32 @@ public final class SlideStrokeStyle implements ReadOnlySlideStrokeStyle, Copyabl
 	private final ObjectProperty<SlideStrokeType> type;
 	private final ObjectProperty<SlideStrokeJoin> join;
 	private final ObjectProperty<SlideStrokeCap> cap;
-	private final ObjectProperty<Double[]> dashes;
+	private final ObservableList<Double> dashes;
+	private final ObservableList<Double> dashesReadOnly;
 	
 	public SlideStrokeStyle() {
 		this.type = new SimpleObjectProperty<>(SlideStrokeType.CENTERED);
 		this.join = new SimpleObjectProperty<>(SlideStrokeJoin.MITER);
 		this.cap = new SimpleObjectProperty<>(SlideStrokeCap.SQUARE);
-		this.dashes = new SimpleObjectProperty<>(new Double[0]);
+		this.dashes = FXCollections.observableArrayList();
+		this.dashesReadOnly = FXCollections.unmodifiableObservableList(this.dashes);
 	}
 	
-	public SlideStrokeStyle(SlideStrokeType type, SlideStrokeJoin join, SlideStrokeCap cap, Double... dashes) {
+	public SlideStrokeStyle(SlideStrokeType type, SlideStrokeJoin join, SlideStrokeCap cap, List<Double> dashes) {
 		this();
 		this.type.set(type);
 		this.join.set(join);
 		this.cap.set(cap);
-		this.dashes.set(dashes);
+		this.dashes.setAll(dashes);
 	}
 	
 	@Override
 	public SlideStrokeStyle copy() {
-		Double[] dashes = this.dashes.get();
 		return new SlideStrokeStyle(
 				this.type.get(),
 				this.join.get(),
 				this.cap.get(),
-				dashes != null ? dashes.clone() : null);
+				this.dashes);
 	}
 
 	/* (non-Javadoc)
@@ -83,7 +87,7 @@ public final class SlideStrokeStyle implements ReadOnlySlideStrokeStyle, Copyabl
 		  .append(this.type.get()).append(", ")
 		  .append(this.join.get()).append(", ")
 		  .append(this.cap.get()).append(", ")
-		  .append(this.dashes.get())
+		  .append(this.dashes)
 		  .append("]");
 		return sb.toString();
 	}
@@ -93,7 +97,7 @@ public final class SlideStrokeStyle implements ReadOnlySlideStrokeStyle, Copyabl
 	 */
 	@Override
 	public int hashCode() {
-		Double[] dashes = this.dashes.get();
+		List<Double> dashes = this.dashes;
 		
 		int hash = 37;
 		hash = hash * 31 + Objects.hash(
@@ -101,8 +105,7 @@ public final class SlideStrokeStyle implements ReadOnlySlideStrokeStyle, Copyabl
 				this.join.get(),
 				this.cap.get());
 		if (dashes != null) {
-			for (int i = 0; i < dashes.length; i++) {
-				Double d = dashes[i];
+			for (Double d : dashes) {
 				if (d != null) {
 					long v = d.hashCode();
 					hash = 31 * hash + (int)(v ^ (v >>> 32));
@@ -126,16 +129,16 @@ public final class SlideStrokeStyle implements ReadOnlySlideStrokeStyle, Copyabl
 				this.cap.get() != s.cap.get()) {
 				return false;
 			}
-			Double[] td = this.dashes.get();
-			Double[] sd = s.dashes.get();
+			List<Double> td = this.dashes;
+			List<Double> sd = s.dashes;
 			if (td == sd) return true;
 			if (td != null && sd == null) return false;
 			if (td == null && sd != null) return false;
-			if (td.length != sd.length) {
+			if (td.size() != sd.size()) {
 				return false;
 			}
-			for (int i = 0; i < td.length; i++) {
-				if (td[i] != sd[i]) {
+			for (int i = 0; i < td.size(); i++) {
+				if (td.get(i) != sd.get(i)) {
 					return false;
 				}
 			}
@@ -194,17 +197,16 @@ public final class SlideStrokeStyle implements ReadOnlySlideStrokeStyle, Copyabl
 	
 	@Override
 	@JsonProperty
-	public Double[] getDashes() {
-		return this.dashes.get();
+	public ObservableList<Double> getDashes() {
+		return this.dashes;
+	}
+	
+	public ObservableList<Double> getDashesUnmodifiable() {
+		return this.dashesReadOnly;
 	}
 	
 	@JsonProperty
-	public void setDashes(Double[] dashes) {
-		this.dashes.set(dashes);
-	}
-	
-	@Override
-	public ObjectProperty<Double[]> dashesProperty() {
-		return this.dashes;
+	public void setDashes(List<Double> dashes) {
+		this.dashes.setAll(dashes);
 	}
 }

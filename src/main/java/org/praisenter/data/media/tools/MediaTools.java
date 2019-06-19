@@ -82,19 +82,19 @@ public final class MediaTools {
 	public final Path ffprobe;
 	
 	public MediaTools(Path basePath) {
-		this.path = basePath;
+		this.path = basePath.resolve(TOOLS_DIR);
 		
 		this.lockMap = new LockMap<String>();
 		
 		if (RuntimeProperties.IS_WINDOWS_OS && (RuntimeProperties.IS_32 || RuntimeProperties.IS_64)) {
-			this.ffmpeg = path.resolve(TOOLS_DIR).resolve("ffmpeg.exe");
-			this.ffprobe = path.resolve(TOOLS_DIR).resolve("ffprobe.exe");
+			this.ffmpeg = path.resolve("ffmpeg.exe");
+			this.ffprobe = path.resolve("ffprobe.exe");
 		} else if (RuntimeProperties.IS_MAC_OS && RuntimeProperties.IS_64) {
-			this.ffmpeg = path.resolve(TOOLS_DIR).resolve("ffmpeg");
-			this.ffprobe = path.resolve(TOOLS_DIR).resolve("ffprobe");
+			this.ffmpeg = path.resolve("ffmpeg");
+			this.ffprobe = path.resolve("ffprobe");
 		} else if (RuntimeProperties.IS_LINUX_OS && (RuntimeProperties.IS_32 || RuntimeProperties.IS_64)) {
-			this.ffmpeg = path.resolve(TOOLS_DIR).resolve("ffmpeg");
-			this.ffprobe = path.resolve(TOOLS_DIR).resolve("ffprobe");
+			this.ffmpeg = path.resolve("ffmpeg");
+			this.ffprobe = path.resolve("ffprobe");
 		} else {
 			this.ffmpeg = null;
 			this.ffprobe = null;
@@ -161,7 +161,7 @@ public final class MediaTools {
 			if (!StringManipulator.isNullOrEmpty(token)) {
 				String match = token.toLowerCase().trim();
 				String replacement = parameters.get(match);
-				if (!StringManipulator.isNullOrEmpty(replacement)) {
+				if (replacement != null) {
 					command.add(replacement);
 				} else {
 					command.add(token);

@@ -64,7 +64,7 @@ public final class PraisenterFormatProvider<T> implements DataFormatProvider<T> 
 					return true;
 				}
 			} catch (Exception ex) {
-				LOGGER.warn("Failed to determine if '" + path.toAbsolutePath() + "' was in the Praisenter json format.", ex);
+				LOGGER.trace("Failed to determine if '" + path.toAbsolutePath() + "' was in the Praisenter json format.", ex);
 			}
 		}
 		return false;
@@ -78,14 +78,16 @@ public final class PraisenterFormatProvider<T> implements DataFormatProvider<T> 
 	@Override
 	public boolean isSupported(String resourceName, InputStream stream) throws IOException {
 		if (stream == null) return false;
-		if (!stream.markSupported()) throw new IOException("Mark is not supported on the given input stream.");
+		if (!stream.markSupported()) {
+			LOGGER.warn("Mark is not supported on the given input stream.");
+		}
 		try {
 			PraisenterFormat format = JsonIO.getPraisenterFormat(stream);
 			if (format != null && format.is(this.clazz)) {
 				return true;
 			}
 		} catch (Exception ex) {
-			LOGGER.warn("Failed to determine if '" + resourceName + "' was in the Praisenter json format.", ex);
+			LOGGER.trace("Failed to determine if '" + resourceName + "' was in the Praisenter json format.", ex);
 		}
 		return false;
 	}

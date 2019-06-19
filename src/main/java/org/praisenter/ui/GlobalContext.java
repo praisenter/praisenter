@@ -2,13 +2,15 @@ package org.praisenter.ui;
 
 import java.io.File;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
@@ -21,12 +23,19 @@ import org.praisenter.async.ReadOnlyBackgroundTask;
 import org.praisenter.data.DataManager;
 import org.praisenter.data.Persistable;
 import org.praisenter.data.bible.Bible;
+import org.praisenter.data.bible.Book;
+import org.praisenter.data.bible.Chapter;
+import org.praisenter.data.bible.Verse;
 import org.praisenter.data.configuration.Configuration;
 import org.praisenter.data.configuration.Resolution;
 import org.praisenter.data.media.Media;
-import org.praisenter.data.media.MediaType;
 import org.praisenter.data.slide.Slide;
 import org.praisenter.data.slide.SlideShow;
+import org.praisenter.data.slide.graphics.SlideColor;
+import org.praisenter.data.slide.graphics.SlideGradient;
+import org.praisenter.data.slide.graphics.SlideGradientCycleType;
+import org.praisenter.data.slide.graphics.SlideGradientStop;
+import org.praisenter.data.slide.graphics.SlideGradientType;
 import org.praisenter.ui.controls.Alerts;
 import org.praisenter.ui.document.DocumentContext;
 import org.praisenter.ui.events.ActionStateChangedEvent;
@@ -95,6 +104,7 @@ public final class GlobalContext {
 	private final ObservableList<ReadOnlyBackgroundTask> tasksReadOnly;
 	private final BooleanProperty taskExecuting;
 	private final BooleanProperty taskFailed;
+	private final StringProperty taskName;
 
 	public GlobalContext(
 			Application application, 
@@ -137,6 +147,7 @@ public final class GlobalContext {
 		this.tasksReadOnly = FXCollections.unmodifiableObservableList(this.tasks);
 		this.taskExecuting = new SimpleBooleanProperty();
 		this.taskFailed = new SimpleBooleanProperty();
+		this.taskName = new SimpleStringProperty();
 		
 		// bindings
 		
@@ -231,6 +242,14 @@ public final class GlobalContext {
 		this.taskFailed.bind(Bindings.createBooleanBinding(() -> {
 			return this.tasks.stream().anyMatch(t -> t.getException() != null);
 		}, this.tasks));
+		
+		this.taskName.bind(Bindings.createStringBinding(() -> {
+			Optional<ReadOnlyBackgroundTask> result = this.tasks.stream().filter(t -> !t.isComplete()).findFirst();
+			if (result.isPresent()) {
+				return result.get().getName();
+			}
+			return null;
+		}, this.tasks));
 
 		// watch for screen resolution changes
 		Screen.getScreens().addListener((Observable obs) -> {
@@ -288,6 +307,10 @@ public final class GlobalContext {
 		// always enabled actions
 		switch (action) {
 			case NEW:
+			case NEW_BIBLE:
+			case NEW_SLIDE:
+			case NEW_SLIDE_SHOW:
+			case NEW_SONG:
 			case IMPORT:
 				return true;
 			default:
@@ -369,6 +392,11 @@ public final class GlobalContext {
 			case NEW_BOOK:
 			case NEW_CHAPTER:
 			case NEW_VERSE:
+			case NEW_SLIDE_TEXT_COMPONENT:
+			case NEW_SLIDE_MEDIA_COMPONENT:
+			case NEW_SLIDE_PLACEHOLDER_COMPONENT:
+			case NEW_SLIDE_DATETIME_COMPONENT:
+			case NEW_SLIDE_COUNTDOWN_COMPONENT:
 				return ap != null && ap.isActionVisible(action);
 			default:
 				return true;
@@ -385,8 +413,14 @@ public final class GlobalContext {
 		switch (action) {
 			case IMPORT:
 				return this.promptImport();
-			case NEW:
-				// TODO show a new dialog
+			case NEW_BIBLE:
+				return this.createNewBibleAndOpen();
+			case NEW_SLIDE:
+				return this.createNewSlideAndOpen();
+			case NEW_SLIDE_SHOW:
+				// TODO implement
+			case NEW_SONG:
+				// TODO implement
 				break;
 			default:
 				break;
@@ -568,13 +602,29 @@ public final class GlobalContext {
 			final Persistable copy = data.copy();
 			final Object position = context.getUndoManager().storePosition();
 			
-			return context.getSaveExecutionManager().execute((o) -> {
-				BackgroundTask task = new BackgroundTask();
-				task.setName(Translations.get("task.saving", copy.getName()));
-				task.setMessage(Translations.get("task.saving", copy.getName()));
-				this.addBackgroundTask(task);
-				return this.getDataManager().update(copy).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
+			BackgroundTask task = new BackgroundTask();
+			task.setName(Translations.get("task.saving", copy.getName()));
+			task.setMessage(Translations.get("task.saving", copy.getName()));
+			this.addBackgroundTask(task);
+			
+			return context.getSaveExecutionManager().execute(() -> {
+				CompletableFuture<Void> future;
+				
+				// check if the document has been saved before
+				if (context.isNew()) {
+					// if not, we need to call create
+					future = this.getDataManager().create(copy);
+				} else {
+					// otherwise, we need to call update
+					future = this.getDataManager().update(copy);
+				}
+				
+				// regardless of create/update, we want to handle success and error the same
+				return future.thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
 					context.getUndoManager().markPosition(position);
+					if (context.isNew()) {
+						context.setNew(false);
+					}
 					task.setProgress(1);
 				})).handle((ob, t) -> {
 					return t;
@@ -638,6 +688,35 @@ public final class GlobalContext {
 			
 			return null;
 		});
+	}
+	
+	private CompletableFuture<Void> createNewBibleAndOpen() {
+		Bible bible = new Bible(Translations.get("action.new.untitled", LocalDateTime.now().format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT, FormatStyle.SHORT))));
+		Book book = new Book(1, Translations.get("action.new.bible.book"));
+		Chapter chapter = new Chapter(1);
+		Verse verse = new Verse(1, Translations.get("action.new.bible.verse"));
+		bible.getBooks().add(book);
+		book.getChapters().add(chapter);
+		chapter.getVerses().add(verse);
+		this.openDocument(bible, true);
+		return CompletableFuture.completedFuture(null);
+	}
+	
+	private CompletableFuture<Void> createNewSlideAndOpen() {
+		Slide slide = new Slide(Translations.get("action.new.untitled", LocalDateTime.now().format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT, FormatStyle.SHORT))));
+		SlideGradient slg = new SlideGradient(
+				SlideGradientType.LINEAR, 
+				0, 0, 1, 1, 
+				SlideGradientCycleType.NONE, 
+				new SlideGradientStop(0.0, new SlideColor(0, 0, 1, 1)), 
+				new SlideGradientStop(1.0, new SlideColor(0, 0, 0, 1)));
+		slide.setBackground(slg);
+		slide.setCreatedDate(Instant.now());
+		// TODO need to default to the target's width/height
+		//slide.setHeight(height);
+		//slide.setWidth(width);
+		this.openDocument(slide, true);
+		return CompletableFuture.completedFuture(null);
 	}
 	
 	public Application getApplication() {
@@ -733,12 +812,23 @@ public final class GlobalContext {
 	 * @param document the document
 	 */
 	public <T extends Persistable> void openDocument(T document) {
+		this.openDocument(document, false);
+	}
+	
+	/**
+	 * Opens the given document.
+	 * @param document the document
+	 * @param isNewDocument true if the document is a new (unsaved) document
+	 */
+	private <T extends Persistable> void openDocument(T document, boolean isNewDocument) {
 		// is the document already open?
 		DocumentContext<? extends Persistable> context = null;
-		for (DocumentContext<? extends Persistable> ctx : this.openDocuments) {
-			if (Objects.equals(ctx.getDocument(), document)) {
-				context = ctx;
-				break;
+		if (!isNewDocument) {
+			for (DocumentContext<? extends Persistable> ctx : this.openDocuments) {
+				if (Objects.equals(ctx.getDocument(), document)) {
+					context = ctx;
+					break;
+				}
 			}
 		}
 		
@@ -747,6 +837,7 @@ public final class GlobalContext {
 			context = new DocumentContext<>(document);
 			context.getUndoManager().undoCountProperty().addListener((obs, ov, nv) -> this.onActionStateChanged("UNDO_REDO"));
 			context.getUndoManager().redoCountProperty().addListener((obs, ov, nv) -> this.onActionStateChanged("UNDO_REDO"));
+			context.setNew(isNewDocument);
 			this.openDocuments.add(context);
 		}
 		
@@ -832,6 +923,14 @@ public final class GlobalContext {
 	
 	public ReadOnlyBooleanProperty taskFailedProperty() {
 		return this.taskFailed;
+	}
+	
+	public String getTaskName() {
+		return this.taskName.get();
+	}
+	
+	public ReadOnlyStringProperty taskNameProperty() {
+		return this.taskName;
 	}
 	
 	/**

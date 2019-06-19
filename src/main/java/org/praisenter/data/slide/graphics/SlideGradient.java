@@ -65,6 +65,24 @@ public class SlideGradient implements ReadOnlySlideGradient, SlidePaint, Copyabl
 				new SlideGradientStop(1, 1, 1, 1, 1));
 		this.stopsReadOnly = FXCollections.unmodifiableObservableList(this.stops);
 	}
+	
+	public SlideGradient(SlideGradientType type,
+			double startX,
+			double startY,
+			double endX,
+			double endY,
+			SlideGradientCycleType cycleType,
+			SlideGradientStop... stops) {
+		this();
+		this.type.set(type);
+		this.startX.set(startX);
+		this.startY.set(startY);
+		this.endX.set(endX);
+		this.endY.set(endY);
+		this.cycleType.set(cycleType);
+		this.stops.clear();
+		this.stops.addAll(stops);
+	}
 
 	@Override
 	public SlideGradient copy() {

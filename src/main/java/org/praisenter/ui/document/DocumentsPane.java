@@ -2,7 +2,6 @@ package org.praisenter.ui.document;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
@@ -12,6 +11,7 @@ import org.praisenter.ui.ActionPane;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.MappedList;
 
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -63,9 +63,15 @@ public final class DocumentsPane extends HBox implements ActionPane {
 		context.currentDocumentProperty().addListener((obs, ov, nv) -> {
 			if (nv != null) {
 				for (Tab tab : this.documentTabs.getTabs()) {
-					if (Objects.equals(((DocumentTab)tab).getDocumentContext(), nv)) {
+					DocumentTab dt = ((DocumentTab)tab);
+					if (Objects.equals(dt.getDocumentContext(), nv)) {
 						// since tabs are single select, a simple select does the trick
 						this.documentTabs.getSelectionModel().select(tab);
+						// set the focus to the editor (for some reason this required the runLater... probably 
+						// because of the tab selection)
+						Platform.runLater(() -> {
+							dt.getDocumentEditor().setDefaultFocus();
+						});
 						break;
 					}
 				}
@@ -172,7 +178,7 @@ public final class DocumentsPane extends HBox implements ActionPane {
 		if (editor != null) {
 			return editor.executeAction(action);
 		}
-		return null;
+		return CompletableFuture.completedFuture(null);
 	}
 	
 	@Override

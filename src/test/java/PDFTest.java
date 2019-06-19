@@ -4,17 +4,12 @@ import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.Paths;
-import java.util.List;
 
 import javax.imageio.ImageIO;
 
-import org.apache.pdfbox.cos.COSString;
-import org.apache.pdfbox.pdfparser.PDFStreamParser;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.apache.pdfbox.text.PDFTextStripper;
-import org.praisenter.song.Lyrics;
-import org.praisenter.song.SongInterpreter;
 
 import javafx.application.Application;
 import javafx.embed.swing.SwingFXUtils;
