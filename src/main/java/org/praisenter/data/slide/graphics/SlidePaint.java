@@ -25,7 +25,7 @@
 package org.praisenter.data.slide.graphics;
 
 import org.praisenter.data.Copyable;
-import org.praisenter.slide.media.MediaObject;
+import org.praisenter.data.slide.media.MediaObject;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;

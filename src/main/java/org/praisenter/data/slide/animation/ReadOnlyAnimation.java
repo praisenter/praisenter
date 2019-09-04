@@ -22,4 +22,6 @@ public interface ReadOnlyAnimation extends Copyable {
 	public ReadOnlyIntegerProperty repeatCountProperty();
 	public ReadOnlyBooleanProperty autoReverseEnabledProperty();
 	public ReadOnlyObjectProperty<Easing> easingProperty();
+	
+	public long getTotalTime();
 }

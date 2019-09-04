@@ -1,7 +1,10 @@
 package org.praisenter.data.slide;
 
+import java.util.List;
+
 import org.praisenter.data.Copyable;
 import org.praisenter.data.Identifiable;
+import org.praisenter.data.slide.animation.Animation;
 import org.praisenter.data.slide.effects.SlideShadow;
 
 import javafx.beans.property.ReadOnlyDoubleProperty;
@@ -17,6 +20,8 @@ public interface ReadOnlySlideComponent extends ReadOnlySlideRegion, Copyable, I
 	public ReadOnlyDoubleProperty yProperty();
 	public ReadOnlyObjectProperty<SlideShadow> shadowProperty();
 	public ReadOnlyObjectProperty<SlideShadow> glowProperty();
+	
+	public List<Animation> getAnimationsUnmodifiable();
 	
 	public boolean isOverlapping(ReadOnlySlideComponent component);
 }

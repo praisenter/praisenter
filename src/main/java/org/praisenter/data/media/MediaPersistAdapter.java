@@ -10,9 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -163,18 +161,20 @@ public final class MediaPersistAdapter implements PersistAdapter<Media> {
 					Files.copy(this.pathResolver.getMediaPath(item), destination);
 					destination.closeEntry();
 					
-					// the image
-					path = this.pathResolver.getExportImagePath(item);
-					e = new ZipEntry(FilenameUtils.separatorsToUnix(path.toString()));
-					destination.putNextEntry(e);
-					Files.copy(this.pathResolver.getMediaPath(item), destination);
-					destination.closeEntry();
+					// the image (video only)
+					if (item.getMediaType() == MediaType.VIDEO) {
+						path = this.pathResolver.getExportImagePath(item);
+						e = new ZipEntry(FilenameUtils.separatorsToUnix(path.toString()));
+						destination.putNextEntry(e);
+						Files.copy(this.pathResolver.getImagePath(item), destination);
+						destination.closeEntry();
+					}
 					
 					// the thumb
 					path = this.pathResolver.getExportThumbPath(item);
 					e = new ZipEntry(FilenameUtils.separatorsToUnix(path.toString()));
 					destination.putNextEntry(e);
-					Files.copy(this.pathResolver.getMediaPath(item), destination);
+					Files.copy(this.pathResolver.getThumbPath(item), destination);
 					destination.closeEntry();
 				} else {
 					// otherwise output just the media
@@ -319,68 +319,126 @@ public final class MediaPersistAdapter implements PersistAdapter<Media> {
 	 */
 	private DataImportResult<Media> importPraisenterMedia(Path path, List<Media> metadata, List<String> entries) throws IOException {
 		DataImportResult<Media> result = new DataImportResult<>();
-		Map<String, Path> mapping = new HashMap<>();
-		Map<String, Media> mediaMapping = new HashMap<>();
-		
-		// we are looking for the following for each media entry:
-		// 1. /{exportpath}/{mediapath}/{id}.{ext}
-		// 2. /{exportpath}/{imagepath}/{id}.jpg
-		// 3. /{exportpath}/{thumbpath}/{id}.png
-		
-		// if all three are present then we will import the media
+
 		for (Media media : metadata) {
-			String dp = FilenameUtils.separatorsToUnix(this.pathResolver.getExportPath(media).toString()); // /{exportPath}/media/{id}.json
-			String mp = FilenameUtils.separatorsToUnix(this.pathResolver.getExportMediaPath(media).toString()); // /{exportPath}/media/media/{id}.{ext}
-			String ip = FilenameUtils.separatorsToUnix(this.pathResolver.getExportImagePath(media).toString()); // /{exportPath}/media/images/{id}.jpg
-			String tp = FilenameUtils.separatorsToUnix(this.pathResolver.getExportThumbPath(media).toString()); // /{exportPath}/media/thumbs/{id}.png
+			// get the export paths for the media
+			String dep = FilenameUtils.separatorsToUnix(this.pathResolver.getExportPath(media).toString()); 		// /{exportPath}/media/{id}.json
+			String mep = FilenameUtils.separatorsToUnix(this.pathResolver.getExportMediaPath(media).toString()); // /{exportPath}/media/media/{id}.{ext}
+			String iep = FilenameUtils.separatorsToUnix(this.pathResolver.getExportImagePath(media).toString()); // /{exportPath}/media/images/{id}.jpg
+			String tep = FilenameUtils.separatorsToUnix(this.pathResolver.getExportThumbPath(media).toString()); // /{exportPath}/media/thumbs/{id}.png
+
+			// get the file paths for the media
+			Path dp = this.pathResolver.getPath(media);
+			Path mp = this.pathResolver.getMediaPath(media);
+			Path ip = this.pathResolver.getImagePath(media);
+			Path tp = this.pathResolver.getThumbPath(media);
+			
+			// backup paths
+			Path bdp = this.pathResolver.getImportPath().resolve(this.pathResolver.getFileName(media.getId(), "dpback"));
+			Path bmp = this.pathResolver.getImportPath().resolve(this.pathResolver.getFileName(media.getId(), "mpback"));
+			Path bip = this.pathResolver.getImportPath().resolve(this.pathResolver.getFileName(media.getId(), "ipback"));
+			Path btp = this.pathResolver.getImportPath().resolve(this.pathResolver.getFileName(media.getId(), "tpback"));
+			
+			// verify all components exist
 			boolean mpFound = false;
-			boolean ipFound = false;
+			boolean ipFound = media.getMediaType() != MediaType.VIDEO; // image is only for video media
 			boolean tpFound = false;
 			for (String entry : entries) {
-				if (entry.equals(mp)) mpFound = true;
-				if (entry.equals(ip)) ipFound = true;
-				if (entry.equals(tp)) tpFound = true;
+				if (entry.equals(mep)) mpFound = true;
+				if (entry.equals(iep)) ipFound = true;
+				if (entry.equals(tep)) tpFound = true;
 			}
+			
 			if (mpFound && ipFound && tpFound) {
-				// setup the mapping
-				mapping.put(dp, this.pathResolver.getPath(media));
-				mapping.put(mp, this.pathResolver.getMediaPath(media));
-				mapping.put(ip, this.pathResolver.getImagePath(media));
-				mapping.put(tp, this.pathResolver.getThumbPath(media));
-				mediaMapping.put(dp, media);
-				mediaMapping.put(mp, media);
-				mediaMapping.put(ip, media);
-				mediaMapping.put(tp, media);
-				// add the media to the imported list
-				if (Files.exists(this.pathResolver.getPath(media))) {
-					result.getUpdated().add(media);
-				} else {
-					result.getCreated().add(media);
-				}
-			} else {
-				result.getErrors().add(new Exception("The given archive file doesn't include the proper data to import '" + media.getName() + "'."));
-			}
-		}
-		
-		try (FileInputStream fis = new FileInputStream(path.toFile());
-			 BufferedInputStream bis = new BufferedInputStream(fis);
-			 ZipInputStream zis = new ZipInputStream(bis)) {
-			ZipEntry entry = null;
-			while ((entry = zis.getNextEntry()) != null) {
-				if (!entry.isDirectory()) {
-					Media media = mediaMapping.get(entry.getName());
-					if (media != null) {
-						// lock the file path since it may exist
-						synchronized(this.locks.get(media.getId())) {
-							Path tp = mapping.get(entry.getName());
-							if (tp != null) {
-								// TODO recovery if or one of three fail for a particular media item
-								// TODO the trick here too will be if it already existed and it only half-way worked
-								Files.copy(zis, tp, StandardCopyOption.REPLACE_EXISTING);
-							}							
+				// lock the file path since it may exist
+				synchronized(this.locks.get(media.getId())) {
+					// does the media already exist?
+					boolean update = Files.exists(this.pathResolver.getPath(media));
+					
+					if (update) {
+						try {
+							if (Files.exists(dp)) Files.move(dp, bdp, StandardCopyOption.REPLACE_EXISTING);
+							if (Files.exists(mp)) Files.move(mp, bmp, StandardCopyOption.REPLACE_EXISTING);
+							if (Files.exists(ip)) Files.move(ip, bip, StandardCopyOption.REPLACE_EXISTING);
+							if (Files.exists(tp)) Files.move(tp, btp, StandardCopyOption.REPLACE_EXISTING);
+						} catch (Exception ex) {
+							LOGGER.warn("Failed to backup all existing files for media '" + media.getName() + "' before performing update.", ex);
+						}
+					}
+					
+					boolean success = true;
+					// extract the files from the zip
+					try (FileInputStream fis = new FileInputStream(path.toFile());
+						 BufferedInputStream bis = new BufferedInputStream(fis);
+						 ZipInputStream zis = new ZipInputStream(bis)) {
+						ZipEntry entry = null;
+						while ((entry = zis.getNextEntry()) != null) {
+							if (!entry.isDirectory()) {
+								Path outputPath = null;
+								String name = entry.getName();
+								if (name.equals(dep)) outputPath = dp;
+								if (name.equals(mep)) outputPath = mp;
+								if (media.getMediaType() == MediaType.VIDEO && name.equals(iep)) outputPath = ip; // image is only for video
+								if (name.equals(tep)) outputPath = tp;
+								if (outputPath == null)  {
+									continue;
+								}
+								try {
+									Files.copy(zis, outputPath, StandardCopyOption.REPLACE_EXISTING);
+								} catch (Exception ex) {
+									success = false;
+									LOGGER.warn("Failed to copy zip entry '" + entry.getName() + "' to '" + outputPath + "' due to: " + ex.getMessage(), ex);
+									result.getErrors().add(ex);
+									break;
+								}
+							}
+						}
+					} catch (Exception ex) {
+						success = false;
+						LOGGER.warn("Failed to extract file data for media '" + media.getName() + "' due to: " + ex.getMessage(), ex);
+						result.getErrors().add(ex);
+					}
+					
+					if (success) {
+						if (update)  {
+							// delete the backup files
+							this.deleteWithShutdownFallback(bdp);
+							this.deleteWithShutdownFallback(bmp);
+							this.deleteWithShutdownFallback(bip);
+							this.deleteWithShutdownFallback(btp);
+							
+							result.getUpdated().add(media);
+						} else {
+							result.getCreated().add(media);
+						}
+					} else {
+						// recovery
+						if (update) {
+							try {
+								if (Files.exists(bdp))Files.move(bdp, dp, StandardCopyOption.REPLACE_EXISTING);
+								if (Files.exists(bmp))Files.move(bmp, mp, StandardCopyOption.REPLACE_EXISTING);
+								if (Files.exists(bip))Files.move(bip, ip, StandardCopyOption.REPLACE_EXISTING);
+								if (Files.exists(btp))Files.move(btp, tp, StandardCopyOption.REPLACE_EXISTING);
+							} catch (Exception ex) {
+								LOGGER.warn("Failed to recover all existing files for media '" + media.getName() + "' after update failed.", ex);
+								
+								// at this point we have to delete it all because it's in a unknown state
+								this.deleteWithShutdownFallback(dp);
+								this.deleteWithShutdownFallback(mp);
+								this.deleteWithShutdownFallback(ip);
+								this.deleteWithShutdownFallback(tp);
+							}
+						} else {
+							// attempt to delete now, but delete on shutdown if necessary
+							this.deleteWithShutdownFallback(dp);
+							this.deleteWithShutdownFallback(mp);
+							this.deleteWithShutdownFallback(ip);
+							this.deleteWithShutdownFallback(tp);
 						}
 					}
 				}
+			} else {
+				result.getErrors().add(new Exception("The given archive file doesn't include the proper data to import '" + media.getName() + "'."));
 			}
 		}
 		

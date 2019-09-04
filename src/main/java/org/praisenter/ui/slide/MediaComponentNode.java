@@ -20,6 +20,10 @@ final class MediaComponentNode extends SlideComponentNode<MediaComponent> {
 		this.media.maxWidthProperty().bind(this.region.widthProperty());
 		this.media.maxHeightProperty().bind(this.region.heightProperty());
 		
+		// make the media be behind the border
+		this.container.getChildren().removeAll(this.content, this.borderPane);
+		this.container.getChildren().addAll(this.content, this.borderPane);
+		
 		this.content.getChildren().add(this.media);
 	}
 

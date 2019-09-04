@@ -24,9 +24,12 @@
  */
 package org.praisenter.data.slide;
 
+import java.util.List;
+
 import org.praisenter.Watchable;
 import org.praisenter.data.Copyable;
 import org.praisenter.data.Identifiable;
+import org.praisenter.data.slide.animation.Animation;
 import org.praisenter.data.slide.effects.SlideShadow;
 import org.praisenter.data.slide.graphics.Rectangle;
 import org.praisenter.data.slide.media.MediaComponent;
@@ -44,6 +47,8 @@ import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 
 /**
  * Abstract implementation of the {@link SlideComponent} interface.
@@ -67,12 +72,18 @@ public abstract class SlideComponent extends SlideRegion implements ReadOnlySlid
 	private final ObjectProperty<SlideShadow> shadow;
 	private final ObjectProperty<SlideShadow> glow;
 	
+	private final ObservableList<Animation> animations;
+	private final ObservableList<Animation> animationsReadOnly;
+	
 	public SlideComponent() {
 		super();
 		this.x = new SimpleDoubleProperty(0);
 		this.y = new SimpleDoubleProperty(0);
 		this.shadow = new SimpleObjectProperty<>();
 		this.glow = new SimpleObjectProperty<>();
+		
+		this.animations = FXCollections.observableArrayList();
+		this.animationsReadOnly = FXCollections.unmodifiableObservableList(this.animations);
 	}
 	
 	public abstract SlideComponent copy();
@@ -94,6 +105,10 @@ public abstract class SlideComponent extends SlideRegion implements ReadOnlySlid
 			component.shadow.set(shadow.copy());
 		} else {
 			component.shadow.set(null);
+		}
+
+		for (Animation animation: this.animations) {
+			component.animations.add(animation.copy());
 		}
 	}
 
@@ -197,5 +212,21 @@ public abstract class SlideComponent extends SlideRegion implements ReadOnlySlid
 	@Watchable(name = "glow")
 	public ObjectProperty<SlideShadow> glowProperty() {
 		return this.glow;
+	}
+
+	@JsonProperty
+	@Watchable(name = "animations")
+	public ObservableList<Animation> getAnimations() {
+		return this.animations;
+	}
+	
+	@JsonProperty
+	public void setAnimations(List<Animation> animations) {
+		this.animations.setAll(animations);
+	}
+	
+	@Override
+	public ObservableList<Animation> getAnimationsUnmodifiable() {
+		return this.animationsReadOnly;
 	}
 }

@@ -1,6 +1,7 @@
 package org.praisenter.ui.slide;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -15,6 +16,9 @@ import org.praisenter.data.slide.graphics.SlideColor;
 import org.praisenter.data.slide.media.MediaComponent;
 import org.praisenter.data.slide.text.CountdownComponent;
 import org.praisenter.data.slide.text.DateTimeComponent;
+import org.praisenter.data.slide.text.SlideFont;
+import org.praisenter.data.slide.text.SlideFontPosture;
+import org.praisenter.data.slide.text.SlideFontWeight;
 import org.praisenter.data.slide.text.TextComponent;
 import org.praisenter.data.slide.text.TextPlaceholderComponent;
 import org.praisenter.ui.Action;
@@ -27,11 +31,13 @@ import org.praisenter.ui.undo.UndoManager;
 import org.praisenter.utility.Scaling;
 
 import javafx.application.Platform;
+import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.SortedList;
 import javafx.event.EventType;
 import javafx.geometry.Pos;
 import javafx.scene.input.Clipboard;
@@ -50,10 +56,11 @@ import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
 import javafx.scene.shape.StrokeType;
 
-// FEATURE grouping, UUID group property on each slide component, when grouped sizing and moving work on the group, can't select individual when grouped; or grouped at selection level only
-
-// TODO background, shadow, center
-// TODO context menu?
+// FEATURE (L-M) Allow multi select of components for moving or other actions
+// FEATURE (L-M) Allow grouping of components
+//		UUID group property on each slide component, when grouped sizing and moving work on the group, can't select individual when grouped; or grouped at selection level only
+// FEATURE (L-M) Add grid snaping to sizing/moving of components
+// FEATURE (L-M) Show context menu in addition to left edit window for more contextual editing
 public final class SlideEditor extends BorderPane implements DocumentEditor<Slide> {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
@@ -71,6 +78,8 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 	private final SlideView slideView;
 	
 	private final UndoManager undoManager;
+	
+	private int selectedOriginalIndex;
 	
 	public SlideEditor(
 			GlobalContext context, 
@@ -100,7 +109,6 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 			}
 		});
 		
-//		this.slide.bind(document.documentProperty());
 		this.componentMapping = new MappedList<>(this.components, (c) -> {
 			EditNode n = new EditNode(document, c);
 			n.scaleProperty().bind(this.slideView.viewScaleFactorProperty());
@@ -123,6 +131,15 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 		});
 		
 		this.selected.addListener((obs, ov, nv) -> {
+			// set the view order to make sure the selected node is brought
+			// to the foreground for editing
+			if (ov != null) {
+				ov.setViewOrder(0);
+			}
+			if (nv != null) {
+				nv.setViewOrder(-1);
+			}
+			
 			// FEATURE allow multi select
 			clearSelectionExceptFor(nv);
 			if (nv != null) {
@@ -138,9 +155,10 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 //			this.slideView.setSlide(document.getDocument());
 //			this.slide.bind(document.documentProperty());
 //		}));
-		this.slideView.setSlideAsync(document.getDocument()).thenRun(() -> {
+		this.slideView.loadSlideAsync(document.getDocument()).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
+			this.slideView.setSlide(document.getDocument());
 			this.slide.bind(document.documentProperty());
-		});
+		}));
 		
 		Pane editContainer = new Pane();
 		editContainer.maxWidthProperty().bind(Bindings.createDoubleBinding(() -> {
@@ -226,6 +244,11 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 				return this.createNewDateTimeComponent();
 			case NEW_SLIDE_COUNTDOWN_COMPONENT:
 				return this.createNewCountdownComponent();
+			case SLIDE_COMPONENT_MOVE_BACK:
+			case SLIDE_COMPONENT_MOVE_DOWN:
+			case SLIDE_COMPONENT_MOVE_FRONT:
+			case SLIDE_COMPONENT_MOVE_UP:
+				return this.moveComponent(action);
 			default:
 				return CompletableFuture.completedFuture(null);
 		}
@@ -253,6 +276,11 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 				return ctx.getUndoManager().isRedoAvailable();
 			case UNDO:
 				return ctx.getUndoManager().isUndoAvailable();
+			case SLIDE_COMPONENT_MOVE_BACK:
+			case SLIDE_COMPONENT_MOVE_FRONT:
+			case SLIDE_COMPONENT_MOVE_DOWN:
+			case SLIDE_COMPONENT_MOVE_UP:
+				return ctx.getSelectedCount() > 0;
 			default:
 				return false;
 		}
@@ -267,6 +295,10 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 			case NEW_SLIDE_PLACEHOLDER_COMPONENT:
 			case NEW_SLIDE_DATETIME_COMPONENT:
 			case NEW_SLIDE_COUNTDOWN_COMPONENT:
+			case SLIDE_COMPONENT_MOVE_BACK:
+			case SLIDE_COMPONENT_MOVE_FRONT:
+			case SLIDE_COMPONENT_MOVE_DOWN:
+			case SLIDE_COMPONENT_MOVE_UP:
 				return true;
 			default:
 				return false;
@@ -288,7 +320,7 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 				if (items.size() > 0) {
 					String data = JsonIO.write(items.toArray(new SlideComponent[0]));
 					ClipboardContent content = new ClipboardContent();
-					// TODO output PowerPoint data too?
+					// FEATURE (L-L) Output in powerpoint format
 					content.put(SLIDE_COMPONENT_DATA, data);
 					
 					Clipboard clipboard = Clipboard.getSystemClipboard();
@@ -320,6 +352,11 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 					sc.translate(20, 20);
 				}
 				this.slide.get().getComponents().addAll(components);
+				
+				// select the last component
+				if (components.length > 0) {
+					this.selectComponent(components[components.length - 1]);
+				}
 			} catch (Exception ex) {
 				LOGGER.warn("Failed to paste clipboard content (likely due to a JSON deserialization error", ex);
 			}
@@ -361,7 +398,7 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 			component.setHeight(100);
 			component.setX(slide.getWidth() * 0.125);
 			component.setY(slide.getHeight() * 0.125);
-			component.setFont(component.getFont().withSize(50.0));
+			component.setFont(new SlideFont("arial", SlideFontWeight.NORMAL, SlideFontPosture.REGULAR, 50.0));
 			slide.getComponents().add(component);
 			this.selectComponent(component);
 		}
@@ -391,7 +428,7 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 			component.setHeight(100);
 			component.setX(slide.getWidth() * 0.125);
 			component.setY(slide.getHeight() * 0.125);
-			component.setFont(component.getFont().withSize(50.0));
+			component.setFont(new SlideFont("arial", SlideFontWeight.NORMAL, SlideFontPosture.REGULAR, 50.0));
 			slide.getComponents().add(component);
 			this.selectComponent(component);
 		}
@@ -406,7 +443,7 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 			component.setHeight(100);
 			component.setX(slide.getWidth() * 0.125);
 			component.setY(slide.getHeight() * 0.125);
-			component.setFont(component.getFont().withSize(50.0));
+			component.setFont(new SlideFont("arial", SlideFontWeight.NORMAL, SlideFontPosture.REGULAR, 50.0));
 			slide.getComponents().add(component);
 			this.selectComponent(component);
 		}
@@ -421,9 +458,46 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 			component.setHeight(100);
 			component.setX(slide.getWidth() * 0.125);
 			component.setY(slide.getHeight() * 0.125);
-			component.setFont(component.getFont().withSize(50.0));
+			component.setFont(new SlideFont("arial", SlideFontWeight.NORMAL, SlideFontPosture.REGULAR, 50.0));
 			slide.getComponents().add(component);
 			this.selectComponent(component);
+		}
+		return CompletableFuture.completedFuture(null);
+	}
+
+	private CompletableFuture<Void> moveComponent(Action action) {
+		Slide slide = this.slide.get();
+		List<Object> items = this.document.getSelectedItems();
+		if (slide != null && items != null) {
+			boolean moved = false;
+			UndoManager undoManager = this.document.getUndoManager();
+			undoManager.beginBatch("movecomponent");
+			for (Object item : items) {
+				if (item instanceof EditNode) {
+					SlideComponent component = ((EditNode)item).getComponent();
+					switch (action) {
+						case SLIDE_COMPONENT_MOVE_BACK:
+							moved |= slide.moveComponentBack(component);
+							break;
+						case SLIDE_COMPONENT_MOVE_DOWN:
+							moved |= slide.moveComponentDown(component);
+							break;
+						case SLIDE_COMPONENT_MOVE_FRONT:
+							moved |= slide.moveComponentFront(component);
+							break;
+						case SLIDE_COMPONENT_MOVE_UP:
+							moved |= slide.moveComponentUp(component);
+							break;
+						default:
+							break;
+					}
+				}
+			}
+			if (moved) {
+				undoManager.completeBatch();
+			} else {
+				undoManager.discardBatch();
+			}
 		}
 		return CompletableFuture.completedFuture(null);
 	}

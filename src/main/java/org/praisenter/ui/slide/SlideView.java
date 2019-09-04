@@ -224,7 +224,7 @@ public class SlideView extends Region implements Playable {
 	}
 	
 	// TODO would be nice if there was a mechanism to wait for the SlideNode to load as well (when media players are ready for example) for better PRESENT interaction
-	private CompletableFuture<Void> loadMediaForSlide(Slide slide) {
+	public CompletableFuture<Void> loadSlideAsync(Slide slide) {
 		final Set<UUID> mediaIds = slide.getReferencedMedia();
 		final List<Media> mediaToLoad = new ArrayList<>();
 		
@@ -290,13 +290,6 @@ public class SlideView extends Region implements Playable {
 	
 	public ObjectProperty<Slide> slideProperty() {
 		return this.slide;
-	}
-	
-	public CompletableFuture<Void> setSlideAsync(Slide slide) {
-		// TODO have a loading... message with configurable text
-		return this.loadMediaForSlide(slide).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
-			this.slide.set(slide);
-		}));
 	}
 	
 	public SlideMode getViewMode() {

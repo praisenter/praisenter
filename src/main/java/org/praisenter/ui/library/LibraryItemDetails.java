@@ -113,6 +113,8 @@ final class LibraryItemDetails extends BorderPane {
 	
 	// UI
 	
+	/* helper for async loaded slides */
+	private Slide mostRecentSlide;
 	
 	
 	public LibraryItemDetails(GlobalContext context) {
@@ -275,6 +277,7 @@ final class LibraryItemDetails extends BorderPane {
 		ImageView image = new ImageView();
 		image.imageProperty().bind(BindingHelper.createAsyncObjectBinding(() -> {
 			Persistable item = this.item.get();
+			if (item == null) return null;
 			if (item instanceof Media) {
 				Media media = (Media)item;
 				MediaType type = media.getMediaType();
@@ -389,6 +392,7 @@ final class LibraryItemDetails extends BorderPane {
 //		labels.setBorder(new Border(new BorderStroke(Color.BLUEVIOLET, new BorderStrokeStyle(StrokeType.CENTERED, StrokeLineJoin.MITER, StrokeLineCap.SQUARE, 1.0, 0.0, null), null, new BorderWidths(4.0))));
 		
 		this.item.addListener((obs, ov, nv) -> {
+			this.mostRecentSlide = null;
 			slide.setSlide(null);
 			slide.setVisible(false);
 			image.setVisible(false);
@@ -397,12 +401,15 @@ final class LibraryItemDetails extends BorderPane {
 			if (nv == null) {
 				labels.showRowsOnly();
 			} else if (nv instanceof Slide) {
+				this.mostRecentSlide = (Slide)nv;
 				// load the slide async
-//				context.load(nv).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
-//					slide.setSlide((Slide)nv);
-//				}));
-				slide.setSlideAsync((Slide)nv).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
-					slide.setVisible(true);
+				slide.loadSlideAsync((Slide)nv).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
+					// by the time this finishes it could have been changed, so make sure
+					// its the same and if so, set it up
+					if (nv == this.mostRecentSlide) {
+						slide.setSlide(this.mostRecentSlide);
+						slide.setVisible(true);
+					}
 				}));
 				
 				labels.showRowsOnly(0,1,2,3,4,5,10);

@@ -42,6 +42,7 @@ import com.twelvemonkeys.image.ResampleOp;
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Rectangle2D;
+import javafx.scene.CacheHint;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
@@ -78,6 +79,7 @@ public final class JavaFXSlideRenderer implements SlideRenderer {
 		Callable<Image> snapshot = () -> {
 			SlideNode nSlide = new SlideNode(this.context, slide);
 			nSlide.setMode(SlideMode.VIEW);
+			nSlide.setCacheHint(CacheHint.QUALITY);
 			
 			SnapshotParameters sp = new SnapshotParameters();
 			// make sure the snapshot's background is transparent

@@ -42,6 +42,10 @@ public final class ActionBar extends ToolBar {
 			this.createNode(Action.RENAME),
 			this.createNode(Action.RENUMBER),
 			this.createNode(Action.REORDER),
+			this.createNode(Action.SLIDE_COMPONENT_MOVE_UP),
+			this.createNode(Action.SLIDE_COMPONENT_MOVE_DOWN),
+			this.createNode(Action.SLIDE_COMPONENT_MOVE_FRONT),
+			this.createNode(Action.SLIDE_COMPONENT_MOVE_BACK),
 			this.createNode(Action.IMPORT),
 			this.createNode(Action.EXPORT)
 		);
