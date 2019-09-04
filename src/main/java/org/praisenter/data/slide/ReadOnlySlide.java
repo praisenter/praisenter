@@ -9,7 +9,7 @@ import org.praisenter.data.Identifiable;
 import org.praisenter.data.Persistable;
 import org.praisenter.data.TextStore;
 import org.praisenter.data.search.Indexable;
-import org.praisenter.data.slide.animation.SlideAnimation;
+import org.praisenter.data.slide.animation.Animation;
 
 import javafx.beans.property.ReadOnlyLongProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -19,18 +19,18 @@ public interface ReadOnlySlide extends ReadOnlySlideRegion, Indexable, Persistab
 	public TextStore getPlaceholderData();
 	public long getTime();
 	public Path getThumbnailPath();
+	public Animation getTransition();
 	
 	public ReadOnlyObjectProperty<TextStore> placeholderDataProperty();
 	public ReadOnlyLongProperty timeProperty();
 	public ReadOnlyObjectProperty<Path> thumbnailPathProperty();
+	public ReadOnlyObjectProperty<Animation> transitionProperty();
 	
 	public ObservableList<SlideComponent> getComponentsUnmodifiable();
-	public ObservableList<SlideAnimation> getAnimationsUnmodifiable();
 	
 	public long getTotalTime();
 	public boolean hasPlaceholders();
 	
 	public <E extends SlideComponent> List<E> getComponents(Class<E> clazz);
 	public SlideComponent getComponent(UUID id);
-	public List<SlideAnimation> getAnimations(UUID id);
 }

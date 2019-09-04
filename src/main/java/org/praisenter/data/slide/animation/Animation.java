@@ -224,4 +224,8 @@ public abstract class Animation implements ReadOnlyAnimation, Copyable {
 	public ObjectProperty<Easing> easingProperty() {
 		return this.easing;
 	}
+	
+	public long getTotalTime() {
+		return Math.max(0, this.delay.get()) + Math.max(0, this.duration.get()) * Math.max(1, this.repeatCount.get()) * (this.autoReverseEnabled.get() ? 2 : 1);
+	}
 }

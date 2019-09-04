@@ -6,9 +6,7 @@ import java.util.List;
 import org.praisenter.data.slide.Slide;
 import org.praisenter.data.slide.SlideComponent;
 import org.praisenter.ui.document.DocumentContext;
-import org.praisenter.utility.Scaling;
 
-import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
@@ -17,15 +15,10 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderStroke;
 import javafx.scene.layout.BorderStrokeStyle;
@@ -34,26 +27,15 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
-import javafx.scene.shape.Shape;
 import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
 import javafx.scene.shape.StrokeType;
-
-// FEATURE add quick UI for common changes (font alignment, color, etc)
-
-// TODO right click
 
 final class EditNode extends StackPane {
 	private static final double THUMB_SIZE = 10;
 	private static final double BORDER_OFFSET = 6;
 	private static final double BORDER_SIZE = 1;
 	private static final double DASH_SIZE = 4;
-	
-	// this			StackPane
-	//	+- sp		StackPane		Border + padding
-	//  +- thumb1	Rectangle		
-	//  +- thumb2	Rectangle
-	//	+- ...
 	
 	private final DocumentContext<Slide> document;
 	private final ObjectProperty<SlideComponent> component;
@@ -84,8 +66,6 @@ final class EditNode extends StackPane {
 	
 //	private final ContextMenu contextMenu;
 	
-	private final ObservableList<SlideComponent> components;
-	
 	public EditNode(
 			DocumentContext<Slide> document,
 			SlideComponent component) {
@@ -111,78 +91,34 @@ final class EditNode extends StackPane {
 //			);
 //		this.contextMenu.setAutoHide(true);
 //		this.setOnContextMenuRequested(e -> this.contextMenu.show(this, e.getScreenX(), e.getScreenY()));
+
+		List<Double> halfdashes = new ArrayList<Double>();
+		halfdashes.add(DASH_SIZE / 2);
+		halfdashes.add(DASH_SIZE / 2);
 		
 		List<Double> dashes = new ArrayList<Double>();
 		dashes.add(DASH_SIZE);
 		dashes.add(DASH_SIZE);
 		
-		Region border = new Region();
-		border.setBorder(new Border(
-				new BorderStroke(Color.BLACK, new BorderStrokeStyle(StrokeType.OUTSIDE, StrokeLineJoin.MITER, StrokeLineCap.BUTT, BORDER_SIZE * 2, 0.0, dashes), null, new BorderWidths(BORDER_SIZE))
-				,new BorderStroke(Color.WHITE, new BorderStrokeStyle(StrokeType.OUTSIDE, StrokeLineJoin.MITER, StrokeLineCap.BUTT, BORDER_SIZE * 2, DASH_SIZE, dashes), null, new BorderWidths(BORDER_SIZE))
-				));
-		border.setSnapToPixel(true);
+		Border hoverBorder = new Border(
+			new BorderStroke(Color.BLACK, new BorderStrokeStyle(StrokeType.OUTSIDE, StrokeLineJoin.MITER, StrokeLineCap.BUTT, BORDER_SIZE * 2, 0.0, halfdashes), null, new BorderWidths(BORDER_SIZE)),
+			new BorderStroke(Color.WHITE, new BorderStrokeStyle(StrokeType.OUTSIDE, StrokeLineJoin.MITER, StrokeLineCap.BUTT, BORDER_SIZE * 2, DASH_SIZE / 2, halfdashes), null, new BorderWidths(BORDER_SIZE))
+		);
+		
+		Border selectBorder = new Border(
+			new BorderStroke(Color.BLACK, new BorderStrokeStyle(StrokeType.OUTSIDE, StrokeLineJoin.MITER, StrokeLineCap.BUTT, BORDER_SIZE * 2, 0.0, dashes), null, new BorderWidths(BORDER_SIZE)),
+			new BorderStroke(Color.WHITE, new BorderStrokeStyle(StrokeType.OUTSIDE, StrokeLineJoin.MITER, StrokeLineCap.BUTT, BORDER_SIZE * 2, DASH_SIZE, dashes), null, new BorderWidths(BORDER_SIZE))
+		);
+		
+		Region editBorder = new Region();
+		editBorder.setSnapToPixel(true);
 //		border.setBackground(new Background(new BackgroundFill(Color.WHITE, null, null)));
 
-		StackPane sp = new StackPane(border);
-		sp.setPadding(new Insets(BORDER_OFFSET));
-		sp.setSnapToPixel(true);
+		StackPane editBorderContainer = new StackPane(editBorder);
+		editBorderContainer.setPadding(new Insets(BORDER_OFFSET));
+		editBorderContainer.setSnapToPixel(true);
 		
-//		Rectangle bc = new Rectangle();
-//		bc.widthProperty().bind(sp.widthProperty());
-//		bc.heightProperty().bind(sp.heightProperty());
-//		sp.clipProperty().bind(Bindings.createObjectBinding(() -> {
-//			Rectangle n = new Rectangle(BORDER_SIZE + BORDER_OFFSET, BORDER_SIZE + BORDER_OFFSET, bc.getWidth() - BORDER_SIZE * 2 - BORDER_OFFSET * 2, bc.getHeight() - BORDER_SIZE * 2 - BORDER_OFFSET * 2);
-////			return n;
-//			return Shape.subtract(bc, n);
-//		}, bc.widthProperty(), bc.heightProperty()));
-		
-		// TODO this could get really slow in the future, will need to keep an eye on this (the process of computing a clip for the border)
-		this.components = FXCollections.observableArrayList(c -> {
-			return new Observable[] {
-				c.xProperty(),
-				c.yProperty(),
-				c.widthProperty(),
-				c.heightProperty()
-			};
-		});
-		
-		Bindings.bindContent(this.components, this.document.getDocument().getComponents());
-		
-		// the border needs to be clipped by any components that are above this component
-		border.clipProperty().bind(Bindings.createObjectBinding(() -> {
-			SlideComponent me = this.component.get();
-			double scale = this.scale.get();
-			boolean isSelected = this.selected.get();
-			
-			if (isSelected) return null;
-			
-			Shape clip = null;
-
-			double offsetX = me.getX();
-			double offsetY = me.getY();
-			
-			boolean found = false;
-			for (SlideComponent sc : this.components) {
-				if (found && me.isOverlapping(sc)) {
-					// check if we need to initialize the clip
-					if (clip == null) {
-						// set it to the bounds of the border node
-						clip = new Rectangle(-BORDER_SIZE, -BORDER_SIZE, me.getWidth() * scale + BORDER_SIZE * 4, me.getHeight() * scale + BORDER_SIZE * 4);
-					}
-					// compute the offset bounds of this node
-					Rectangle temp = new Rectangle((sc.getX() - offsetX) * scale, (sc.getY() - offsetY) * scale, sc.getWidth() * scale, sc.getHeight() * scale);
-					// subtract this other bounds from the bounds of this node
-					clip = Shape.subtract(clip, temp);
-				}
-				if (sc == me) {
-					found = true;
-				}
-			}
-			
-			return clip;
-		}, this.components, this.scale, this.selected));
-		
+		// resize knobs
 		Rectangle tlThumb = new Rectangle(THUMB_SIZE, THUMB_SIZE);
 		Rectangle tThumb = new Rectangle(THUMB_SIZE, THUMB_SIZE);
 		Rectangle trThumb = new Rectangle(THUMB_SIZE, THUMB_SIZE);
@@ -242,7 +178,7 @@ final class EditNode extends StackPane {
 			});
 		}
 		
-		this.getChildren().addAll(sp, tlThumb, tThumb, trThumb, rThumb, brThumb, bThumb, blThumb, lThumb);
+		this.getChildren().addAll(editBorderContainer, tlThumb, tThumb, trThumb, rThumb, brThumb, bThumb, blThumb, lThumb);
 		
 		this.prefWidthProperty().bind(Bindings.createDoubleBinding(() -> {
 			return Math.ceil(component.getWidth() * this.scale.get()) + BORDER_OFFSET * 2;
@@ -273,27 +209,36 @@ final class EditNode extends StackPane {
 				dragged(e);
 			} else if (e.getEventType() == MouseEvent.MOUSE_RELEASED) {
 				apply(e);
+			} else if (e.getEventType() == MouseEvent.MOUSE_ENTERED) {
+				if (!this.isSelected()) {
+					editBorder.setBorder(hoverBorder);
+				}
+			} else if (e.getEventType() == MouseEvent.MOUSE_EXITED) {
+				if (!this.isSelected()) {
+					editBorder.setBorder(null);
+				}
 			}
 			e.consume();
 		});
 		
+		this.selected.addListener((obs, ov, nv) -> {
+			if (!nv) {
+				editBorder.setBorder(null);
+			} else {
+				editBorder.setBorder(selectBorder);
+			}
+		});
+		
 		this.setCursor(Cursor.MOVE);
 		this.setSnapToPixel(true);
+		
+//		this.setBackground(new Background(new BackgroundFill(random(), null, null)));
 	}
-
-//	private MenuItem createMenuItem(Action action) {
-//		MenuItem mnu = new MenuItem(Translations.get(action.getMessageKey()));
-//		if (action.getGraphicSupplier() != null) {
-//			//mnu.setGraphic(action.getGraphicSupplier().get());
-//		}
-//		// NOTE: due to bug in JavaFX, we don't apply the accelerator here
-//		//mnu.setAccelerator(value);
-//		// TODO need to send action to parent or define the context menu on the parent? OR don't show a context menu, but show a toolbar above the component?
-//		//mnu.setOnAction(e -> this.executeAction(action));
-//		mnu.setUserData(action);
-//		return mnu;
-//	}
 	
+//	private Color random() {
+//		return Color.color(Math.random(), Math.random(), Math.random());
+//	}
+
 	/**
 	 * Called when a mouse button has been pressed on the component.
 	 * @param event the event

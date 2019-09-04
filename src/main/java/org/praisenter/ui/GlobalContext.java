@@ -397,6 +397,10 @@ public final class GlobalContext {
 			case NEW_SLIDE_PLACEHOLDER_COMPONENT:
 			case NEW_SLIDE_DATETIME_COMPONENT:
 			case NEW_SLIDE_COUNTDOWN_COMPONENT:
+			case SLIDE_COMPONENT_MOVE_BACK:
+			case SLIDE_COMPONENT_MOVE_DOWN:
+			case SLIDE_COMPONENT_MOVE_FRONT:
+			case SLIDE_COMPONENT_MOVE_UP:
 				return ap != null && ap.isActionVisible(action);
 			default:
 				return true;

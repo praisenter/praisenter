@@ -24,6 +24,7 @@
  */
 package org.praisenter.data.json;
 
+import java.lang.annotation.Annotation;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,6 +32,7 @@ import org.praisenter.Constants;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 
 /**
  * Class used to store format information for the Praisenter JSON format.
@@ -65,17 +67,21 @@ public final class PraisenterFormat {
 	 * @return boolean
 	 */
 	public boolean is(Class<?> clazz) {
-		JsonSubTypes[] annotations = clazz.getAnnotationsByType(JsonSubTypes.class);
+		Annotation[] annotations = clazz.getAnnotations();
 		List<String> typeNames = new ArrayList<String>();
 		if (annotations != null) {
-			for (JsonSubTypes subTypes : annotations) {
-				Type[] types = subTypes.value();
-				if (types != null) {
-					for (Type type : types) {
-						if (clazz.isAssignableFrom(type.value())) {
-							typeNames.add(type.name());
+			for (Annotation annotation : annotations) {
+				if (annotation instanceof JsonSubTypes) {
+					Type[] types = ((JsonSubTypes)annotation).value();
+					if (types != null) {
+						for (Type type : types) {
+							if (clazz.isAssignableFrom(type.value())) {
+								typeNames.add(type.name());
+							}
 						}
 					}
+				} else if (annotation instanceof JsonTypeName) {
+					typeNames.add(((JsonTypeName)annotation).value());
 				}
 			}
 		}

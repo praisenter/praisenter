@@ -54,8 +54,6 @@ import org.praisenter.data.json.InstantJsonDeserializer;
 import org.praisenter.data.json.InstantJsonSerializer;
 import org.praisenter.data.search.Indexable;
 import org.praisenter.data.slide.animation.Animation;
-import org.praisenter.data.slide.animation.AnimationType;
-import org.praisenter.data.slide.animation.SlideAnimation;
 import org.praisenter.data.slide.text.TextPlaceholderComponent;
 import org.praisenter.song.SongReferenceTextStore;
 
@@ -106,14 +104,13 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 	private final ObjectProperty<Instant> createdDate;
 	private final ObjectProperty<Instant> modifiedDate;
 	private final LongProperty time;
+	private final ObjectProperty<Animation> transition;
 	private final ObjectProperty<TextStore> placeholderData;
 	private final ObjectProperty<Path> thumbnailPath;
 	private final ObservableSet<Tag> tags;
 	private final ObservableSet<Tag> tagsReadOnly;
 	private final ObservableList<SlideComponent> components;
 	private final ObservableList<SlideComponent> componentsReadOnly;
-	private final ObservableList<SlideAnimation> animations;
-	private final ObservableList<SlideAnimation> animationsReadOnly;
 	
 	public Slide() {
 		this.format = new SimpleStringProperty(Constants.FORMAT_NAME);
@@ -121,15 +118,14 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 		this.createdDate = new SimpleObjectProperty<>(Instant.now());
 		this.modifiedDate = new SimpleObjectProperty<>(this.createdDate.get());
 		this.time = new SimpleLongProperty(0);
+		this.transition = new SimpleObjectProperty<Animation>();
 		this.placeholderData = new SimpleObjectProperty<>();
 
 		this.tags = FXCollections.observableSet(new HashSet<>());
 		this.tagsReadOnly = FXCollections.unmodifiableObservableSet(this.tags);
 		this.components = FXCollections.observableArrayList();
 		this.componentsReadOnly = FXCollections.unmodifiableObservableList(this.components);
-		this.animations = FXCollections.observableArrayList();
-		this.animationsReadOnly = FXCollections.unmodifiableObservableList(this.animations);
-		
+
 		this.thumbnailPath = new SimpleObjectProperty<>();
 		
 		this.placeholderData.addListener((obs, ov, nv) -> {
@@ -158,9 +154,6 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 		slide.time.set(this.time.get());
 		for (SlideComponent component : this.components) {
 			slide.components.add(component.copy());
-		}
-		for (SlideAnimation animation: this.animations) {
-			slide.animations.add(animation.copy());
 		}
 		slide.tags.addAll(this.tags);
 		slide.thumbnailPath.set(this.thumbnailPath.get());
@@ -301,24 +294,47 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 		if (time == Slide.TIME_FOREVER) {
 			return time;
 		}
-		long max = 0;
-		List<SlideAnimation> animations = this.getAnimations(this.getId());
-		if (animations != null && !animations.isEmpty()) {
-			for (SlideAnimation animation : animations) {
-				Animation ani = animation.getAnimation();
+		
+		long txTime = 0;
+		
+		Animation tx = this.transition.get();
+		if (tx != null) {
+			txTime = tx.getTotalTime();
+		}
+		
+		long maxTime = 0;
+		List<SlideComponent> comps = new ArrayList<>(this.components);
+		for (SlideComponent sc : comps) {
+			List<Animation> animations = new ArrayList<>(sc.getAnimations());
+			for (Animation ani : animations) {
 				if (ani.getRepeatCount() == Animation.INFINITE) {
 					return Slide.TIME_FOREVER;
 				}
-				if (ani.getAnimationType() == AnimationType.IN) {
-					long tx = Math.max(0, ani.getDuration()) * Math.max(1, ani.getRepeatCount()) * (ani.isAutoReverseEnabled() ? 2 : 1);
-					tx += Math.max(0, ani.getDelay());
-					if (tx > max) {
-						max = tx;
-					}
+				long aniTime = ani.getTotalTime();
+				if (aniTime > maxTime) {
+					maxTime = aniTime;
 				}
 			}
 		}
-		return time + max;
+		
+		return txTime + Math.max(time, maxTime);
+	}
+	
+	@Override
+	@JsonProperty
+	public Animation getTransition() {
+		return this.transition.get();
+	}
+	
+	@JsonProperty
+	public void setTransition(Animation animation) {
+		this.transition.set(animation);
+	}
+	
+	@Override
+	@Watchable(name = "transition")
+	public ObjectProperty<Animation> transitionProperty() {
+		return this.transition;
 	}
 	
 	@Override
@@ -423,19 +439,6 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 		return this.componentsReadOnly;
 	}
 
-//	public void addComponent(SlideComponent component) {
-//		this.components.add(component);
-//	}
-//
-//	public boolean removeComponent(SlideComponent component) {
-//		// no re-sort required here
-//		if (this.components.remove(component)) {
-//			this.animations.removeIf(st -> st.getId().equals(component.getId()));
-//			return true;
-//		}
-//		return false;
-//	}
-	
 	@Override
 	public <E extends SlideComponent> List<E> getComponents(Class<E> clazz) {
 		List<E> components = new ArrayList<E>();
@@ -457,7 +460,7 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 		return null;
 	}
 	
-	public void moveComponentUp(SlideComponent component) {
+	public boolean moveComponentUp(SlideComponent component) {
 		// move the given component up in the order
 		
 		// get all the components
@@ -469,16 +472,17 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 			// see if the component is already in the last position
 			if (index + 1 == size) {
 				// if it is, then just return
-				return;
+				return false;
 			} else {
 				components.remove(component);
 				components.add(index + 1, component);
-				//Collections.swap(components, index, index + 1);
+				return true;
 			}
 		}
+		return false;
 	}
 	
-	public void moveComponentDown(SlideComponent component) {
+	public boolean moveComponentDown(SlideComponent component) {
 		// move the given component down in the order
 		
 		// get all the components
@@ -489,16 +493,17 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 			// see if the component is already in the first position
 			if (index == 0) {
 				// if it is, then just return its order
-				return;
+				return false;
 			} else {
 				components.remove(component);
 				components.add(index - 1, component);
-//				Collections.swap(components, index, index - 1);
+				return true;
 			}
 		}
+		return false;
 	}
 	
-	public void moveComponentFront(SlideComponent component) {
+	public boolean moveComponentFront(SlideComponent component) {
 		// move the given component up in the order
 		
 		// get all the components
@@ -509,15 +514,17 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 			// see if the component is already in the last position
 			if (components.get(size - 1).equals(component)) {
 				// if it is, then just return its order
-				return;
+				return false;
 			} else {
 				components.remove(component);
 				components.add(component);
+				return true;
 			}
 		}
+		return false;
 	}
 
-	public void moveComponentBack(SlideComponent component) {
+	public boolean moveComponentBack(SlideComponent component) {
 		// move the given component up in the order
 		
 		// get all the components
@@ -527,12 +534,14 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 			// see if the component is already in the last position
 			if (components.get(0).equals(component)) {
 				// if it is, then just return its order
-				return;
+				return false;
 			} else {
 				components.remove(component);
 				components.add(0, component);
+				return true;
 			}
 		}
+		return false;
 	}
 	
 	public int moveComponent(SlideComponent component, int index) {
@@ -552,33 +561,6 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 		}
 		
 		return -1;
-	}
-	
-	@JsonProperty
-	@Watchable(name = "animations")
-	public ObservableList<SlideAnimation> getAnimations() {
-		return this.animations;
-	}
-	
-	@JsonProperty
-	public void setAnimations(List<SlideAnimation> animations) {
-		this.animations.setAll(animations);
-	}
-	
-	public ObservableList<SlideAnimation> getAnimationsUnmodifiable() {
-		return this.animationsReadOnly;
-	}
-	
-	@Override
-	public List<SlideAnimation> getAnimations(UUID id) {
-		List<SlideAnimation> animations = new ArrayList<SlideAnimation>();
-		for (int i = 0; i < this.animations.size(); i++) {
-			SlideAnimation st = this.animations.get(i);
-			if (st.getId().equals(id)) {
-				animations.add(st);
-			}
-		}
-		return animations;
 	}
 	
 	@Override

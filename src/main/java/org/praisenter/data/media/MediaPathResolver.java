@@ -70,7 +70,7 @@ final class MediaPathResolver extends BasicPathResolver<Media> implements PathRe
 	}
 	
 	public Path getImagePath(Media media) {
-		return this.imagePath.resolve(this.getFileName(media, IMAGE_EXTENSION));
+		return this.imagePath.resolve(this.getImageFileName(media));
 	}
 
 	public Path getRelativeImagePath() {
@@ -92,11 +92,11 @@ final class MediaPathResolver extends BasicPathResolver<Media> implements PathRe
 	}
 	
 	public Path getRelativeThumbPath(Media media) {
-		return Paths.get(THUMB_PATH).resolve(this.getFileName(media));
+		return Paths.get(THUMB_PATH).resolve(this.getThumbFileName(media));
 	}
 	
 	public Path getThumbPath(Media media) {
-		return this.thumbPath.resolve(this.getFileName(media, THUMB_EXTENSION));
+		return this.thumbPath.resolve(this.getThumbFileName(media));
 	}
 
 	public Path getRelativeThumbPath() {

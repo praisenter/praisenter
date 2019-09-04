@@ -16,7 +16,7 @@ import org.praisenter.data.configuration.Resolution;
 import org.praisenter.data.media.MediaType;
 import org.praisenter.data.slide.Slide;
 import org.praisenter.data.slide.SlideComponent;
-import org.praisenter.data.slide.animation.SlideAnimation;
+import org.praisenter.data.slide.animation.Animation;
 import org.praisenter.data.slide.effects.SlideShadow;
 import org.praisenter.data.slide.graphics.SlideColor;
 import org.praisenter.data.slide.graphics.SlidePadding;
@@ -99,7 +99,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Screen;
 
-// TODO animation control
+// TODO transition control
 public final class SlideSelectionEditor extends VBox implements DocumentSelectionEditor<Slide> {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
@@ -116,12 +116,12 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 	private final ObjectProperty<Double> widthAsObject;
 	private final ObjectProperty<Double> heightAsObject;
 	private final LongProperty time;
+	private final ObjectProperty<Animation> transition;
 	private final ObjectProperty<Long> timeAsObject;
 	private final ObjectProperty<SlidePaint> background;
 	private final ObjectProperty<SlideStroke> border;
 	private final DoubleProperty opacity;
 	private final ObservableSet<Tag> tags;
-	private final ObservableList<SlideAnimation> animations;
 	
 	private final ObservableList<Option<Resolution>> resolutions;
 	
@@ -195,11 +195,11 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 		this.heightAsObject = this.height.asObject();
 		this.time = new SimpleLongProperty();
 		this.timeAsObject = this.time.asObject();
+		this.transition = new SimpleObjectProperty<>();
 		this.background = new SimpleObjectProperty<>();
 		this.border = new SimpleObjectProperty<>();
 		this.opacity = new SimpleDoubleProperty();
 		this.tags = FXCollections.observableSet(new HashSet<>());
-		this.animations = FXCollections.observableArrayList();
 		
 		ObservableList<Resolution> resolutions = FXCollections.observableArrayList();
 		resolutions.addAll(context.getConfiguration().getResolutions());
@@ -213,7 +213,7 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 			Option<Resolution> option = new Option<>(null, r);
 			option.nameProperty().bind(Bindings.createStringBinding(() -> {
 				boolean isNative = this.isNativeResolution(r);
-				// TODO lookup the screen assignment so we can show something other than the index
+				// TODO lookup the screen assignment so we can show something other than "Native" - would be nice to show "Present Screen" or "Teleprompter" stuff like that
 				return Translations.get("slide.resolution", r.getWidth(), r.getHeight(), isNative ? " (Native)" : "");
 			}, Screen.getScreens()));
 			return option;
@@ -340,12 +340,11 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 				this.background.unbindBidirectional(ov.backgroundProperty());
 				this.border.unbindBidirectional(ov.borderProperty());
 				this.opacity.unbindBidirectional(ov.opacityProperty());
+				this.transition.unbindBidirectional(ov.transitionProperty());
 				
 				Bindings.unbindContentBidirectional(this.tags, ov.getTags());
-				Bindings.unbindContentBidirectional(this.animations, ov.getAnimations());
 				
 				this.tags.clear();
-				this.animations.clear();
 			}
 			
 			if (nv != null) {
@@ -356,9 +355,9 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 				this.background.bindBidirectional(nv.backgroundProperty());
 				this.border.bindBidirectional(nv.borderProperty());
 				this.opacity.bindBidirectional(nv.opacityProperty());
+				this.transition.bindBidirectional(nv.transitionProperty());
 				
 				Bindings.bindContentBidirectional(this.tags, nv.getTags());
-				Bindings.bindContentBidirectional(this.animations, nv.getAnimations());
 			}
 		});
 		
@@ -727,65 +726,6 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 		
 		// generic component
 		
-		Label lblComponentOrder = new Label(Translations.get("slide.component.order"));
-		Button btnComponentMoveUp = new Button("", this.buildMoveUpStackingGraphic());
-		Button btnComponentMoveDown = new Button("", this.buildMoveDownStackingGraphic());
-		Button btnComponentMoveFront = new Button("", this.buildMoveFrontStackingGraphic());
-		Button btnComponentMoveBack = new Button("", this.buildMoveBackStackingGraphic());
-		
-		btnComponentMoveUp.setOnAction(e -> {
-			Slide slide = this.slide.get();
-			SlideComponent component = this.selectedComponent.get();
-			if (slide != null && component != null) {
-				DocumentContext<Slide> document = this.documentContext.get();
-				if (document != null) {
-					UndoManager undoManager = document.getUndoManager();
-					undoManager.beginBatch("moveup");
-					slide.moveComponentUp(component);
-					undoManager.completeBatch();
-				}
-			}
-		});
-		btnComponentMoveDown.setOnAction(e -> {
-			Slide slide = this.slide.get();
-			SlideComponent component = this.selectedComponent.get();
-			if (slide != null && component != null) {
-				DocumentContext<Slide> document = this.documentContext.get();
-				if (document != null) {
-					UndoManager undoManager = document.getUndoManager();
-					undoManager.beginBatch("movedown");
-					slide.moveComponentDown(component);
-					undoManager.completeBatch();
-				}
-			}
-		});
-		btnComponentMoveFront.setOnAction(e -> {
-			Slide slide = this.slide.get();
-			SlideComponent component = this.selectedComponent.get();
-			if (slide != null && component != null) {
-				DocumentContext<Slide> document = this.documentContext.get();
-				if (document != null) {
-					UndoManager undoManager = document.getUndoManager();
-					undoManager.beginBatch("movefront");
-					slide.moveComponentFront(component);
-					undoManager.completeBatch();
-				}
-			}
-		});
-		btnComponentMoveBack.setOnAction(e -> {
-			Slide slide = this.slide.get();
-			SlideComponent component = this.selectedComponent.get();
-			if (slide != null && component != null) {
-				DocumentContext<Slide> document = this.documentContext.get();
-				if (document != null) {
-					UndoManager undoManager = document.getUndoManager();
-					undoManager.beginBatch("moveback");
-					slide.moveComponentBack(component);
-					undoManager.completeBatch();
-				}
-			}
-		});
-		
 		SlidePaintPicker pkrComponentBackground = new SlidePaintPicker(context, true, true, true, true, true, Translations.get("slide.background"));
 		pkrComponentBackground.valueProperty().bindBidirectional(this.componentBackground);
 		
@@ -1061,8 +1001,6 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 		
 		TitledPane ttlComponent = new TitledPane(Translations.get("slide.component"), new VBox(
 				3,
-				lblComponentOrder,
-				new HBox(btnComponentMoveBack, btnComponentMoveDown, btnComponentMoveUp, btnComponentMoveFront),
 				pkrComponentBackground,
 				pkrComponentBorder,
 				grid4,
@@ -1086,50 +1024,6 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 		
 		ttlComponent.visibleProperty().bind(this.componentSelected);
 		ttlComponent.managedProperty().bind(ttlComponent.visibleProperty());
-	}
-	
-	private Pane buildMoveUpStackingGraphic() {
-		Rectangle upr1 = new Rectangle(1, 1, 10, 10);
-		Rectangle upr2 = new Rectangle(5, 5, 10, 10);
-		upr1.setFill(Color.GRAY);
-		upr2.setFill(Color.BLUE);
-		upr1.setSmooth(false);
-		return new Pane(upr1, upr2);
-	}
-	
-	private Pane buildMoveDownStackingGraphic() {
-		Rectangle downr1 = new Rectangle(1, 1, 10, 10);
-		Rectangle downr2 = new Rectangle(5, 5, 10, 10);
-		downr1.setFill(Color.BLUE);
-		downr2.setFill(Color.GRAY);
-		downr2.setSmooth(false);
-		return new Pane(downr1, downr2);
-	}
-	
-	private Pane buildMoveFrontStackingGraphic() {
-		Rectangle front1 = new Rectangle(1, 1, 10, 10);
-		Rectangle front2 = new Rectangle(3, 3, 10, 10);
-		Rectangle front3 = new Rectangle(5, 5, 10, 10);
-		front1.setFill(Color.DARKGRAY);
-		front2.setFill(Color.GRAY);
-		front3.setFill(Color.BLUE);
-		front1.setSmooth(false);
-		front2.setSmooth(false);
-		front3.setSmooth(false);
-		return new Pane(front1, front2, front3);
-	}
-	
-	private Pane buildMoveBackStackingGraphic() {
-		Rectangle back1 = new Rectangle(5, 5, 10, 10);
-		Rectangle back2 = new Rectangle(3, 3, 10, 10);
-		Rectangle back3 = new Rectangle(1, 1, 10, 10);
-		back1.setFill(Color.DARKGRAY);
-		back2.setFill(Color.GRAY);
-		back3.setFill(Color.BLUE);
-		back1.setSmooth(false);
-		back2.setSmooth(false);
-		back3.setSmooth(false);
-		return new Pane(back3, back2, back1);
 	}
 	
 	private void updateSlideResolutions(ObservableList<Resolution> resolutions) {

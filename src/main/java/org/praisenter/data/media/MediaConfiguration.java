@@ -13,8 +13,8 @@ public interface MediaConfiguration {
 	/** The default FFmpeg command for transcoding */
 	public static final String DEFAULT_TRANSCODE_COMMAND = "{ffmpeg} -v fatal -i {source} -y -ignore_unknown {volumeadjust} {target}";
 	
-	/** The default command */
-	public static final String DEFAULT_VIDEO_FRAME_EXTRACT_COMMAND = "{ffmpeg} -v fatal -i {media} -vf \"select=gt(scene\\,0.0)\" -frames:v 10 -vsync vfr {frame}";
+	/** The default command (extract a frame every 2 seconds until we have 10 frames) */
+	public static final String DEFAULT_VIDEO_FRAME_EXTRACT_COMMAND = "{ffmpeg} -v fatal -i {media} -vf fps=2 -frames:v 10 -vsync vfr {frame}";
 	
 	public int getThumbnailWidth();
 	public int getThumbnailHeight();

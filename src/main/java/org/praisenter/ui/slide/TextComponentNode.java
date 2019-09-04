@@ -20,6 +20,7 @@ import org.praisenter.ui.slide.convert.FontConverter;
 import org.praisenter.ui.slide.convert.PaintConverter;
 import org.praisenter.ui.slide.convert.TextAlignmentConverter;
 import org.praisenter.ui.translations.Translations;
+import org.praisenter.utility.StringManipulator;
 
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
@@ -87,8 +88,11 @@ final class TextComponentNode extends SlideComponentNode<TextComponent> {
 		// listen for changes
 		
 		this.text.textProperty().bind(Bindings.createStringBinding(() -> {
-			if (this.region instanceof TextPlaceholderComponent && this.mode.get() == SlideMode.EDIT) {
-				return Translations.get("slide.placeholder");
+			if (this.region instanceof TextPlaceholderComponent) {
+				if (this.mode.get() == SlideMode.EDIT || 
+					(StringManipulator.isNullOrEmpty(this.region.getText()) && this.mode.get() == SlideMode.VIEW)) {
+					return Translations.get("slide.placeholder");
+				}
 			}
 			return this.region.getText();
 		}, this.region.textProperty(), this.mode));
