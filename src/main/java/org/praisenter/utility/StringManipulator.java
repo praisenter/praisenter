@@ -1,38 +1,8 @@
-/*
- * Copyright (c) 2015-2016 William Bittle  http://www.praisenter.org/
- * All rights reserved.
- * 
- * Redistribution and use in source and binary forms, with or without modification, are permitted 
- * provided that the following conditions are met:
- * 
- *   * Redistributions of source code must retain the above copyright notice, this list of conditions 
- *     and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above copyright notice, this list of conditions 
- *     and the following disclaimer in the documentation and/or other materials provided with the 
- *     distribution.
- *   * Neither the name of Praisenter nor the names of its contributors may be used to endorse or 
- *     promote products derived from this software without specific prior written permission.
- *     
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
- * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
- * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
- * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER 
- * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
 package org.praisenter.utility;
 
 import java.util.UUID;
 
-/**
- * Class containing string manipulation methods.
- * @author William Bittle
- * @see <a href="http://stackoverflow.com/questions/1155107/is-there-a-cross-platform-java-method-to-remove-filename-special-chars">Cross Platform FileNames</a>
- */
 public final class StringManipulator {
-	/** Hidden default constructor */
 	private StringManipulator() {}
 	
 	/**
@@ -55,6 +25,7 @@ public final class StringManipulator {
 	 * @param string the string
 	 * @param replacement the string to replace invalid characters
 	 * @return String
+	 * @see <a href="http://stackoverflow.com/questions/1155107/is-there-a-cross-platform-java-method-to-remove-filename-special-chars">Cross Platform FileNames</a>
 	 */
 	private static String toFileName(String string, String replacement) {
 		if (string == null) return null;
@@ -97,6 +68,7 @@ public final class StringManipulator {
 	 * @param maxLength the maximum length of the string
 	 * @param replacement the string to replace invalid characters
 	 * @return String
+	 * @see <a href="http://stackoverflow.com/questions/1155107/is-there-a-cross-platform-java-method-to-remove-filename-special-chars">Cross Platform FileNames</a>
 	 */
 	public static String toFileName(String string, String defaultString, int maxLength, String replacement) {
 		// strip invalid characters
@@ -137,6 +109,7 @@ public final class StringManipulator {
 	 * @param maxLength the maximum length of the string
 	 * @param replacement the string to replace invalid characters
 	 * @return String
+	 * @see <a href="http://stackoverflow.com/questions/1155107/is-there-a-cross-platform-java-method-to-remove-filename-special-chars">Cross Platform FileNames</a>
 	 */
 	public static String toFileName(String string, UUID id, int maxLength, String replacement) {
 		return StringManipulator.toFileName(
@@ -159,6 +132,7 @@ public final class StringManipulator {
 	 * @param id a unique identifier
 	 * @param maxLength the maximum length of the string
 	 * @return String
+	 * @see <a href="http://stackoverflow.com/questions/1155107/is-there-a-cross-platform-java-method-to-remove-filename-special-chars">Cross Platform FileNames</a>
 	 */
 	public static String toFileName(String string, UUID id, int maxLength) {
 		return StringManipulator.toFileName(

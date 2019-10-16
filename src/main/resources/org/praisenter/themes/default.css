@@ -34,12 +34,6 @@ https://stackoverflow.com/questions/50011276/javafx-treeview-expand-collapse-dis
     -fx-rotate: 90;
 }
 
-/** for transparent backgrounds */
-.transparent-bg {
-	-fx-background-image: url("/org/praisenter/images/transparent.png");
-	-fx-background-repeat: repeat;
-}
-
 /* ============== Reusable Components ================= */
 
 /* FlowListView */
@@ -81,64 +75,92 @@ https://stackoverflow.com/questions/50011276/javafx-treeview-expand-collapse-dis
 }
 .tag-list-view .tag-list-view-tags .tag {}
 
-/* ============== Praisenter Views ================= */
+/** MediaPreview */
+.media-preview {}
+.media-preview .media-preview-controls {
+	-fx-spacing: 2;
+	-fx-alignment: CENTER;
+	-fx-padding: 2 0 0 0;
+}
 
-/* ActionBar */
-.p-action-bar {}
-.p-action-bar .button {}
-.p-action-bar .menu-button {}
+/** Spinner w/ overlay */
+.progress-overlay {
+	-fx-background-color: rgba(255, 255, 255, 0.3);
+}
+.progress-overlay-indicator {}
+
+/* ============== Praisenter Components ================= */
+
+/* the action bar (vertical button bar) */
+.action-bar {}
+.action-bar .button {}
+.action-bar .menu-button {}
 /** don't show the caret for menu buttons on the action bar */
-.p-action-bar .menu-button > .label {
+.action-bar .menu-button > .label {
 	-fx-alignment: CENTER;
 }
-.p-action-bar .menu-button > .arrow-button,
-.p-action-bar .menu-button > .arrow-button > .arrow {
+.action-bar .menu-button > .arrow-button,
+.action-bar .menu-button > .arrow-button > .arrow {
     -fx-background-insets: 0;
     -fx-background-radius: 0;
 	-fx-padding: 0;
 	-fx-shape: null;
 }
 
-/* BibleEditorPane */
-.p-bible-editor {}
-.p-bible-editor .tree-view {}
-.p-bible-editor .tree-view .tree-cell {}
-.p-bible-editor .verse-number {
-	-fx-font-weight: bold; 
-	-fx-font-size: 0.8em;
-}
-
-/* BibleSelectionEditor */
-.p-bible-selection-editor {}
-
-/* LibraryListCell */
-.p-library-list-cell {
+/* styles for the item in the library listing */
+.library-list-cell {
 	-fx-alignment: top-center;
 	-fx-pref-width: 110;
 }
-.p-library-list-cell > .image-wrapper {
+.library-list-cell > .image-wrapper {
 	-fx-alignment: bottom-center;
 	-fx-pref-height: 100;
 	-fx-max-height: 100;
 	-fx-min-height: 100;
 }
-.p-library-list-cell > .image-wrapper > .image-underlay > .bible {
+.library-list-cell > .image-wrapper > .image-underlay > .bible {
 	-fx-image: url("/org/praisenter/images/bible-icon.png");
 }
-.p-library-list-cell > .image-wrapper > .image-underlay {
+.library-list-cell > .image-wrapper > .image-underlay {
 }
-.p-library-list-cell > .image-wrapper > .dropshadow-underlay {
+.library-list-cell > .image-wrapper > .dropshadow-underlay {
 	-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.25), 2, 0, 2, 2);
 }
-.p-library-list-cell > .image-wrapper > .transparent-underlay {
+.library-list-cell > .image-wrapper > .transparent-underlay {
 	-fx-background-image: url("/org/praisenter/images/transparent.png");
 	-fx-background-repeat: repeat;
 }
-.p-library-list-cell > Label {
+.library-list-cell > Label {
 	-fx-text-alignment: center;
 	-fx-padding: 5 0 0 0;
 	/*-fx-wrap-text: true;*/
 }
+
+/* grid control for the right side editor area */
+.edit-grid {
+	-fx-hgap: 3;
+	-fx-vgap: 3;
+}
+
+/* ============== Praisenter Other ================= */
+
+/* the verse number in the bible tree editor UI */
+.tree-cell .verse-number {
+	-fx-font-weight: bold; 
+	-fx-font-size: 0.8em;
+}
+
+/* the square in the middle of the 4 text boxes when editing the padding for text component */
+.padding-box {
+	-fx-fill: transparent;
+	-fx-stroke: BLACK;
+	-fx-stroke-type: outside;
+	-fx-stroke-line-cap: butt;
+	-fx-stroke-line-join: miter;
+	-fx-stroke-miter-limit: 10;
+	-fx-stroke-width: 1;
+}
+
 
 
 

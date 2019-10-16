@@ -92,10 +92,10 @@ final class DocumentTab extends Tab {
 		
 	}
 	
+	@SuppressWarnings("unchecked")
 	private DocumentEditor<?> createEditorForDocument() {
 		Persistable document = this.document.getDocument();
 		if (document != null) {
-			// TODO don't really like this, but what else could we do?
 			if (document.getClass() == Bible.class) {
 				BibleEditor bep = new BibleEditor(this.context, (DocumentContext<Bible>)this.document);
 				this.setContent(bep);
@@ -105,11 +105,15 @@ final class DocumentTab extends Tab {
 				this.setContent(sep);
 				return sep;
 			} else {
-				throw new RuntimeException("No editor for class '" + document.getClass().getName() + "'.");
+				LOGGER.warn("No editor for class '" + document.getClass().getName() + "'.");
 			}
+		} else {
+			LOGGER.warn("The document was null. Cannot edit a null document.");
 		}
 		
-		return new UnknownDocumentEditor((DocumentContext<Persistable>) this.document);
+		UnknownDocumentEditor uep = new UnknownDocumentEditor((DocumentContext<Persistable>)this.document);
+		this.setContent(uep);
+		return uep;
 	}
 	
 	public DocumentEditor<?> getDocumentEditor() {

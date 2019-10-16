@@ -31,4 +31,6 @@ public interface ReadOnlyBible extends Indexable, Persistable, Copyable, Identif
 	public LocatedVerseTriplet getPreviousTriplet(int bookNumber, int chapterNumber, int verseNumber);
 	public LocatedVerseTriplet getMatchingTriplet(LocatedVerseTriplet triplet);
 	public Book getLastBook();
+	public int getMaxBookNumber();
+	public Book getMatchingBook(ReadOnlyBook book);
 }

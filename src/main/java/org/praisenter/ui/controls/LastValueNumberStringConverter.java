@@ -5,6 +5,7 @@ import java.util.function.Consumer;
 import javafx.util.StringConverter;
 import javafx.util.converter.DoubleStringConverter;
 import javafx.util.converter.IntegerStringConverter;
+import javafx.util.converter.LongStringConverter;
 
 public final class LastValueNumberStringConverter<E extends Number> extends StringConverter<E> {
 	private E lastValue;
@@ -25,6 +26,14 @@ public final class LastValueNumberStringConverter<E extends Number> extends Stri
 	
 	public static LastValueNumberStringConverter<Integer> forInteger(Consumer<String> onInvalid) {
 		return new LastValueNumberStringConverter<>(new IntegerStringConverter(), onInvalid);
+	}
+	
+	public static LastValueNumberStringConverter<Long> forLong() {
+		return LastValueNumberStringConverter.forLong(null);
+	}
+	
+	public static LastValueNumberStringConverter<Long> forLong(Consumer<String> onInvalid) {
+		return new LastValueNumberStringConverter<>(new LongStringConverter(), onInvalid);
 	}
 	
 	private LastValueNumberStringConverter(StringConverter<E> converter, Consumer<String> onInvalid) {

@@ -2,8 +2,6 @@ package org.praisenter.ui.slide;
 
 import org.praisenter.data.slide.SlideRegion;
 import org.praisenter.data.slide.graphics.SlideStroke;
-import org.praisenter.data.slide.graphics.SlideStrokeStyle;
-import org.praisenter.data.slide.graphics.SlideStrokeType;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.Playable;
 import org.praisenter.ui.slide.convert.BorderConverter;
@@ -115,27 +113,11 @@ abstract class SlideRegionNode<T extends SlideRegion> extends StackPane implemen
 		
 		this.container.opacityProperty().bind(this.region.opacityProperty());
 		
-		this.background.paintProperty().bind(this.region.backgroundProperty());
-		this.background.modeProperty().bind(this.mode);
-		
-//		this.region.borderProperty().addListener((obs, ov, nv) -> {
-//			Shape clip = this.getBorderBasedClip(nv);
-//			this.background.setClip(clip);
-//			this.content.setClip(clip);
-//			//this.borderPane.setBorder(new Border(BorderConverter.toJavaFX(nv)));
-//		});
-
-//		this.background.clipProperty().bind(Bindings.createObjectBinding(() -> {
-//			SlideStroke border = this.region.getBorder();
-//			return this.getBorderBasedClip(border);
-//		}, this.region.borderProperty()));
-		
-		this.background.clipProperty().bind(Bindings.createObjectBinding(() -> {
-			SlideStroke border = this.region.getBorder();
-			double width = this.getWidth();
-			double height = this.getHeight();
-			return this.getBorderBasedClip(border, width, height);
-		}, this.region.borderProperty(), this.widthProperty(), this.heightProperty()));
+		this.background.slideModeProperty().bind(this.mode);
+		this.background.slidePaintProperty().bind(this.region.backgroundProperty());
+		this.background.slideBorderProperty().bind(this.region.borderProperty());
+		this.background.slideWidthProperty().bind(this.region.widthProperty());
+		this.background.slideHeightProperty().bind(this.region.heightProperty());
 		
 		this.borderPane.borderProperty().bind(Bindings.createObjectBinding(() -> {
 			SlideStroke border = this.region.getBorder();
@@ -146,33 +128,6 @@ abstract class SlideRegionNode<T extends SlideRegion> extends StackPane implemen
 		this.getChildren().add(this.container);
 	}
 
-	private final Shape getBorderBasedClip(SlideStroke stroke, double width, double height) {
-		if (stroke != null) {
-			double radius = stroke.getRadius();
-			double sw = stroke.getWidth();
-			SlideStrokeStyle style = stroke.getStyle();
-			if (radius > 0) {
-				double xoffset = 0;
-				double yoffset = 0;
-				// for inside type, we want the background to still fill
-				if (style != null && style.getType() == SlideStrokeType.INSIDE) {
-					xoffset = yoffset = sw * 0.5;
-					width -= sw;
-					height -= sw;
-				}
-				Rectangle r = new Rectangle();
-				r.setX(xoffset);
-				r.setY(yoffset);
-				r.setWidth(width);
-				r.setHeight(height);
-				r.setArcHeight(2 * radius);
-				r.setArcWidth(2 * radius);
-				return r;
-			}
-		}
-		return null;
-	}
-	
 	@Override
 	public void play() {
 		// TODO Auto-generated method stub

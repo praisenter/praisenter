@@ -2,6 +2,7 @@ package org.praisenter.data.configuration;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.apache.lucene.document.Document;
@@ -720,6 +721,16 @@ public final class Configuration implements ReadOnlyConfiguration, MediaConfigur
 	@Override
 	public ObservableList<Resolution> getResolutionsUnmodifiable() {
 		return this.resolutionsReadOnly;
+	}
+	
+	@Override
+	public ObservableSet<Tag> getTags() {
+		return null;
+	}
+	
+	@Override
+	public void setTags(Set<Tag> tags) {
+		// no-op
 	}
 	
 	@Override

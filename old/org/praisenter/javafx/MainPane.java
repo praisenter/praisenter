@@ -180,7 +180,6 @@ public final class MainPane extends BorderPane implements ApplicationPane {
 					this.slideShowEditorDialog.setValue(((SlideShow) data).copy(true));
 					this.slideShowEditorDialog.show(s -> {
 						if (s != null) {
-							// TODO save the show
 							this.context.getSlideLibrary().save(s)
 								.execute(this.context.getExecutorService());
 						}
@@ -214,7 +213,6 @@ public final class MainPane extends BorderPane implements ApplicationPane {
 				this.slideShowEditorDialog.setValue(new SlideShow());
 				this.slideShowEditorDialog.show(s -> {
 					if (s != null) {
-						// TODO save the show
 						this.context.getSlideLibrary().save(s)
 							.execute(this.context.getExecutorService());
 					}

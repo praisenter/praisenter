@@ -11,5 +11,6 @@ public interface Indexable extends Identifiable {
 	public static final String FIELD_TEXT = "docText";
 	public static final String FIELD_TYPE = "docType";
 	
+	public String getName();
 	public List<Document> index();
 }

@@ -1,27 +1,3 @@
-/*
- * Copyright (c) 2015-2016 William Bittle  http://www.praisenter.org/
- * All rights reserved.
- * 
- * Redistribution and use in source and binary forms, with or without modification, are permitted 
- * provided that the following conditions are met:
- * 
- *   * Redistributions of source code must retain the above copyright notice, this list of conditions 
- *     and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above copyright notice, this list of conditions 
- *     and the following disclaimer in the documentation and/or other materials provided with the 
- *     distribution.
- *   * Neither the name of Praisenter nor the names of its contributors may be used to endorse or 
- *     promote products derived from this software without specific prior written permission.
- *     
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
- * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
- * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
- * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER 
- * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
 package org.praisenter.ui.themes;
 
 import java.nio.file.DirectoryStream;
@@ -40,19 +16,14 @@ import org.apache.logging.log4j.Logger;
 import org.praisenter.Constants;
 import org.praisenter.utility.StringManipulator;
 
-/**
- * Represents a theme for the application using Java FX and css styling.
- * @author William Bittle
- * @version 3.0.0
- */
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.stage.Window;
+
 public final class Theme implements Comparable<Theme> {
-	/** The class level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
 
-	/** A regex for matching theme file names */
 	private static final Pattern THEME_PATTERN = Pattern.compile("^(.+)\\.css$", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
-	
-	/** The default theme */
 	public static final Theme DEFAULT = new Theme("Default", Theme.class.getResource("/org/praisenter/themes/default.css").toExternalForm());
 	
 	static {
@@ -62,6 +33,21 @@ public final class Theme implements Comparable<Theme> {
 		} catch (Exception ex) {
 			LOGGER.warn("Failed to create themes folder.", ex);
 		}
+	}
+	
+	/**
+	 * Returns a new scene for the given root node inheriting the stylesheets
+	 * from the given window owner.
+	 * @param root the root
+	 * @param owner the window owner
+	 * @return Scene
+	 */
+	public static final Scene createSceneWithOwnerCss(Parent root, Window owner) {
+		Scene scene = new Scene(root);
+		if (owner != null) {
+			scene.getStylesheets().addAll(owner.getScene().getStylesheets());
+		}
+		return scene;
 	}
 	
 	/**
@@ -124,50 +110,28 @@ public final class Theme implements Comparable<Theme> {
 		return Theme.DEFAULT;
 	}
 	
-	/** The theme name */
 	private final String name;
-	
-	/** The URI to the theme css */	
 	private final String css;
 	
-	/**
-	 * Full constructor.
-	 * @param name the theme name
-	 * @param css the URI to the theme
-	 */
 	private Theme(String name, String css) {
 		this.name = name;
 		this.css = css;
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Comparable#compareTo(java.lang.Object)
-	 */
 	@Override
 	public int compareTo(Theme o) {
 		return o.name.compareTo(this.name);
 	}
 	
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
 	@Override
 	public String toString() {
 		return this.name;
 	}
 	
-	/**
-	 * Returns the name of the theme.
-	 * @return String
-	 */
 	public String getName() {
 		return this.name;
 	}
 
-	/**
-	 * Returns a string URI to the css file for the theme.
-	 * @return String
-	 */
 	public String getCss() {
 		return this.css;
 	}

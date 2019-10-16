@@ -21,7 +21,7 @@ public final class ActionBar extends ToolBar {
 	private final GlobalContext context;
 	
 	public ActionBar(GlobalContext context) {
-		this.getStyleClass().add("p-action-bar");
+		this.getStyleClass().add("action-bar");
 		
 		this.context = context;
 		
@@ -100,7 +100,6 @@ public final class ActionBar extends ToolBar {
 		String messageKey = action.getMessageKey();
 		if (messageKey != null) {
 			String text = Translations.get(messageKey);
-			//button.setText(text);
 			button.setTooltip(new Tooltip(text));
 		}
 		
@@ -156,7 +155,6 @@ public final class ActionBar extends ToolBar {
 		if (messageKey != null) {
 			String text = Translations.get(messageKey);
 			item.setText(text);
-//			item.setTooltip(new Tooltip(text));
 		}
 	}
 	

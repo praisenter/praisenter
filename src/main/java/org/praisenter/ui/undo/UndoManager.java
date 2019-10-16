@@ -19,7 +19,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 public final class UndoManager {
-	/** The class-level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
 	
 	private final ObservableList<Edit> undos;

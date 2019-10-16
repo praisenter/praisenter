@@ -141,7 +141,6 @@ final class LoadingPane extends Pane {
     	barfg.setEndY(height - BAR_Y_OFFSET);
     	
     	// loading... text
-    	// TODO test fonts on various platforms
     	final Text loadingText = new Text(Translations.get("loading"));
     	loadingText.setFont(Font.font(
     			RuntimeProperties.IS_WINDOWS_OS 

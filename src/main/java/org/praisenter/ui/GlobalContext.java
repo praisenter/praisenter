@@ -71,11 +71,6 @@ import javafx.stage.FileChooser;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 
-/**
- * Manages application level state.
- * @author William Bittle
- *
- */
 public final class GlobalContext {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
@@ -85,26 +80,30 @@ public final class GlobalContext {
 	final Configuration configuration;
 	final ImageCache imageCache;
 	
+	// track focus, selection, location, available actions, etc.
+	
 	private final BooleanProperty windowFocused;
 	private final ObjectProperty<Scene> scene;
 	private final ObjectProperty<Node> focusOwner;
 	private final ObjectProperty<ActionPane> closestActionPane;
-	
 	private final StringProperty selectedText;
 	private final BooleanProperty textSelected;
+	private final Map<Action, BooleanProperty> isActionEnabled;
+	private final Map<Action, BooleanProperty> isActionVisible;
+	
+	// document editing
 	
 	private final ObjectProperty<DocumentContext<? extends Persistable>> currentDocument;
 	private final ObservableList<DocumentContext<? extends Persistable>> openDocuments;
 	private final ObservableList<DocumentContext<? extends Persistable>> openDocumentsReadOnly;
 	
-	private final Map<Action, BooleanProperty> isEnabled;
-	private final Map<Action, BooleanProperty> isVisible;
+	// background task tracking
 	
-	private final ObservableList<ReadOnlyBackgroundTask> tasks;
-	private final ObservableList<ReadOnlyBackgroundTask> tasksReadOnly;
-	private final BooleanProperty taskExecuting;
-	private final BooleanProperty taskFailed;
-	private final StringProperty taskName;
+	private final ObservableList<ReadOnlyBackgroundTask> backgroundTasks;
+	private final ObservableList<ReadOnlyBackgroundTask> backgroundTasksReadOnly;
+	private final BooleanProperty backgroundTaskExecuting;
+	private final BooleanProperty backgroundTaskFailed;
+	private final StringProperty backgroundTaskName;
 
 	public GlobalContext(
 			Application application, 
@@ -130,24 +129,24 @@ public final class GlobalContext {
 		this.openDocuments = FXCollections.observableArrayList();
 		this.openDocumentsReadOnly = FXCollections.unmodifiableObservableList(this.openDocuments);
 		
-		this.isEnabled = new HashMap<>();
-		this.isVisible = new HashMap<>();
+		this.isActionEnabled = new HashMap<>();
+		this.isActionVisible = new HashMap<>();
 		
 		for (Action action : Action.values()) {
-			this.isEnabled.put(action, new SimpleBooleanProperty());
-			this.isVisible.put(action, new SimpleBooleanProperty());
+			this.isActionEnabled.put(action, new SimpleBooleanProperty());
+			this.isActionVisible.put(action, new SimpleBooleanProperty());
 		}
 		
 		// make sure update events get called on the sub properties
-		this.tasks = FXCollections.observableArrayList(t -> {
+		this.backgroundTasks = FXCollections.observableArrayList(t -> {
 			return new Observable[] {
 				t.completeProperty()
 			};
 		});
-		this.tasksReadOnly = FXCollections.unmodifiableObservableList(this.tasks);
-		this.taskExecuting = new SimpleBooleanProperty();
-		this.taskFailed = new SimpleBooleanProperty();
-		this.taskName = new SimpleStringProperty();
+		this.backgroundTasksReadOnly = FXCollections.unmodifiableObservableList(this.backgroundTasks);
+		this.backgroundTaskExecuting = new SimpleBooleanProperty();
+		this.backgroundTaskFailed = new SimpleBooleanProperty();
+		this.backgroundTaskName = new SimpleStringProperty();
 		
 		// bindings
 		
@@ -234,22 +233,22 @@ public final class GlobalContext {
 		this.windowFocused.addListener((obs, ov, nv) -> this.onActionStateChanged("WINDOW_FOCUS_CHANGED=" + nv));
 		this.textSelected.addListener((obs, ov, nv) -> this.onActionStateChanged("TEXT_SELECTED=" + nv));
 		
-		this.taskExecuting.bind(Bindings.createBooleanBinding(() -> {
-			boolean isTaskExecuting = this.tasks.stream().anyMatch(t -> !t.isComplete());
+		this.backgroundTaskExecuting.bind(Bindings.createBooleanBinding(() -> {
+			boolean isTaskExecuting = this.backgroundTasks.stream().anyMatch(t -> !t.isComplete());
 			return isTaskExecuting;
-		}, this.tasks));
+		}, this.backgroundTasks));
 		
-		this.taskFailed.bind(Bindings.createBooleanBinding(() -> {
-			return this.tasks.stream().anyMatch(t -> t.getException() != null);
-		}, this.tasks));
+		this.backgroundTaskFailed.bind(Bindings.createBooleanBinding(() -> {
+			return this.backgroundTasks.stream().anyMatch(t -> t.getException() != null);
+		}, this.backgroundTasks));
 		
-		this.taskName.bind(Bindings.createStringBinding(() -> {
-			Optional<ReadOnlyBackgroundTask> result = this.tasks.stream().filter(t -> !t.isComplete()).findFirst();
+		this.backgroundTaskName.bind(Bindings.createStringBinding(() -> {
+			Optional<ReadOnlyBackgroundTask> result = this.backgroundTasks.stream().filter(t -> !t.isComplete()).findFirst();
 			if (result.isPresent()) {
 				return result.get().getName();
 			}
 			return null;
-		}, this.tasks));
+		}, this.backgroundTasks));
 
 		// watch for screen resolution changes
 		Screen.getScreens().addListener((Observable obs) -> {
@@ -289,11 +288,11 @@ public final class GlobalContext {
 		LOGGER.debug("Action State Updating: " + reason);
 
 		for (Action action : Action.values()) {
-			BooleanProperty isEnabled = this.isEnabled.get(action);
+			BooleanProperty isEnabled = this.isActionEnabled.get(action);
 			isEnabled.set(this.isEnabled(action));
 			
 			// for visibility, we only want to hide certain ones
-			BooleanProperty isVisible = this.isVisible.get(action);
+			BooleanProperty isVisible = this.isActionVisible.get(action);
 			isVisible.set(this.isVisible(action));
 		}
 	}
@@ -787,26 +786,14 @@ public final class GlobalContext {
 		return this.textSelected;
 	}
 	
-	/**
-	 * Returns the current document.
-	 * @return {@link DocumentContext}
-	 */
 	public DocumentContext<? extends Persistable> getCurrentDocument() {
 		return this.currentDocument.get();
 	}
 	
-	/**
-	 * Sets the current document.
-	 * @param document the document
-	 */
 	public void setCurrentDocument(DocumentContext<? extends Persistable> document) {
 		this.currentDocument.set(document);
 	}
 	
-	/**
-	 * Returns the current document property.
-	 * @return ObjectProperty
-	 */
 	public ObjectProperty<DocumentContext<? extends Persistable>> currentDocumentProperty() {
 		return this.currentDocument;
 	}
@@ -887,10 +874,6 @@ public final class GlobalContext {
 		return null;
 	}
 	
-	/**
-	 * Returns an unmodifiable list of the currently open documents.
-	 * @return ObservableList
-	 */
 	public ObservableList<DocumentContext<? extends Persistable>> getOpenDocumentsUnmodifiable() {
 		return this.openDocumentsReadOnly;
 	}
@@ -901,7 +884,7 @@ public final class GlobalContext {
 	 * @return ReadOnlyBooleanProperty
 	 */
 	public ReadOnlyBooleanProperty getActionEnabledProperty(Action action) {
-		return this.isEnabled.get(action);
+		return this.isActionEnabled.get(action);
 	}
 	
 	/**
@@ -910,39 +893,35 @@ public final class GlobalContext {
 	 * @return ReadOnlyBooleanProperty
 	 */
 	public ReadOnlyBooleanProperty getActionVisibleProperty(Action action) {
-		return this.isVisible.get(action);
+		return this.isActionVisible.get(action);
 	}
 	
-	public boolean isTaskExecuting() {
-		return this.taskExecuting.get();
+	public boolean isBackgroundTaskExecuting() {
+		return this.backgroundTaskExecuting.get();
 	}
 	
-	public ReadOnlyBooleanProperty taskExecutingProperty() {
-		return this.taskExecuting;
+	public ReadOnlyBooleanProperty backgroundTaskExecutingProperty() {
+		return this.backgroundTaskExecuting;
 	}
 
-	public boolean isTaskFailed() {
-		return this.taskFailed.get();
+	public boolean isBackgroundTaskFailed() {
+		return this.backgroundTaskFailed.get();
 	}
 	
-	public ReadOnlyBooleanProperty taskFailedProperty() {
-		return this.taskFailed;
+	public ReadOnlyBooleanProperty backgroundTaskFailedProperty() {
+		return this.backgroundTaskFailed;
 	}
 	
-	public String getTaskName() {
-		return this.taskName.get();
+	public String getBackgroundTaskName() {
+		return this.backgroundTaskName.get();
 	}
 	
-	public ReadOnlyStringProperty taskNameProperty() {
-		return this.taskName;
+	public ReadOnlyStringProperty backgroundTaskNameProperty() {
+		return this.backgroundTaskName;
 	}
 	
-	/**
-	 * Returns the list of all background tasks.
-	 * @return
-	 */
 	public ObservableList<ReadOnlyBackgroundTask> getBackgroundTasksUnmodifiable() {
-		return this.tasksReadOnly;
+		return this.backgroundTasksReadOnly;
 	}
 	
 	/**
@@ -951,14 +930,14 @@ public final class GlobalContext {
 	 */
 	public void addBackgroundTask(ReadOnlyBackgroundTask task) {
 		// check for tasks we should clean up
-		this.tasks.removeIf(t -> t.isComplete() && t.getException() == null);
-		this.tasks.add(task);
+		this.backgroundTasks.removeIf(t -> t.isComplete() && t.getException() == null);
+		this.backgroundTasks.add(task);
 	}
 	
 	/**
 	 * Clears all completed background tasks, even those that completed with an exception.
 	 */
-	public void clearCompletedTasks() {
-		this.tasks.removeIf(t -> t.isComplete());
+	public void clearCompletedBackgroundTasks() {
+		this.backgroundTasks.removeIf(t -> t.isComplete());
 	}
 }

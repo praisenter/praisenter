@@ -4,7 +4,6 @@ import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.input.KeyEvent;
 
-// JAVABUG (H) 07/20/17 [workaround] TextField/TextArea have their own undo/redo management that gets in the way https://bugs.openjdk.java.net/browse/JDK-8091301
 
 /**
  * A special event filter that intercepts the Undo and Redo events for a control to allow for custom

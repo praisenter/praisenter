@@ -34,7 +34,6 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -56,34 +55,25 @@ import javafx.util.Duration;
  * @see <a href="http://docs.oracle.com/javase/8/javafx/media-tutorial/playercontrol.htm#sthref18">Controlling Media Playback</a>
  */
 public final class MediaPreview extends BorderPane implements Playable {
-	/** The class-level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
 	  
     private final ObjectProperty<MediaPlayer> player;
-    
     private final ObjectProperty<Duration> duration;
     
     // glyphs
     // since we are toggling them back and forth, lets use the
     // same glyph nodes for better memory usage and performance
     
-    /** A glyph for play */
     private final Glyph play = Glyphs.PLAYER_PLAY.duplicate();
-    
-    /** A glyph for pause */
     private final Glyph pause = Glyphs.PLAYER_PAUSE.duplicate();
-    
-    /** A glyph for mute */
     private final Glyph mute = Glyphs.PLAYER_VOLUME_MUTE.duplicate();
-    
-    /** A glyph for the volume control */
     private final Glyph control = Glyphs.PLAYER_VOLUME_CONTROL.duplicate();
     
     /**
      * Default constructor.
      */
     public MediaPreview() {
-    	this.getStyleClass().add("p-media-player");
+    	this.getStyleClass().add("media-preview");
     	
     	MediaView mediaView = new MediaView();
         mediaView.setPreserveRatio(true);
@@ -94,10 +84,8 @@ public final class MediaPreview extends BorderPane implements Playable {
         
         this.setCenter(mediaView);
 
-        HBox controlsBar = new HBox(2);
-        controlsBar.setPadding(new Insets(2, 0, 0, 0));
-        controlsBar.getStyleClass().add("p-media-player-controls");
-        controlsBar.setAlignment(Pos.CENTER);
+        HBox controlsBar = new HBox();
+        controlsBar.getStyleClass().add("media-preview-controls");
         BorderPane.setAlignment(controlsBar, Pos.CENTER);
 
         // play/pause button

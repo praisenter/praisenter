@@ -76,8 +76,6 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 	public BibleEditor(
 			GlobalContext context, 
 			DocumentContext<Bible> document) {
-		this.getStyleClass().add("p-bible-editor");
-		
 		this.context = context;
 		this.document = document;
 		
@@ -323,7 +321,6 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 							(optOut) -> {
 								if (optOut) {
 									this.context.getConfiguration().setRenumberBibleWarningEnabled(false);
-									this.context.saveConfiguration();
 								}
 							});
 					
@@ -380,7 +377,6 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 							(optOut) -> {
 								if (optOut) {
 									this.context.getConfiguration().setReorderBibleWarningEnabled(false);
-									this.context.saveConfiguration();
 								}
 							});
 					

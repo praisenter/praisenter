@@ -48,7 +48,7 @@ public final class SlideStrokePicker extends VBox {
 	
 	private final BooleanBinding isValueSelected;
 	
-	public SlideStrokePicker(SlideStrokeType type, String label) {
+	public SlideStrokePicker(SlideStrokeType type, String label, boolean showRadius) {
 		this.value = new SimpleObjectProperty<>();
 		
 		this.type = type;
@@ -127,7 +127,13 @@ public final class SlideStrokePicker extends VBox {
 		grid.showRowsOnly(0);
 		
 		this.isValueSelected.addListener((obs, ov, nv) -> {
-			if (nv) grid.showRowsOnly(0,1,2,3,4,5);
+			if (nv) {
+				if (showRadius) {
+					grid.showRowsOnly(0,1,2,3,4,5);
+				} else {
+					grid.showRowsOnly(0,1,3,4,5);
+				}
+			}
 			else grid.showRowsOnly(0);
 		});
 		

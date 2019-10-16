@@ -15,4 +15,6 @@ public interface ReadOnlyTextPlaceholderComponent extends ReadOnlyTextComponent,
 	
 	public ReadOnlyObjectProperty<TextType> placeholderTypeProperty();
 	public ReadOnlyObjectProperty<TextVariant> placeholderVariantProperty();
+	
+	public ReadOnlyTextComponent toTextComponent();
 }

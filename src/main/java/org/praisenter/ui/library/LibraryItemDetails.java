@@ -7,32 +7,33 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.HashSet;
-import java.util.stream.Collectors;
+import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.praisenter.data.bible.Bible;
 import org.praisenter.async.AsyncHelper;
+import org.praisenter.async.BackgroundTask;
 import org.praisenter.data.Persistable;
 import org.praisenter.data.Tag;
+import org.praisenter.data.bible.Bible;
 import org.praisenter.data.media.Media;
 import org.praisenter.data.media.MediaType;
 import org.praisenter.data.slide.Slide;
 import org.praisenter.data.slide.SlideShow;
-import org.praisenter.data.slide.effects.SlideShadow;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.bind.BindingHelper;
-import org.praisenter.ui.controls.RowVisGridPane;
+import org.praisenter.ui.controls.Alerts;
 import org.praisenter.ui.controls.MediaPreview;
+import org.praisenter.ui.controls.RowVisGridPane;
 import org.praisenter.ui.controls.TagListView;
+import org.praisenter.ui.document.DocumentContext;
 import org.praisenter.ui.slide.SlideMode;
 import org.praisenter.ui.slide.SlideView;
 import org.praisenter.ui.translations.Translations;
 import org.praisenter.utility.Formatter;
-import org.praisenter.utility.StringManipulator;
 
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
-import javafx.beans.binding.StringBinding;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.LongProperty;
@@ -45,32 +46,18 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
-import javafx.geometry.HPos;
+import javafx.collections.SetChangeListener;
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.scene.Node;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.BorderStroke;
-import javafx.scene.layout.BorderStrokeStyle;
-import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.ColumnConstraints;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.media.MediaPlayer;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.StrokeLineCap;
-import javafx.scene.shape.StrokeLineJoin;
-import javafx.scene.shape.StrokeType;
 import javafx.scene.text.Font;
 
 final class LibraryItemDetails extends BorderPane {
@@ -91,7 +78,7 @@ final class LibraryItemDetails extends BorderPane {
 	private final IntegerProperty height;
 	private final LongProperty length;
 	private final LongProperty size;
-	private final StringProperty tags;
+	private final ObservableSet<Tag> tags;
 	
 	// bible data
 	
@@ -116,6 +103,7 @@ final class LibraryItemDetails extends BorderPane {
 	/* helper for async loaded slides */
 	private Slide mostRecentSlide;
 	
+	private final SetChangeListener<Tag> tagListener;
 	
 	public LibraryItemDetails(GlobalContext context) {
 		this.context = context;
@@ -130,7 +118,19 @@ final class LibraryItemDetails extends BorderPane {
 		this.height = new SimpleIntegerProperty();
 		this.length = new SimpleLongProperty();
 		this.size = new SimpleLongProperty();
-		this.tags = new SimpleStringProperty();
+		this.tags = FXCollections.observableSet(new HashSet<>());
+		this.tagListener = (change) -> {
+			Persistable p = this.item.get();
+			if (p != null) {
+				Persistable pc = p.copy();
+				if (change.wasAdded()) {
+					pc.getTags().add(change.getElementAdded());
+				} else if (change.wasRemoved()) {
+					pc.getTags().remove(change.getElementRemoved());
+				}
+				this.onTagsChanged(pc);
+			}
+		};
 		
 		// bible data
 		// language, source, copyright
@@ -156,7 +156,6 @@ final class LibraryItemDetails extends BorderPane {
 			this.height.unbind();
 			this.length.unbind();
 			this.size.unbind();
-			this.tags.unbind();
 			
 			this.bibleLanguage.unbind();
 			this.bibleSource.unbind();
@@ -168,12 +167,20 @@ final class LibraryItemDetails extends BorderPane {
 			
 			this.name.set(null);
 			
+			if (ov != null) {
+				//Bindings.unbindContentBidirectional(this.tags, ov.getTags());
+				this.tags.removeListener(this.tagListener);
+				this.tags.clear();
+			}
+			
 			if (nv != null) {
 				this.name.bind(nv.nameProperty());
 				this.modified.bind(nv.modifiedDateProperty());
 				this.created.bind(nv.createdDateProperty());
 				this.size.setValue(this.getFileSize(nv));
-				this.tags.bind(this.getTagsStringBinding(nv));
+				//Bindings.bindContentBidirectional(this.tags, nv.getTags());
+				this.tags.addAll(nv.getTags());
+				this.tags.addListener(this.tagListener);
 				
 				if (nv instanceof Bible) {
 					Bible bible = (Bible)nv;
@@ -215,7 +222,9 @@ final class LibraryItemDetails extends BorderPane {
 		Label lblHeightValue = new Label();
 		Label lblSizeValue = new Label();
 		Label lblLengthValue = new Label();
-		Label lblTagsValue = new Label();
+		
+		TagListView viewTags = new TagListView(this.context.getDataManager().getTagsUmodifiable());
+		Bindings.bindContentBidirectional(viewTags.getTags(), this.tags);
 		
 		Label lblBibleLanguageValue = new Label();
 		Label lblBibleSourceValue = new Label();
@@ -249,7 +258,6 @@ final class LibraryItemDetails extends BorderPane {
 			}
 			return Formatter.getSecondsFormattedString(this.length.get());	
 		}, this.length));
-		lblTagsValue.textProperty().bind(this.tags);
 		
 		lblBibleLanguageValue.textProperty().bind(this.bibleLanguage);
 		lblBibleSourceValue.textProperty().bind(this.bibleSource);
@@ -352,7 +360,6 @@ final class LibraryItemDetails extends BorderPane {
 		Label lblHeight = new Label(Translations.get("item.height"));
 		Label lblLength = new Label(Translations.get("item.length"));
 		Label lblSize = new Label(Translations.get("item.size"));
-		Label lblTags = new Label(Translations.get("tags"));
 		
 		Label lblBibleLanguage = new Label(Translations.get("bible.language"));
 		Label lblBibleSource = new Label(Translations.get("bible.source"));
@@ -385,7 +392,7 @@ final class LibraryItemDetails extends BorderPane {
 		
 		labels.add(lblMediaAudio, 0, r); labels.add(lblMediaAudioValue, 1, r++);
 		
-		labels.add(lblTags, 0, r); labels.add(lblTagsValue, 1, r++);
+		labels.add(viewTags, 0, r++, 2);
 		
 		labels.hideRows(0,1,2,3,4,5,6,7,8,9,10);
 		
@@ -448,12 +455,6 @@ final class LibraryItemDetails extends BorderPane {
 		this.setPrefWidth(250);
 	}
 	
-	private StringBinding getTagsStringBinding(Persistable item) {
-		return Bindings.createStringBinding(() -> {
-			return String.join(Translations.get("list.delimiter"), item.getTagsUnmodifiable().stream().map(t -> t.getName()).collect(Collectors.toList()));
-		}, item.getTagsUnmodifiable());
-	}
-	
 	private long getFileSize(Persistable item) {
 		try {
 			return Files.size(context.getDataManager().getFilePath(item));
@@ -461,6 +462,41 @@ final class LibraryItemDetails extends BorderPane {
 			LOGGER.warn("Failed to retrieve file size for item '" + item.getName() + "'");
 		}
 		return 0;
+	}
+	
+	private void onTagsChanged(Persistable p) {
+		BackgroundTask task = new BackgroundTask();
+		task.setName(Translations.get("action.update.task", p.getName()));
+		task.setMessage(Translations.get("action.update.task", p.getName()));
+		this.context.addBackgroundTask(task);
+		
+		this.context.getDataManager().update(p).thenRun(() -> {
+			// complete the task
+			task.setProgress(1.0);
+		}).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
+			// update any open document that matches this document (on the UI thread)
+			List<DocumentContext<?>> docs = this.context.getOpenDocumentsUnmodifiable();
+			for (DocumentContext<?> ctx : docs) {
+				if (ctx.getDocument().identityEquals(p)) {
+					ctx.getDocument().setTags(p.getTags());
+				}
+			}
+		})).exceptionally((t) -> {
+			// handle any error
+			task.setException(t);
+			LOGGER.error("Failed to add/remove tag: " + t.getMessage(), t);
+			
+			// present them to the user
+			Platform.runLater(() -> {
+				Alert errorAlert = Alerts.exception(
+						this.context.getStage(), 
+						null, null,	null, 
+						t);
+				errorAlert.show();
+			});
+			
+			return null;
+		});
 	}
 	
 	public Persistable getItem() {

@@ -213,7 +213,7 @@ public final class Bible implements ReadOnlyBible, Indexable, Persistable, Copya
 			Document document = new Document();
 			document.add(new StringField(FIELD_ID, this.getId().toString(), Field.Store.YES));
 			document.add(new StringField(FIELD_TYPE, DATA_TYPE_BIBLE, Field.Store.YES));
-			document.add(new StringField(FIELD_TEXT, tags, Field.Store.YES));
+			document.add(new TextField(FIELD_TEXT, tags, Field.Store.YES));
 			documents.add(document);
 		}
 		
@@ -538,9 +538,33 @@ public final class Bible implements ReadOnlyBible, Indexable, Persistable, Copya
 	}
 	
 	/**
+	 * Attempts to find a matching book for the given book.
+	 * @param book the book to find
+	 * @return {@link Book}
+	 */
+	@Override
+	public Book getMatchingBook(ReadOnlyBook book) {
+		if (book == null) return null;
+		// try name first
+		for (Book b : this.books) {
+			if (b.getName().equalsIgnoreCase(book.getName())) {
+				return b;
+			}
+		}
+		// then try number
+		for (Book b : this.books) {
+			if (b.getNumber() == book.getNumber()) {
+				return b;
+			}
+		}
+		return null;
+	}
+	
+	/**
 	 * Returns the highest book number among all the books.
 	 * @return int
 	 */
+	@Override
 	public int getMaxBookNumber() {
 		int max = -Integer.MAX_VALUE;
 		for (Book book : this.books) {
@@ -752,12 +776,14 @@ public final class Bible implements ReadOnlyBible, Indexable, Persistable, Copya
 		return this.booksReadOnly;
 	}
 
+	@Override
 	@JsonProperty
 	@Watchable(name = "tags")
 	public ObservableSet<Tag> getTags() {
 		return this.tags;
 	}
 	
+	@Override
 	@JsonProperty
 	public void setTags(Set<Tag> tags) {
 		this.tags.addAll(tags);

@@ -21,7 +21,6 @@ import javafx.collections.ObservableSet;
 import javafx.collections.SetChangeListener;
 
 final class EditWatcher implements Watcher {
-	/** The class-level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
 	
 	private final Consumer<Edit> onEdit;

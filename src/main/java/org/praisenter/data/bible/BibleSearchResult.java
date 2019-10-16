@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.praisenter.data.search.SearchTextMatch;
 
-public final class BibleSearchResult {
+public final class BibleSearchResult implements Comparable<BibleSearchResult> {
 	/** The bible */
 	private final ReadOnlyBible bible;
 	
@@ -31,6 +31,25 @@ public final class BibleSearchResult {
 		this.verse = verse;
 		this.matches = matches;
 		this.score = score;
+	}
+	
+	@Override
+	public int compareTo(BibleSearchResult o) {
+		if (o == null) return -1;
+		if (o == this) return 0;
+		
+		int diff = this.bible.getId().compareTo(o.bible.getId());
+		if (diff == 0) {
+			diff = this.book.getNumber() - o.book.getNumber();
+			if (diff == 0) {
+				diff = this.chapter.getNumber() - o.chapter.getNumber();
+				if (diff == 0) {
+					diff = this.verse.getNumber() - o.verse.getNumber();
+				}
+			}
+		}
+		
+		return diff;
 	}
 	
 	public ReadOnlyBible getBible() {

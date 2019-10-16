@@ -9,11 +9,14 @@ import org.praisenter.ui.MappedList;
 import org.praisenter.ui.Playable;
 
 import javafx.beans.binding.Bindings;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.scene.layout.Pane;
 
 final class SlideNode extends SlideRegionNode<Slide> implements Playable {
 	private final Pane components;
 	private final MappedList<SlideComponentNode<?>, SlideComponent> mapping;
+	private final ObservableList<SlideComponentNode<?>> mappingUnmodifiable;
 	
 	public SlideNode(GlobalContext context, Slide region) {
 		super(context, region);
@@ -34,6 +37,7 @@ final class SlideNode extends SlideRegionNode<Slide> implements Playable {
 			}
 		});
 		Bindings.bindContent(this.components.getChildren(), this.mapping);
+		this.mappingUnmodifiable = FXCollections.unmodifiableObservableList(this.mapping);
 		
 		this.content.getChildren().add(this.components);
 		
@@ -71,5 +75,9 @@ final class SlideNode extends SlideRegionNode<Slide> implements Playable {
 		for (SlideComponentNode<?> child : this.mapping) {
 			child.dispose();
 		}
+	}
+	
+	public ObservableList<SlideComponentNode<?>> getSlideComponentNodesUnmodifiable() {
+		return this.mappingUnmodifiable;
 	}
 }

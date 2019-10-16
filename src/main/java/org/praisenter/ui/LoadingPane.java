@@ -1,27 +1,3 @@
-/*
- * Copyright (c) 2015-2016 William Bittle  http://www.praisenter.org/
- * All rights reserved.
- * 
- * Redistribution and use in source and binary forms, with or without modification, are permitted 
- * provided that the following conditions are met:
- * 
- *   * Redistributions of source code must retain the above copyright notice, this list of conditions 
- *     and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above copyright notice, this list of conditions 
- *     and the following disclaimer in the documentation and/or other materials provided with the 
- *     distribution.
- *   * Neither the name of Praisenter nor the names of its contributors may be used to endorse or 
- *     promote products derived from this software without specific prior written permission.
- *     
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
- * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
- * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
- * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER 
- * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
 package org.praisenter.ui;
 
 import java.nio.file.Paths;
@@ -70,23 +46,10 @@ import javafx.util.Duration;
 
 // FEATURE (L-L) Replace the current loading background image
 
-/**
- * Pane for showing a loading indicator and other animations while building
- * a {@link GlobalContext}
- * @author William Bittle
- * @version 3.0.0
- */
-final class LoadingPane extends Pane {	
-	/** The offset from the left side of the window */
+final class LoadingPane extends Pane {
 	private static final double BAR_X_OFFSET = 75.0;
-	
-	/** The offset from the bottom of the window */
 	private static final double BAR_Y_OFFSET = 50.0;
-	
-	/** The radius of the circle */
 	private static final double CIRCLE_RADIUS = 50.0;
-	
-	/** The line width of the shapes */
 	private static final double LINE_WIDTH = 4.0;
 	
 	// members
@@ -96,19 +59,9 @@ final class LoadingPane extends Pane {
 	private final StringProperty message;
 	private final DoubleProperty progress;
 	
-	/** The circle animation */
 	private final RotateTransition circleAnimation;
-	
-	/** The current bar animation */
 	private Timeline barAnimation;
 	
-	/**
-	 * Full constructor
-	 * @param width the initial width
-	 * @param height the initial height
-	 * @param javaFXContext the JavaFX context
-	 * @param configuration the application configuration
-	 */
 	public LoadingPane(GlobalContext context) {
 		this.context = context;
 		
@@ -251,7 +204,6 @@ final class LoadingPane extends Pane {
 		});
 	}
 
-	
 	// TODO load songs persistence
 //	private CompletableFuture<Void> loadSongs() {
 //		

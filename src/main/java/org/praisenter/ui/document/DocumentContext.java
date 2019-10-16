@@ -39,9 +39,10 @@ public final class DocumentContext<T extends Persistable> {
 	protected final UndoManager undoManager;
 	protected final InOrderExecutionManager saveExecutionManager;
 	
+	@SuppressWarnings("unchecked")
 	public DocumentContext(T document) {
 		if (document == null) throw new NullPointerException("You cannot create a document context with a null object.");
-		
+
 		this.clazz = (Class<T>) document.getClass();
 		this.document = new SimpleObjectProperty<>(document);
 		this.selectedItem = new SimpleObjectProperty<>();
