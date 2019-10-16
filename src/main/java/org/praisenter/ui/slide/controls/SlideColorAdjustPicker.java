@@ -55,11 +55,6 @@ public final class SlideColorAdjustPicker extends VBox {
 		Slider sldBrightness = this.buildSlider();
 		Slider sldContrast = this.buildSlider();
 		
-//		Spinner<Double> spnHue = this.buildSpinner();
-//		Spinner<Double> spnSaturation = this.buildSpinner();
-//		Spinner<Double> spnBrightness = this.buildSpinner();
-//		Spinner<Double> spnContrast = this.buildSpinner();
-		
 		int r = 0;
 		EditGridPane grid = new EditGridPane();
 		grid.addRow(r++, new Label(Translations.get("slide.coloradjust.enabled")), enable);
@@ -77,19 +72,11 @@ public final class SlideColorAdjustPicker extends VBox {
 			}
 		});
 		
-//		this.setSpacing(2);
 		this.getChildren().addAll(grid);
 
-//		spnHue.getValueFactory().valueProperty().bindBidirectional(this.hueAsObject);
 		sldHue.valueProperty().bindBidirectional(this.hue);
-		
-//		spnSaturation.getValueFactory().valueProperty().bindBidirectional(this.saturationAsObject);
 		sldSaturation.valueProperty().bindBidirectional(this.saturation);
-		
-//		spnBrightness.getValueFactory().valueProperty().bindBidirectional(this.brightnessAsObject);
 		sldBrightness.valueProperty().bindBidirectional(this.brightness);
-		
-//		spnContrast.getValueFactory().valueProperty().bindBidirectional(this.contrastAsObject);
 		sldContrast.valueProperty().bindBidirectional(this.contrast);
 		
 		BindingHelper.bindBidirectional(this.enabled, this.value, new ObjectConverter<Boolean, SlideColorAdjust>() {
@@ -178,16 +165,6 @@ public final class SlideColorAdjustPicker extends VBox {
 		
 		return slider;
 	}
-	
-//	private Spinner<Double> buildSpinner() {
-//		Spinner<Double> spinner = new Spinner<Double>(-1.0, 1.0, 0, 0.1);
-//		
-//		spinner.setEditable(true);
-//		spinner.setPrefWidth(75);
-//		TextInputFieldEventFilter.applyTextInputFieldEventFilter(spinner);
-//		
-//		return spinner;
-//	}
 	
 	public void setValue(SlideColorAdjust value) {
 		this.value.set(value);

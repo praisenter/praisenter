@@ -28,14 +28,13 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
 import javafx.geometry.Insets;
-import javafx.scene.control.Accordion;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
-import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.layout.VBox;
 
 public final class BibleSelectionEditor extends VBox implements DocumentSelectionEditor<Bible> {
@@ -69,8 +68,6 @@ public final class BibleSelectionEditor extends VBox implements DocumentSelectio
 	private final ObjectProperty<Integer> verseNumber2;
 	
 	public BibleSelectionEditor(GlobalContext context) {
-		this.getStyleClass().add("p-bible-selection-editor");
-		
 		this.context = context;
 		this.documentContext = new SimpleObjectProperty<>();
 		

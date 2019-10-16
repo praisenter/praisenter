@@ -18,7 +18,7 @@ final class LibraryListCell extends FlowListCell<Persistable> {
 	public LibraryListCell(Persistable data) {
 		super(data);
 		
-		this.getStyleClass().add("p-library-list-cell");
+		this.getStyleClass().add("library-list-cell");
 		
     	// setup the thumbnail image
     	final ImageView thumb = new ImageView();

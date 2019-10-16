@@ -12,6 +12,9 @@ import org.praisenter.data.slide.graphics.ScaleType;
 import org.praisenter.data.slide.graphics.SlideColor;
 import org.praisenter.data.slide.graphics.SlideGradient;
 import org.praisenter.data.slide.graphics.SlidePaint;
+import org.praisenter.data.slide.graphics.SlideStroke;
+import org.praisenter.data.slide.graphics.SlideStrokeStyle;
+import org.praisenter.data.slide.graphics.SlideStrokeType;
 import org.praisenter.data.slide.media.MediaObject;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.Playable;
@@ -31,17 +34,23 @@ import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BackgroundImage;
 import javafx.scene.layout.BackgroundPosition;
 import javafx.scene.layout.BackgroundRepeat;
+import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.Shape;
 
 final class PaintPane extends StackPane implements Playable {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
 	private final GlobalContext context;
-	private final ObjectProperty<SlideMode> mode;
-	private final ObjectProperty<SlidePaint> paint;
+	private final ObjectProperty<SlideMode> slideMode;
+	private final ObjectProperty<SlidePaint> slidePaint;
+	private final ObjectProperty<SlideStroke> slideBorder;
+	private final DoubleProperty slideWidth;
+	private final DoubleProperty slideHeight;
 	
 	private final ObjectProperty<MediaObject> mediaObject;
 	private final ObjectProperty<Media> media;
@@ -55,8 +64,11 @@ final class PaintPane extends StackPane implements Playable {
 	
 	protected PaintPane(GlobalContext context) {
 		this.context = context;
-		this.mode = new SimpleObjectProperty<>();
-		this.paint = new SimpleObjectProperty<>();
+		this.slideMode = new SimpleObjectProperty<SlideMode>();
+		this.slidePaint = new SimpleObjectProperty<SlidePaint>();
+		this.slideBorder = new SimpleObjectProperty<SlideStroke>();
+		this.slideWidth = new SimpleDoubleProperty();
+		this.slideHeight = new SimpleDoubleProperty();
 
 		this.mediaObject = new SimpleObjectProperty<>();
 		this.media = new SimpleObjectProperty<>();
@@ -68,18 +80,11 @@ final class PaintPane extends StackPane implements Playable {
 		this.backgroundView = new Region();
 		this.mediaView = new MediaView();
 		
-//		this.paint.addListener((obs, ov, nv) -> {
-//			this.onBackgroundChanged(ov, nv);
-//		});
-//		this.mode.addListener((obs, ov, nv) -> {
-//			this.onSlideModeChanged(ov, nv);
-//		});
-
 		this.mediaObject.bind(Bindings.createObjectBinding(() -> {
-			SlidePaint paint = this.paint.get();
+			SlidePaint paint = this.slidePaint.get();
 			if (paint == null || !(paint instanceof MediaObject)) return null;
 			return (MediaObject)paint;
-		}, this.paint));
+		}, this.slidePaint));
 		
 		this.media.bind(Bindings.createObjectBinding(() -> {
 			MediaObject mo = this.mediaObject.get();
@@ -122,11 +127,13 @@ final class PaintPane extends StackPane implements Playable {
 		// node bindings
 		
 		this.backgroundView.backgroundProperty().bind(Bindings.createObjectBinding(() -> {
-			SlidePaint paint = this.paint.get();
-			SlideMode mode = this.mode.get();
+			SlidePaint paint = this.slidePaint.get();
+			SlideMode mode = this.slideMode.get();
+			SlideStroke border = this.slideBorder.get();
 			if (paint == null) return null;
 			if (paint instanceof SlideColor || paint instanceof SlideGradient) {
-				return new Background(new BackgroundFill(PaintConverter.toJavaFX(paint), null, null));
+				double radius = border != null ? border.getRadius() : 0;
+				return new Background(new BackgroundFill(PaintConverter.toJavaFX(paint), new CornerRadii(radius), null));
 			} else if (paint instanceof MediaObject) {
 				MediaObject mo1 = (MediaObject)paint;
 				Media m1 = this.getMedia(mo1);
@@ -143,24 +150,23 @@ final class PaintPane extends StackPane implements Playable {
 				LOGGER.warn("Unsupported paint type '" + paint.getClass().getName() + "'.");
 			}
 			return null;
-		}, this.paint, this.mode));
+		}, this.slidePaint, this.slideMode, this.slideBorder));
 		
-		//this.backgroundView.setBorder(new Border(new BorderStroke(Color.YELLOW, new BorderStrokeStyle(StrokeType.OUTSIDE, StrokeLineJoin.MITER, StrokeLineCap.SQUARE, 3, 0, null), null, new BorderWidths(3))));
-		
-//		this.mediaView.mediaPlayerProperty().bind(Bindings.createObjectBinding(() -> {
-//			MediaObject mo = this.mediaObject.get();
-//			Media m = this.media.get();
-//			if (mo == null || m == null) return null;
-//			MediaType type = this.mediaType.get();
-//			SlideMode mode = this.mode.get();
-//			if ((type == MediaType.AUDIO || type == MediaType.VIDEO) && !this.isImageOnlyMode(mode)) {
-//				return MediaConverter.toJavaFXMediaPlayer(
-//						m, 
-//						mo.isLoopEnabled(), 
-//						mode == SlideMode.PREVIEW || mo.isMuted());
-//			}
-//			return null;
-//		}, this.mediaObject, this.media, this.mode, this.mediaType));
+		this.backgroundView.clipProperty().bind(Bindings.createObjectBinding(() -> {
+			SlidePaint paint = this.slidePaint.get();
+			SlideStroke border = this.slideBorder.get();
+			if (paint == null) return null;
+			if (paint instanceof SlideColor || paint instanceof SlideGradient) {
+				return null;
+			} else if (paint instanceof MediaObject) {
+				double w = this.slideWidth.get();
+				double h = this.slideHeight.get();
+				return this.getBorderBasedClip(border, w, h);
+			} else {
+				LOGGER.warn("Unsupported paint type '" + paint.getClass().getName() + "'.");
+			}
+			return null;
+		}, this.slidePaint, this.slideBorder, this.slideWidth, this.slideHeight));
 		
 		this.mediaView.preserveRatioProperty().bind(Bindings.createBooleanBinding(() -> {
 			return this.scaleType.get() != ScaleType.NONUNIFORM;
@@ -222,10 +228,10 @@ final class PaintPane extends StackPane implements Playable {
 				UUID nid = nv.getMediaId();
 				mediaChanged = !Objects.equals(oid, nid);
 			}
-			SlideMode mode = this.mode.get();
+			SlideMode mode = this.slideMode.get();
 			this.updateMediaPlayer(nv, mode, mediaChanged, false);
 		});
-		this.mode.addListener((obs, ov, nv) -> {
+		this.slideMode.addListener((obs, ov, nv) -> {
 			boolean ioo = this.isImageOnlyMode(ov);
 			boolean ion = this.isImageOnlyMode(nv);
 			MediaObject mo = this.mediaObject.get();
@@ -233,6 +239,46 @@ final class PaintPane extends StackPane implements Playable {
 		});
 		
 		this.getChildren().addAll(this.backgroundView, this.mediaView);
+	}
+	
+	private final Shape getBorderBasedClip(SlideStroke stroke, double width, double height) {
+		if (stroke != null) {
+			double r = stroke.getRadius();
+			double r2 = r * 2;
+			double sw = stroke.getWidth();
+			SlideStrokeStyle style = stroke.getStyle();
+			if (r2 > 0) {
+				// try to match the behavior of the Java FX Border class when the radius is bigger
+				// than the actual container
+				if (width < height && r2 > width) {
+					r2 = width;
+				} else if (height < width && r2 > height) {
+					r2 = height;
+				}
+				
+				double xoffset = 0;
+				double yoffset = 0;
+				
+				// for inside type, we want the background to still fill
+				// at the moment we don't support INSIDE due to performance reasons
+				// but I've left this in for now
+				if (style != null && style.getType() == SlideStrokeType.INSIDE) {
+					xoffset = yoffset = sw * 0.5;
+					width -= sw;
+					height -= sw;
+				}
+				
+				Rectangle clip = new Rectangle();
+				clip.setX(xoffset);
+				clip.setY(yoffset);
+				clip.setWidth(width);
+				clip.setHeight(height);
+				clip.setArcHeight(r2);
+				clip.setArcWidth(r2);
+				return clip;
+			}
+		}
+		return null;
 	}
 	
 	private final boolean isImageOnlyMode(SlideMode mode) {
@@ -367,27 +413,47 @@ final class PaintPane extends StackPane implements Playable {
 		this.stop();
 	}
 	
-	public ObjectProperty<SlideMode> modeProperty() {
-		return this.mode;
+	public ObjectProperty<SlideMode> slideModeProperty() {
+		return this.slideMode;
 	}
 	
-	public SlideMode getMode() {
-		return this.mode.get();
+	public SlideMode getSlideMode() {
+		return this.slideMode.get();
 	}
 	
-	public void setMode(SlideMode mode) {
-		this.mode.set(mode);
+	public void setSlideMode(SlideMode mode) {
+		this.slideMode.set(mode);
 	}
 	
-	public ObjectProperty<SlidePaint> paintProperty() {
-		return this.paint;
+	public ObjectProperty<SlidePaint> slidePaintProperty() {
+		return this.slidePaint;
 	}
 	
-	public SlidePaint getPaint() {
-		return this.paint.get();
+	public SlidePaint getSlidePaint() {
+		return this.slidePaint.get();
 	}
 	
-	public void setPaint(SlidePaint paint) {
-		this.paint.set(paint);
+	public void setSlidePaint(SlidePaint paint) {
+		this.slidePaint.set(paint);
+	}
+	
+	public ObjectProperty<SlideStroke> slideBorderProperty() {
+		return this.slideBorder;
+	}
+
+	public SlideStroke getSlideBorder() {
+		return this.slideBorder.get();
+	}
+	
+	public void setSlideBorder(SlideStroke stroke) {
+		this.slideBorder.set(stroke);
+	}
+	
+	public DoubleProperty slideWidthProperty() {
+		return this.slideWidth;
+	}
+	
+	public DoubleProperty slideHeightProperty() {
+		return this.slideHeight;
 	}
 }

@@ -1,27 +1,3 @@
-/*
- * Copyright (c) 2015-2016 William Bittle  http://www.praisenter.org/
- * All rights reserved.
- * 
- * Redistribution and use in source and binary forms, with or without modification, are permitted 
- * provided that the following conditions are met:
- * 
- *   * Redistributions of source code must retain the above copyright notice, this list of conditions 
- *     and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above copyright notice, this list of conditions 
- *     and the following disclaimer in the documentation and/or other materials provided with the 
- *     distribution.
- *   * Neither the name of Praisenter nor the names of its contributors may be used to endorse or 
- *     promote products derived from this software without specific prior written permission.
- *     
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
- * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
- * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
- * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER 
- * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
 package org.praisenter.ui;
 
 import org.apache.logging.log4j.LogManager;
@@ -34,41 +10,21 @@ import javafx.scene.text.TextBoundsType;
 
 // JAVABUG (M) 07/01/16 If the text wraps a (whole) word by breaking it up, then the font sizing code won't know what size to look for.  There doesn't seem to be a way to control the word wrapping beyond setting a target width.
 
-/**
- * Class used to measure text in JavaFX for doing automatic text resizing.
- * @author William Bittle
- * @version 3.0.0
- */
 public final class TextMeasurer {
-	/** Hidden constructor */
-	private TextMeasurer() {}
-	
-	/** The class-level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
 	
-	/** A reusable node for measuring */
     private static final Text JAVAFX_TEXT_NODE = new Text();
-    
-    /** We should never hit this, but just in case. I've never seen above 25 or so */
     private static final int MAXIMUM_ITERATIONS = 100;
-    
-    // defaults 
-    
-    /** The default wrapping width */
-    private static final double DEFAULT_WRAPPING_WIDTH = JAVAFX_TEXT_NODE.getWrappingWidth();
-    
-    /** The default line spacing */
-    private static final double DEFAULT_LINE_SPACING = JAVAFX_TEXT_NODE.getLineSpacing();
-    
-    /** The default text */
-    private static final String DEFAULT_TEXT = JAVAFX_TEXT_NODE.getText();
-    
-    /** The default bounds type */
-    private static final TextBoundsType DEFAULT_BOUNDS_TYPE = JAVAFX_TEXT_NODE.getBoundsType();
 
-    /**
-     * Resets the shared text node after measuring.
-     */
+    // defaults 
+
+    private static final double DEFAULT_WRAPPING_WIDTH = JAVAFX_TEXT_NODE.getWrappingWidth();
+    private static final double DEFAULT_LINE_SPACING = JAVAFX_TEXT_NODE.getLineSpacing();
+    private static final String DEFAULT_TEXT = JAVAFX_TEXT_NODE.getText();
+    private static final TextBoundsType DEFAULT_BOUNDS_TYPE = JAVAFX_TEXT_NODE.getBoundsType();
+	
+	private TextMeasurer() {}
+
     private static final void reset() {
     	JAVAFX_TEXT_NODE.setWrappingWidth(DEFAULT_WRAPPING_WIDTH);
         JAVAFX_TEXT_NODE.setLineSpacing(DEFAULT_LINE_SPACING);

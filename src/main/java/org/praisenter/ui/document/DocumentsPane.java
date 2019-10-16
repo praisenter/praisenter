@@ -30,8 +30,6 @@ import javafx.scene.layout.Priority;
 // TODO use split pane
 
 public final class DocumentsPane extends HBox implements ActionPane {
-	private final GlobalContext context;
-	
 	private final MappedList<DocumentTab, DocumentContext<? extends Persistable>> documentToTabMapping;
 	
 	private final TabPane documentTabs;
@@ -41,8 +39,6 @@ public final class DocumentsPane extends HBox implements ActionPane {
 	private final ObservableList<Object> documentSelectedItems;
 
 	public DocumentsPane(GlobalContext context) {
-		this.context = context;
-		
 		this.documentToTabMapping = new MappedList<DocumentTab, DocumentContext<? extends Persistable>>(
 				context.getOpenDocumentsUnmodifiable(), 
 				(item) -> {

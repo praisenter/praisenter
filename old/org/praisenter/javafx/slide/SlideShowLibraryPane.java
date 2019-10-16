@@ -169,7 +169,6 @@ public final class SlideShowLibraryPane extends BorderPane implements Applicatio
 						} else if (s.getName().toLowerCase().contains(text.toLowerCase())) { // search name
 							return true;
 						}
-						// TODO search other stuff?
 					}
 					return false;
 				});

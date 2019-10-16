@@ -16,18 +16,8 @@ import javafx.scene.shape.Rectangle;
 
 public enum Action {
 	DIVIDER(""),
-//	EDIT("action.edit"),
-//	CLOSE("action.close", () -> ApplicationGlyphs.MENU_CLOSE.duplicate()),
 	
 	SAVE("action.save", new KeyCodeCombination(KeyCode.S, KeyCombination.SHORTCUT_DOWN), () -> Glyphs.SAVE.duplicate()),
-//	SAVE_AS("action.saveas", () -> {
-//		StackPane stack = new StackPane();
-//		Node plus = Glyphs.ASTERISK.duplicate().size(8).color(Color.GREEN);
-//		plus.setTranslateX(3);
-//		stack.getChildren().addAll(Glyphs.MENU_SAVE_AS.duplicate(), plus);
-//		StackPane.setAlignment(plus, Pos.TOP_RIGHT);
-//		return stack;
-//	}),
 	SAVE_ALL("action.saveall", new KeyCodeCombination(KeyCode.S, KeyCombination.SHIFT_DOWN, KeyCombination.SHORTCUT_DOWN), () -> {
 		// TODO need better icon or set background color for second one
 		StackPane stack = new StackPane();
@@ -63,11 +53,6 @@ public enum Action {
 	// application
 	
 	PREFERENCES("action.preferences", () -> Glyphs.MENU_PREFERENCES.duplicate()),
-//	MANAGE_MEDIA("action.media"),
-//	MANAGE_BIBLES("action.bibles"),
-//	MANAGE_SLIDES("action.slides"),
-//	MANAGE_SHOWS("action.shows"),
-//	MANAGE_SONGS("action.songs"),
 	REINDEX("action.reindex"),
 	ABOUT("action.about", () -> Glyphs.MENU_ABOUT.duplicate()),
 	LOGS("action.logs"),
@@ -217,45 +202,4 @@ public enum Action {
 	public Action[] getActions() {
 		return this.actions;
 	}
-	
-//	public MenuItem createMenuItem() {
-//		return this.createMenuItem(null, null, null);
-//	}
-//	
-//	public MenuItem createMenuItem(String label) {
-//		return this.createMenuItem(label, null, null);
-//	}
-//	
-//	public MenuItem createMenuItem(String label, KeyCombination accelerator, Node graphic) {
-//		MenuItem mi = new MenuItem(label != null ? label : Translations.get(this.messageKey));
-//		
-//		if (accelerator != null) mi.setAccelerator(accelerator);
-//		else if (this.accelerator != null) mi.setAccelerator(this.accelerator);
-//		
-//		if (graphic != null) mi.setGraphic(graphic);
-//		else if (this.graphicSupplier != null) mi.setGraphic(this.graphicSupplier.get());
-//		
-//		mi.setUserData(this);
-//		
-//		return mi;
-//	}
-//	
-//	public Button createButton() {
-//		return this.createButton(null, null);
-//	}
-//	
-//	public Button createButton(String label) {
-//		return this.createButton(label, null);
-//	}
-//	
-//	public Button createButton(String label, Node graphic) {
-//		Button btn = new Button(label != null ? label : Translations.get(this.messageKey));
-//		
-//		if (graphic != null) btn.setGraphic(graphic);
-//		else if (this.graphicSupplier != null) btn.setGraphic(this.graphicSupplier.get());
-//		
-//		btn.setUserData(this);
-//		
-//		return btn;
-//	}
 }

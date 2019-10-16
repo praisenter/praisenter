@@ -67,7 +67,6 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
 
-// TODO translate
 // FEATURE (M-L) Add options to remove themes or translations
 // FEATURE (L-M) Edit tags globally (like rename, remove)
 
@@ -366,7 +365,6 @@ public final class SetupPane extends BorderPane {
 		    		LOGGER.error("Failed to export theme", ex);
 		    	}
 	    	} else {
-	    		// TODO throws exception if user cancels
 	    		try (InputStream def = SetupPane.class.getResourceAsStream("/org/praisenter/javafx/themes/" + selected.getName() + ".css")) {
 	    			Files.copy(def, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
 	    		} catch (Exception ex) {

@@ -14,6 +14,7 @@ import org.praisenter.ui.bind.BindingHelper;
 import org.praisenter.ui.bind.ObjectConverter;
 import org.praisenter.ui.controls.EditGridPane;
 import org.praisenter.ui.library.LibraryList;
+import org.praisenter.ui.library.LibraryListType;
 import org.praisenter.ui.translations.Translations;
 
 import javafx.beans.binding.Bindings;
@@ -58,7 +59,18 @@ public final class MediaObjectPicker extends VBox {
 		this.scaleType = new SimpleObjectProperty<>();
 		this.colorAdjust = new SimpleObjectProperty<>();
 		
-		LibraryList lstMedia = new LibraryList(context, Orientation.HORIZONTAL);
+		LibraryListType[] types = new LibraryListType[allowedTypes.length];
+		int i = 0;
+		for (MediaType t : allowedTypes) {
+			switch (t) {
+				case IMAGE: types[i++] = LibraryListType.IMAGE; break;
+				case VIDEO: types[i++] = LibraryListType.VIDEO; break;
+				case AUDIO: types[i++] = LibraryListType.AUDIO; break;
+				default: break;
+			}
+		}
+		
+		LibraryList lstMedia = new LibraryList(context, Orientation.HORIZONTAL, types);
 		lstMedia.setMultiSelectEnabled(false);
 		FilteredList<Media> filtered = new FilteredList<>(context.getDataManager().getItemsUnmodifiable(Media.class));
 		filtered.setPredicate(m -> {

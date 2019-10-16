@@ -282,12 +282,14 @@ public final class SlideShow implements ReadOnlySlideShow, Indexable, Persistabl
 		this.slides.setAll(slides);
 	}
 	
+	@Override
 	@JsonProperty
 	@Watchable(name = "tags")
 	public ObservableSet<Tag> getTags() {
 		return this.tags;
 	}
 	
+	@Override
 	@JsonProperty
 	public void setTags(Set<Tag> tags) {
 		this.tags.addAll(tags);

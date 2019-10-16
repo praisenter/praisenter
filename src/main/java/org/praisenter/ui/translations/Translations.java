@@ -1,27 +1,3 @@
-/*
- * Copyright (c) 2015-2016 William Bittle  http://www.praisenter.org/
- * All rights reserved.
- * 
- * Redistribution and use in source and binary forms, with or without modification, are permitted 
- * provided that the following conditions are met:
- * 
- *   * Redistributions of source code must retain the above copyright notice, this list of conditions 
- *     and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above copyright notice, this list of conditions 
- *     and the following disclaimer in the documentation and/or other materials provided with the 
- *     distribution.
- *   * Neither the name of Praisenter nor the names of its contributors may be used to endorse or 
- *     promote products derived from this software without specific prior written permission.
- *     
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
- * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
- * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
- * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER 
- * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
 package org.praisenter.ui.translations;
 
 import java.nio.file.DirectoryStream;
@@ -46,25 +22,13 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.Constants;
 
-/**
- * Helper class to retrieve transations by key.
- * @author William Bittle
- * @version 3.0.0
- */
 public final class Translations {
-	/** The class-level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
 
-	/** The base bundle name */
 	private static final String BUNDLE_BASE_NAME = "org.praisenter.translations.messages";
-
-	/** A regex for matching translation file names */
 	private static final Pattern TRANSLATION_PATTERN = Pattern.compile("^messages_(.+)\\.properties$", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
-	
-	/** The control to use for loading translations */
 	private static final ResourceBundle.Control DEFAULT_CONTROL = new FileSystemControl();
 	
-	/** The default locale neutral bundle (in our case english) */
 //	private static final ResourceBundle DEFAULT_BUNDLE = ResourceBundle.getBundle(BUNDLE_BASE_NAME, Locale.ROOT);
 	
 	static {
@@ -132,7 +96,6 @@ public final class Translations {
 		return Collections.unmodifiableList(list);
 	}
 	
-	/** Hidden default constructor */
 	private Translations() {}
 	
 	/**

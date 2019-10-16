@@ -6,15 +6,22 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-import org.praisenter.async.AsyncHelper;
+import org.praisenter.data.TextStore;
 import org.praisenter.data.media.Media;
 import org.praisenter.data.media.MediaType;
 import org.praisenter.data.slide.Slide;
+import org.praisenter.data.slide.SlideComponent;
+import org.praisenter.data.slide.effects.transition.SlideTransition;
+import org.praisenter.data.slide.text.TextComponent;
+import org.praisenter.data.slide.text.TextPlaceholderComponent;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.Playable;
+import org.praisenter.ui.slide.convert.TransitionConverter;
 import org.praisenter.utility.ClasspathLoader;
 import org.praisenter.utility.Scaling;
 
+import javafx.animation.ParallelTransition;
+import javafx.animation.Transition;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
@@ -54,6 +61,8 @@ public class SlideView extends Region implements Playable {
 	
 	private final BooleanProperty clipEnabled;
 	private final Rectangle clip;
+	
+	private Transition placeholderTransition;
 	
 	public SlideView(GlobalContext context) {
 		this.context = context;
@@ -222,6 +231,38 @@ public class SlideView extends Region implements Playable {
 		viewBackground.getChildren().add(scaleContainer);
 		this.getChildren().addAll(viewBackground);
 	}
+
+	@Override
+	public void play() {
+		SlideNode slideNode = this.slideNode.get();
+		if (slideNode != null) {
+			slideNode.play();
+		}
+	}
+
+	@Override
+	public void pause() {
+		SlideNode slideNode = this.slideNode.get();
+		if (slideNode != null) {
+			slideNode.pause();
+		}
+	}
+
+	@Override
+	public void stop() {
+		SlideNode slideNode = this.slideNode.get();
+		if (slideNode != null) {
+			slideNode.stop();
+		}
+	}
+
+	@Override
+	public void dispose() {
+		SlideNode slideNode = this.slideNode.get();
+		if (slideNode != null) {
+			slideNode.dispose();
+		}
+	}
 	
 	// TODO would be nice if there was a mechanism to wait for the SlideNode to load as well (when media players are ready for example) for better PRESENT interaction
 	public CompletableFuture<Void> loadSlideAsync(Slide slide) {
@@ -247,37 +288,82 @@ public class SlideView extends Region implements Playable {
 			}
 		});
 	}
+	
 
-	@Override
-	public void play() {
-		SlideNode slideView = this.slideNode.get();
-		if (slideView != null) {
-			slideView.play();
-		}
+	/**
+	 * Updates the placeholder data for the currently rendered slide using the slide transition.
+	 * @param data the placeholder data
+	 */
+	public void updatePlaceholders(TextStore data) {
+		Slide slide = this.slide.get();
+		if (slide == null) return;
+		
+		slide.setPlaceholderData(data);
 	}
-
-	@Override
-	public void pause() {
-		SlideNode slideView = this.slideNode.get();
-		if (slideView != null) {
-			slideView.pause();
+	
+	/**
+	 * Updates the placeholder data for the currently rendered slide using the slide transition.
+	 * @param data the placeholder data
+	 */
+	public void updatePlaceholdersWithTransition(TextStore data) {
+		// if the previous transition isn't complete, then do nothing
+		if (this.placeholderTransition != null) {
+			return;
 		}
-	}
-
-	@Override
-	public void stop() {
-		SlideNode slideView = this.slideNode.get();
-		if (slideView != null) {
-			slideView.stop();
+		
+		Slide slide = this.slide.get();
+		if (slide == null) return;
+		
+		SlideNode slideNode = this.slideNode.get();
+		if (slideNode == null) return;
+		
+		// copy the place holder components and convert them to static text components
+		// so that they don't change when we update the place holder data
+		List<SlideComponent> asis = new ArrayList<SlideComponent>();
+		for (SlideComponent sc : slide.getComponents()) {
+			if (sc instanceof TextPlaceholderComponent) {
+				// convert to text components
+				TextComponent tc = ((TextPlaceholderComponent) sc).toTextComponent();
+				asis.add(tc);
+			}
 		}
-	}
+		
+		// add them to the slide
+		slide.getComponents().addAll(asis);
+		
+		// update the placeholder data
+		slide.setPlaceholderData(data);
 
-	@Override
-	public void dispose() {
-		SlideNode slideView = this.slideNode.get();
-		if (slideView != null) {
-			slideView.dispose();
+		// setup transition
+		SlideTransition source = slide.getTransition();
+		
+		ParallelTransition tx = new ParallelTransition();
+		for (SlideRegionNode<?> node : slideNode.getSlideComponentNodesUnmodifiable()) {
+			// if the node is one of the copied ones
+			// then we need to transition it out
+			for (SlideComponent sc : asis) {
+				if (node.region == sc) {
+					tx.getChildren().add(TransitionConverter.toJavaFX(source, slide, sc, node, false));
+				}
+			}
+			
+			// otherwise if it's a placehoder we need
+			// to transition it in
+			if (node.region instanceof TextPlaceholderComponent) {
+				tx.getChildren().add(TransitionConverter.toJavaFX(source, slide, (TextPlaceholderComponent)node.region, node, true));
+			}
 		}
+
+		// when complete, remove all the asis components
+		tx.setOnFinished(e -> {
+			slide.getComponents().removeAll(asis);
+			this.placeholderTransition = null;
+		});
+		
+		this.placeholderTransition = tx;
+		
+		// play the transition
+		tx.play();
 	}
 	
 	public Slide getSlide() {

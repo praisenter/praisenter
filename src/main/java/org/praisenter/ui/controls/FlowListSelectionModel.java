@@ -104,8 +104,13 @@ public final class FlowListSelectionModel<T> {
 			public void onChanged(ListChangeListener.Change<? extends Node> changes) {
 				// record what was selected before
 				List<T> old = selected.stream().map(n -> ((FlowListCell<T>)n).getData()).collect(Collectors.toList());
+				
+				boolean reselect = false;
+				while (changes.next()) {
+					reselect |= changes.wasAdded() || changes.wasReplaced() || changes.wasUpdated();
+				}
 				// now reselect what we can
-				if (old.size() > 0) {
+				if (old.size() > 0 && reselect) {
 					// NOTE: we need to do this later so that the change to the source can
 					// be applied
 					Platform.runLater(() -> {

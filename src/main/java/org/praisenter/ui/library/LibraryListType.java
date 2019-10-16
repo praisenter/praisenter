@@ -7,7 +7,7 @@ import org.praisenter.data.slide.Slide;
 import org.praisenter.data.slide.SlideShow;
 import org.praisenter.ui.translations.Translations;
 
-enum LibraryListType {
+public enum LibraryListType {
 	BIBLE(Translations.get("bible"), 100),
 	SONG(Translations.get("song"), 300),
 	SLIDE(Translations.get("slide"), 500),

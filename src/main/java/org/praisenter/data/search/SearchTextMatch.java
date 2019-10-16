@@ -1,6 +1,6 @@
 package org.praisenter.data.search;
 
-public class SearchTextMatch {
+public final class SearchTextMatch {
 	/** The field */
 	final String field;
 	

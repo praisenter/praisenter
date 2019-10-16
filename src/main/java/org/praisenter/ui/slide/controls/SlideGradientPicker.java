@@ -1,27 +1,3 @@
-/*
- * Copyright (c) 2015-2016 William Bittle  http://www.praisenter.org/
- * All rights reserved.
- * 
- * Redistribution and use in source and binary forms, with or without modification, are permitted 
- * provided that the following conditions are met:
- * 
- *   * Redistributions of source code must retain the above copyright notice, this list of conditions 
- *     and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above copyright notice, this list of conditions 
- *     and the following disclaimer in the documentation and/or other materials provided with the 
- *     distribution.
- *   * Neither the name of Praisenter nor the names of its contributors may be used to endorse or 
- *     promote products derived from this software without specific prior written permission.
- *     
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
- * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
- * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
- * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER 
- * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
 package org.praisenter.ui.slide.controls;
 
 import org.praisenter.data.slide.graphics.SlideGradient;
@@ -34,6 +10,7 @@ import org.praisenter.ui.controls.EditGridPane;
 import org.praisenter.ui.slide.convert.PaintConverter;
 import org.praisenter.ui.translations.Translations;
 import org.praisenter.utility.ClasspathLoader;
+import org.praisenter.utility.Numbers;
 
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.DoubleProperty;
@@ -75,11 +52,6 @@ import javafx.scene.shape.StrokeType;
 // FEATURE (L-L) Add ability to configure any number of gradient stops
 // JAVABUG (L) 06/14/17 [workaround] Color picker in context menu (or other dialog) doesn't work if you click the "Custom Color" link https://bugs.openjdk.java.net/browse/JDK-8175803
 
-/**
- * Pane for configuring a gradient pattern.
- * @author William Bittle
- * @version 3.0.0
- */
 public final class SlideGradientPicker extends VBox {
 	private static final Image TRANSPARENT_PATTERN = ClasspathLoader.getImage("org/praisenter/images/transparent.png");
 	private static final double WIDTH = 125;
@@ -196,8 +168,8 @@ public final class SlideGradientPicker extends VBox {
             final double y = event.getY();
             
             // compute the new x/y between 0 and 1
-            final double px = clamp(this.handle1X.get() + x / WIDTH, 0, 1);
-            final double py = clamp(this.handle1Y.get() + y / HEIGHT, 0, 1);
+            final double px = Numbers.clamp(this.handle1X.get() + x / WIDTH, 0, 1);
+            final double py = Numbers.clamp(this.handle1Y.get() + y / HEIGHT, 0, 1);
         	
             // set the start x/y
         	this.handle1X.set(px);
@@ -205,12 +177,12 @@ public final class SlideGradientPicker extends VBox {
         };
         
         handle1.layoutXProperty().bind(Bindings.createDoubleBinding(() -> {
-        	double x1 = clamp(this.handle1X.get(), 0, 1);
+        	double x1 = Numbers.clamp(this.handle1X.get(), 0, 1);
             return x1 * WIDTH;
         }, this.handle1X));
 
         handle1.layoutYProperty().bind(Bindings.createDoubleBinding(() -> {
-        	double y1 = clamp(this.handle1Y.get(), 0, 1);
+        	double y1 = Numbers.clamp(this.handle1Y.get(), 0, 1);
             return y1 * HEIGHT;
         }, this.handle1Y));
         
@@ -220,8 +192,8 @@ public final class SlideGradientPicker extends VBox {
             final double y = event.getY();
         	
             // compute the new x/y between 0 and 1
-            final double px = clamp(this.handle2X.get() + x / WIDTH, 0, 1);
-            final double py = clamp(this.handle2Y.get() + y / HEIGHT, 0, 1);
+            final double px = Numbers.clamp(this.handle2X.get() + x / WIDTH, 0, 1);
+            final double py = Numbers.clamp(this.handle2Y.get() + y / HEIGHT, 0, 1);
             
             // set the end x/y
             this.handle2X.set(px);
@@ -229,12 +201,12 @@ public final class SlideGradientPicker extends VBox {
         };
         
         handle2.layoutXProperty().bind(Bindings.createDoubleBinding(() -> {
-        	double x2 = clamp(this.handle2X.get(), 0, 1);
+        	double x2 = Numbers.clamp(this.handle2X.get(), 0, 1);
             return x2 * WIDTH;
         }, this.handle2X));
 
         handle2.layoutYProperty().bind(Bindings.createDoubleBinding(() -> {
-        	double y2 = clamp(this.handle2Y.get(), 0, 1);
+        	double y2 = Numbers.clamp(this.handle2Y.get(), 0, 1);
             return y2 * HEIGHT;
         }, this.handle2Y));
         
@@ -349,7 +321,7 @@ public final class SlideGradientPicker extends VBox {
 			@Override
 			public Number convertTo(SlideGradient e) {
 				if (e == null) return handle1X.get();
-				return clamp(e.getStartX(), 0, 1);
+				return Numbers.clamp(e.getStartX(), 0, 1);
 			}
 		});
 		
@@ -361,7 +333,7 @@ public final class SlideGradientPicker extends VBox {
 			@Override
 			public Number convertTo(SlideGradient e) {
 				if (e == null) return handle1Y.get();
-				return clamp(e.getStartY(), 0, 1);
+				return Numbers.clamp(e.getStartY(), 0, 1);
 			}
 		});
 		
@@ -373,7 +345,7 @@ public final class SlideGradientPicker extends VBox {
 			@Override
 			public Number convertTo(SlideGradient e) {
 				if (e == null) return handle2X.get();
-				return clamp(e.getEndX(), 0, 1);
+				return Numbers.clamp(e.getEndX(), 0, 1);
 			}
 		});
 		
@@ -385,15 +357,11 @@ public final class SlideGradientPicker extends VBox {
 			@Override
 			public Number convertTo(SlideGradient e) {
 				if (e == null) return handle2Y.get();
-				return clamp(e.getEndY(), 0, 1);
+				return Numbers.clamp(e.getEndY(), 0, 1);
 			}
 		});
     }
 
-    /**
-     * Returns a new gradient given the current input.
-     * @return SlideGradient
-     */
     private SlideGradient getCurrentValue() {
 		SlideGradient sg = new SlideGradient();
 		sg.setType(this.type.get());
@@ -409,41 +377,14 @@ public final class SlideGradientPicker extends VBox {
 		return sg;
     }
     
-    /**
-     * Clamps the given value between min and max.
-     * @param value the value
-     * @param min the min value
-     * @param max the max value
-     * @return double
-     */
-    private static double clamp(double value, double min, double max) {
-        return value < min 
-        		? min 
-        		: value > max 
-        			? max 
-        			: value;
-    }
-
-    /**
-     * Returns the gradient property.
-     * @return ObjectProperty&lt;{@link SlideGradient}&gt;
-     */
     public ObjectProperty<SlideGradient> valueProperty() {
     	return this.value;
     }
     
-    /**
-     * Returns the current gradient.
-     * @return {@link SlideGradient}
-     */
     public SlideGradient getValue() {
     	return this.value.get();
     }
     
-    /**
-     * Sets the current gradient.
-     * @param gradient the gradient
-     */
     public void setValue(SlideGradient gradient) {
     	this.value.set(gradient);
     }

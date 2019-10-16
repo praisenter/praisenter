@@ -72,6 +72,7 @@ public final class SearchIndex {
 		config.setOpenMode(OpenMode.CREATE);
 		try (IndexWriter writer = new IndexWriter(this.directory, config)) {
 			for (Indexable item : items) {
+				LOGGER.debug("Indexing document {}", item.getName());
 				List<Document> docs = item.index();
 				if (docs == null || docs.isEmpty()) {
 					continue;
@@ -81,9 +82,10 @@ public final class SearchIndex {
 		}
 	}
 	
-	public List<SearchResult> search(SearchCriteria criteria) throws IOException {
+	public SearchResults search(SearchCriteria criteria) throws IOException {
 		Query query = criteria.createQuery(this.analyzer);
-		if (query == null) return Collections.emptyList();
+		if (query == null) 
+			return new SearchResults(criteria, Collections.emptyList());
 		
 		List<SearchResult> results = new ArrayList<SearchResult>();
 		
@@ -119,6 +121,6 @@ public final class SearchIndex {
 			}
 		}
 		
-		return results;
+		return new SearchResults(criteria, results);
 	}
 }

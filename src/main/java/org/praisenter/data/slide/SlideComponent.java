@@ -29,8 +29,8 @@ import java.util.List;
 import org.praisenter.Watchable;
 import org.praisenter.data.Copyable;
 import org.praisenter.data.Identifiable;
-import org.praisenter.data.slide.animation.Animation;
 import org.praisenter.data.slide.effects.SlideShadow;
+import org.praisenter.data.slide.effects.animation.SlideAnimation;
 import org.praisenter.data.slide.graphics.Rectangle;
 import org.praisenter.data.slide.media.MediaComponent;
 import org.praisenter.data.slide.text.CountdownComponent;
@@ -72,8 +72,8 @@ public abstract class SlideComponent extends SlideRegion implements ReadOnlySlid
 	private final ObjectProperty<SlideShadow> shadow;
 	private final ObjectProperty<SlideShadow> glow;
 	
-	private final ObservableList<Animation> animations;
-	private final ObservableList<Animation> animationsReadOnly;
+	private final ObservableList<SlideAnimation> animations;
+	private final ObservableList<SlideAnimation> animationsReadOnly;
 	
 	public SlideComponent() {
 		super();
@@ -107,7 +107,7 @@ public abstract class SlideComponent extends SlideRegion implements ReadOnlySlid
 			component.shadow.set(null);
 		}
 
-		for (Animation animation: this.animations) {
+		for (SlideAnimation animation: this.animations) {
 			component.animations.add(animation.copy());
 		}
 	}
@@ -216,17 +216,17 @@ public abstract class SlideComponent extends SlideRegion implements ReadOnlySlid
 
 	@JsonProperty
 	@Watchable(name = "animations")
-	public ObservableList<Animation> getAnimations() {
+	public ObservableList<SlideAnimation> getAnimations() {
 		return this.animations;
 	}
 	
 	@JsonProperty
-	public void setAnimations(List<Animation> animations) {
+	public void setAnimations(List<SlideAnimation> animations) {
 		this.animations.setAll(animations);
 	}
 	
 	@Override
-	public ObservableList<Animation> getAnimationsUnmodifiable() {
+	public ObservableList<SlideAnimation> getAnimationsUnmodifiable() {
 		return this.animationsReadOnly;
 	}
 }

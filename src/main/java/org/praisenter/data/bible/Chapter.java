@@ -70,6 +70,16 @@ public final class Chapter implements ReadOnlyChapter, Copyable, Comparable<Chap
 		return max >= 0 ? max : 1;
 	}
 	
+	@Override
+	public Verse getVerse(int verse) {
+		for (Verse v : this.verses) {
+			if (v.getNumber() == verse) {
+				return v;
+			}
+		}
+		return null;
+	}
+	
 	@JsonProperty
 	public int getNumber() {
 		return this.number.get();

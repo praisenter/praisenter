@@ -53,7 +53,8 @@ import org.praisenter.data.bible.BibleReferenceTextStore;
 import org.praisenter.data.json.InstantJsonDeserializer;
 import org.praisenter.data.json.InstantJsonSerializer;
 import org.praisenter.data.search.Indexable;
-import org.praisenter.data.slide.animation.Animation;
+import org.praisenter.data.slide.effects.animation.SlideAnimation;
+import org.praisenter.data.slide.effects.transition.SlideTransition;
 import org.praisenter.data.slide.text.TextPlaceholderComponent;
 import org.praisenter.song.SongReferenceTextStore;
 
@@ -104,7 +105,7 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 	private final ObjectProperty<Instant> createdDate;
 	private final ObjectProperty<Instant> modifiedDate;
 	private final LongProperty time;
-	private final ObjectProperty<Animation> transition;
+	private final ObjectProperty<SlideTransition> transition;
 	private final ObjectProperty<TextStore> placeholderData;
 	private final ObjectProperty<Path> thumbnailPath;
 	private final ObservableSet<Tag> tags;
@@ -118,7 +119,7 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 		this.createdDate = new SimpleObjectProperty<>(Instant.now());
 		this.modifiedDate = new SimpleObjectProperty<>(this.createdDate.get());
 		this.time = new SimpleLongProperty(0);
-		this.transition = new SimpleObjectProperty<Animation>();
+		this.transition = new SimpleObjectProperty<SlideTransition>();
 		this.placeholderData = new SimpleObjectProperty<>();
 
 		this.tags = FXCollections.observableSet(new HashSet<>());
@@ -157,6 +158,7 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 		}
 		slide.tags.addAll(this.tags);
 		slide.thumbnailPath.set(this.thumbnailPath.get());
+		slide.transition.set(this.transition.get());
 		return slide;
 	}
 	
@@ -297,7 +299,7 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 		
 		long txTime = 0;
 		
-		Animation tx = this.transition.get();
+		SlideTransition tx = this.transition.get();
 		if (tx != null) {
 			txTime = tx.getTotalTime();
 		}
@@ -305,9 +307,9 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 		long maxTime = 0;
 		List<SlideComponent> comps = new ArrayList<>(this.components);
 		for (SlideComponent sc : comps) {
-			List<Animation> animations = new ArrayList<>(sc.getAnimations());
-			for (Animation ani : animations) {
-				if (ani.getRepeatCount() == Animation.INFINITE) {
+			List<SlideAnimation> animations = new ArrayList<>(sc.getAnimations());
+			for (SlideAnimation ani : animations) {
+				if (ani.getRepeatCount() == SlideAnimation.INFINITE) {
 					return Slide.TIME_FOREVER;
 				}
 				long aniTime = ani.getTotalTime();
@@ -322,18 +324,18 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 	
 	@Override
 	@JsonProperty
-	public Animation getTransition() {
+	public SlideTransition getTransition() {
 		return this.transition.get();
 	}
 	
 	@JsonProperty
-	public void setTransition(Animation animation) {
+	public void setTransition(SlideTransition animation) {
 		this.transition.set(animation);
 	}
 	
 	@Override
 	@Watchable(name = "transition")
-	public ObjectProperty<Animation> transitionProperty() {
+	public ObjectProperty<SlideTransition> transitionProperty() {
 		return this.transition;
 	}
 	
@@ -407,12 +409,14 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 		return store.get(variant, type);
 	}
 	
+	@Override
 	@JsonProperty
 	@Watchable(name = "tags")
 	public ObservableSet<Tag> getTags() {
 		return this.tags;
 	}
 	
+	@Override
 	@JsonProperty
 	public void setTags(Set<Tag> tags) {
 		this.tags.addAll(tags);

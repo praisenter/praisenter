@@ -24,6 +24,8 @@
  */
 package org.praisenter.data.slide.text;
 
+import java.util.UUID;
+
 import org.praisenter.Watchable;
 import org.praisenter.data.Copyable;
 import org.praisenter.data.Identifiable;
@@ -66,6 +68,15 @@ public final class TextPlaceholderComponent extends TextComponent implements Rea
 		super.copyTo(tc);
 		tc.placeholderType.set(this.placeholderType.get());
 		tc.placeholderVariant.set(this.placeholderVariant.get());
+		return tc;
+	}
+	
+	@Override
+	public TextComponent toTextComponent() {
+		TextComponent tc = new TextComponent();
+		this.copyTo(tc);
+		tc.setId(UUID.randomUUID());
+		tc.setText(this.getText());
 		return tc;
 	}
 	

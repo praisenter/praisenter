@@ -1,41 +1,11 @@
-/*
- * Copyright (c) 2015-2016 William Bittle  http://www.praisenter.org/
- * All rights reserved.
- * 
- * Redistribution and use in source and binary forms, with or without modification, are permitted 
- * provided that the following conditions are met:
- * 
- *   * Redistributions of source code must retain the above copyright notice, this list of conditions 
- *     and the following disclaimer.
- *   * Redistributions in binary form must reproduce the above copyright notice, this list of conditions 
- *     and the following disclaimer in the documentation and/or other materials provided with the 
- *     distribution.
- *   * Neither the name of Praisenter nor the names of its contributors may be used to endorse or 
- *     promote products derived from this software without specific prior written permission.
- *     
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR 
- * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND 
- * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
- * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER 
- * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
 package org.praisenter.ui;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
@@ -58,12 +28,9 @@ import org.praisenter.async.AsyncHelper;
 import org.praisenter.data.DataManager;
 import org.praisenter.data.configuration.Configuration;
 import org.praisenter.data.configuration.ConfigurationPersistAdapter;
-import org.praisenter.data.media.Media;
 import org.praisenter.data.search.SearchIndex;
-import org.praisenter.data.slide.Slide;
 import org.praisenter.ui.controls.Alerts;
 import org.praisenter.ui.fonts.OpenIconic;
-import org.praisenter.ui.slide.JavaFXSlideRenderer;
 import org.praisenter.ui.themes.Theme;
 import org.praisenter.ui.translations.Translations;
 import org.praisenter.utility.ClasspathLoader;
@@ -76,7 +43,6 @@ import javafx.animation.SequentialTransition;
 import javafx.application.Application;
 import javafx.application.ConditionalFeature;
 import javafx.application.Platform;
-import javafx.beans.binding.Bindings;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -134,13 +100,7 @@ import javafx.util.Duration;
 // JAVABUG (M) 11/03/16 [fixed-9] Editable ComboBox and Spinner auto commit - https://bugs.openjdk.java.net/browse/JDK-8150946
 // JAVABUG (L) 05/31/17 Java FX just chooses the last image in the set of stage icons rather than choosing the best bugs.openjdk.java.net/browse/JDK-8091186, bugs.openjdk.java.net/browse/JDK-8087459
 
-/**
- * This is the entry point for the application.
- * @author William Bittle
- * @version 3.0.0
- */
 public final class Praisenter extends Application {
-	/** The class-level logger */
 	private static final Logger LOGGER;
 	
 	static {
@@ -194,25 +154,17 @@ public final class Praisenter extends Application {
 		ConditionalFeature.EFFECT
 	};
 	
-	/** The default width */
 	private static final int MIN_WIDTH = 1000;
-	
-	/** The default height */
 	private static final int MIN_HEIGHT = 700;
 	
-	/**
-	 * The entry point method.
-	 * @param args any arguments
-	 */
-    public static void main(String[] args) {
+    static void main(String[] args) {
         launch(args);
     }
     
-    /* (non-Javadoc)
-     * @see javafx.application.Application#start(javafx.stage.Stage)
-     */
     @Override
     public void start(Stage stage) throws Exception {
+    	long startTime = System.nanoTime();
+    	
     	// log supported features
     	LOGGER.info("Java FX Feature Support:");
     	for (ConditionalFeature feature : ConditionalFeature.values()) {
@@ -400,20 +352,7 @@ public final class Praisenter extends Application {
     				}
     				LOGGER.info("Fonts loaded.");
     				
-    				LOGGER.info("Load complete");
-    				
     				LOGGER.info("Building UI");
-//    	    		Label label = new Label();
-//    	    		label.textProperty().bind(Bindings.createStringBinding(() -> {
-//    	    			StringBuilder sb = new StringBuilder();
-//    	    			sb.append("(").append(context.configuration.getApplicationX()).append(", ").append(context.configuration.getApplicationY()).append(") ")
-//    	    			  .append(context.configuration.getApplicationWidth()).append("x").append(context.configuration.getApplicationHeight());
-//    	    			return sb.toString();
-//    	    		}, context.configuration.applicationXProperty(),
-//    					context.configuration.applicationYProperty(),
-//    					context.configuration.applicationWidthProperty(),
-//    					context.configuration.applicationHeightProperty()));
-    	    		
     	    		PraisenterPane main = new PraisenterPane(context);
     	    		layout.getChildren().add(0, main);
     	    		
@@ -433,8 +372,8 @@ public final class Praisenter extends Application {
     						LOGGER.info("Fade out of loading screen complete.");
     						layout.getChildren().remove(loadingPane);
     						LOGGER.info("Loading scene removed from the scene graph. {} node(s) remaining.", layout.getChildren().size());
-    						long endTime = System.nanoTime();
-//    						LOGGER.info("Loading took {} seconds.", (endTime - START_TIME) / 1e9);
+    						final long endTime = System.nanoTime();
+    						LOGGER.info("Loading completed in {} seconds.", (endTime - startTime) / 1e9);
     					}
     				});
     				
@@ -498,14 +437,6 @@ public final class Praisenter extends Application {
     	});
     }
 
-    /**
-     * Returns true if the given rectangle is within one of the current screens.
-     * @param x the x coordinate
-     * @param y the y coordinate
-     * @param w the width
-     * @param h the height
-     * @return
-     */
     private boolean isInScreenBounds(double x, double y, double w, double h) {
     	Rectangle2D bounds = new Rectangle2D(x, y, w, h);
         for (Screen screen : Screen.getScreens()) {
@@ -518,43 +449,9 @@ public final class Praisenter extends Application {
         return false;
     }
     
-//    private void waitForIncompleteTasks(Stage stage) {
-//    	LOGGER.info("Checking for background threads that have not completed yet.");
-//		// this stuff could be null if we blow up before its created
-//		AsyncTaskExecutor executor = context != null ? context.getExecutorService() : null;
-//		if (executor != null) {
-//			// for testing shutdown waiting
-////			executor.submit(() -> { 
-////				try {
-////					Thread.sleep(5 * 1000);
-////				} catch (Exception e1) {
-////					e1.printStackTrace();
-////				} 
-////			});
-//			
-//			executor.shutdown();
-//    		int activeThreads = executor.getActiveCount();
-//    		if (activeThreads > 0) {
-//    			LOGGER.info("{} background threads awaiting completion.", activeThreads);
-//    			
-//    			ShutdownDialog shutdown = new ShutdownDialog(stage, executor);
-//    			shutdown.completeProperty().addListener((obs, ov, nv) -> {
-//    				if (nv) {
-//    					LOGGER.info("Background threads complete. Closing main window.");
-//    					stage.close();
-//    				}
-//    			});
-//    			shutdown.show();
-//    		} else {
-//    			LOGGER.info("No background threads awaiting completion. Closing main window.");
-//    			stage.close();
-//    		}
-//		}
-//    }
-    
     private CompletableFuture<Void> onCloseRequest(GlobalContext context) {
     	// close the presentation screens
-		//this.context.getDisplayManager().release();
+		// TODO this.context.getDisplayManager().release();
 		
     	// wait for any pending async tasks
     	// NOTE: the assumption here is that all asynchronous processing is being performed on the ForkJoinPool commonPool

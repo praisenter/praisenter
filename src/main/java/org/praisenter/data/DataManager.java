@@ -19,7 +19,7 @@ import org.praisenter.async.AsyncHelper;
 import org.praisenter.data.search.Indexable;
 import org.praisenter.data.search.SearchCriteria;
 import org.praisenter.data.search.SearchIndex;
-import org.praisenter.data.search.SearchResult;
+import org.praisenter.data.search.SearchResults;
 
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -274,7 +274,7 @@ public final class DataManager {
 		return store.exportData(format, path, item);
 	}
 	
-	public CompletableFuture<List<SearchResult>> search(SearchCriteria criteria) {
+	public CompletableFuture<SearchResults> search(SearchCriteria criteria) {
 		return CompletableFuture.supplyAsync(() -> {
 			try {
 				return this.index.search(criteria);

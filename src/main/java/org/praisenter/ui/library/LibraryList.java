@@ -19,6 +19,7 @@ import java.util.zip.ZipOutputStream;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.controlsfx.glyphfont.Glyph;
 import org.praisenter.Constants;
 import org.praisenter.Editable;
 import org.praisenter.async.AsyncHelper;
@@ -26,10 +27,10 @@ import org.praisenter.async.BackgroundTask;
 import org.praisenter.data.KnownFormat;
 import org.praisenter.data.Persistable;
 import org.praisenter.data.media.Media;
-import org.praisenter.javafx.controls.SortGraphic;
 import org.praisenter.ui.Action;
 import org.praisenter.ui.ActionPane;
 import org.praisenter.ui.GlobalContext;
+import org.praisenter.ui.Glyphs;
 import org.praisenter.ui.Option;
 import org.praisenter.ui.controls.Alerts;
 import org.praisenter.ui.controls.FlowListCell;
@@ -49,7 +50,6 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
@@ -76,15 +76,13 @@ import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Modality;
 
-// TODO show metadata (name, size, length, etc. tags?)
-// TODO for media -> a media preview
-// TODO for slides -> a slide preview?
 // TODO for slide shows -> a preview?
-// TODO allow selection via code rather than UI?
 public final class LibraryList extends BorderPane implements ActionPane {
 	private static final Logger LOGGER = LogManager.getLogger();
 	private static final Collator COLLATOR = Collator.getInstance();
 	private static final DataFormat COPY_DATA_FORMAT = new DataFormat("application/x-praisenter-library-copy");
+	private static final Glyph SORT_ASC = Glyphs.SORT_ASC.duplicate();
+	private static final Glyph SORT_DESC = Glyphs.SORT_DESC.duplicate();
 	
 	private final GlobalContext context;
 	
@@ -100,7 +98,7 @@ public final class LibraryList extends BorderPane implements ActionPane {
 	private final ObservableList<Persistable> source;
 	private final FlowListView<Persistable> view;
 	
-	public LibraryList(GlobalContext context, Orientation orientation) {
+	public LibraryList(GlobalContext context, Orientation orientation, LibraryListType... filterTypes) {
 		this.context = context;
 		
 		this.textFilter = new SimpleStringProperty();
@@ -117,8 +115,6 @@ public final class LibraryList extends BorderPane implements ActionPane {
 		final SortedList<Persistable> sorted = new SortedList<>(filtered, (a, b) -> 0);
 		
 		final Runnable filterSortListener = () -> {
-			this.view.getSelectionModel().clear();
-			
 			final String search = this.textFilter.get();
 			final String term = !StringManipulator.isNullOrEmpty(search) ? search.trim().toLowerCase() : null;
 			final Option<LibraryListType> optTypeFilter = this.typeFilter.get();
@@ -196,55 +192,65 @@ public final class LibraryList extends BorderPane implements ActionPane {
         	}
         });
 		
-		ObservableList<Option<LibraryListType>> typeFilters = FXCollections.observableArrayList();
-		ListChangeListener<? super Persistable> sourceListener = (ListChangeListener.Change<? extends Persistable> changes) -> {
-			List<Option<LibraryListType>> typeOptions = new ArrayList<>();
-			typeOptions.addAll(this.source.stream()
-					.map(i -> LibraryListType.from(i))
-					.distinct()
-					.sorted((a,b) -> a.getOrder() - b.getOrder())
-					.map(t -> new Option<LibraryListType>(t.getName(), t))
-					.collect(Collectors.toList()));
-			
-			Option<LibraryListType> currentValue = null;
-			if (typeOptions.size() == 1) {
-				// just choose the only option
-				currentValue = typeOptions.get(0);
-			} else if (typeOptions.size() > 1) {
-				// if there's more than one type, add the all option
-				typeOptions.add(0, new Option<>());
-				
-				// does the current type filter exist in the new set?
-				Option<LibraryListType> currentTypeFilter = this.typeFilter.get();
-				if (currentTypeFilter != null) {
-					for (Option<LibraryListType> option : typeOptions) {
-						if (option.equals(currentTypeFilter)) {
-							currentValue = currentTypeFilter;
-							break;
-						}
-					}
-				}
-			}
-			
-			// this is annoying, for whatever reason we couldn't set this value at this time
-			// the FilteredList class would throw an IndexOutOfBoundsException
-			// this should work though since they are posted to the event queue and run in-order
-			final Option<LibraryListType> nv = currentValue;
-			Platform.runLater(() -> {
-				typeFilters.setAll(typeOptions);
-				// since it's possible that there could be multiple of these waiting on the 
-				// event queue, lets make sure that the new value we are setting is in the
-				// latest set of available filters
-				if (typeFilters.contains(nv)) {
-					this.typeFilter.set(nv);
-				} else {
-					this.typeFilter.set(null);
-				}
-			});
-		};
-		this.source.addListener(sourceListener);
-		sourceListener.onChanged(null);
-		//sourceListener.invalidated(null);
+		// just show all types no matter what?
+		List<Option<LibraryListType>> typeOptions = new ArrayList<>();
+		typeOptions.addAll(Arrays.stream(filterTypes)
+				.sorted((a,b) -> a.getOrder() - b.getOrder())
+				.map(t -> new Option<LibraryListType>(t.getName(), t))
+				.collect(Collectors.toList()));
+		typeOptions.add(0, new Option<LibraryListType>());
+		ObservableList<Option<LibraryListType>> typeFilters = FXCollections.observableArrayList(typeOptions);
+		
+		
+		
+//		ListChangeListener<? super Persistable> sourceListener = (ListChangeListener.Change<? extends Persistable> changes) -> {
+//			List<Option<LibraryListType>> typeOptions = new ArrayList<>();
+//			typeOptions.addAll(this.source.stream()
+//					.map(i -> LibraryListType.from(i))
+//					.distinct()
+//					.sorted((a,b) -> a.getOrder() - b.getOrder())
+//					.map(t -> new Option<LibraryListType>(t.getName(), t))
+//					.collect(Collectors.toList()));
+//			
+//			Option<LibraryListType> currentValue = null;
+//			if (typeOptions.size() == 1) {
+//				// just choose the only option
+//				currentValue = typeOptions.get(0);
+//			} else if (typeOptions.size() > 1) {
+//				// if there's more than one type, add the all option
+//				typeOptions.add(0, new Option<>());
+//				
+//				// does the current type filter exist in the new set?
+//				Option<LibraryListType> currentTypeFilter = this.typeFilter.get();
+//				if (currentTypeFilter != null) {
+//					for (Option<LibraryListType> option : typeOptions) {
+//						if (option.equals(currentTypeFilter)) {
+//							currentValue = currentTypeFilter;
+//							break;
+//						}
+//					}
+//				}
+//			}
+//			
+//			// this is annoying, for whatever reason we couldn't set this value at this time
+//			// the FilteredList class would throw an IndexOutOfBoundsException
+//			// this should work though since they are posted to the event queue and run in-order
+//			final Option<LibraryListType> nv = currentValue;
+//			Platform.runLater(() -> {
+//				typeFilters.setAll(typeOptions);
+//				// since it's possible that there could be multiple of these waiting on the 
+//				// event queue, lets make sure that the new value we are setting is in the
+//				// latest set of available filters
+//				if (typeFilters.contains(nv)) {
+//					this.typeFilter.set(nv);
+//				} else {
+//					this.typeFilter.set(null);
+//				}
+//			});
+//		};
+//		this.source.addListener(sourceListener);
+//		sourceListener.onChanged(null);
+//		//sourceListener.invalidated(null);
 		
 		// filtering and sorting
 		
@@ -262,10 +268,14 @@ public final class LibraryList extends BorderPane implements ActionPane {
         Label lblSort = new Label(Translations.get("list.sort.field"));
         ChoiceBox<Option<LibraryListSortField>> cbSort = new ChoiceBox<Option<LibraryListSortField>>(sortFields);
         cbSort.valueProperty().bindBidirectional(this.sortField);
-        SortGraphic sortGraphic = new SortGraphic();
-        ToggleButton tgl = new ToggleButton(null, sortGraphic);
+//        SortGraphic sortGraphic = new SortGraphic();
+        ToggleButton tgl = new ToggleButton(null);
+        tgl.graphicProperty().bind(Bindings.createObjectBinding(() -> {
+        	boolean isAsc = this.sortAscending.get();
+        	return isAsc ? SORT_ASC : SORT_DESC;
+        }, this.sortAscending));
         tgl.selectedProperty().bindBidirectional(this.sortAscending);
-        sortGraphic.flipProperty().bind(this.sortAscending);
+//        sortGraphic.flipProperty().bind(this.sortAscending);
         
         TextField txtSearch = new TextField();
         txtSearch.setPromptText(Translations.get("list.filter.search"));
@@ -606,6 +616,8 @@ public final class LibraryList extends BorderPane implements ActionPane {
 							item = item.copy();
 							item.setId(UUID.randomUUID());
 							item.setName(Translations.get("action.copy.name", item.getName()));
+							item.setCreatedDate(Instant.now());
+							item.setModifiedDate(item.getCreatedDate());
 							items.add(item);
 						} else {
 							itemNoLongerExists = true;

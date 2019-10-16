@@ -6,7 +6,7 @@ import java.util.UUID;
 
 import org.apache.lucene.document.Document;
 
-public class SearchResult {
+public final class SearchResult {
 	/** The matched document */
 	private final Document document;
 	

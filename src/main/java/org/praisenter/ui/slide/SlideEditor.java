@@ -1,7 +1,6 @@
 package org.praisenter.ui.slide;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -31,30 +30,20 @@ import org.praisenter.ui.undo.UndoManager;
 import org.praisenter.utility.Scaling;
 
 import javafx.application.Platform;
-import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.collections.transformation.SortedList;
 import javafx.event.EventType;
 import javafx.geometry.Pos;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DataFormat;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.BorderStroke;
-import javafx.scene.layout.BorderStrokeStyle;
-import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.StrokeLineCap;
-import javafx.scene.shape.StrokeLineJoin;
-import javafx.scene.shape.StrokeType;
 
 // FEATURE (L-M) Allow multi select of components for moving or other actions
 // FEATURE (L-M) Allow grouping of components
@@ -78,8 +67,6 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 	private final SlideView slideView;
 	
 	private final UndoManager undoManager;
-	
-	private int selectedOriginalIndex;
 	
 	public SlideEditor(
 			GlobalContext context, 
@@ -147,14 +134,13 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 			} else {
 				this.document.getSelectedItems().clear();
 			}
+			
+			// if a node was selected ensure the editor has focus
+			// if it doesn't then some of the controls in the action
+			// bar won't show up
+			this.requestFocus();
 		});
 
-//		this.slideView.slideProperty().bind(document.documentProperty());
-		// load the document async
-//		context.load(document.getDocument()).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
-//			this.slideView.setSlide(document.getDocument());
-//			this.slide.bind(document.documentProperty());
-//		}));
 		this.slideView.loadSlideAsync(document.getDocument()).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
 			this.slideView.setSlide(document.getDocument());
 			this.slide.bind(document.documentProperty());
@@ -171,13 +157,7 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 		}, this.slideView.viewScaleProperty()));
 		Bindings.bindContent(editContainer.getChildren(), this.componentMapping);
 		
-		
 		this.view.getChildren().addAll(this.slideView, editContainer);
-		
-//		this.view.setMinSize(0, 0);
-//		this.view.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
-//		this.slideView.setMinSize(0, 0);
-//		this.slideView.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
 		
 		this.setCenter(this.view);
 		BorderPane.setAlignment(this.view, Pos.CENTER);

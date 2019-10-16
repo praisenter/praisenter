@@ -479,12 +479,14 @@ public final class Media implements ReadOnlyMedia, Indexable, Persistable, Copya
 		return this.audioAvailable;
 	}
 	
+	@Override
 	@JsonProperty
 	@Watchable(name = "tags")
 	public ObservableSet<Tag> getTags() {
 		return this.tags;
 	}
 	
+	@Override
 	@JsonProperty
 	public void setTags(Set<Tag> tags) {
 		this.tags.addAll(tags);

@@ -1,10 +1,12 @@
 package org.praisenter.ui.slide;
 
+import java.util.List;
+
 import org.praisenter.data.slide.effects.SlideShadow;
+import org.praisenter.data.slide.graphics.DashPattern;
 import org.praisenter.data.slide.graphics.SlidePadding;
 import org.praisenter.data.slide.graphics.SlidePaint;
 import org.praisenter.data.slide.graphics.SlideStroke;
-import org.praisenter.data.slide.graphics.SlideStrokeStyle;
 import org.praisenter.data.slide.text.FontScaleType;
 import org.praisenter.data.slide.text.HorizontalTextAlignment;
 import org.praisenter.data.slide.text.SlideFont;
@@ -13,7 +15,6 @@ import org.praisenter.data.slide.text.TextPlaceholderComponent;
 import org.praisenter.data.slide.text.VerticalTextAlignment;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.TextMeasurer;
-import org.praisenter.ui.bind.BindingHelper;
 import org.praisenter.ui.slide.convert.BorderConverter;
 import org.praisenter.ui.slide.convert.EffectConverter;
 import org.praisenter.ui.slide.convert.FontConverter;
@@ -23,16 +24,10 @@ import org.praisenter.ui.translations.Translations;
 import org.praisenter.utility.StringManipulator;
 
 import javafx.beans.binding.Bindings;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.effect.Effect;
 import javafx.scene.effect.InnerShadow;
-import javafx.scene.layout.Border;
-import javafx.scene.layout.BorderStroke;
-import javafx.scene.layout.BorderStrokeStyle;
-import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.StrokeLineCap;
@@ -63,22 +58,15 @@ final class TextComponentNode extends SlideComponentNode<TextComponent> {
 		this.content.getChildren().add(this.wrapper);
 		
 		this.textBorderDashes = FXCollections.observableArrayList();
+		this.setTextBorderDashes(region.getTextBorder());
 		this.region.textBorderProperty().addListener((obs, ov, nv) -> {
 			if (ov != null && ov.getStyle() != null) {
-				ObservableList<Double> dashes = ov.getStyle().getDashes();
-				if (dashes != null) {
-					Bindings.unbindContent(this.textBorderDashes, dashes);
-				}
+				this.textBorderDashes.clear();
 			}
-			
 			if (nv != null && nv.getStyle() != null) {
-				ObservableList<Double> dashes = nv.getStyle().getDashes();
-				if (dashes != null) {
-					Bindings.bindContent(this.textBorderDashes, dashes);
-				}
+				this.setTextBorderDashes(nv);
 			}
 		});
-		
 		
 //		this.wrapper.setMaxSize(USE_PREF_SIZE, USE_PREF_SIZE);
 		
@@ -133,7 +121,6 @@ final class TextComponentNode extends SlideComponentNode<TextComponent> {
 			return PaintConverter.toJavaFX(ss.getPaint());
 		}, this.region.textBorderProperty()));
 
-		// TODO need a fix for binding the dashes
 		Bindings.bindContent(this.text.getStrokeDashArray(), this.textBorderDashes);
 		
 		this.text.fontProperty().bind(Bindings.createObjectBinding(() -> {
@@ -178,6 +165,24 @@ final class TextComponentNode extends SlideComponentNode<TextComponent> {
 		this.text.effectProperty().bind(Bindings.createObjectBinding(() -> {
 			return this.computeTextEffect();
 		}, this.region.textShadowProperty(), this.region.textGlowProperty()));
+	}
+	
+	private void setTextBorderDashes(SlideStroke stroke) {
+		if (stroke == null) return;
+		List<Double> dashes = stroke.getStyle().getDashes();
+		if (dashes != null) {
+			DashPattern pattern = DashPattern.getDashPattern(dashes);
+			// does the style match a dash pattern?
+			// we don't need to scale in the case of SOLID and if
+			// it doesn't match a dash pattern, then SOLID is returned
+			// so this should work for both cases
+			if (pattern != DashPattern.SOLID) {
+				// scale the dashes based on the line width
+				dashes = pattern.getScaledDashPattern(stroke.getWidth());
+			}
+			
+			this.textBorderDashes.setAll(dashes);
+		}
 	}
 	
 	private double computeWrappingWidth() {

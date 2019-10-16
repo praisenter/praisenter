@@ -134,7 +134,7 @@ public final class SlidePaintPicker extends VBox {
 			@Override
 			public Color convertTo(SlidePaint e) {
 				// return the current value
-				if (e == null || !(e instanceof SlideColor)) return null;
+				if (e == null || !(e instanceof SlideColor)) return color.get();
 				return PaintConverter.toJavaFX((SlideColor)e);
 			}
 		});
@@ -146,7 +146,7 @@ public final class SlidePaintPicker extends VBox {
 			}
 			@Override
 			public SlideGradient convertTo(SlidePaint e) {
-				if (e == null || !(e instanceof SlideGradient)) return null;
+				if (e == null || !(e instanceof SlideGradient)) return gradient.get();
 				return (SlideGradient)e;
 			}
 		});
@@ -158,7 +158,7 @@ public final class SlidePaintPicker extends VBox {
 			}
 			@Override
 			public MediaObject convertTo(SlidePaint e) {
-				if (e == null || !(e instanceof MediaObject)) return null;
+				if (e == null || !(e instanceof MediaObject)) return media.get();
 				return (MediaObject)e;
 			}
 		});
