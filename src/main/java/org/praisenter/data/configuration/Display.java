@@ -121,7 +121,7 @@ public final class Display implements ReadOnlyDisplay, Copyable, Comparable<Disp
 	
 	@Override
 	public String toString() {
-		return this.name + " #" + this.id + " " + this.role + " (" + this.x + "," + this.y + ") " + this.width + "x" + this.height;
+		return "#" + this.id.get() + " " + this.role.get() + " (" + this.x.get() + "," + this.y.get() + ") " + this.width.get() + "x" + this.height.get();
 	}
 	
 	@Override

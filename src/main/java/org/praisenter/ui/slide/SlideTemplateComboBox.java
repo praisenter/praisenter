@@ -26,7 +26,7 @@ public class SlideTemplateComboBox extends ComboBox<Slide> {
 			@Override
 			protected void updateItem(Slide item, boolean empty) {
 				super.updateItem(item, empty);
-
+				
 				if (item == null || empty) {
 					this.textProperty().unbind();
 				} else {

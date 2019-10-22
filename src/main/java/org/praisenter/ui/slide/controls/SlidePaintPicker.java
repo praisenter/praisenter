@@ -5,6 +5,9 @@ import org.apache.logging.log4j.Logger;
 import org.praisenter.data.media.MediaType;
 import org.praisenter.data.slide.graphics.SlideColor;
 import org.praisenter.data.slide.graphics.SlideGradient;
+import org.praisenter.data.slide.graphics.SlideGradientCycleType;
+import org.praisenter.data.slide.graphics.SlideGradientStop;
+import org.praisenter.data.slide.graphics.SlideGradientType;
 import org.praisenter.data.slide.graphics.SlidePaint;
 import org.praisenter.data.slide.media.MediaObject;
 import org.praisenter.ui.GlobalContext;
@@ -46,8 +49,8 @@ public final class SlidePaintPicker extends VBox {
 		this.value = new SimpleObjectProperty<>();
 		
 		this.type = new SimpleObjectProperty<>(PaintType.NONE);
-		this.color = new SimpleObjectProperty<>();
-		this.gradient = new SimpleObjectProperty<>();
+		this.color = new SimpleObjectProperty<>(Color.BLACK);
+		this.gradient = new SimpleObjectProperty<>(new SlideGradient(SlideGradientType.LINEAR, 0, 0, 1, 1, SlideGradientCycleType.NONE, new SlideGradientStop(0.0, 0.0, 0.0, 0.0, 1.0), new SlideGradientStop(1.0, 1.0, 1.0, 1.0, 1.0)));
 		this.media = new SimpleObjectProperty<>();
 		
 		ObservableList<Option<PaintType>> types = FXCollections.observableArrayList();

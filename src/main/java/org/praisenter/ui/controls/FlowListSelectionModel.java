@@ -401,10 +401,29 @@ public final class FlowListSelectionModel<T> {
 			for (FlowListCell<T> cell : cells) {
 				cell.pseudoClassStateChanged(SELECTED, true);
 			}
-			this.selected.setAll(cells);
+			if (this.hasMultiSelectionChanged(cells)) {
+				this.selected.setAll(cells);
+			}
 		} else {
 			this.clear();
 		}
+	}
+	
+	/**
+	 * Returns true if the given cells are different than the selected cells.
+	 * @param cells the new set of selected cells
+	 * @return boolean
+	 */
+	private boolean hasMultiSelectionChanged(Collection<FlowListCell<T>> cells) {
+		int ss = this.selected.size();
+		int ns = cells.size();
+		if (ss != ns) return true;
+		for (FlowListCell<T> cell : cells) {
+			if (!this.selected.contains(cell)) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	/**

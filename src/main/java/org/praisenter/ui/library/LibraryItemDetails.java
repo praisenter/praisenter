@@ -276,7 +276,7 @@ final class LibraryItemDetails extends BorderPane {
 		slide.managedProperty().bind(slide.visibleProperty());
 		slide.setFitToWidthEnabled(true);
 		slide.setViewScaleAlignCenter(false);
-		slide.setVisible(false);		
+		slide.setVisible(false);
 		
 		// TODO slide show preview
 		
@@ -414,7 +414,7 @@ final class LibraryItemDetails extends BorderPane {
 					// by the time this finishes it could have been changed, so make sure
 					// its the same and if so, set it up
 					if (nv == this.mostRecentSlide) {
-						slide.setSlide(this.mostRecentSlide);
+						slide.setSlide((Slide)nv);
 						slide.setVisible(true);
 					}
 				}));

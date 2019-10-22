@@ -43,6 +43,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Shape;
 import javafx.scene.shape.StrokeLineCap;
@@ -140,7 +141,8 @@ public final class SlideGradientPicker extends VBox {
         preview.setMinSize(WIDTH, HEIGHT);
         preview.setBorder(new Border(new BorderStroke(Color.LIGHTGRAY, new BorderStrokeStyle(StrokeType.OUTSIDE, StrokeLineJoin.MITER, StrokeLineCap.SQUARE, 1.0, 0.0, null), null, new BorderWidths(1))));
         preview.backgroundProperty().bind(Bindings.createObjectBinding(() -> {
-        	return new Background(new BackgroundFill(PaintConverter.toJavaFX(this.value.get()), CornerRadii.EMPTY, Insets.EMPTY));
+        	Paint paint = PaintConverter.toJavaFX(this.value.get());
+        	return new Background(new BackgroundFill(paint, CornerRadii.EMPTY, Insets.EMPTY));
         }, this.value));
         
         // the configuration handles

@@ -4,20 +4,23 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.data.slide.Slide;
 import org.praisenter.data.slide.SlideComponent;
-import org.praisenter.data.slide.effects.ease.EasingFunction;
-import org.praisenter.data.slide.effects.ease.EasingType;
-import org.praisenter.data.slide.effects.transition.SlideTransition;
-import org.praisenter.ui.slide.transition.BlindsTransition;
-import org.praisenter.ui.slide.transition.CustomInterpolator;
-import org.praisenter.ui.slide.transition.PushTransition;
-import org.praisenter.ui.slide.transition.ShapedTransition;
-import org.praisenter.ui.slide.transition.SplitTransition;
-import org.praisenter.ui.slide.transition.SwapTransition;
-import org.praisenter.ui.slide.transition.SwipeTransition;
+import org.praisenter.data.slide.animation.AnimationEasingFunction;
+import org.praisenter.data.slide.animation.AnimationEasingType;
+import org.praisenter.data.slide.animation.SlideAnimation;
+import org.praisenter.data.slide.graphics.Rectangle;
+import org.praisenter.ui.slide.animation.BlindsTransition;
+import org.praisenter.ui.slide.animation.CustomInterpolator;
+import org.praisenter.ui.slide.animation.PushTransition;
+import org.praisenter.ui.slide.animation.ShapedTransition;
+import org.praisenter.ui.slide.animation.SplitTransition;
+import org.praisenter.ui.slide.animation.SwapTransition;
+import org.praisenter.ui.slide.animation.SwipeTransition;
 
 import javafx.animation.FadeTransition;
 import javafx.animation.ScaleTransition;
 import javafx.animation.Transition;
+import javafx.geometry.BoundingBox;
+import javafx.geometry.Bounds;
 import javafx.scene.Node;
 import javafx.util.Duration;
 
@@ -26,16 +29,16 @@ import javafx.util.Duration;
 public class TransitionConverter {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
-	public static final Transition toJavaFX(SlideTransition source, Slide slide, SlideComponent component, Node node, boolean isIn) {
+	public static final Transition toJavaFX(SlideAnimation source, Slide slide, SlideComponent component, Node node, boolean isIn) {
 		if (source == null) {
 			SwapTransition tx  = new SwapTransition();
-			tx.setInterpolator(new CustomInterpolator(EasingFunction.LINEAR, EasingType.IN));
+			tx.setInterpolator(new CustomInterpolator(AnimationEasingFunction.LINEAR, AnimationEasingType.IN));
 			tx.setNode(node);
 			tx.setRate(isIn ? 1 : -1);
 			return tx;
 		}
 		
-		switch (source.getTransitionType()) {
+		switch (source.getAnimationFunction()) {
 			case BLINDS:
 				return TransitionConverter.toBlinds(source, slide, component, node, isIn);
 			case FADE:
@@ -58,7 +61,7 @@ public class TransitionConverter {
 		}
 	}
 
-	private static final SwapTransition toSwap(SlideTransition source, Slide slide, SlideComponent component, Node node, boolean isIn) {
+	private static final SwapTransition toSwap(SlideAnimation source, Slide slide, SlideComponent component, Node node, boolean isIn) {
 		SwapTransition tx  = new SwapTransition();
 		tx.setInterpolator(new CustomInterpolator(source.getEasingFunction(), source.getEasingType()));
 		tx.setNode(node);
@@ -66,17 +69,17 @@ public class TransitionConverter {
 		return tx;
 	}
 	
-	private static final FadeTransition toFade(SlideTransition source, Slide slide, SlideComponent component, Node node, boolean isIn) {
+	private static final FadeTransition toFade(SlideAnimation source, Slide slide, SlideComponent component, Node node, boolean isIn) {
 		FadeTransition tx  = new FadeTransition();
 		tx.setDuration(new Duration(source.getDuration()));
 		tx.setFromValue(isIn ? 0.0 : 1.0);
 		tx.setInterpolator(new CustomInterpolator(source.getEasingFunction(), source.getEasingType()));
 		tx.setNode(node);
-		tx.setToValue(isIn ? 1 : 0.0);
+		tx.setToValue(isIn ? 1.0 : 0.0);
 		return tx;
 	}
 	
-	private static final ScaleTransition toZoom(SlideTransition source, Slide slide, SlideComponent component, Node node, boolean isIn) {
+	private static final ScaleTransition toZoom(SlideAnimation source, Slide slide, SlideComponent component, Node node, boolean isIn) {
 		ScaleTransition tx  = new ScaleTransition();
 		tx.setDuration(new Duration(source.getDuration()));
 		tx.setFromX(isIn ? 0.0 : 1.0);
@@ -88,58 +91,54 @@ public class TransitionConverter {
 		return tx;
 	}
 	
-	private static final SwipeTransition toSwipe(SlideTransition source, Slide slide, SlideComponent component, Node node, boolean isIn) {
+	private static final SwipeTransition toSwipe(SlideAnimation source, Slide slide, SlideComponent component, Node node, boolean isIn) {
 		SwipeTransition tx = new SwipeTransition();
 		tx.setDuration(new Duration(source.getDuration()));
 		tx.setDirection(source.getDirection());
-		tx.setHeight(component != null ? component.getHeight() : slide.getHeight());
 		tx.setInterpolator(new CustomInterpolator(source.getEasingFunction(), source.getEasingType()));
 		tx.setNode(node);
 		tx.setRate(isIn ? 1 : -1);
-		tx.setWidth(component != null ? component.getWidth() : slide.getWidth());
+		tx.setBounds(TransitionConverter.getTransitionBounds(slide, component));
 		return tx;
 	}
 	
-	private static final SplitTransition toSplit(SlideTransition source, Slide slide, SlideComponent component, Node node, boolean isIn) {
+	private static final SplitTransition toSplit(SlideAnimation source, Slide slide, SlideComponent component, Node node, boolean isIn) {
 		SplitTransition tx = new SplitTransition();
 		tx.setDuration(new Duration(source.getDuration()));
 		tx.setOperation(source.getOperation());
 		tx.setOrientation(source.getOrientation());
-		tx.setHeight(component != null ? component.getHeight() : slide.getHeight());
 		tx.setInterpolator(new CustomInterpolator(source.getEasingFunction(), source.getEasingType()));
 		tx.setNode(node);
 		tx.setRate(isIn ? 1 : -1);
-		tx.setWidth(component != null ? component.getWidth() : slide.getWidth());
+		tx.setBounds(TransitionConverter.getTransitionBounds(slide, component));
 		return tx;
 	}
 	
-	private static final ShapedTransition toShaped(SlideTransition source, Slide slide, SlideComponent component, Node node, boolean isIn) {
+	private static final ShapedTransition toShaped(SlideAnimation source, Slide slide, SlideComponent component, Node node, boolean isIn) {
 		ShapedTransition tx = new ShapedTransition();
 		tx.setDuration(new Duration(source.getDuration()));
 		tx.setOperation(source.getOperation());
 		tx.setShapeType(source.getShapeType());
-		tx.setHeight(component != null ? component.getHeight() : slide.getHeight());
 		tx.setInterpolator(new CustomInterpolator(source.getEasingFunction(), source.getEasingType()));
 		tx.setNode(node);
 		tx.setRate(isIn ? 1 : -1);
-		tx.setWidth(component != null ? component.getWidth() : slide.getWidth());
+		tx.setBounds(TransitionConverter.getTransitionBounds(slide, component));
 		return tx;
 	}
 	
-	private static final BlindsTransition toBlinds(SlideTransition source, Slide slide, SlideComponent component, Node node, boolean isIn) {
+	private static final BlindsTransition toBlinds(SlideAnimation source, Slide slide, SlideComponent component, Node node, boolean isIn) {
 		BlindsTransition tx = new BlindsTransition();
 		tx.setDuration(new Duration(source.getDuration()));
 		tx.setOrientation(source.getOrientation());
 		tx.setBlindsCount(source.getBlindCount());
-		tx.setHeight(component != null ? component.getHeight() : slide.getHeight());
 		tx.setInterpolator(new CustomInterpolator(source.getEasingFunction(), source.getEasingType()));
 		tx.setNode(node);
 		tx.setRate(isIn ? 1 : -1);
-		tx.setWidth(component != null ? component.getWidth() : slide.getWidth());
+		tx.setBounds(TransitionConverter.getTransitionBounds(slide, component));
 		return tx;
 	}
 
-	private static final PushTransition toPush(SlideTransition source, Slide slide, SlideComponent component, Node node, boolean isIn) {
+	private static final PushTransition toPush(SlideAnimation source, Slide slide, SlideComponent component, Node node, boolean isIn) {
 		PushTransition tx = new PushTransition();
 		tx.setDuration(new Duration(source.getDuration()));
 		tx.setDirection(source.getDirection());
@@ -149,5 +148,22 @@ public class TransitionConverter {
 		tx.setRate(isIn ? 1 : -1);
 		tx.setWidth(slide.getWidth());
 		return tx;
+	}
+	
+	private static final Bounds getTransitionBounds(Slide slide, SlideComponent component) {
+		if (component != null) {
+			Rectangle ob = component.getLocalOffsetBounds();
+			return new BoundingBox(
+				ob.getX(), 
+				ob.getY(), 
+				ob.getWidth(), 
+				ob.getHeight());
+		} else {
+			return new BoundingBox(
+				0, 
+				0, 
+				slide.getWidth(), 
+				slide.getHeight());
+		}
 	}
 }

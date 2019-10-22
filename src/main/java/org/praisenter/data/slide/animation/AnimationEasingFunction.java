@@ -1,6 +1,6 @@
-package org.praisenter.data.slide.effects.ease;
+package org.praisenter.data.slide.animation;
 
-public enum EasingFunction {
+public enum AnimationEasingFunction {
 	LINEAR,
 	QUADRATIC,
 	CUBIC,

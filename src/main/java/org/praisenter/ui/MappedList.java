@@ -35,7 +35,9 @@ public final class MappedList<E, F> extends TransformationList<E, F> {
 	@Override
 	public E get(int index) {
 		//return this.mapper.apply(getSource().get(index));
-		return this.map.computeIfAbsent(getSource().get(index), this.mapper::apply);
+		F f = getSource().get(index);
+//		System.out.println("Contains1: " + f + " " + this.map.containsKey(getSource().get(index)));
+		return this.map.computeIfAbsent(f, this.mapper::apply);
 	}
 
 	@Override
@@ -120,6 +122,10 @@ public final class MappedList<E, F> extends TransformationList<E, F> {
 		c.reset();
         while (c.next()) {
             c.getRemoved().forEach(this.map::remove);
+//        	c.getRemoved().forEach((item) -> {
+//        		this.map.remove(item);
+//        		System.out.println("Remove: " + item);        		
+//        	});
         }
 	}
 }

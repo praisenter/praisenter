@@ -19,7 +19,7 @@ import org.praisenter.data.bible.Verse;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.Glyphs;
 import org.praisenter.ui.controls.AutoCompleteComboBox;
-import org.praisenter.ui.themes.Theme;
+import org.praisenter.ui.controls.WindowHelper;
 import org.praisenter.ui.translations.Translations;
 
 import javafx.beans.binding.Bindings;
@@ -228,8 +228,8 @@ public final class BibleNavigationPane extends BorderPane {
 			return null;
 		}, this.book, this.chapter, this.verse));
 		
-		Button btn = new Button(Translations.get("bible.nav.find"));
-		btn.setOnMouseClicked((e) -> {
+		Button btnFind = new Button(Translations.get("bible.nav.find"));
+		btnFind.setOnMouseClicked((e) -> {
 			LocatedVerseTriplet triplet = getTripletForInput(FIND);
 			updateValue(triplet, e.isShortcutDown());
 		});
@@ -269,10 +269,11 @@ public final class BibleNavigationPane extends BorderPane {
 				this.searchDialog.setWidth(800);
 				this.searchDialog.setHeight(450);
 				this.searchDialog.setResizable(true);
-				this.searchDialog.setScene(Theme.createSceneWithOwnerCss(pneSearch, owner));
+				this.searchDialog.setScene(WindowHelper.createSceneWithOwnerCss(pneSearch, owner));
 			}
 			
 			this.searchDialog.show();
+			WindowHelper.centerOnParent(this.getScene().getWindow(), this.searchDialog);
 		});
 		
 		// LAYOUT
@@ -288,7 +289,7 @@ public final class BibleNavigationPane extends BorderPane {
 		layout.add(cmbBook, 0, 1);
 		layout.add(spnChapter, 1, 1);
 		layout.add(spnVerse, 2, 1);
-		layout.add(btn, 3, 1);
+		layout.add(btnFind, 3, 1);
 		
 		layout.add(prev, 1, 2);
 		layout.add(next, 2, 2);
@@ -302,7 +303,7 @@ public final class BibleNavigationPane extends BorderPane {
 		
 		lblChapters.setMaxWidth(Double.MAX_VALUE);
 		lblVerses.setMaxWidth(Double.MAX_VALUE);
-		btn.setMaxWidth(200);
+		btnFind.setMaxWidth(200);
 		prev.setMaxWidth(Double.MAX_VALUE);
 		next.setMaxWidth(Double.MAX_VALUE);
 		btnSearch.setMaxWidth(Double.MAX_VALUE);
@@ -311,12 +312,16 @@ public final class BibleNavigationPane extends BorderPane {
 		GridPane.setFillWidth(lblVerses, true);
 		GridPane.setFillWidth(spnChapter, true);
 		GridPane.setFillWidth(spnVerse, true);
-		GridPane.setFillWidth(btn, true);
+		GridPane.setFillWidth(btnFind, true);
 		GridPane.setFillWidth(prev, true);
 		GridPane.setFillWidth(next, true);
 		GridPane.setFillWidth(btnSearch, true);
 		
 		setCenter(layout);
+		
+		// set the initial value
+		LocatedVerseTriplet triplet = getTripletForInput(FIND);
+		updateValue(triplet, false);
 	}
 	
 	private LocatedVerseTriplet getTripletForInput(String type) {

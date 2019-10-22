@@ -29,9 +29,12 @@ import java.util.List;
 import org.praisenter.Watchable;
 import org.praisenter.data.Copyable;
 import org.praisenter.data.Identifiable;
+import org.praisenter.data.slide.animation.SlideAnimation;
 import org.praisenter.data.slide.effects.SlideShadow;
-import org.praisenter.data.slide.effects.animation.SlideAnimation;
 import org.praisenter.data.slide.graphics.Rectangle;
+import org.praisenter.data.slide.graphics.SlideStroke;
+import org.praisenter.data.slide.graphics.SlideStrokeStyle;
+import org.praisenter.data.slide.graphics.SlideStrokeType;
 import org.praisenter.data.slide.media.MediaComponent;
 import org.praisenter.data.slide.text.CountdownComponent;
 import org.praisenter.data.slide.text.DateTimeComponent;
@@ -144,8 +147,68 @@ public abstract class SlideComponent extends SlideRegion implements ReadOnlySlid
 		double by2 = ay1 + component.getHeight();
 		
 		return ax1 < bx2 && ax2 > bx1 && ay1 < by2 && ay2 > by1;
+	}
+	
+	public Rectangle getLocalOffsetBounds() {
+		SlideShadow shadow = this.shadow.get();
+		SlideShadow glow = this.glow.get();
+		SlideStroke border = this.border.get();
+
+		double sox = 0;
+		double soy = 0;
+		double sr = 0;
+		double gox = 0;
+		double goy = 0;
+		double gr = 0;
+		double br = 0;
 		
-		//return false;
+		if (shadow != null) {
+			sox = shadow.getOffsetX();
+			soy = shadow.getOffsetY();
+			sr = shadow.getRadius();
+		}
+
+		if (shadow != null) {
+			gox = glow.getOffsetX();
+			goy = glow.getOffsetY();
+			gr = glow.getRadius();
+		}
+		
+		if (border != null) {
+			SlideStrokeStyle style = border.getStyle();
+			if (style != null) {
+				SlideStrokeType type = style.getType();
+				if (type != null) {
+					switch (type) {
+						case CENTERED:
+							br = border.getWidth() / 2;
+							break;
+						case OUTSIDE:
+							br = border.getWidth();
+							break;
+						case INSIDE:
+						default:
+							break;
+					}
+				}
+			}
+		}
+		
+		// compute the x, y, w, h offsets
+		// for x,y the offset should only ever be 0 or negative
+		double xo = Math.min(0, Math.min(sox - sr, gox - gr));
+		double yo = Math.min(0, Math.min(soy - sr, goy - gr));
+		// for w,h the offset should only ever be 0 or positive
+		double wo = Math.max(0, Math.max(sox + sr, gox + gr));
+		double ho = Math.max(0, Math.max(soy + sr, goy + gr));
+		
+		// TODO for some reason this calculation just doesn't seem right - it works though
+		return new Rectangle(
+				xo - br,
+				yo - br,
+				// the w,h need to increased by the x,y offset, the w,h offsets, and the border
+				this.width.get() - xo + wo + br * 2, 
+				this.height.get() - yo + ho + br * 2);
 	}
 	
 	@Override

@@ -70,6 +70,11 @@ public final class Rectangle {
 		this.height = height;
 	}
 
+	@Override
+	public String toString() {
+		return "(" + this.x + ", " + this.y + ") [" + this.width + ", " + this.height + "]";
+	}
+	
 	/**
 	 * Returns the x coordinate.
 	 * @return double

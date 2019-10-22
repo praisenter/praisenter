@@ -27,16 +27,15 @@ import org.praisenter.data.bible.Book;
 import org.praisenter.data.bible.Chapter;
 import org.praisenter.data.bible.Verse;
 import org.praisenter.data.configuration.Configuration;
+import org.praisenter.data.configuration.DisplayRole;
 import org.praisenter.data.configuration.Resolution;
 import org.praisenter.data.media.Media;
 import org.praisenter.data.slide.Slide;
 import org.praisenter.data.slide.SlideShow;
 import org.praisenter.data.slide.graphics.SlideColor;
-import org.praisenter.data.slide.graphics.SlideGradient;
-import org.praisenter.data.slide.graphics.SlideGradientCycleType;
-import org.praisenter.data.slide.graphics.SlideGradientStop;
-import org.praisenter.data.slide.graphics.SlideGradientType;
 import org.praisenter.ui.controls.Alerts;
+import org.praisenter.ui.display.DisplayManager;
+import org.praisenter.ui.display.DisplayTarget;
 import org.praisenter.ui.document.DocumentContext;
 import org.praisenter.ui.events.ActionStateChangedEvent;
 import org.praisenter.ui.translations.Translations;
@@ -79,6 +78,7 @@ public final class GlobalContext {
 	final DataManager dataManager;
 	final Configuration configuration;
 	final ImageCache imageCache;
+	final DisplayManager displayManager;
 	
 	// track focus, selection, location, available actions, etc.
 	
@@ -115,6 +115,7 @@ public final class GlobalContext {
 		this.dataManager = dataManager;
 		this.configuration = configuration;
 		this.imageCache = new ImageCache();
+		this.displayManager = new DisplayManager(this);
 		
 		this.scene = new SimpleObjectProperty<>();
 		
@@ -615,10 +616,8 @@ public final class GlobalContext {
 				
 				// check if the document has been saved before
 				if (context.isNew()) {
-					// if not, we need to call create
 					future = this.getDataManager().create(copy);
 				} else {
-					// otherwise, we need to call update
 					future = this.getDataManager().update(copy);
 				}
 				
@@ -707,17 +706,17 @@ public final class GlobalContext {
 	
 	private CompletableFuture<Void> createNewSlideAndOpen() {
 		Slide slide = new Slide(Translations.get("action.new.untitled", LocalDateTime.now().format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT, FormatStyle.SHORT))));
-		SlideGradient slg = new SlideGradient(
-				SlideGradientType.LINEAR, 
-				0, 0, 1, 1, 
-				SlideGradientCycleType.NONE, 
-				new SlideGradientStop(0.0, new SlideColor(0, 0, 1, 1)), 
-				new SlideGradientStop(1.0, new SlideColor(0, 0, 0, 1)));
-		slide.setBackground(slg);
+		slide.setBackground(new SlideColor(1, 1, 1, 1));
 		slide.setCreatedDate(Instant.now());
-		// TODO need to default to the target's width/height
-		//slide.setHeight(height);
-		//slide.setWidth(width);
+		
+		List<DisplayTarget> targets = new ArrayList<>(this.displayManager.getDisplayTargets());
+		for (DisplayTarget target : targets) {
+			if (target.getDisplay().getRole() == DisplayRole.MAIN) {
+				slide.setHeight(target.getDisplay().getHeight());
+				slide.setWidth(target.getDisplay().getWidth());
+			}
+		}
+		
 		this.openDocument(slide, true);
 		return CompletableFuture.completedFuture(null);
 	}
@@ -740,6 +739,10 @@ public final class GlobalContext {
 	
 	public ImageCache getImageCache() {
 		return this.imageCache;
+	}
+	
+	public DisplayManager getDisplayManager() {
+		return this.displayManager;
 	}
 	
 	public CompletableFuture<Void> saveConfiguration() {

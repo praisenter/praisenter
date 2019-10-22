@@ -13,8 +13,8 @@ import org.praisenter.data.configuration.Resolution;
 import org.praisenter.data.media.MediaType;
 import org.praisenter.data.slide.Slide;
 import org.praisenter.data.slide.SlideComponent;
+import org.praisenter.data.slide.animation.SlideAnimation;
 import org.praisenter.data.slide.effects.SlideShadow;
-import org.praisenter.data.slide.effects.transition.SlideTransition;
 import org.praisenter.data.slide.graphics.SlidePadding;
 import org.praisenter.data.slide.graphics.SlidePaint;
 import org.praisenter.data.slide.graphics.SlideStroke;
@@ -51,7 +51,7 @@ import org.praisenter.ui.slide.controls.SlidePaddingPicker;
 import org.praisenter.ui.slide.controls.SlidePaintPicker;
 import org.praisenter.ui.slide.controls.SlideShadowPicker;
 import org.praisenter.ui.slide.controls.SlideStrokePicker;
-import org.praisenter.ui.slide.controls.SlideTransitionPicker;
+import org.praisenter.ui.slide.controls.SlideAnimationPicker;
 import org.praisenter.ui.slide.convert.TimeFormatConverter;
 import org.praisenter.ui.translations.Translations;
 import org.praisenter.ui.undo.UndoManager;
@@ -106,7 +106,7 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 	private final ObjectProperty<Double> widthAsObject;
 	private final ObjectProperty<Double> heightAsObject;
 	private final LongProperty time;
-	private final ObjectProperty<SlideTransition> transition;
+	private final ObjectProperty<SlideAnimation> transition;
 	private final ObjectProperty<Long> timeAsObject;
 	private final ObjectProperty<SlidePaint> background;
 	private final ObjectProperty<SlideStroke> border;
@@ -557,7 +557,7 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 		SlideStrokePicker pkrBorder = new SlideStrokePicker(SlideStrokeType.INSIDE, Translations.get("slide.border"), true);
 		pkrBorder.valueProperty().bindBidirectional(this.border);
 		
-		SlideTransitionPicker pkrTransition = new SlideTransitionPicker();
+		SlideAnimationPicker pkrTransition = new SlideAnimationPicker();
 		pkrTransition.valueProperty().bindBidirectional(this.transition);
 		
 		TagListView viewTags = new TagListView(this.context.getDataManager().getTagsUmodifiable());

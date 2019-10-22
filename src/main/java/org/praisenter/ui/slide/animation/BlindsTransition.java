@@ -1,13 +1,12 @@
-package org.praisenter.ui.slide.transition;
+package org.praisenter.ui.slide.animation;
 
-import org.praisenter.data.slide.effects.Orientation;
+import org.praisenter.data.slide.animation.AnimationOrientation;
 
-import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.geometry.Bounds;
 import javafx.scene.Node;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
@@ -15,17 +14,15 @@ import javafx.util.Duration;
 
 public final class BlindsTransition extends CustomTransition {
 	private final ObjectProperty<Duration> duration;
-	private final ObjectProperty<Orientation> orientation;
-	private final DoubleProperty width;
-	private final DoubleProperty height;
+	private final ObjectProperty<AnimationOrientation> orientation;
 	private final IntegerProperty blindCount;
+	private final ObjectProperty<Bounds> bounds;
 
 	public BlindsTransition() {
 		this.duration = new SimpleObjectProperty<Duration>();
-		this.orientation = new SimpleObjectProperty<Orientation>();
-		this.width = new SimpleDoubleProperty();
-		this.height = new SimpleDoubleProperty();
+		this.orientation = new SimpleObjectProperty<AnimationOrientation>();
 		this.blindCount = new SimpleIntegerProperty();
+		this.bounds = new SimpleObjectProperty<Bounds>();
 
 		this.duration.addListener((obs, ov, nv) -> {
 			this.setCycleDuration(nv);
@@ -37,21 +34,18 @@ public final class BlindsTransition extends CustomTransition {
 		Node node = this.node.get();
 		if (node == null) return;
 		
-		Orientation orientation = this.orientation.get();
+		AnimationOrientation orientation = this.orientation.get();
 		if (orientation == null) return;
-		
-		double width = this.width.get();
-		double height = this.height.get();
 		
 		int blindCount = this.blindCount.get();
 		
 		Shape clip = null;
 		switch(orientation) {
 			case HORIZONTAL:
-				clip = getHorizontalBlinds(width, height, blindCount, frac);
+				clip = getHorizontalBlinds(blindCount, frac);
 				break;
 			case VERTICAL:
-				clip = getVerticalBlinds(width, height, blindCount, frac);
+				clip = getVerticalBlinds(blindCount, frac);
 				break;
 			default:
 				break;
@@ -68,53 +62,65 @@ public final class BlindsTransition extends CustomTransition {
 		node.setClip(null);
 	}
 
-	private Shape getHorizontalBlinds(double w, double h, int blinds, double frac) {
-		Rectangle rect = new Rectangle();
+	private Shape getHorizontalBlinds(int blinds, double frac) {
+		Bounds bounds = this.bounds.get();
+		double x = bounds.getMinX();
+		double y = bounds.getMinY();
+		double w = bounds.getWidth();
+		double h = bounds.getHeight();
+		
+		Shape clip = null;
 		if (this.isInTransition()) {
-			// for the IN transition we will subtract areas from the full rectangle
-			rect.setWidth(w);
-			rect.setHeight(h);
+			clip = new Rectangle(x, y, w, h);
+		} else {
+			clip = new Rectangle();
 		}
-		double y = 0;
+		
+		double dy = y;
 		// compute the blind width
 		double bh = h / blinds;
 		// compute the area that needs to be painted by either removing
 		// vertical bars or adding vertical bars
-		Shape clip = rect;
 		for (int i = 0; i < blinds; i++) {
-			Rectangle blind = new Rectangle(0, y + bh * frac, w, bh * (1.0 - frac));
+			Rectangle blind = new Rectangle(x, dy + bh * frac, w, bh * (1.0 - frac));
 			if (this.isInTransition()) {
 				clip = Shape.subtract(clip, blind);
 			} else {
 				clip = Shape.union(clip, blind);
 			}
-			y += bh;
+			dy += bh;
 		}
 		
 		return clip;
 	}
 	
-	private Shape getVerticalBlinds(double w, double h, int blinds, double frac) {
+	private Shape getVerticalBlinds(int blinds, double frac) {
+		Bounds bounds = this.bounds.get();
+		double x = bounds.getMinX();
+		double y = bounds.getMinY();
+		double w = bounds.getWidth();
+		double h = bounds.getHeight();
+		
 		Shape clip = null;
 		if (this.isInTransition()) {
-			clip = new Rectangle(0, 0, w, h);
+			clip = new Rectangle(x, y, w, h);
 		} else {
 			clip = new Rectangle();
 		}
 		
-		double x = 0;
+		double dx = x;
 		// compute the blind width
 		double bw = w / blinds;
 		// compute the area that needs to be painted by either removing
 		// vertical bars or adding vertical bars
 		for (int i = 0; i < blinds; i++) {
-			Rectangle blind = new Rectangle(x + bw * frac, 0, bw * (1.0 - frac), h);
+			Rectangle blind = new Rectangle(dx + bw * frac, y, bw * (1.0 - frac), h);
 			if (this.isInTransition()) {
 				clip = Shape.subtract(clip, blind);
 			} else {
 				clip = Shape.union(clip, blind);
 			}
-			x += bw;
+			dx += bw;
 		}
 		
 		return clip;
@@ -132,15 +138,15 @@ public final class BlindsTransition extends CustomTransition {
 		return this.duration;
 	}
 	
-	public Orientation getOrientation() {
+	public AnimationOrientation getOrientation() {
 		return this.orientation.get();
 	}
 	
-	public void setOrientation(Orientation orientation) {
+	public void setOrientation(AnimationOrientation orientation) {
 		this.orientation.set(orientation);
 	}
 	
-	public ObjectProperty<Orientation> orientationProperty() {
+	public ObjectProperty<AnimationOrientation> orientationProperty() {
 		return this.orientation;
 	}
 	
@@ -155,28 +161,16 @@ public final class BlindsTransition extends CustomTransition {
 	public IntegerProperty blindCountProperty() {
 		return this.blindCount;
 	}
-	
-	public double getWidth() {
-		return this.width.get();
+
+	public void setBounds(Bounds bounds) {
+		this.bounds.set(bounds);
 	}
 	
-	public void setWidth(double width) {
-		this.width.set(width);
+	public Bounds getBounds() {
+		return this.bounds.get();
 	}
 	
-	public DoubleProperty widthProperty() {
-		return this.width;
-	}
-	
-	public double getHeight() {
-		return this.height.get();
-	}
-	
-	public void setHeight(double height) {
-		this.height.set(height);
-	}
-	
-	public DoubleProperty heightProperty() {
-		return this.height;
+	public ObjectProperty<Bounds> boundsProperty() {
+		return this.bounds;
 	}
 }

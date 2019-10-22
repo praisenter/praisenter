@@ -1,6 +1,6 @@
-package org.praisenter.ui.slide.transition;
+package org.praisenter.ui.slide.animation;
 
-import org.praisenter.data.slide.effects.Direction;
+import org.praisenter.data.slide.animation.AnimationDirection;
 
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
@@ -11,13 +11,13 @@ import javafx.util.Duration;
 
 public final class PushTransition extends CustomTransition {
 	private final ObjectProperty<Duration> duration;
-	private final ObjectProperty<Direction> direction;
+	private final ObjectProperty<AnimationDirection> direction;
 	private final DoubleProperty width;
 	private final DoubleProperty height;
 	
 	public PushTransition() {
 		this.duration = new SimpleObjectProperty<Duration>();
-		this.direction = new SimpleObjectProperty<Direction>();
+		this.direction = new SimpleObjectProperty<AnimationDirection>();
 		this.width = new SimpleDoubleProperty();
 		this.height = new SimpleDoubleProperty();
 
@@ -31,7 +31,7 @@ public final class PushTransition extends CustomTransition {
 		Node node = this.node.get();
 		if (node == null) return;
 		
-		Direction direction = this.direction.get();
+		AnimationDirection direction = this.direction.get();
 		if (direction == null) return;
 		
 		double width = this.width.get();
@@ -108,15 +108,15 @@ public final class PushTransition extends CustomTransition {
 		return this.duration;
 	}
 	
-	public Direction getDirection() {
+	public AnimationDirection getDirection() {
 		return this.direction.get();
 	}
 	
-	public void setDirection(Direction direction) {
+	public void setDirection(AnimationDirection direction) {
 		this.direction.set(direction);
 	}
 	
-	public ObjectProperty<Direction> directionProperty() {
+	public ObjectProperty<AnimationDirection> directionProperty() {
 		return this.direction;
 	}
 	
