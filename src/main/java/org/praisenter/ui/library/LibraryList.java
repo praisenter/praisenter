@@ -114,7 +114,7 @@ public final class LibraryList extends BorderPane implements ActionPane {
 		final FilteredList<Persistable> filtered = new FilteredList<Persistable>(this.source, (p) -> true);
 		final SortedList<Persistable> sorted = new SortedList<>(filtered, (a, b) -> 0);
 		
-		final Runnable filterSortListener = () -> {
+		final Runnable filterListener = () -> {
 			final String search = this.textFilter.get();
 			final String term = !StringManipulator.isNullOrEmpty(search) ? search.trim().toLowerCase() : null;
 			final Option<LibraryListType> optTypeFilter = this.typeFilter.get();
@@ -134,7 +134,9 @@ public final class LibraryList extends BorderPane implements ActionPane {
 				}
 				return true;
 			});
-			
+		};
+		
+		final Runnable sortListner = () -> {
 			final LibraryListSortField sortField = this.sortField.get().getValue();
 			final boolean sortAscending = this.sortAscending.get();
 			sorted.setComparator((a, b) -> {
@@ -175,11 +177,13 @@ public final class LibraryList extends BorderPane implements ActionPane {
 			});
 		};
 		
-		this.textFilter.addListener((obs, ov, nv) -> filterSortListener.run());
-		this.typeFilter.addListener((obs, ov, nv) -> filterSortListener.run());
-		this.sortField.addListener((obs, ov, nv) -> filterSortListener.run());
-		this.sortAscending.addListener((obs, ov, nv) -> filterSortListener.run());
-		filterSortListener.run();
+		this.textFilter.addListener((obs, ov, nv) -> filterListener.run());
+		this.typeFilter.addListener((obs, ov, nv) -> filterListener.run());
+		this.sortField.addListener((obs, ov, nv) -> sortListner.run());
+		this.sortAscending.addListener((obs, ov, nv) -> sortListner.run());
+		
+		filterListener.run();
+		sortListner.run();
 		
 		Bindings.bindContent(this.view.getItems(), sorted);
 		
@@ -508,6 +512,9 @@ public final class LibraryList extends BorderPane implements ActionPane {
 	    	prompt.setTitle(Translations.get("action.rename"));
 	    	prompt.setHeaderText(Translations.get("action.rename.newname"));
 	    	prompt.setContentText(Translations.get("action.rename.name"));
+	    	prompt.setResizable(true);
+	    	prompt.getDialogPane().setMaxWidth(400);
+	    	prompt.getDialogPane().setMinWidth(400);
 	    	Optional<String> result = prompt.showAndWait();
 	    	if (result.isPresent()) {
 	    		String newName = result.get();

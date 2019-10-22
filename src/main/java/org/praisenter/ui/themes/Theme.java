@@ -16,10 +16,6 @@ import org.apache.logging.log4j.Logger;
 import org.praisenter.Constants;
 import org.praisenter.utility.StringManipulator;
 
-import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.stage.Window;
-
 public final class Theme implements Comparable<Theme> {
 	private static final Logger LOGGER = LogManager.getLogger();
 
@@ -33,21 +29,6 @@ public final class Theme implements Comparable<Theme> {
 		} catch (Exception ex) {
 			LOGGER.warn("Failed to create themes folder.", ex);
 		}
-	}
-	
-	/**
-	 * Returns a new scene for the given root node inheriting the stylesheets
-	 * from the given window owner.
-	 * @param root the root
-	 * @param owner the window owner
-	 * @return Scene
-	 */
-	public static final Scene createSceneWithOwnerCss(Parent root, Window owner) {
-		Scene scene = new Scene(root);
-		if (owner != null) {
-			scene.getStylesheets().addAll(owner.getScene().getStylesheets());
-		}
-		return scene;
 	}
 	
 	/**

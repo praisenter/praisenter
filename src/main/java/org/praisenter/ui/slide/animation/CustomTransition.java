@@ -1,4 +1,4 @@
-package org.praisenter.ui.slide.transition;
+package org.praisenter.ui.slide.animation;
 
 import javafx.animation.Transition;
 import javafx.beans.property.ObjectProperty;

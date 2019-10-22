@@ -57,6 +57,7 @@ final class TextComponentNode extends SlideComponentNode<TextComponent> {
 		this.wrapper.getChildren().add(this.text);
 		this.content.getChildren().add(this.wrapper);
 		
+		// for text border, we need to scale the pattern by the border size
 		this.textBorderDashes = FXCollections.observableArrayList();
 		this.setTextBorderDashes(region.getTextBorder());
 		this.region.textBorderProperty().addListener((obs, ov, nv) -> {
@@ -76,13 +77,7 @@ final class TextComponentNode extends SlideComponentNode<TextComponent> {
 		// listen for changes
 		
 		this.text.textProperty().bind(Bindings.createStringBinding(() -> {
-			if (this.region instanceof TextPlaceholderComponent) {
-				if (this.mode.get() == SlideMode.EDIT || 
-					(StringManipulator.isNullOrEmpty(this.region.getText()) && this.mode.get() == SlideMode.VIEW)) {
-					return Translations.get("slide.placeholder");
-				}
-			}
-			return this.region.getText();
+			return this.getText();
 		}, this.region.textProperty(), this.mode));
 		
 		this.text.fillProperty().bind(Bindings.createObjectBinding(() -> {
@@ -167,6 +162,16 @@ final class TextComponentNode extends SlideComponentNode<TextComponent> {
 		}, this.region.textShadowProperty(), this.region.textGlowProperty()));
 	}
 	
+	private String getText() {
+		if (this.region == null) return "";
+		if (this.region instanceof TextPlaceholderComponent) {
+			if (this.mode.get() == SlideMode.EDIT || (StringManipulator.isNullOrEmpty(this.region.getText()) && this.mode.get() == SlideMode.VIEW)) {
+				return Translations.get("slide.placeholder");
+			}
+		}
+		return this.region.getText();
+	}
+	
 	private void setTextBorderDashes(SlideStroke stroke) {
 		if (stroke == null) return;
 		List<Double> dashes = stroke.getStyle().getDashes();
@@ -227,7 +232,7 @@ final class TextComponentNode extends SlideComponentNode<TextComponent> {
 		double lineSpacing = this.region.getLineSpacing();
 		boolean isWrapping = this.region.isTextWrappingEnabled();
 		
-		String str = this.region.getText();
+		String str = this.getText();
 		
 		// compute a fitting font, if necessary
 		SlideFont sf = this.region.getFont();
@@ -237,13 +242,13 @@ final class TextComponentNode extends SlideComponentNode<TextComponent> {
 			if (isWrapping) {
 				font = TextMeasurer.getFittingFontForParagraph(str, base, base.getSize(), pw, ph, lineSpacing, TextBoundsType.LOGICAL);
 			} else {
-				font = TextMeasurer.getFittingFontForLine(str, base, base.getSize(), pw, TextBoundsType.LOGICAL);
+				font = TextMeasurer.getFittingFontForLine(str, base, base.getSize(), pw, ph, TextBoundsType.LOGICAL);
 			}
 		} else if (scaleType == FontScaleType.BEST_FIT) {
 			if (isWrapping) {
 				font = TextMeasurer.getFittingFontForParagraph(str, base, Double.MAX_VALUE, pw, ph, lineSpacing, TextBoundsType.LOGICAL);
 			} else {
-				font = TextMeasurer.getFittingFontForLine(str, base, Double.MAX_VALUE, pw, TextBoundsType.LOGICAL);
+				font = TextMeasurer.getFittingFontForLine(str, base, Double.MAX_VALUE, pw, ph, TextBoundsType.LOGICAL);
 			}
 		}
 		

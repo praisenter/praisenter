@@ -339,7 +339,7 @@ public final class Praisenter extends Application {
     				// TODO setup display manager
 //    				// setup the screen manager
 //    				LOGGER.info("Initializing the screen manager.");
-//    				context.getDisplayManager().initialize(context.getJavaFXContext().getStage().getScene());
+    				context.getDisplayManager().initialize();
     				
     				// load fonts
     				LOGGER.info("Loading fonts.");

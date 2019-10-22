@@ -13,6 +13,7 @@ import org.praisenter.ui.Option;
 import org.praisenter.ui.bind.BindingHelper;
 import org.praisenter.ui.bind.ObjectConverter;
 import org.praisenter.ui.controls.EditGridPane;
+import org.praisenter.ui.controls.WindowHelper;
 import org.praisenter.ui.library.LibraryList;
 import org.praisenter.ui.library.LibraryListType;
 import org.praisenter.ui.translations.Translations;
@@ -105,6 +106,7 @@ public final class MediaObjectPicker extends VBox {
 		btnMedia.setOnAction(e -> {
 			this.originalMedia = this.media.get();
 			dlgMedia.show();
+			WindowHelper.centerOnParent(this.getScene().getWindow(), dlgMedia);
 		});
 		
 		CheckBox chkLoop = new CheckBox();

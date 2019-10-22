@@ -34,7 +34,6 @@ final class SlideListCell extends ListCell<Slide> {
 	@Override
 	protected void updateItem(Slide item, boolean empty) {
 		super.updateItem(item, empty);
-		
 		if (item == null || empty) {
 			this.textProperty().unbind();
 			this.graphic.imageProperty().unbind();

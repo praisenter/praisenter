@@ -53,8 +53,7 @@ import org.praisenter.data.bible.BibleReferenceTextStore;
 import org.praisenter.data.json.InstantJsonDeserializer;
 import org.praisenter.data.json.InstantJsonSerializer;
 import org.praisenter.data.search.Indexable;
-import org.praisenter.data.slide.effects.animation.SlideAnimation;
-import org.praisenter.data.slide.effects.transition.SlideTransition;
+import org.praisenter.data.slide.animation.SlideAnimation;
 import org.praisenter.data.slide.text.TextPlaceholderComponent;
 import org.praisenter.song.SongReferenceTextStore;
 
@@ -105,7 +104,7 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 	private final ObjectProperty<Instant> createdDate;
 	private final ObjectProperty<Instant> modifiedDate;
 	private final LongProperty time;
-	private final ObjectProperty<SlideTransition> transition;
+	private final ObjectProperty<SlideAnimation> transition;
 	private final ObjectProperty<TextStore> placeholderData;
 	private final ObjectProperty<Path> thumbnailPath;
 	private final ObservableSet<Tag> tags;
@@ -119,7 +118,7 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 		this.createdDate = new SimpleObjectProperty<>(Instant.now());
 		this.modifiedDate = new SimpleObjectProperty<>(this.createdDate.get());
 		this.time = new SimpleLongProperty(0);
-		this.transition = new SimpleObjectProperty<SlideTransition>();
+		this.transition = new SimpleObjectProperty<SlideAnimation>();
 		this.placeholderData = new SimpleObjectProperty<>();
 
 		this.tags = FXCollections.observableSet(new HashSet<>());
@@ -299,7 +298,7 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 		
 		long txTime = 0;
 		
-		SlideTransition tx = this.transition.get();
+		SlideAnimation tx = this.transition.get();
 		if (tx != null) {
 			txTime = tx.getTotalTime();
 		}
@@ -324,18 +323,18 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 	
 	@Override
 	@JsonProperty
-	public SlideTransition getTransition() {
+	public SlideAnimation getTransition() {
 		return this.transition.get();
 	}
 	
 	@JsonProperty
-	public void setTransition(SlideTransition animation) {
+	public void setTransition(SlideAnimation animation) {
 		this.transition.set(animation);
 	}
 	
 	@Override
 	@Watchable(name = "transition")
-	public ObjectProperty<SlideTransition> transitionProperty() {
+	public ObjectProperty<SlideAnimation> transitionProperty() {
 		return this.transition;
 	}
 	
@@ -580,6 +579,11 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 		return this.thumbnailPath;
 	}
 
+	/**
+	 * Scales the elements of the slide to proportionally match the given width and height.
+	 * @param width
+	 * @param height
+	 */
 	public void fit(double width, double height) {
 		// compute the resize percentages
 		double pw = width / this.getWidth();

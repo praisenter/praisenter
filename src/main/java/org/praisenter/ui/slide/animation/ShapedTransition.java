@@ -1,12 +1,11 @@
-package org.praisenter.ui.slide.transition;
+package org.praisenter.ui.slide.animation;
 
-import org.praisenter.data.slide.effects.Operation;
-import org.praisenter.data.slide.effects.ShapeType;
+import org.praisenter.data.slide.animation.AnimationOperation;
+import org.praisenter.data.slide.animation.AnimationShapeType;
 
-import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.geometry.Bounds;
 import javafx.scene.Node;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
@@ -15,17 +14,15 @@ import javafx.util.Duration;
 
 public final class ShapedTransition extends CustomTransition {
 	private final ObjectProperty<Duration> duration;
-	private final ObjectProperty<ShapeType> shapeType;
-	private final ObjectProperty<Operation> operation;
-	private final DoubleProperty width;
-	private final DoubleProperty height;
+	private final ObjectProperty<AnimationShapeType> shapeType;
+	private final ObjectProperty<AnimationOperation> operation;
+	private final ObjectProperty<Bounds> bounds;
 	
 	public ShapedTransition() {
 		this.duration = new SimpleObjectProperty<Duration>();
-		this.shapeType = new SimpleObjectProperty<ShapeType>();
-		this.operation = new SimpleObjectProperty<Operation>();
-		this.width = new SimpleDoubleProperty();
-		this.height = new SimpleDoubleProperty();
+		this.shapeType = new SimpleObjectProperty<AnimationShapeType>();
+		this.operation = new SimpleObjectProperty<AnimationOperation>();
+		this.bounds = new SimpleObjectProperty<Bounds>();
 
 		this.duration.addListener((obs, ov, nv) -> {
 			this.setCycleDuration(nv);
@@ -37,21 +34,18 @@ public final class ShapedTransition extends CustomTransition {
 		Node node = this.node.get();
 		if (node == null) return;
 		
-		ShapeType shapeType = this.shapeType.get();
+		AnimationShapeType shapeType = this.shapeType.get();
 		if (shapeType == null) return;
 		
-		Operation operation = this.operation.get();
+		AnimationOperation operation = this.operation.get();
 		if (operation == null) return;
 		
-		double width = this.width.get();
-		double height = this.height.get();
-
 		Shape clip = null;		
 		switch (shapeType) {
 			case CIRCLE:
-				clip = operation == Operation.COLLAPSE 
-					? this.getCollapsingCircleClip(width, height, frac)
-					: this.getExpandingCircleClip(width, height, frac);
+				clip = operation == AnimationOperation.COLLAPSE 
+					? this.getCollapsingCircleClip(frac)
+					: this.getExpandingCircleClip(frac);
 				break;
 			default:
 				break;
@@ -68,12 +62,18 @@ public final class ShapedTransition extends CustomTransition {
 		node.setClip(null);
 	}
 	
-	private Shape getCollapsingCircleClip(double w, double h, double frac) {
+	private Shape getCollapsingCircleClip(double frac) {
+		Bounds bounds = this.bounds.get();
+		double x = bounds.getMinX();
+		double y = bounds.getMinY();
+		double w = bounds.getWidth();
+		double h = bounds.getHeight();
+		
 		double hw = w * 0.5;
 		double hh = h * 0.5;
 		double r = Math.sqrt(hw * hw + hh * hh) * (1.0 - frac);
-		Rectangle all = new Rectangle(0, 0, w, h);
-		Circle circle = new Circle(hw, hh, r);
+		Rectangle all = new Rectangle(x, y, w, h);
+		Circle circle = new Circle(x + hw, y + hh, r);
 		
 		// create the clip shape
 		if (this.isInTransition()) {
@@ -83,12 +83,18 @@ public final class ShapedTransition extends CustomTransition {
 		}
 	}
 	
-	private Shape getExpandingCircleClip(double w, double h, double frac) {
+	private Shape getExpandingCircleClip(double frac) {
+		Bounds bounds = this.bounds.get();
+		double x = bounds.getMinX();
+		double y = bounds.getMinY();
+		double w = bounds.getWidth();
+		double h = bounds.getHeight();
+		
 		double hw = w * 0.5;
 		double hh = h * 0.5;
 		double r = Math.sqrt(hw * hw + hh * hh) * frac;
-		Rectangle all = new Rectangle(0, 0, w, h);
-		Circle circle = new Circle(hw, hh, r);
+		Rectangle all = new Rectangle(x, y, w, h);
+		Circle circle = new Circle(x + hw, y + hh, r);
 		
 		// create the clip shape
 		if (this.isInTransition()) {
@@ -110,51 +116,39 @@ public final class ShapedTransition extends CustomTransition {
 		return this.duration;
 	}
 	
-	public ShapeType getShapeType() {
+	public AnimationShapeType getShapeType() {
 		return this.shapeType.get();
 	}
 	
-	public void setShapeType(ShapeType shapeType) {
+	public void setShapeType(AnimationShapeType shapeType) {
 		this.shapeType.set(shapeType);
 	}
 	
-	public ObjectProperty<ShapeType> shapeTypeProperty() {
+	public ObjectProperty<AnimationShapeType> shapeTypeProperty() {
 		return this.shapeType;
 	}
 	
-	public Operation getOperation() {
+	public AnimationOperation getOperation() {
 		return this.operation.get();
 	}
 	
-	public void setOperation(Operation operation) {
+	public void setOperation(AnimationOperation operation) {
 		this.operation.set(operation);
 	}
 	
-	public ObjectProperty<Operation> operationProperty() {
+	public ObjectProperty<AnimationOperation> operationProperty() {
 		return this.operation;
 	}
-	
-	public double getWidth() {
-		return this.width.get();
+
+	public void setBounds(Bounds bounds) {
+		this.bounds.set(bounds);
 	}
 	
-	public void setWidth(double width) {
-		this.width.set(width);
+	public Bounds getBounds() {
+		return this.bounds.get();
 	}
 	
-	public DoubleProperty widthProperty() {
-		return this.width;
-	}
-	
-	public double getHeight() {
-		return this.height.get();
-	}
-	
-	public void setHeight(double height) {
-		this.height.set(height);
-	}
-	
-	public DoubleProperty heightProperty() {
-		return this.height;
+	public ObjectProperty<Bounds> boundsProperty() {
+		return this.bounds;
 	}
 }

@@ -1,20 +1,20 @@
-package org.praisenter.ui.slide.transition;
+package org.praisenter.ui.slide.animation;
 
 import java.util.function.Function;
 
-import org.praisenter.data.slide.effects.ease.EasingFunction;
-import org.praisenter.data.slide.effects.ease.EasingType;
+import org.praisenter.data.slide.animation.AnimationEasingFunction;
+import org.praisenter.data.slide.animation.AnimationEasingType;
 
 import javafx.animation.Interpolator;
 
 public class CustomInterpolator extends Interpolator {
-	final EasingFunction function;
-	final EasingType type;
+	final AnimationEasingFunction function;
+	final AnimationEasingType type;
 	final Function<Double, Double> fn;
 	
-	public CustomInterpolator(EasingFunction function, EasingType type) {
-		this.function = function == null ? EasingFunction.LINEAR : function;
-		this.type = type == null ? EasingType.IN : type;
+	public CustomInterpolator(AnimationEasingFunction function, AnimationEasingType type) {
+		this.function = function == null ? AnimationEasingFunction.LINEAR : function;
+		this.type = type == null ? AnimationEasingType.IN : type;
 		
 		Function<Double, Double> fn = this::linear;
 		switch (this.function) {

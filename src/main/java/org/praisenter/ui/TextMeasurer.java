@@ -200,7 +200,70 @@ public final class TextMeasurer {
 		}
 		// the Math.min(min, cur) ensures we choose the lower bound
 		// the - 1.0 is further insurance that its small enough
-		// the Math.min(1.0, x) ensures the minimum font we return is 1
+		// the Math.max(1.0, x) ensures the minimum font we return is 1
+		double size = Math.max(1.0, Math.min(min, cur) - 1.0);
+		return new Font(font.getName(), size);
+    }
+    
+    /**
+     * Returns a new font that allows the text to fit within the given width, increasing up
+     * to the given maxFontSize and decreasing to fit if needed.
+     * @param text the text to measure
+     * @param font the font
+     * @param maxFontSize the maximum font size
+     * @param targetWidth the target width
+     * @param boundsType the bounds type
+     * @return Bounds
+     */
+    public static final Font getFittingFontForLine(String text, Font font, double maxFontSize, double targetWidth, double targetHeight, TextBoundsType boundsType) {
+    	Bounds bounds = TextMeasurer.getLineBounds(text, font, boundsType);
+		double max = maxFontSize;
+		double min = (bounds.getWidth() < targetWidth && max != Double.MAX_VALUE) ? max : 1.0;
+		double cur = font.getSize();
+		
+		if (cur < 1.0) {
+			cur = 1.0;
+		}
+		
+		Font nf = font;
+		int i = 0;
+		while (bounds.getWidth() > targetWidth || bounds.getHeight() > targetHeight || Math.abs(max - min) > 0.1) {
+			// check the paragraph height against the maximum height
+			if (bounds.getWidth() < targetWidth && bounds.getHeight() < targetHeight) {
+				// we need to binary search up
+				min = cur;
+				// compute an estimated next size if the maximum begins with Float.MAX_VALUE
+				// this is to help convergence to a safe maximum
+				double rmax = (max == Double.MAX_VALUE ? targetWidth * (cur / bounds.getWidth()) : max);
+				cur = (cur + rmax) * 0.5;
+				nf = new Font(font.getName(), cur);
+			} else {
+				// we need to binary search down
+				max = cur;
+				// get the next test font size
+				double temp = (min + cur) * 0.5;
+				// do a check for minimum font size
+				if (temp <= 1.0f) break;
+				// its not the minimum so continue
+				cur = temp;
+				nf = new Font(font.getName(), cur);
+			}
+			// get the new paragraph height for the new font size
+			bounds = TextMeasurer.getLineBounds(text, nf, boundsType);
+			// don't run forever
+			if (i >= MAXIMUM_ITERATIONS) {
+				LOGGER.warn("Hit maximum number of iterations before determining optimal font size. Current: {} Minimum: {} Maximum: {} Target Width: {} Maximum Size: {} Text: {}",
+						cur, min, max, targetWidth, maxFontSize, text);
+				break;
+			}
+			i++;
+		}
+		if (i > 0) {
+			LOGGER.trace("Font fitting iterations: " + i);
+		}
+		// the Math.min(min, cur) ensures we choose the lower bound
+		// the - 1.0 is further insurance that its small enough
+		// the Math.max(1.0, x) ensures the minimum font we return is 1
 		double size = Math.max(1.0, Math.min(min, cur) - 1.0);
 		return new Font(font.getName(), size);
     }
