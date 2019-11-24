@@ -218,7 +218,7 @@ public final class TextMeasurer {
     public static final Font getFittingFontForLine(String text, Font font, double maxFontSize, double targetWidth, double targetHeight, TextBoundsType boundsType) {
     	Bounds bounds = TextMeasurer.getLineBounds(text, font, boundsType);
 		double max = maxFontSize;
-		double min = (bounds.getWidth() < targetWidth && max != Double.MAX_VALUE) ? max : 1.0;
+		double min = (bounds.getWidth() < targetWidth && bounds.getHeight() < targetHeight && max != Double.MAX_VALUE) ? max : 1.0;
 		double cur = font.getSize();
 		
 		if (cur < 1.0) {

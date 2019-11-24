@@ -1,16 +1,21 @@
 package org.praisenter.ui;
 
+import java.awt.Desktop;
+import java.io.IOException;
+import java.nio.file.Paths;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.praisenter.Constants;
 import org.praisenter.async.AsyncHelper;
 import org.praisenter.async.BackgroundTask;
 import org.praisenter.data.Persistable;
 import org.praisenter.data.configuration.Configuration;
 import org.praisenter.ui.controls.Alerts;
+import org.praisenter.ui.display.DisplayController;
 import org.praisenter.ui.document.DocumentsPane;
 import org.praisenter.ui.library.LibraryList;
 import org.praisenter.ui.library.LibraryListType;
-import org.praisenter.ui.slide.SlideDataPane;
 import org.praisenter.ui.translations.Translations;
 
 import javafx.application.Platform;
@@ -45,8 +50,8 @@ final class PraisenterPane extends BorderPane {
 
 		// menu
 		
-		MenuItem reindex = new MenuItem("reindex");
-		reindex.setOnAction((e) -> {
+		MenuItem mnuReindex = new MenuItem(Translations.get("menu.file.reindex"));
+		mnuReindex.setOnAction((e) -> {
 			BackgroundTask task = new BackgroundTask();
 			task.setName(Translations.get("task.reindex"));
 			task.setMessage(Translations.get("task.reindex"));
@@ -58,16 +63,37 @@ final class PraisenterPane extends BorderPane {
 				LOGGER.error("Failed to reindex the lucene search index: " + ex.getMessage(), ex);
 				task.setException(ex);
 				Platform.runLater(() -> {
-					Alert alert = Alerts.exception(this.context.stage, null, null, null, ex);
+					Alert alert = Alerts.exception(this.context.stage, ex);
 					alert.show();
 				});
 				return null;
 			});
 		});
 		
-		Menu mnuFile = new Menu("file", null, reindex, new MenuItem("preferences", Glyphs.MENU_PREFERENCES.duplicate()));
-		Menu mnuHelp = new Menu("help", null, new MenuItem("logs"), new MenuItem("about", Glyphs.MENU_ABOUT.duplicate()));
+		MenuItem mnuSettings = new MenuItem(Translations.get("menu.file.settings"), Glyphs.MENU_PREFERENCES.duplicate());
+		// TODO action for settings
+		
+		MenuItem mnuLogs = new MenuItem(Translations.get("menu.help.logs"));
+		mnuLogs.setOnAction(e -> {
+			// open the log directory
+			if (Desktop.isDesktopSupported()) {
+			    try {
+					Desktop.getDesktop().open(Paths.get(Constants.LOGS_ABSOLUTE_PATH).toFile());
+				} catch (IOException ex) {
+					LOGGER.error("Unable to open logs directory due to: " + ex.getMessage(), ex);
+				}
+			} else {
+				LOGGER.warn("Desktop is not supported. Failed to open log path.");
+			}
+		});
+		
+		MenuItem mnuAbout = new MenuItem(Translations.get("menu.help.about"), Glyphs.MENU_ABOUT.duplicate());
+		// TODO action for about
+		
+		Menu mnuFile = new Menu(Translations.get("menu.file"), null, mnuReindex, mnuSettings);
+		Menu mnuHelp = new Menu(Translations.get("menu.help"), null, mnuLogs, mnuAbout);
 		MenuBar mainMenu = new MenuBar(mnuFile, mnuHelp);
+		mainMenu.setUseSystemMenuBar(true);
 		
 		// main content area
 		
@@ -84,7 +110,7 @@ final class PraisenterPane extends BorderPane {
 		LibraryList itemListing = new LibraryList(context, Orientation.HORIZONTAL, LibraryListType.values());
 		Bindings.bindContent(itemListing.getItems(), this.items);
 		
-		SlideDataPane sdp = new SlideDataPane(context);
+		DisplayController sdp = new DisplayController(context);
 		
 		SplitPane split = new SplitPane(dep, itemListing);
 		split.setDividerPositions(0.75);

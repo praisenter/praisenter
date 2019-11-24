@@ -12,6 +12,8 @@ import org.praisenter.data.slide.Slide;
 import org.praisenter.data.slide.SlidePersistAdapter;
 import org.praisenter.data.slide.SlideShow;
 import org.praisenter.data.slide.SlideShowPersistAdapter;
+import org.praisenter.data.song.Song;
+import org.praisenter.data.song.SongPersistAdapter;
 import org.praisenter.ui.slide.JavaFXSlideRenderer;
 import org.praisenter.ui.translations.Translations;
 import org.praisenter.utility.RuntimeProperties;
@@ -204,10 +206,15 @@ final class LoadingPane extends Pane {
 		});
 	}
 
-	// TODO load songs persistence
-//	private CompletableFuture<Void> loadSongs() {
-//		
-//	}
+	private CompletableFuture<Void> loadSongs() {
+		return CompletableFuture.runAsync(() -> {
+			this.message.set(Translations.get("task.loading.song"));
+		}).thenCompose((v) -> {
+			return this.context.dataManager.registerPersistAdapter(Song.class, new SongPersistAdapter(Paths.get(Constants.SONGS_ABSOLUTE_PATH)));
+		}).thenRun(() -> {
+			this.progress.set(0.3);
+		});
+	}
 	
 	private CompletableFuture<Void> loadMedia() {
 		return CompletableFuture.runAsync(() -> {
@@ -247,6 +254,8 @@ final class LoadingPane extends Pane {
 		return CompletableFuture.completedFuture(null)
 		.thenCompose((v) -> {
 			return this.loadBibles();
+		}).thenCompose((v) -> {
+			return this.loadSongs();
 		}).thenCompose((v) -> {
 			return this.loadMedia();
 		}).thenCompose((v) -> {

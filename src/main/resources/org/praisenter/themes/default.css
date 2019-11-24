@@ -145,9 +145,14 @@ https://stackoverflow.com/questions/50011276/javafx-treeview-expand-collapse-dis
 /* ============== Praisenter Other ================= */
 
 /* the verse number in the bible tree editor UI */
-.tree-cell .verse-number {
+.tree-cell .verse-number,
+.tree-cell .section-name {
 	-fx-font-weight: bold; 
 	-fx-font-size: 0.8em;
+}
+
+.error-label {
+	-fx-text-fill: RED;
 }
 
 /* the square in the middle of the 4 text boxes when editing the padding for text component */

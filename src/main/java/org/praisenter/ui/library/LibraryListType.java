@@ -5,6 +5,7 @@ import org.praisenter.data.media.Media;
 import org.praisenter.data.media.MediaType;
 import org.praisenter.data.slide.Slide;
 import org.praisenter.data.slide.SlideShow;
+import org.praisenter.data.song.Song;
 import org.praisenter.ui.translations.Translations;
 
 public enum LibraryListType {
@@ -37,7 +38,7 @@ public enum LibraryListType {
 			throw new NullPointerException("Cannot determine item type of a null object.");
 		}
 		if (obj instanceof Bible) return BIBLE;
-		//if (obj instanceof )
+		if (obj instanceof Song) return SONG;
 		if (obj instanceof Slide) return SLIDE;
 		if (obj instanceof SlideShow) return SHOW;
 		if (obj instanceof Media) {

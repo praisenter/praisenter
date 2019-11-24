@@ -12,18 +12,10 @@ import org.praisenter.ThrowableFunction;
 import org.praisenter.ThrowableRunnable;
 
 import javafx.application.Platform;
-import javafx.concurrent.Task;
 
 public final class AsyncHelper {
-	
-	public static final CompletableFuture<Void> NO_RETURN = nil();
-	
 	private AsyncHelper() {}
-	
-	public static <T> CompletableFuture<T> nil() {
-		return CompletableFuture.completedFuture(null);
-	}
-	
+
 	public static <T> Function<T, CompletableFuture<Void>> onJavaFXThreadAndWait(final ThrowableConsumer<T> operation) {
 		return (T data) -> {
 			CompletableFuture<Void> future = new CompletableFuture<Void>();
@@ -97,15 +89,6 @@ public final class AsyncHelper {
 			  }
 			
 			return future;
-		};
-	}
-
-	public static <T> Task<T> toJavaFXTask(CompletableFuture<T> future) {
-		return new Task<T>() {
-			@Override
-			protected T call() throws Exception {
-				return future.get();
-			}
 		};
 	}
 

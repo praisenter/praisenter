@@ -2,13 +2,14 @@ package org.praisenter.data.bible;
 
 import org.praisenter.data.Copyable;
 import org.praisenter.data.Identifiable;
+import org.praisenter.data.Localized;
 import org.praisenter.data.Persistable;
 import org.praisenter.data.search.Indexable;
 
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.collections.ObservableList;
 
-public interface ReadOnlyBible extends Indexable, Persistable, Copyable, Identifiable {
+public interface ReadOnlyBible extends Indexable, Persistable, Copyable, Identifiable, Localized {
 	public String getLanguage();
 	public String getCopyright();
 	public String getSource();

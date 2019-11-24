@@ -147,6 +147,9 @@ public final class LibraryList extends BorderPane implements ActionPane {
 				String an = a.getName();
 				String bn = b.getName();
 				
+				if (an == null) an = "";
+				if (bn == null) bn = "";
+				
 				int value = 0;
 				if (sortField == null || sortField == LibraryListSortField.NAME) {
 					// sort by name
@@ -272,14 +275,12 @@ public final class LibraryList extends BorderPane implements ActionPane {
         Label lblSort = new Label(Translations.get("list.sort.field"));
         ChoiceBox<Option<LibraryListSortField>> cbSort = new ChoiceBox<Option<LibraryListSortField>>(sortFields);
         cbSort.valueProperty().bindBidirectional(this.sortField);
-//        SortGraphic sortGraphic = new SortGraphic();
         ToggleButton tgl = new ToggleButton(null);
         tgl.graphicProperty().bind(Bindings.createObjectBinding(() -> {
         	boolean isAsc = this.sortAscending.get();
         	return isAsc ? SORT_ASC : SORT_DESC;
         }, this.sortAscending));
         tgl.selectedProperty().bindBidirectional(this.sortAscending);
-//        sortGraphic.flipProperty().bind(this.sortAscending);
         
         TextField txtSearch = new TextField();
         txtSearch.setPromptText(Translations.get("list.filter.search"));
@@ -559,7 +560,7 @@ public final class LibraryList extends BorderPane implements ActionPane {
 							// reset the name back in the case of an exception
 							item.setName(oldName);
 							
-							Alert alert = Alerts.exception(this.context.getStage(), null, null, null, ex);
+							Alert alert = Alerts.exception(this.context.getStage(), ex);
 							alert.show();
 						});
 						
@@ -733,7 +734,7 @@ public final class LibraryList extends BorderPane implements ActionPane {
 					// show it to the user
 					final Throwable ex = t;
 					Platform.runLater(() -> {
-						Alerts.exception(this.context.getStage(), null, null, null, ex).show();
+						Alerts.exception(this.context.getStage(), ex).show();
 					});
 					
 	    			return null;

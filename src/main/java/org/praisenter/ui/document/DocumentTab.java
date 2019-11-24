@@ -8,10 +8,12 @@ import org.praisenter.async.AsyncHelper;
 import org.praisenter.data.Persistable;
 import org.praisenter.data.bible.Bible;
 import org.praisenter.data.slide.Slide;
+import org.praisenter.data.song.Song;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.bible.BibleEditor;
 import org.praisenter.ui.controls.Alerts;
 import org.praisenter.ui.slide.SlideEditor;
+import org.praisenter.ui.song.SongEditor;
 import org.praisenter.ui.translations.Translations;
 
 import javafx.application.Platform;
@@ -54,7 +56,7 @@ final class DocumentTab extends Tab {
 						})).exceptionally(t -> {
 							// don't close to the document and show the error
 							Platform.runLater(() -> {
-								Alert errorAlert = Alerts.exception(this.context.getStage(), null, null, null, t);
+								Alert errorAlert = Alerts.exception(this.context.getStage(), t);
 								errorAlert.show();
 							});
 							return null;
@@ -102,6 +104,10 @@ final class DocumentTab extends Tab {
 				return bep;
 			} else if (document.getClass() == Slide.class) {
 				SlideEditor sep = new SlideEditor(this.context, (DocumentContext<Slide>)this.document);
+				this.setContent(sep);
+				return sep;
+			} else if (document.getClass() == Song.class) {
+				SongEditor sep = new SongEditor(this.context, (DocumentContext<Song>)this.document);
 				this.setContent(sep);
 				return sep;
 			} else {

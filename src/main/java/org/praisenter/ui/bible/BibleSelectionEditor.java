@@ -9,6 +9,7 @@ import org.praisenter.data.bible.Bible;
 import org.praisenter.data.bible.Book;
 import org.praisenter.data.bible.Chapter;
 import org.praisenter.data.bible.Verse;
+import org.praisenter.ui.Action;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.controls.EditGridPane;
 import org.praisenter.ui.controls.TagListView;
@@ -28,6 +29,7 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
 import javafx.geometry.Insets;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
@@ -197,19 +199,19 @@ public final class BibleSelectionEditor extends VBox implements DocumentSelectio
 		TextField txtBibleName = new TextField();
 		txtBibleName.textProperty().bindBidirectional(this.name);
 
-		Label lblBibleLanguage = new Label(Translations.get("bible.language"));
+		Label lblBibleLanguage = new Label(Translations.get("item.language"));
 		TextField txtBibleLanguage = new TextField();
 		txtBibleLanguage.textProperty().bindBidirectional(this.language);
 		
-		Label lblBibleSource = new Label(Translations.get("bible.source"));
+		Label lblBibleSource = new Label(Translations.get("item.source"));
 		TextField txtBibleSource = new TextField();
 		txtBibleSource.textProperty().bindBidirectional(this.source);
 		
-		Label lblBibleCopyright = new Label(Translations.get("bible.copyright"));
+		Label lblBibleCopyright = new Label(Translations.get("item.copyright"));
 		TextField txtBibleCopyright = new TextField();
 		txtBibleCopyright.textProperty().bindBidirectional(this.copyright);
 
-		Label lblBibleNotes = new Label(Translations.get("bible.notes"));
+		Label lblBibleNotes = new Label(Translations.get("item.notes"));
 		TextArea txtBibleNotes = new TextArea();
 		txtBibleNotes.textProperty().bindBidirectional(this.notes);
 		txtBibleNotes.setWrapText(true);
@@ -244,6 +246,17 @@ public final class BibleSelectionEditor extends VBox implements DocumentSelectio
 		spnVerseNumber.getValueFactory().valueProperty().bindBidirectional(this.verseNumber2);
 		spnVerseNumber.setMaxWidth(Double.MAX_VALUE);
 		
+		Button btnBookQuickEdit = new Button(Translations.get("action.edit.bulk"));
+		Button btnChapterQuickEdit = new Button(Translations.get("action.edit.bulk"));
+		
+		btnBookQuickEdit.setOnAction(e -> {
+			this.context.executeAction(Action.BULK_EDIT);
+		});
+		
+		btnChapterQuickEdit.setOnAction(e -> {
+			this.context.executeAction(Action.BULK_EDIT);
+		});
+		
 		TextInputFieldEventFilter.applyTextInputFieldEventFilter(
 				txtBibleName,
 				txtBibleLanguage,
@@ -274,7 +287,9 @@ public final class BibleSelectionEditor extends VBox implements DocumentSelectio
 		EditGridPane selectionGrid = new EditGridPane();
 		selectionGrid.add(lblBookNumber, 0, row); selectionGrid.add(spnBookNumber, 1, row++);
 		selectionGrid.add(lblBookName, 0, row); selectionGrid.add(txtBookName, 1, row++);
+		selectionGrid.add(btnBookQuickEdit, 0, row++, 2);
 		selectionGrid.add(lblChapterNumber, 0, row); selectionGrid.add(spnChapterNumber, 1, row++);
+		selectionGrid.add(btnChapterQuickEdit, 0, row++, 2);
 		selectionGrid.add(lblVerseNumber, 0, row); selectionGrid.add(spnVerseNumber, 1, row++);
 		selectionGrid.add(lblVerseText, 0, row++, 2);
 		selectionGrid.add(txtVerseText, 0, row++, 2);
@@ -299,11 +314,11 @@ public final class BibleSelectionEditor extends VBox implements DocumentSelectio
 //			selectionGrid.hideRows(0,1,2,3,4,5);
 			if (nv == null || nv instanceof Bible) {
 			} else if (nv instanceof Book) {
-				selectionGrid.showRowsOnly(0,1);
+				selectionGrid.showRowsOnly(0,1,2);
 			} else if (nv instanceof Chapter) {
-				selectionGrid.showRowsOnly(2);
+				selectionGrid.showRowsOnly(3,4);
 			} else if (nv instanceof Verse) {
-				selectionGrid.showRowsOnly(3,4,5);
+				selectionGrid.showRowsOnly(5,6,7);
 			}
 		});
 		

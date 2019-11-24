@@ -8,13 +8,6 @@ import javafx.stage.Window;
 public final class WindowHelper {
 	private WindowHelper() {}
 	
-	/**
-	 * Returns a new scene for the given root node inheriting the stylesheets
-	 * from the given window owner.
-	 * @param root the root
-	 * @param owner the window owner
-	 * @return Scene
-	 */
 	public static final Scene createSceneWithOwnerCss(Parent root, Window owner) {
 		Scene scene = new Scene(root);
 		if (owner != null) {

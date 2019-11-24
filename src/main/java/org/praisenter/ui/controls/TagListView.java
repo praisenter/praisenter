@@ -142,9 +142,6 @@ public final class TagListView extends BorderPane {
 				Tag tag = new Tag(name);
 				tags.add(tag);
 				textField.clear();
-//				
-//				// fire an event notifying that a tag has been added
-//				fireEvent(new TagEvent(textField, TagListView.this, TagEvent.ADDED, tag));
 			}
 		});
 		
@@ -170,9 +167,6 @@ public final class TagListView extends BorderPane {
 				// remove the item from the tags
 				Tag tag = new Tag(btn.getText());
 				tags.remove(tag);
-//				
-//				// fire an event notifying that a tag has been removed
-//				fireEvent(new TagEvent(btn, TagListView.this, TagEvent.REMOVED, tag));
 			}
 		});
 		

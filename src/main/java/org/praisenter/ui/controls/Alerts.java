@@ -23,24 +23,14 @@ import javafx.stage.Modality;
 import javafx.stage.Window;
 
 public final class Alerts {
-	private static final double MAX_WIDTH = 550;
-
 	private Alerts() {}
 
-	/**
-	 * Creates an alert for the given exception(s) with the given title, header and content.
-	 * <p>
-	 * The exceptions will have their stacktraces placed in an expandable area.
-	 * <p>
-	 * Ideally the header and content are descriptive enough for a user to make a decision on
-	 * what to do, with the exception stacktraces there for sending to support.
-	 * @param owner the owner of this alert
-	 * @param title the alert window title; if null, a generic message will be used
-	 * @param header the alert's header section; if null, a generic message will be used
-	 * @param content the alert's content section; if null, a generic message will be used
-	 * @param exceptions the exception(s)
-	 * @return Alert
-	 */
+	public static final Alert exception(
+			Window owner,
+			Throwable... exceptions) {
+		return Alerts.exception(owner, null, null, null, Arrays.asList(exceptions));
+	}
+	
 	public static final Alert exception(
 			Window owner,
 			String title,
@@ -50,20 +40,6 @@ public final class Alerts {
 		return Alerts.exception(owner, title, header, content, Arrays.asList(exceptions));
 	}
 	
-	/**
-	 * Creates an alert for the given exception(s) with the given title, header and content.
-	 * <p>
-	 * The exceptions will have their stacktraces placed in an expandable area.
-	 * <p>
-	 * Ideally the header and content are descriptive enough for a user to make a decision on
-	 * what to do, with the exception stacktraces there for sending to support.
-	 * @param owner the owner of this alert
-	 * @param title the alert window title; if null, a generic message will be used
-	 * @param header the alert's header section; if null, a generic message will be used
-	 * @param content the alert's content section; if null, a generic message will be used
-	 * @param exceptions the exception(s)
-	 * @return Alert
-	 */
 	public static final Alert exception(
 			Window owner,
 			String title,
@@ -108,23 +84,11 @@ public final class Alerts {
 
 		// Set expandable Exception into the dialog pane.
 		alert.getDialogPane().setExpandableContent(expContent);
-		alert.getDialogPane().setMaxWidth(MAX_WIDTH);
+		alert.getDialogPane().setPrefSize(800, 600);
 		
 		return alert;
 	}
 	
-	/**
-	 * Creates a new dialog with an opt out option.
-	 * @param owner the owner of this alert
-	 * @param modality the modality of the alert
-	 * @param type the type of alert
-	 * @param title the alert window title
-	 * @param header the alert's header section
-	 * @param content the alert's content section
-	 * @param optOutMessage the opt out label
-	 * @param optOutAction the action to execute when the opt out is changed
-	 * @return Alert
-	 */
 	public static final Alert confirmWithOptOut(
 			Window owner,
 			Modality modality,
@@ -155,20 +119,11 @@ public final class Alerts {
 		if (modality != null) {
 			alert.initModality(modality);
 		}
-		pane.setMaxWidth(MAX_WIDTH);
+		pane.setMaxWidth(550);
 		
 		return alert;
 	}
 	
-	/**
-	 * Creates a new info dialog.
-	 * @param owner the owner of this alert
-	 * @param modality the modality of the alert
-	 * @param title the alert window title
-	 * @param header the alert's header section
-	 * @param content the alert's content section
-	 * @return Alert
-	 */
 	public static final Alert info(
 			Window owner,
 			Modality modality,
@@ -178,15 +133,6 @@ public final class Alerts {
 		return alert(owner, modality, AlertType.INFORMATION, title, header, content);
 	}
 	
-	/**
-	 * Creates a new info dialog.
-	 * @param owner the owner of this alert
-	 * @param modality the modality of the alert
-	 * @param title the alert window title
-	 * @param header the alert's header section
-	 * @param content the alert's content section
-	 * @return Alert
-	 */
 	public static final Alert warn(
 			Window owner,
 			Modality modality,
@@ -196,16 +142,6 @@ public final class Alerts {
 		return alert(owner, modality, AlertType.WARNING, title, header, content);
 	}
 	
-	/**
-	 * Creates a new alert dialog.
-	 * @param owner the owner of this alert
-	 * @param modality the modality of the alert
-	 * @param type the alert type
-	 * @param title the alert window title
-	 * @param header the alert's header section
-	 * @param content the alert's content section
-	 * @return Alert
-	 */
 	private static final Alert alert(
 			Window owner,
 			Modality modality,
@@ -224,20 +160,11 @@ public final class Alerts {
 		if (modality != null) {
 			alert.initModality(modality);
 		}
-		alert.getDialogPane().setMaxWidth(MAX_WIDTH);
+		alert.getDialogPane().setMaxWidth(550);
 		
 		return alert;
 	}
 	
-	/**
-	 * Creates a new confirm dialog.
-	 * @param owner the owner of this alert
-	 * @param modality the modality of the alert
-	 * @param title the alert window title
-	 * @param header the alert's header section
-	 * @param content the alert's content section
-	 * @return Alert
-	 */
 	public static final Alert confirm(
 			Window owner,
 			Modality modality,
@@ -255,20 +182,11 @@ public final class Alerts {
 		if (modality != null) {
 			alert.initModality(modality);
 		}
-		alert.getDialogPane().setMaxWidth(MAX_WIDTH);
+		alert.getDialogPane().setMaxWidth(550);
 		
 		return alert;
 	}
 	
-	/**
-	 * Creates a new Yes-No-Cancel confirmation dialog.
-	 * @param owner the owner of this alert
-	 * @param modality the modality of the alert
-	 * @param title the alert window title
-	 * @param header the alert's header section
-	 * @param content the alert's content section
-	 * @return Alert
-	 */
 	public static final Alert yesNoCancel(
 			Window owner,
 			Modality modality,
@@ -290,7 +208,7 @@ public final class Alerts {
 		if (modality != null) {
 			alert.initModality(modality);
 		}
-		alert.getDialogPane().setMaxWidth(MAX_WIDTH);
+		alert.getDialogPane().setMaxWidth(550);
 		
 		return alert;
 	}

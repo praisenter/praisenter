@@ -8,10 +8,12 @@ import org.apache.logging.log4j.Logger;
 import org.praisenter.data.Persistable;
 import org.praisenter.data.bible.Bible;
 import org.praisenter.data.slide.Slide;
+import org.praisenter.data.song.Song;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.MappedList;
 import org.praisenter.ui.bible.BibleSelectionEditor;
 import org.praisenter.ui.slide.SlideSelectionEditor;
+import org.praisenter.ui.song.SongSelectionEditor;
 
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
@@ -70,6 +72,8 @@ final class CurrentDocumentSelectionEditor extends VBox {
 			dse = (DocumentSelectionEditor<T>)(new BibleSelectionEditor(gc));
 		} else if (clazz == Slide.class) {
 			dse = (DocumentSelectionEditor<T>)(new SlideSelectionEditor(gc));
+		} else if (clazz == Song.class) {
+			dse = (DocumentSelectionEditor<T>)(new SongSelectionEditor(gc));
 		} else {
 			LOGGER.warn("No selection editor for class '" + clazz.getName() + "'.");
 			dse = (DocumentSelectionEditor<T>)(new UnknownDocumentSelectionEditor(gc));

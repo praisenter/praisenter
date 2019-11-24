@@ -52,6 +52,10 @@ public final class Glyphs {
 	public static final Glyph NEW_BOOK = FONT_AWESOME.create(FontAwesome.Glyph.BOOK);
 	public static final Glyph NEW_CHAPTER = FONT_AWESOME.create(FontAwesome.Glyph.BOOKMARK);
 	public static final Glyph NEW_VERSE = FONT_AWESOME.create(FontAwesome.Glyph.BARS);
+	public static final Glyph NEW_AUTHOR = OPEN_ICONIC.create(OpenIconic.Glyph.PERSON);
+	public static final Glyph NEW_SONGBOOK = FONT_AWESOME.create(FontAwesome.Glyph.BOOKMARK);
+	public static final Glyph NEW_LYRICS = OPEN_ICONIC.create(OpenIconic.Glyph.MUSICAL_NOTE);
+	public static final Glyph NEW_SECTION = OPEN_ICONIC.create(OpenIconic.Glyph.TEXT);
 	
 	public static final Glyph ASTERISK = FONT_AWESOME.create(FontAwesome.Glyph.ASTERISK);
 	

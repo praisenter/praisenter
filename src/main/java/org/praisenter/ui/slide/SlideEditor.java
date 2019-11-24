@@ -26,6 +26,7 @@ import org.praisenter.ui.MappedList;
 import org.praisenter.ui.document.DocumentContext;
 import org.praisenter.ui.document.DocumentEditor;
 import org.praisenter.ui.events.ActionStateChangedEvent;
+import org.praisenter.ui.translations.Translations;
 import org.praisenter.ui.undo.UndoManager;
 import org.praisenter.utility.Scaling;
 
@@ -318,7 +319,7 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 			}
 		}
 		
-		return AsyncHelper.nil();
+		return CompletableFuture.completedFuture(null);
 	}
 	
 	private CompletableFuture<Void> paste() {
@@ -342,7 +343,7 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 			}
 		}
 		
-		return AsyncHelper.nil();
+		return CompletableFuture.completedFuture(null);
 	}
 	
 	private CompletableFuture<Void> delete() {
@@ -367,11 +368,11 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 			LOGGER.error("Failed to delete the selected items", ex);
 			this.undoManager.discardBatch();
 		}
-		return AsyncHelper.nil();
+		return CompletableFuture.completedFuture(null);
 	}
 	
 	private CompletableFuture<Void> createNewTextComponent() {
-		TextComponent component = new TextComponent("hello world!");
+		TextComponent component = new TextComponent(Translations.get("slide.component.text.default"));
 		Slide slide = this.slide.get();
 		if (slide != null) {
 			component.setWidth(slide.getWidth() * 0.75);
