@@ -20,6 +20,7 @@ import org.praisenter.data.media.Media;
 import org.praisenter.data.media.MediaType;
 import org.praisenter.data.slide.Slide;
 import org.praisenter.data.slide.SlideShow;
+import org.praisenter.data.song.Song;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.bind.BindingHelper;
 import org.praisenter.ui.controls.Alerts;
@@ -90,13 +91,20 @@ final class LibraryItemDetails extends BorderPane {
 	
 	private final BooleanProperty mediaAudio;
 	
-	// slide data
+	// TODO slide data
 	
-	// slide show data
+	// TODO slide show data
 	
 	private final IntegerProperty showSlideCount;
 	
 	// song data
+	
+	private final StringProperty songSource;
+	private final StringProperty songCopyright;
+	private final StringProperty songCCLINumber;
+	private final StringProperty songReleased;
+	private final StringProperty songPublisher;
+	private final StringProperty songKeywords;
 	
 	// UI
 	
@@ -137,6 +145,14 @@ final class LibraryItemDetails extends BorderPane {
 		this.bibleLanguage = new SimpleStringProperty();
 		this.bibleSource = new SimpleStringProperty();
 		this.bibleCopyright = new SimpleStringProperty();
+
+		// song data
+		this.songSource = new SimpleStringProperty();
+		this.songCopyright = new SimpleStringProperty();
+		this.songCCLINumber = new SimpleStringProperty();
+		this.songReleased = new SimpleStringProperty();
+		this.songPublisher = new SimpleStringProperty();
+		this.songKeywords = new SimpleStringProperty();
 		
 		// media data
 		// hasAudio, preview
@@ -160,6 +176,13 @@ final class LibraryItemDetails extends BorderPane {
 			this.bibleLanguage.unbind();
 			this.bibleSource.unbind();
 			this.bibleCopyright.unbind();
+			
+			this.songCCLINumber.unbind();
+			this.songCopyright.unbind();
+			this.songKeywords.unbind();
+			this.songPublisher.unbind();
+			this.songReleased.unbind();
+			this.songSource.unbind();
 			
 			this.mediaAudio.unbind();
 			
@@ -187,6 +210,14 @@ final class LibraryItemDetails extends BorderPane {
 					this.bibleCopyright.bind(bible.copyrightProperty());
 					this.bibleLanguage.bind(bible.languageProperty());
 					this.bibleSource.bind(bible.sourceProperty());
+				} else if (nv instanceof Song) {
+					Song song = (Song)nv;
+					this.songCCLINumber.bind(song.ccliNumberProperty());
+					this.songCopyright.bind(song.copyrightProperty());
+					this.songKeywords.bind(song.keywordsProperty());
+					this.songPublisher.bind(song.publisherProperty());
+					this.songReleased.bind(song.releasedProperty());
+					this.songSource.bind(song.sourceProperty());
 				} else if (nv instanceof Media) {
 					Media media = (Media)nv;
 					this.mediaAudio.bind(media.audioAvailableProperty());
@@ -211,9 +242,6 @@ final class LibraryItemDetails extends BorderPane {
 		scrLayout.setFitToWidth(true);
 		scrLayout.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
 		
-		// song data
-		// TODO song info
-		
 		// label section
 		Label lblNameValue = new Label();
 		Label lblModifiedValue = new Label();
@@ -233,6 +261,13 @@ final class LibraryItemDetails extends BorderPane {
 		Label lblMediaAudioValue = new Label();
 		
 		Label lblShowSlideCountValue = new Label();
+		
+		Label lblSongSourceValue = new Label();
+		Label lblSongCopyrightValue = new Label();
+		Label lblSongCCLINumberValue = new Label();
+		Label lblSongReleasedValue = new Label();
+		Label lblSongPublisherValue = new Label();
+		Label lblSongKeywordsValue = new Label();
 		
 		lblNameValue.textProperty().bind(this.name);
 		lblNameValue.setFont(Font.font(lblNameValue.getFont().getFamily(), lblNameValue.getFont().getSize() + 5));
@@ -264,6 +299,13 @@ final class LibraryItemDetails extends BorderPane {
 		lblBibleCopyrightValue.textProperty().bind(this.bibleCopyright);
 		
 		lblMediaAudioValue.textProperty().bind(Bindings.createStringBinding(() -> this.mediaAudio.get() ? Translations.get("yes") : Translations.get("no"), this.mediaAudio));
+		
+		lblSongCCLINumberValue.textProperty().bind(this.songCCLINumber);
+		lblSongCopyrightValue.textProperty().bind(this.songCopyright);
+		lblSongKeywordsValue.textProperty().bind(this.songKeywords);
+		lblSongPublisherValue.textProperty().bind(this.songPublisher);
+		lblSongReleasedValue.textProperty().bind(this.songReleased);
+		lblSongSourceValue.textProperty().bind(this.songSource);
 		
 		// preview section
 
@@ -361,9 +403,16 @@ final class LibraryItemDetails extends BorderPane {
 		Label lblLength = new Label(Translations.get("item.length"));
 		Label lblSize = new Label(Translations.get("item.size"));
 		
-		Label lblBibleLanguage = new Label(Translations.get("bible.language"));
-		Label lblBibleSource = new Label(Translations.get("bible.source"));
-		Label lblBibleCopyright = new Label(Translations.get("bible.copyright"));
+		Label lblBibleLanguage = new Label(Translations.get("item.language"));
+		Label lblBibleSource = new Label(Translations.get("item.source"));
+		Label lblBibleCopyright = new Label(Translations.get("item.copyright"));
+		
+		Label lblSongSource = new Label(Translations.get("item.source"));
+		Label lblSongCopyright = new Label(Translations.get("item.copyright"));
+		Label lblSongCCLINumber = new Label(Translations.get("song.ccli"));
+		Label lblSongKeywords = new Label(Translations.get("song.keywords"));
+		Label lblSongPublisher = new Label(Translations.get("song.publisher"));
+		Label lblSongReleased = new Label(Translations.get("song.released"));
 		
 		Label lblMediaAudio = new Label(Translations.get("media.hasAudio"));
 		
@@ -391,10 +440,17 @@ final class LibraryItemDetails extends BorderPane {
 		labels.add(lblBibleCopyright, 0, r); labels.add(lblBibleCopyrightValue, 1, r++);
 		
 		labels.add(lblMediaAudio, 0, r); labels.add(lblMediaAudioValue, 1, r++);
+
+		labels.add(lblSongSource, 0, r); labels.add(lblSongSourceValue, 1, r++);
+		labels.add(lblSongCopyright, 0, r); labels.add(lblSongCopyrightValue, 1, r++);
+		labels.add(lblSongPublisher, 0, r); labels.add(lblSongPublisherValue, 1, r++);
+		labels.add(lblSongCCLINumber, 0, r); labels.add(lblSongCCLINumberValue, 1, r++);
+		labels.add(lblSongReleased, 0, r); labels.add(lblSongReleasedValue, 1, r++);
+		labels.add(lblSongKeywords, 0, r); labels.add(lblSongKeywordsValue, 1, r++);
 		
 		labels.add(viewTags, 0, r++, 2);
 		
-		labels.hideRows(0,1,2,3,4,5,6,7,8,9,10);
+		labels.hideRows(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16);
 		
 //		labels.setBorder(new Border(new BorderStroke(Color.BLUEVIOLET, new BorderStrokeStyle(StrokeType.CENTERED, StrokeLineJoin.MITER, StrokeLineCap.SQUARE, 1.0, 0.0, null), null, new BorderWidths(4.0))));
 		
@@ -419,23 +475,26 @@ final class LibraryItemDetails extends BorderPane {
 					}
 				}));
 				
-				labels.showRowsOnly(0,1,2,3,4,5,10);
+				labels.showRowsOnly(0,1,2,3,4,5,16);
 			} else if (nv instanceof Media) {
 				Media media = (Media)nv;
 				if (media.getMediaType() == MediaType.IMAGE) {
 					image.setVisible(true);
-					labels.showRowsOnly(0,1,2,3,5,10);
+					labels.showRowsOnly(0,1,2,3,5,16);
 				} else if (media.getMediaType() == MediaType.AUDIO) {
 					image.setVisible(true);
 					player.setVisible(true);
-					labels.showRowsOnly(0,1,4,5,9,10);
+					labels.showRowsOnly(0,1,4,5,9,16);
 				} else if (media.getMediaType() == MediaType.VIDEO) {
 					player.setVisible(true);
-					labels.showRowsOnly(0,1,2,3,4,5,9,10);
+					labels.showRowsOnly(0,1,2,3,4,5,9,16);
 				}
 			} else if (nv instanceof Bible) {
 				image.setVisible(true);
-				labels.showRowsOnly(0,1,5,6,7,8,10);
+				labels.showRowsOnly(0,1,5,6,7,8,16);
+			} else if (nv instanceof Song) {
+				image.setVisible(true);
+				labels.showRowsOnly(0,1,5,10,11,12,13,14,15,16);
 			} else {
 				// TODO properties for songs and other stuff
 				labels.showRowsOnly();
@@ -466,8 +525,8 @@ final class LibraryItemDetails extends BorderPane {
 	
 	private void onTagsChanged(Persistable p) {
 		BackgroundTask task = new BackgroundTask();
-		task.setName(Translations.get("action.update.task", p.getName()));
-		task.setMessage(Translations.get("action.update.task", p.getName()));
+		task.setName(Translations.get("task.saving", p.getName()));
+		task.setMessage(Translations.get("task.saving", p.getName()));
 		this.context.addBackgroundTask(task);
 		
 		this.context.getDataManager().update(p).thenRun(() -> {
@@ -490,7 +549,6 @@ final class LibraryItemDetails extends BorderPane {
 			Platform.runLater(() -> {
 				Alert errorAlert = Alerts.exception(
 						this.context.getStage(), 
-						null, null,	null, 
 						t);
 				errorAlert.show();
 			});

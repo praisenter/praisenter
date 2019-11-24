@@ -336,9 +336,8 @@ public final class Praisenter extends Application {
     		LOGGER.info("Starting load");
     		loadingPane.start().thenRun(() -> {
     			Platform.runLater(() -> {
-    				// TODO setup display manager
-//    				// setup the screen manager
-//    				LOGGER.info("Initializing the screen manager.");
+    				// setup the display manager
+    				LOGGER.info("Initializing the screen manager.");
     				context.getDisplayManager().initialize();
     				
     				// load fonts
@@ -393,12 +392,7 @@ public final class Praisenter extends Application {
     private void showExecptionAlertThenExit(Throwable ex, Window owner) {
 		Platform.runLater(() -> {
 			// and show the error
-			Alert a = Alerts.exception(
-					owner,
-					Translations.get("init.error.title"), 
-					Translations.get("init.error.header"), 
-					ex.getMessage(), 
-					ex);
+			Alert a = Alerts.exception(owner, ex);
 			a.showAndWait();
 			
 			LOGGER.info("User closed exception dialog. Exiting application.");

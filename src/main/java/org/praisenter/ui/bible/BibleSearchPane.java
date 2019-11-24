@@ -287,7 +287,7 @@ public final class BibleSearchPane extends BorderPane {
 				})).exceptionally(t -> {
 					LOGGER.error("Failed to search bibles using terms '" + text + "' due to: " + t.getMessage(), t);
 					Platform.runLater(() -> {
-						Alert alert = Alerts.exception(this.context.getStage(), null, null, null, t);
+						Alert alert = Alerts.exception(this.context.getStage(), t);
 						alert.show();
 					});
 					return null;

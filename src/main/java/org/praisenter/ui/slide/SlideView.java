@@ -26,6 +26,8 @@ import org.praisenter.utility.ClasspathLoader;
 import org.praisenter.utility.Scaling;
 
 import javafx.animation.ParallelTransition;
+import javafx.animation.PauseTransition;
+import javafx.animation.SequentialTransition;
 import javafx.animation.Transition;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
@@ -45,6 +47,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.transform.Scale;
+import javafx.util.Duration;
 
 public class SlideView extends Region implements Playable {
 	private static final Image TRANSPARENT_PATTERN = ClasspathLoader.getImage("org/praisenter/images/transparent.png");
@@ -67,6 +70,8 @@ public class SlideView extends Region implements Playable {
 	private final ObjectProperty<Scaling> viewScale;
 	private final DoubleProperty viewScaleFactor;
 	private final BooleanProperty viewScaleAlignCenter;
+	private final BooleanProperty checkeredBackgroundEnabled;
+	private final BooleanProperty autoHideEnabled;
 	
 	private final BooleanProperty clipEnabled;
 	private final Rectangle clip;
@@ -95,6 +100,8 @@ public class SlideView extends Region implements Playable {
 		this.viewScaleAlignCenter = new SimpleBooleanProperty(false);
 		this.fitToWidthEnabled = new SimpleBooleanProperty(false);
 		this.fitToHeightEnabled = new SimpleBooleanProperty(false);
+		this.checkeredBackgroundEnabled = new SimpleBooleanProperty(true);
+		this.autoHideEnabled = new SimpleBooleanProperty(false);
 		
 		this.clipEnabled = new SimpleBooleanProperty(false);
 
@@ -194,14 +201,13 @@ public class SlideView extends Region implements Playable {
 		this.viewScale.bind(Bindings.createObjectBinding(() -> {
 			double tw = this.getWidth();
 			double th = this.getHeight();
-			Slide slide = this.slide.get();
-			if (slide == null) return Scaling.getNoScaling(tw, th);
 			// NOTE: we can't access the slide.getWidth/getHeight methods here, instead we need to 
 			//		 access the local slideWidth/slideHeight properties or we don't get notifications
 			//		 of them changing. See the following link for more details:
 			// https://stackoverflow.com/questions/40690022/javafx-custom-bindings-not-working
 			double sw = this.slideWidth.get();
 			double sh = this.slideHeight.get();
+			if (sw <= 0 || sh <= 0) return Scaling.getNoScaling(tw, th);
 			Scaling scale = Scaling.getUniformScaling(sw, sh, tw, th, this.fitToWidthEnabled.get(), this.fitToHeightEnabled.get());
 			return scale;
 		}, this.slide, this.slideWidth, this.slideHeight, this.widthProperty(), this.heightProperty(), this.fitToWidthEnabled, this.fitToHeightEnabled));
@@ -226,13 +232,14 @@ public class SlideView extends Region implements Playable {
 //		viewBackground.setBorder(new Border(new BorderStroke(Color.DARKTURQUOISE, new BorderStrokeStyle(StrokeType.CENTERED, StrokeLineJoin.MITER, StrokeLineCap.SQUARE, 1.0, 0.0, null), null, new BorderWidths(4.0))));
 
 		viewBackground.backgroundProperty().bind(Bindings.createObjectBinding(() -> {
-			Slide slide = this.slide.get();
-			SlideMode mode = this.mode.get();
-			if (mode != SlideMode.PRESENT && mode != SlideMode.TELEPROMPT && slide != null) {
+//			Slide slide = this.slide.get();
+//			SlideMode mode = this.mode.get();
+//			if (mode != SlideMode.PRESENT && mode != SlideMode.TELEPROMPT && slide != null) {
+			if (this.checkeredBackgroundEnabled.get()) {
 				return new Background(new BackgroundImage(TRANSPARENT_PATTERN, BackgroundRepeat.REPEAT, BackgroundRepeat.REPEAT, null, null));
 			}
 			return null;
-		}, this.mode, this.slide));
+		}, this.checkeredBackgroundEnabled));
 		
 		viewBackground.layoutXProperty().bind(Bindings.createDoubleBinding(() -> {
 			if (!this.viewScaleAlignCenter.get()) return 0.0;
@@ -381,31 +388,54 @@ public class SlideView extends Region implements Playable {
 		this.slide.set(slide);
 		
 		// create transition between the slides
-		ParallelTransition tx = new ParallelTransition();
+		ParallelTransition inOutTransition = new ParallelTransition();
+		SequentialTransition tx = new SequentialTransition(inOutTransition);
 		
 		if (oldNode != null) {
 			Slide basis = slide != null ? slide : oldSlide;
-			tx.getChildren().add(TransitionConverter.toJavaFX(basis.getTransition(), basis, null, oldNode, false));
+			inOutTransition.getChildren().add(TransitionConverter.toJavaFX(basis.getTransition(), basis, null, oldNode, false));
 		}
 
 		if (slide != null) {
 			final SlideNode newNode = this.slideNode.get();
 			newNode.mode.bind(this.mode);
 			this.surface.getChildren().add(newNode);
-			tx.getChildren().add(TransitionConverter.toJavaFX(slide.getTransition(), slide, null, newNode, true));
+			inOutTransition.getChildren().add(TransitionConverter.toJavaFX(slide.getTransition(), slide, null, newNode, true));
 			
 			if (this.mode.get() == SlideMode.PRESENT) {
 				newNode.play();
 			}
+			
+			if (this.autoHideEnabled.get()) {
+				long time = slide.getTime();
+				if (time != Slide.TIME_FOREVER && time > 0) {
+					PauseTransition wait = new PauseTransition(new Duration(time * 1000));
+					tx.getChildren().add(wait);
+				}
+			}
 		}
 		
-		tx.setOnFinished(e -> {
+		inOutTransition.setOnFinished(e -> {
 			if (oldNode != null) {
 				this.surface.getChildren().remove(oldNode);
 				oldNode.mode.unbind();
 				oldNode.dispose();
 			}
 		});
+		
+		if (this.autoHideEnabled.get()) {
+			tx.setOnFinished(e -> {
+				if (slide != null) {
+					Slide current = this.slide.get();
+					if (current == slide) {
+						long time = slide.getTime();
+						if (time != Slide.TIME_FOREVER && time > 0) {
+							this.transitionSlide(null);
+						}
+					}
+				}
+			});
+		}
 		
 		this.slideTransition = tx;
 		
@@ -610,5 +640,29 @@ public class SlideView extends Region implements Playable {
 	
 	public BooleanProperty clipEnabledProperty() {
 		return this.clipEnabled;
+	}
+	
+	public boolean isCheckeredBackgroundEnabled() {
+		return this.checkeredBackgroundEnabled.get();
+	}
+	
+	public void setCheckeredBackgroundEnabled(boolean flag) {
+		this.checkeredBackgroundEnabled.set(flag);
+	}
+	
+	public BooleanProperty checkeredBackgroundEnabledProperty() {
+		return this.checkeredBackgroundEnabled;
+	}
+	
+	public boolean isAutoHideEnabled() {
+		return this.autoHideEnabled.get();
+	}
+	
+	public void setAutoHideEnabled(boolean flag) {
+		this.autoHideEnabled.set(flag);
+	}
+	
+	public BooleanProperty autoHideEnabledProperty() {
+		return this.autoHideEnabled;
 	}
 }

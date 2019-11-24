@@ -2,8 +2,6 @@ package org.praisenter.ui.display;
 
 import java.util.ArrayList;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.praisenter.Constants;
 import org.praisenter.data.TextStore;
 import org.praisenter.data.configuration.Display;
@@ -21,6 +19,7 @@ import javafx.scene.layout.BorderStroke;
 import javafx.scene.layout.BorderStrokeStyle;
 import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
@@ -30,20 +29,15 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
 
-// TODO support for notifications probably needs another SlideView stacked on top of the main one
-
 public final class DisplayTarget {
-	private static final Logger LOGGER = LogManager.getLogger();
-	private static final double FOREGROUND = 2;
-	private static final double BACKGROUND = 1;
-	
 	private final GlobalContext context;
 	private final Display display;
 	
 	private final Stage stage;
 	private final Pane container;
 	
-	private SlideView slideView;
+	private final SlideView slideView;
+	private final SlideView notificationView;
 	
 	public DisplayTarget(GlobalContext context, Display display) {
 		this.context = context;
@@ -75,7 +69,7 @@ public final class DisplayTarget {
 		this.stage.setOnCloseRequest(block);
 		this.stage.setOnHiding(block);
 
-		this.container = new Pane();
+		this.container = new StackPane();
 		this.container.setBackground(null);
 		
 		this.stage.setScene(new Scene(this.container, Color.TRANSPARENT));
@@ -98,9 +92,18 @@ public final class DisplayTarget {
 		this.slideView.setClipEnabled(false);
 		this.slideView.setFitToHeightEnabled(false);
 		this.slideView.setFitToWidthEnabled(false);
+		this.slideView.setCheckeredBackgroundEnabled(false);
 		this.slideView.setViewMode(SlideMode.PRESENT);
 		
-		this.container.getChildren().addAll(this.slideView);
+		this.notificationView = new SlideView(context);
+		this.notificationView.setClipEnabled(false);
+		this.notificationView.setFitToHeightEnabled(false);
+		this.notificationView.setFitToWidthEnabled(false);
+		this.notificationView.setCheckeredBackgroundEnabled(false);
+		this.notificationView.setViewMode(SlideMode.PRESENT);
+		this.notificationView.setAutoHideEnabled(true);
+		
+		this.container.getChildren().addAll(this.slideView, this.notificationView);
 		
 		// events
 		
@@ -121,19 +124,23 @@ public final class DisplayTarget {
 		return this.display.toString();
 	}
 	
-	// the display
-	
-	public Display getDisplay() {
-		return this.display;
+	public void dispose() {
+		this.slideView.dispose();
+		
+		this.container.getChildren().clear();
+		
+		this.stage.setOnHiding(null);
+		this.stage.setOnCloseRequest(null);
+		this.stage.close();
 	}
-	
-	public void display(final TextStore data) {
+
+	public void displaySlidePlaceholders(final TextStore data) {
 		this.slideView.transitionPlaceholders(data.copy());
 		
 		this.stage.toFront();
 	}
 	
-	public void display(final Slide slide) {
+	public void displaySlide(final Slide slide) {
 		if (slide == null) {
 			this.slideView.transitionSlide(null);
 			return;
@@ -150,15 +157,27 @@ public final class DisplayTarget {
 		
 		this.stage.toFront();
 	}
+
+	public void displayNotification(final Slide slide) {
+		if (slide == null) {
+			this.notificationView.transitionSlide(null);
+			return;
+		}
+		
+		Slide copy = slide.copy();
+
+		double w = this.display.getWidth();
+		double h = this.display.getHeight();
+		
+		copy.fit(w, h);
+		
+		this.notificationView.transitionSlide(copy);
+		
+		this.stage.toFront();
+	}
 	
-	public void release() {
-		this.slideView.dispose();
-		
-		this.container.getChildren().clear();
-		
-		this.stage.setOnHiding(null);
-		this.stage.setOnCloseRequest(null);
-		this.stage.close();
+	public Display getDisplay() {
+		return this.display;
 	}
 	
 	public Slide getSlide() {
@@ -167,5 +186,13 @@ public final class DisplayTarget {
 	
 	public ReadOnlyObjectProperty<Slide> slideProperty() {
 		return this.slideView.slideProperty();
+	}
+	
+	public Slide getNotificationSlide() {
+		return this.notificationView.getSlide();
+	}
+	
+	public ReadOnlyObjectProperty<Slide> notificationSlideProperty() {
+		return this.notificationView.slideProperty();
 	}
 }

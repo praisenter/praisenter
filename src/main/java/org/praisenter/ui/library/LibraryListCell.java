@@ -6,6 +6,7 @@ import org.praisenter.data.media.MediaType;
 import org.praisenter.data.media.ReadOnlyMedia;
 import org.praisenter.data.slide.ReadOnlySlide;
 import org.praisenter.data.slide.ReadOnlySlideShow;
+import org.praisenter.data.song.ReadOnlySong;
 import org.praisenter.ui.controls.FlowListCell;
 
 import javafx.beans.binding.Bindings;
@@ -59,9 +60,12 @@ final class LibraryListCell extends FlowListCell<Persistable> {
     		underlay.getStyleClass().add("dropshadow-underlay");
     		thumb.getStyleClass().add("bible");
     		label.textProperty().bind(bible.nameProperty());
+    	} else if (data instanceof ReadOnlySong) {
+    		final ReadOnlySong song = (ReadOnlySong)data;
+    		underlay.getStyleClass().add("dropshadow-underlay");
+    		thumb.getStyleClass().add("song");
+    		label.textProperty().bind(song.nameProperty());
     	}
-    	
-    	// TODO cases for songs and anything else
     	
     	// add the image and label to the cell
     	this.getChildren().addAll(wrapper, label);

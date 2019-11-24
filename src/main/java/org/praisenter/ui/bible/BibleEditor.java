@@ -9,7 +9,6 @@ import java.util.stream.Collectors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.Constants;
-import org.praisenter.async.AsyncHelper;
 import org.praisenter.data.bible.Bible;
 import org.praisenter.data.bible.Book;
 import org.praisenter.data.bible.Chapter;
@@ -17,6 +16,8 @@ import org.praisenter.data.bible.Verse;
 import org.praisenter.data.json.JsonIO;
 import org.praisenter.ui.Action;
 import org.praisenter.ui.GlobalContext;
+import org.praisenter.ui.BulkEditConverter;
+import org.praisenter.ui.BulkEditParseException;
 import org.praisenter.ui.controls.Alerts;
 import org.praisenter.ui.document.DocumentContext;
 import org.praisenter.ui.document.DocumentEditor;
@@ -24,16 +25,24 @@ import org.praisenter.ui.events.ActionStateChangedEvent;
 import org.praisenter.ui.translations.Translations;
 import org.praisenter.ui.undo.UndoManager;
 
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.ListChangeListener;
 import javafx.css.PseudoClass;
+import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.input.Clipboard;
@@ -44,6 +53,8 @@ import javafx.scene.input.Dragboard;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Modality;
 
 //JAVABUG (L) 11/03/16 Dragging to the edge of a scrollable window doesn't scroll it and there's no good way to scroll it manually
@@ -73,6 +84,10 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 	
 	private final TreeView<Object> treeView;
 	
+	private final BooleanProperty bulkEditModeEnabled;
+	private final StringProperty bulkEditModeValue;
+	private final StringProperty bulkEditModeError;
+	
 	public BibleEditor(
 			GlobalContext context, 
 			DocumentContext<Bible> document) {
@@ -83,6 +98,10 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 		
 		this.bible = document.getDocument();
 		this.undoManager = document.getUndoManager();
+		
+		this.bulkEditModeEnabled = new SimpleBooleanProperty(false);
+		this.bulkEditModeValue = new SimpleStringProperty();
+		this.bulkEditModeError = new SimpleStringProperty();
 		
 		// the tree
 		
@@ -114,6 +133,8 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 
 		ContextMenu menu = new ContextMenu();
 		menu.getItems().addAll(
+				this.createMenuItem(Action.BULK_EDIT),
+				new SeparatorMenuItem(),
 				this.createMenuItem(Action.NEW_BOOK),
 				this.createMenuItem(Action.NEW_CHAPTER),
 				this.createMenuItem(Action.NEW_VERSE),
@@ -143,7 +164,48 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 			}
 		});
 		
-		this.setCenter(this.treeView);
+		// build the bulk edit UI
+		TextArea textArea = new TextArea();
+		textArea.setWrapText(false);
+		textArea.textProperty().bindBidirectional(this.bulkEditModeValue);
+		Button btnOk = new Button(Translations.get("ok"));
+		Button btnCancel = new Button(Translations.get("cancel"));
+		Label lblError = new Label();
+		lblError.getStyleClass().add("error-label");
+		lblError.textProperty().bind(this.bulkEditModeError);
+		lblError.visibleProperty().bind(this.bulkEditModeError.length().greaterThan(0));
+		lblError.managedProperty().bind(lblError.visibleProperty());
+		
+		BorderPane wrapper = new BorderPane();
+		wrapper.setTop(lblError);
+		wrapper.setCenter(textArea);
+		wrapper.setBottom(new HBox(btnOk, btnCancel));
+		wrapper.setPadding(new Insets(5));
+		wrapper.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+		wrapper.visibleProperty().bind(this.bulkEditModeEnabled);
+		
+		this.treeView.visibleProperty().bind(this.bulkEditModeEnabled.not());
+		
+		StackPane editorStack = new StackPane(this.treeView, wrapper);
+		
+		btnOk.setOnAction(e -> {
+			try {
+				this.processBulkEdit();
+				this.bulkEditModeEnabled.set(false);
+				this.bulkEditModeValue.set(null);
+				this.bulkEditModeError.set(null);
+			} catch (Exception ex) {
+				this.bulkEditModeError.set(ex.getMessage());
+			}
+		});
+		
+		btnCancel.setOnAction(e -> {
+			this.bulkEditModeEnabled.set(false);
+			this.bulkEditModeValue.set(null);
+			this.bulkEditModeError.set(null);
+		});
+		
+		this.setCenter(editorStack);
 	}
 	
 	private MenuItem createMenuItem(Action action) {
@@ -187,6 +249,8 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 				return this.renumber();
 			case REORDER:
 				return this.reorder();
+			case BULK_EDIT:
+				return this.beginBulkEdit();
 			default:
 				return CompletableFuture.completedFuture(null);
 		}
@@ -220,6 +284,8 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 				return ctx.getSelectedCount() == 1 && ctx.getSelectedType() != Verse.class;
 			case REORDER:
 				return ctx.getSelectedCount() == 1 && ctx.getSelectedType() != Verse.class;
+			case BULK_EDIT:
+				return ctx.getSelectedCount() == 1 && (ctx.getSelectedType() == Book.class || ctx.getSelectedType() == Chapter.class);
 			default:
 				return false;
 		}
@@ -234,6 +300,7 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 			case NEW_VERSE:
 			case RENUMBER:
 			case REORDER:
+			case BULK_EDIT:
 				return true;
 			default:
 				return false;
@@ -242,6 +309,50 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 	
 	// internal methods
 
+	private CompletableFuture<Void> beginBulkEdit() {
+		Object selection = this.document.getSelectedItem();
+		Class<?> clazz = this.document.getSelectedType();
+		
+		if (clazz == Book.class) {
+			BulkEditConverter<Book> tx = new BookBulkEditConverter();
+			this.bulkEditModeValue.set(tx.toString((Book)selection));
+			this.bulkEditModeEnabled.set(true);
+		} else if (clazz == Chapter.class) {
+			BulkEditConverter<Chapter> tx = new ChapterBulkEditConverter();
+			this.bulkEditModeValue.set(tx.toString((Chapter)selection));
+			this.bulkEditModeEnabled.set(true);
+		}
+		
+		return CompletableFuture.completedFuture(null);
+	}
+	
+	private void processBulkEdit() throws BulkEditParseException {
+		Object selection = this.document.getSelectedItem();
+		Class<?> clazz = this.document.getSelectedType();
+		String result = this.bulkEditModeValue.get();
+		
+		if (clazz == Book.class) {
+			BulkEditConverter<Book> tx = new BookBulkEditConverter();
+			Book book = tx.fromString(result);
+			Bible bible = this.bible;
+			int index = bible.getBooks().indexOf(selection);
+			if (index >= 0) {
+				bible.getBooks().set(index, book);
+			}
+		} else if (clazz == Chapter.class) {
+			BulkEditConverter<Chapter> tx = new ChapterBulkEditConverter();
+			Chapter chapter = tx.fromString(result);
+			Bible bible = this.bible;
+			for (Book book : bible.getBooks()) {
+				int index = book.getChapters().indexOf(selection);
+				if (index >= 0) {
+					book.getChapters().set(index, chapter);
+					break;
+				}
+			}
+		}
+	}
+	
 	private CompletableFuture<Void> delete() {
 		List<TreeItem<Object>> selected = new ArrayList<>(this.treeView.getSelectionModel().getSelectedItems());
 		this.treeView.getSelectionModel().clearSelection();
@@ -267,8 +378,9 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 		} catch (Exception ex) {
 			LOGGER.error("Failed to delete the selected items", ex);
 			this.undoManager.discardBatch();
+			
 		}
-		return AsyncHelper.nil();
+		return CompletableFuture.completedFuture(null);
 	}
 	
 	private CompletableFuture<Void> create(Action action) {
@@ -300,7 +412,7 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 			default:
 				break;
 		}
-		return AsyncHelper.nil();
+		return CompletableFuture.completedFuture(null);
 	}
 	
 	private CompletableFuture<Void> renumber() {
@@ -336,7 +448,7 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 				}
 			}
 		}
-		return AsyncHelper.nil();
+		return CompletableFuture.completedFuture(null);
 	}
 	
 	private void renumber(boolean accepted, Object selected) {		
@@ -392,7 +504,7 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 				}
 			}
 		}
-		return AsyncHelper.nil();
+		return CompletableFuture.completedFuture(null);
 	}
 	
 	private void reorder(boolean accepted, Object selected) {		
@@ -471,7 +583,7 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 			}
 		}
 		
-		return AsyncHelper.nil();
+		return CompletableFuture.completedFuture(null);
 	}
 	
 	private CompletableFuture<Void> paste() {
@@ -495,7 +607,7 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 			}
 		}
 		
-		return AsyncHelper.nil();
+		return CompletableFuture.completedFuture(null);
 	}
 	
 	private void dragDetected(MouseEvent e) {

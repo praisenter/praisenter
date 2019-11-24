@@ -50,6 +50,8 @@ public enum Action {
 	IMPORT("action.import", () -> Glyphs.IMPORT.duplicate()),
 	EXPORT("action.export", () -> Glyphs.EXPORT.duplicate()),
 	
+	BULK_EDIT("action.edit.bulk"),
+	
 	// application
 	
 	PREFERENCES("action.preferences", () -> Glyphs.MENU_PREFERENCES.duplicate()),
@@ -142,6 +144,38 @@ public enum Action {
 	// song
 	
 	NEW_SONG("action.new.song"),
+	NEW_LYRICS("action.new.song.lyrics", () -> {
+		StackPane stack = new StackPane();
+		Node plus = Glyphs.ASTERISK.duplicate().size(8).color(Color.LIME);
+		plus.setTranslateX(3);
+		stack.getChildren().addAll(Glyphs.NEW_LYRICS.duplicate(), plus);
+		StackPane.setAlignment(plus, Pos.TOP_RIGHT);
+		return stack;
+	}),
+	NEW_AUTHOR("action.new.song.author", () -> {
+		StackPane stack = new StackPane();
+		Node plus = Glyphs.ASTERISK.duplicate().size(8).color(Color.LIME);
+		plus.setTranslateX(3);
+		stack.getChildren().addAll(Glyphs.NEW_AUTHOR.duplicate(), plus);
+		StackPane.setAlignment(plus, Pos.TOP_RIGHT);
+		return stack;
+	}),
+	NEW_SONGBOOK("action.new.song.songbook", () -> {
+		StackPane stack = new StackPane();
+		Node plus = Glyphs.ASTERISK.duplicate().size(8).color(Color.LIME);
+		plus.setTranslateX(3);
+		stack.getChildren().addAll(Glyphs.NEW_SONGBOOK.duplicate(), plus);
+		StackPane.setAlignment(plus, Pos.TOP_RIGHT);
+		return stack;
+	}),
+	NEW_SECTION("action.new.song.section", () -> {
+		StackPane stack = new StackPane();
+		Node plus = Glyphs.ASTERISK.duplicate().size(8).color(Color.LIME);
+		plus.setTranslateX(3);
+		stack.getChildren().addAll(Glyphs.NEW_SECTION.duplicate(), plus);
+		StackPane.setAlignment(plus, Pos.TOP_RIGHT);
+		return stack;
+	}),
 	
 	// the "new" menu
 	
@@ -160,7 +194,12 @@ public enum Action {
 			Action.NEW_SLIDE_MEDIA_COMPONENT,
 			Action.NEW_SLIDE_DATETIME_COMPONENT,
 			Action.NEW_SLIDE_PLACEHOLDER_COMPONENT,
-			Action.NEW_SLIDE_COUNTDOWN_COMPONENT)
+			Action.NEW_SLIDE_COUNTDOWN_COMPONENT,
+			// song related sub creates
+			Action.NEW_LYRICS,
+			Action.NEW_SECTION,
+			Action.NEW_AUTHOR,
+			Action.NEW_SONGBOOK)
 	;
 	
 	private final String messageKey;

@@ -8,6 +8,7 @@ import java.time.format.FormatStyle;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -33,6 +34,10 @@ import org.praisenter.data.media.Media;
 import org.praisenter.data.slide.Slide;
 import org.praisenter.data.slide.SlideShow;
 import org.praisenter.data.slide.graphics.SlideColor;
+import org.praisenter.data.song.Author;
+import org.praisenter.data.song.Lyrics;
+import org.praisenter.data.song.Section;
+import org.praisenter.data.song.Song;
 import org.praisenter.ui.controls.Alerts;
 import org.praisenter.ui.display.DisplayManager;
 import org.praisenter.ui.display.DisplayTarget;
@@ -387,6 +392,7 @@ public final class GlobalContext {
 				return this.openDocuments.size() > 0;
 			case CUT:
 				return ap != null && ap.isActionEnabled(action);
+			case BULK_EDIT:
 			case RENUMBER:
 			case REORDER:
 			case NEW_BOOK:
@@ -397,6 +403,10 @@ public final class GlobalContext {
 			case NEW_SLIDE_PLACEHOLDER_COMPONENT:
 			case NEW_SLIDE_DATETIME_COMPONENT:
 			case NEW_SLIDE_COUNTDOWN_COMPONENT:
+			case NEW_LYRICS:
+			case NEW_SECTION:
+			case NEW_AUTHOR:
+			case NEW_SONGBOOK:
 			case SLIDE_COMPONENT_MOVE_BACK:
 			case SLIDE_COMPONENT_MOVE_DOWN:
 			case SLIDE_COMPONENT_MOVE_FRONT:
@@ -424,8 +434,7 @@ public final class GlobalContext {
 			case NEW_SLIDE_SHOW:
 				// TODO implement
 			case NEW_SONG:
-				// TODO implement
-				break;
+				return this.createNewSongAndOpen();
 			default:
 				break;
 		}
@@ -538,7 +547,7 @@ public final class GlobalContext {
 		if (ctx != null) {
 			ctx.getUndoManager().undo();
 		}
-		return AsyncHelper.nil();
+		return CompletableFuture.completedFuture(null);
 	}
 	
 	private CompletableFuture<Void> redo() {
@@ -546,7 +555,7 @@ public final class GlobalContext {
 		if (ctx != null) {
 			ctx.getUndoManager().redo();
 		}
-		return AsyncHelper.nil();
+		return CompletableFuture.completedFuture(null);
 	}
 	
 	// TODO i don't really like methods that show UI elements in this class
@@ -558,7 +567,7 @@ public final class GlobalContext {
 				this.onActionStateChanged("SAVE_COMPLETE");
 			})).exceptionally(t -> {
 				Platform.runLater(() -> {
-					Alert alert = Alerts.exception(this.stage, null, null, null, t);
+					Alert alert = Alerts.exception(this.stage, t);
 					alert.show();
 				});
 				return null;
@@ -644,7 +653,7 @@ public final class GlobalContext {
 				});
 			});
 		}
-		return AsyncHelper.nil();
+		return CompletableFuture.completedFuture(null);
 	}
 	
 	private CompletableFuture<Void> promptImport() {
@@ -694,6 +703,7 @@ public final class GlobalContext {
 	
 	private CompletableFuture<Void> createNewBibleAndOpen() {
 		Bible bible = new Bible(Translations.get("action.new.untitled", LocalDateTime.now().format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT, FormatStyle.SHORT))));
+		bible.setLanguage(Locale.getDefault().toLanguageTag());
 		Book book = new Book(1, Translations.get("action.new.bible.book"));
 		Chapter chapter = new Chapter(1);
 		Verse verse = new Verse(1, Translations.get("action.new.bible.verse"));
@@ -707,7 +717,6 @@ public final class GlobalContext {
 	private CompletableFuture<Void> createNewSlideAndOpen() {
 		Slide slide = new Slide(Translations.get("action.new.untitled", LocalDateTime.now().format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT, FormatStyle.SHORT))));
 		slide.setBackground(new SlideColor(1, 1, 1, 1));
-		slide.setCreatedDate(Instant.now());
 		
 		List<DisplayTarget> targets = new ArrayList<>(this.displayManager.getDisplayTargets());
 		for (DisplayTarget target : targets) {
@@ -718,6 +727,21 @@ public final class GlobalContext {
 		}
 		
 		this.openDocument(slide, true);
+		return CompletableFuture.completedFuture(null);
+	}
+	
+	private CompletableFuture<Void> createNewSongAndOpen() {
+		Song song = new Song();
+		song.setName(Translations.get("action.new.untitled", LocalDateTime.now().format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT, FormatStyle.SHORT))));
+		Lyrics lyrics = new Lyrics();
+		lyrics.setLanguage(Locale.getDefault().toLanguageTag());
+		lyrics.setOriginal(true);
+		lyrics.setTitle(song.getName());
+		lyrics.getAuthors().add(new Author(System.getProperty("user.name"), Author.TYPE_LYRICS));
+		lyrics.getSections().add(new Section(Translations.get("song.lyrics.section.name.default"), Translations.get("song.lyrics.section.text.default")));
+		song.getLyrics().add(lyrics);
+		
+		this.openDocument(song, true);
 		return CompletableFuture.completedFuture(null);
 	}
 	
