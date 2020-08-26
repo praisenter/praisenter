@@ -55,7 +55,7 @@ import org.praisenter.data.json.InstantJsonSerializer;
 import org.praisenter.data.search.Indexable;
 import org.praisenter.data.slide.animation.SlideAnimation;
 import org.praisenter.data.slide.text.TextPlaceholderComponent;
-import org.praisenter.song.SongReferenceTextStore;
+import org.praisenter.data.song.SongReferenceTextStore;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;

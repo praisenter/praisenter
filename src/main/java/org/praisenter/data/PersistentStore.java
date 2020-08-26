@@ -114,7 +114,7 @@ public final class PersistentStore<T extends Persistable> {
 		}));
 	}
 	
-	public CompletableFuture<DataImportResult<T>> importData(Path path) {
+	public CompletableFuture<DataImportResult<T>> importData(Path path, boolean isTypeKnown) {
 		return CompletableFuture.supplyAsync(() -> {
 			try {
 				DataImportResult<T> result = this.adapter.importData(path);
@@ -128,7 +128,11 @@ public final class PersistentStore<T extends Persistable> {
 				}
 				return result;
 			} catch (Exception ex) {
-				throw new CompletionException(ex);
+				if (isTypeKnown) {
+					throw new CompletionException(ex);
+				} else {
+					return null;
+				}
 			}
 		}).thenCompose(AsyncHelper.onJavaFXThreadAndWait((result) -> {
 			if (result != null) {

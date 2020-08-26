@@ -33,7 +33,6 @@ import org.praisenter.data.slide.graphics.SlideGradientCycleType;
 import org.praisenter.data.slide.graphics.SlideGradientStop;
 import org.praisenter.data.slide.graphics.SlideGradientType;
 import org.praisenter.data.slide.graphics.SlidePaint;
-import org.praisenter.slide.graphics.SlideLinearGradient;
 
 import javafx.scene.paint.Color;
 import javafx.scene.paint.CycleMethod;

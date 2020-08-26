@@ -1,5 +1,5 @@
 import org.controlsfx.glyphfont.FontAwesome;
-import org.praisenter.javafx.Praisenter;
+import org.praisenter.ui.Praisenter;
 
 import javafx.application.Application;
 import javafx.scene.Scene;
