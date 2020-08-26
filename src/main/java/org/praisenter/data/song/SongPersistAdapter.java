@@ -13,7 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -52,13 +52,20 @@ public final class SongPersistAdapter implements PersistAdapter<Song> {
 		this.pathResolver = new BasicPathResolver<>(path, "songs", EXTENSION);
 		this.locks = new LockMap<>();
 		this.exportLock = new Object();
-		this.formatProviders = new HashMap<>();
+		this.formatProviders = new LinkedHashMap<>();
 		
+		// always attempt to detect in this order
+		
+		// JSON - no other supported formats are JSON
 		this.formatProviders.put(KnownFormat.PRAISENTER3, new PraisenterFormatProvider<>(Song.class));
+		// XML but has schema definition which defines it specifically
 		this.formatProviders.put(KnownFormat.OPENLYRICSSONG, new OpenLyricsSongFormatProvider());
+		// XML but has a very unique starting element
 		this.formatProviders.put(KnownFormat.CHURCHVIEWSONG, new ChurchViewSongFormatProvider());
-		this.formatProviders.put(KnownFormat.PRAISENTER1, new Praisenter1SongFormatProvider());
+		// XML but should have a version string = 2.0.0
 		this.formatProviders.put(KnownFormat.PRAISENTER2, new Praisenter2SongFormatProvider());
+		// XML not much to differentiate between other formats
+		this.formatProviders.put(KnownFormat.PRAISENTER1, new Praisenter1SongFormatProvider());
 	}
 
 	@Override

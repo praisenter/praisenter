@@ -11,6 +11,7 @@ import java.io.Reader;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
@@ -45,7 +46,7 @@ final class Praisenter2SongFormatProvider implements DataFormatProvider<Song> {
 			while(r.hasNext()) {
 			    r.next();
 			    if (r.isStartElement()) {
-			    	if (r.getLocalName().equalsIgnoreCase("song")) {
+			    	if (r.getLocalName().equalsIgnoreCase("songs") && "2.0.0".equals(r.getAttributeValue("", "Version"))) {
 			    		return true;
 			    	}
 			    }
@@ -73,7 +74,7 @@ final class Praisenter2SongFormatProvider implements DataFormatProvider<Song> {
 			while(r.hasNext()) {
 			    r.next();
 			    if (r.isStartElement()) {
-			    	if (r.getLocalName().equalsIgnoreCase("song")) {
+			    	if (r.getLocalName().equalsIgnoreCase("songs") && "2.0.0".equals(r.getAttributeValue("", "Version"))) {
 			    		return true;
 			    	}
 			    }
@@ -101,7 +102,7 @@ final class Praisenter2SongFormatProvider implements DataFormatProvider<Song> {
 		
 		List<DataReadResult<Song>> results = new ArrayList<>();
 		try {
-			results.add(this.parse(stream, name));
+			results.addAll(this.parse(stream, name));
 		} catch (SAXException | ParserConfigurationException ex) {
 			throw new InvalidFormatException(ex);
 		}
@@ -124,11 +125,11 @@ final class Praisenter2SongFormatProvider implements DataFormatProvider<Song> {
 	 * @param name the name
 	 * @throws IOException if an IO error occurs
 	 * @throws InvalidFormatException if the stream was not in the expected format
-	 * @return {@link Song}
+	 * @return List
 	 * @throws SAXException 
 	 * @throws ParserConfigurationException 
 	 */
-	private DataReadResult<Song> parse(InputStream stream, String name) throws ParserConfigurationException, SAXException, IOException {
+	private List<DataReadResult<Song>> parse(InputStream stream, String name) throws ParserConfigurationException, SAXException, IOException {
 		byte[] content = Streams.read(stream);
 		// read the bytes
 		SAXParserFactory factory = SAXParserFactory.newInstance();
@@ -140,7 +141,7 @@ final class Praisenter2SongFormatProvider implements DataFormatProvider<Song> {
 		SAXParser parser = factory.newSAXParser();
 		Praisenter2Handler handler = new Praisenter2Handler();
 		parser.parse(new ByteArrayInputStream(content), handler);
-		return new DataReadResult<Song>(handler.song);
+		return handler.songs.stream().map(s -> new DataReadResult<Song>(s)).collect(Collectors.toList());
 	}
 	
 	// SAX parser implementation
@@ -227,6 +228,7 @@ final class Praisenter2SongFormatProvider implements DataFormatProvider<Song> {
 			if ("Song".equalsIgnoreCase(qName)) {
 				// we are done with the song so add it to the list
 				this.songs.add(this.song);
+				this.song.setName(this.song.getDefaultTitle());
 				this.song = null;
 				this.lyrics = null;
 			} else if ("Part".equalsIgnoreCase(qName)) {

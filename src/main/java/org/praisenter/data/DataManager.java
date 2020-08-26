@@ -155,7 +155,7 @@ public final class DataManager {
 	public <T extends Persistable> CompletableFuture<DataImportResult<T>> importData(Path path, Class<T> clazz) {
 		PersistentStore<T> store = (PersistentStore<T>)this.adapters.get(clazz);
 		if (store == null) throw new UnsupportedOperationException("A persistence adapter was not found for class '" + clazz + "'.");
-		return store.importData(path).thenCompose(AsyncHelper.onJavaFXThreadAndWait((result) -> {
+		return store.importData(path, true).thenCompose(AsyncHelper.onJavaFXThreadAndWait((result) -> {
 			// add created lookups
 			for (Persistable item : result.getCreated()) {
 				this.itemLookup.put(item.getId(), item);
@@ -181,17 +181,25 @@ public final class DataManager {
 		for (Class<?> clazz : classes) {
 			PersistentStore<?> store = this.adapters.get(clazz);
 			if (store == null) throw new UnsupportedOperationException("A persistence adapter was not found for class '" + clazz + "'.");
-			futures.add(store.importData(path).thenApply((l) -> (DataImportResult<? extends Persistable>)l));
+			futures.add(store.importData(path, false).thenApply((l) -> (DataImportResult<? extends Persistable>)l));
 		}
 		
 		return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
-			// make sure we capture any new tags from the import
+			// process the results
+			int numberImported = 0;
+			
 			for (CompletableFuture<DataImportResult<? extends Persistable>> future : futures) {
 				DataImportResult<? extends Persistable> result = future.get();
 
+				// check for null result (couldn't interpret it)
+				if (result == null) {
+					continue;
+				}
+				
 				// add created lookups
 				for (Persistable item : result.getCreated()) {
 					this.itemLookup.put(item.getId(), item);
+					numberImported++;
 				}
 				
 				// add created
@@ -200,10 +208,15 @@ public final class DataManager {
 				// update updated
 				for (Persistable item : result.getUpdated()) {
 					this.updateListItem(item);
+					numberImported++;
 				}
 				
 				// make sure we capture any new tags from the import
 				this.addDataImportResultTags(result);
+			}
+			
+			if (numberImported == 0) {
+				throw new CompletionException(new Exception("Failed to import path '" + path + "' it does not match any supported format of media, bible, song, or slide."));
 			}
 		}));
 	}

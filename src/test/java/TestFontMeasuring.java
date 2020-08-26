@@ -1,4 +1,5 @@
-import org.praisenter.javafx.utility.TextMeasurer;
+
+import org.praisenter.ui.TextMeasurer;
 
 import javafx.application.Application;
 import javafx.scene.Scene;

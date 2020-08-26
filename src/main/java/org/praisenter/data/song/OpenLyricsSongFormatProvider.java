@@ -10,6 +10,8 @@ import java.io.OutputStream;
 import java.io.Reader;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -49,7 +51,10 @@ final class OpenLyricsSongFormatProvider implements DataFormatProvider<Song> {
 			    r.next();
 			    if (r.isStartElement()) {
 			    	if (r.getLocalName().equalsIgnoreCase("song")) {
-			    		return true;
+			    		String ns = r.getNamespaceURI();
+			    		if (ns != null && ns.toLowerCase().startsWith("http://openlyrics.info/")) {
+			    			return true;
+			    		}
 			    	}
 			    }
 			}
@@ -77,7 +82,10 @@ final class OpenLyricsSongFormatProvider implements DataFormatProvider<Song> {
 			    r.next();
 			    if (r.isStartElement()) {
 			    	if (r.getLocalName().equalsIgnoreCase("song")) {
-			    		return true;
+			    		String ns = r.getNamespaceURI();
+			    		if (ns != null && ns.toLowerCase().startsWith("http://openlyrics.info/")) {
+			    			return true;
+			    		}
 			    	}
 			    }
 			}
@@ -143,6 +151,21 @@ final class OpenLyricsSongFormatProvider implements DataFormatProvider<Song> {
 		SAXParser parser = factory.newSAXParser();
 		OpenSongHandler handler = new OpenSongHandler();
 		parser.parse(new ByteArrayInputStream(content), handler);
+		
+		// set song name
+		handler.song.setName(handler.song.getDefaultTitle());
+		
+		// clean up
+		for (Lyrics lyrics : handler.song.getLyrics()) {
+			for (Section section : lyrics.getSections()) {
+				String cleansed = section.getText()
+				.replaceAll("\\s*\\n+\\s*", "<br>")
+				.replaceAll("\\s+", " ")
+				.replaceAll("<br>", Constants.NEW_LINE);
+				section.setText(cleansed.trim());
+			}
+		}
+		
 		return new DataReadResult<Song>(handler.song);
 	}
 	
@@ -177,7 +200,7 @@ final class OpenLyricsSongFormatProvider implements DataFormatProvider<Song> {
 		public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
 			// inspect the tag name
 			if (qName.equalsIgnoreCase("song")) {
-				// when we see the <Songs> tag we create a new song
+				// when we see the <song> tag we create a new song
 				this.song = new Song();
 				
 				String createdIn = attributes.getValue("createdIn");
@@ -189,7 +212,12 @@ final class OpenLyricsSongFormatProvider implements DataFormatProvider<Song> {
 					try {
 						this.song.setModifiedDate(Instant.parse(modifiedDate));
 					} catch (Exception ex) {
-						LOGGER.warn("Failed to parse modifiedDate '" + modifiedDate + "' as a datetime.");
+						LOGGER.warn("Failed to parse modifiedDate '" + modifiedDate + "' as an Instant.");
+						try {
+							this.song.setModifiedDate(LocalDateTime.parse(modifiedDate).toInstant(ZoneOffset.of(ZoneOffset.systemDefault().getId())));
+						} catch (Exception ex1) {
+							LOGGER.warn("Failed to parse modifiedDate '" + modifiedDate + "' as a LocalDateTime.");
+						}
 					}
 				}
 			} else if (qName.equalsIgnoreCase("title")) {

@@ -674,7 +674,7 @@ public final class GlobalContext {
 		
 		for (File file : files) {
 			LOGGER.info("Beginning import of '{}'", file.toPath().toAbsolutePath().toString());
-			CompletableFuture<Void> future = this.dataManager.importData(file.toPath(), Bible.class, Slide.class, SlideShow.class, Media.class).exceptionally(t -> {
+			CompletableFuture<Void> future = this.dataManager.importData(file.toPath(), Bible.class, Slide.class, SlideShow.class, Media.class, Song.class).exceptionally(t -> {
 				LOGGER.error("Failed to import file '" + file.toPath().toAbsolutePath().toString() + "' due to: " + t.getMessage(), t);
 				if (t instanceof CompletionException) throw (CompletionException)t; 
 				throw new CompletionException(t);

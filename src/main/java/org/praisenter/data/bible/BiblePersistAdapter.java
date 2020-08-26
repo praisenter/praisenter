@@ -13,7 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -53,7 +53,7 @@ public final class BiblePersistAdapter implements PersistAdapter<Bible> {
 		this.pathResolver = new BasicPathResolver<>(path, "bibles", EXTENSION);
 		this.locks = new LockMap<>();
 		this.exportLock = new Object();
-		this.formatProviders = new HashMap<>();
+		this.formatProviders = new LinkedHashMap<>();
 		
 		this.formatProviders.put(KnownFormat.PRAISENTER3, new PraisenterFormatProvider<>(Bible.class));
 		this.formatProviders.put(KnownFormat.UNBOUNDBIBLE, new UnboundBibleFormatProvider());
