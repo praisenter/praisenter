@@ -502,7 +502,6 @@ public class SlideView extends Region implements Playable {
 		}
 		
 		// update the placeholder data
-		// TODO do we need to copy here?
 		slide.setPlaceholderData(data);
 
 		// setup transition
