@@ -35,6 +35,8 @@ public class TransitionConverter {
 			tx.setInterpolator(new CustomInterpolator(AnimationEasingFunction.LINEAR, AnimationEasingType.IN));
 			tx.setNode(node);
 			tx.setRate(isIn ? 1 : -1);
+			tx.setCycleCount(1);
+			tx.setAutoReverse(false);
 			return tx;
 		}
 		
