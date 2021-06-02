@@ -173,8 +173,8 @@ final class PaintPane extends StackPane implements Playable {
 		}, this.scaleType));
 		
 		this.mediaView.fitWidthProperty().bind(Bindings.createDoubleBinding(() -> {
-			double w = this.mediaWidth.get();
-			double h = this.mediaHeight.get();
+			double w = this.slideWidth.get();
+			double h = this.slideHeight.get();
 			ScaleType type = this.scaleType.get();
 			if (type == null || w <= 0 || h <= 0) return 0.0;
 			if (type == ScaleType.NONE) return 0.0;
@@ -186,11 +186,11 @@ final class PaintPane extends StackPane implements Playable {
 				return w;
 			}
 			return 0.0;
-		}, this.scaleType, this.mediaWidth, this.mediaHeight));
+		}, this.scaleType, this.slideWidth, this.slideHeight));
 		
 		this.mediaView.fitHeightProperty().bind(Bindings.createDoubleBinding(() -> {
-			double w = this.mediaWidth.get();
-			double h = this.mediaHeight.get();
+			double w = this.slideWidth.get();
+			double h = this.slideHeight.get();
 			ScaleType type = this.scaleType.get();
 			if (type == null || w <= 0 || h <= 0) return 0.0;
 			if (type == ScaleType.NONE) return 0.0;
@@ -202,7 +202,7 @@ final class PaintPane extends StackPane implements Playable {
 				return h;
 			}
 			return 0.0;
-		}, this.scaleType, this.mediaWidth, this.mediaHeight));
+		}, this.scaleType, this.slideWidth, this.slideHeight));
 		
 		this.mediaView.effectProperty().bind(Bindings.createObjectBinding(() -> {
 			MediaObject mo = this.mediaObject.get();
