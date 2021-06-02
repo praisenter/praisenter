@@ -93,7 +93,7 @@ public final class DisplayController extends BorderPane {
 			Slide newSlide = slideView.getSlide();
 			Slide oldSlide = target.getSlide();
 			
-			if (Objects.equals(oldSlide, newSlide)) {
+			if (this.isPlaceholderTransitionOnly(oldSlide, newSlide)) {
 				// do placeholders only
 				target.displaySlidePlaceholders(bibleNavigationPane.getValue());
 			} else {
@@ -136,35 +136,15 @@ public final class DisplayController extends BorderPane {
 		// TODO how can we allow the user to select nothing?
 		cmbSlideTemplate.getItems().addListener((Change<? extends Slide> c) -> {
 			Slide cv = cmbSlideTemplate.getValue();
-			String result = this.getCurrentItemAction(c, cv);
-			
-			// removed only?
-			if (result == REMOVED) {
-				slideView.setSlide(null);
-				cmbSlideTemplate.setValue(null);
-			} else if (result == REPLACED) {
-				// replaced - was probably edited and saved
-				// just reselect the value
-				Slide slide = cmbSlideTemplate.getSelectionModel().getSelectedItem();
-				cmbSlideTemplate.setValue(null);
-				cmbSlideTemplate.getSelectionModel().select(slide);
-			}
+			Slide newSelection = this.getNewSelection(c, cv);
+			cmbSlideTemplate.setValue(null);
+			cmbSlideTemplate.setValue(newSelection);
         });
 		cmbNotificationTemplate.getItems().addListener((Change<? extends Slide> c) -> {
 			Slide cv = cmbNotificationTemplate.getValue();
-			String result = this.getCurrentItemAction(c, cv);
-			
-			// removed only?
-			if (result == REMOVED) {
-				notificationView.setSlide(null);
-				cmbNotificationTemplate.setValue(null);
-			} else if (result == REPLACED) {
-				// replaced - was probably edited and saved
-				// just reselect the value
-				Slide slide = cmbNotificationTemplate.getSelectionModel().getSelectedItem();
-				cmbNotificationTemplate.setValue(null);
-				cmbNotificationTemplate.getSelectionModel().select(slide);
-			}
+			Slide newSelection = this.getNewSelection(c, cv);
+			cmbNotificationTemplate.setValue(null);
+			cmbNotificationTemplate.setValue(newSelection);
         });
 		
 		cmbSlideTemplate.valueProperty().addListener((obs, ov, nv) -> {
@@ -186,35 +166,45 @@ public final class DisplayController extends BorderPane {
 		});
 	}
 	
-	private String getCurrentItemAction(Change<? extends Slide> c, Slide cv) {
-		// if the items change we need to examine if the change was the current slide we're on
-		boolean removed = false;
-		boolean added = false;
-		while (c.next()) {
-			List<? extends Slide> rs = c.getRemoved();
-			for (Slide rm : rs) {
-				if (rm.equals(cv)) {
-					// then we need to clear the value
-					removed = true;
-					break;
+	private boolean isPlaceholderTransitionOnly(Slide oldSlide, Slide newSlide) {
+		// they must be the same object instance
+		if (Objects.equals(oldSlide, newSlide)) {
+			// they must both be non-null
+			if (oldSlide != null && newSlide != null) {
+				// they must have the same modified date
+				if (newSlide.getModifiedDate().equals(oldSlide.getModifiedDate())) {
+					return true;
 				}
 			}
+		}
+		return false;
+	}
+	
+	private Slide getNewSelection(Change<? extends Slide> c, Slide cv) {
+		// if the items change we need to examine if the change was the current slide we're on
+		while (c.next()) {
+			// first check if the slide we currently have selected was
+			// added (updated)
 			List<? extends Slide> as = c.getAddedSubList();
 			for (Slide add : as) {
 				if (add.equals(cv)) {
 					// then we need to update the value
-					added = true;
-					break;
+					return add;
 				}
-			}	
+			}
+			
+			// next check if the slide we currently have selected was
+			// removed (deleted)
+			List<? extends Slide> rs = c.getRemoved();
+			for (Slide rm : rs) {
+				if (rm.equals(cv)) {
+					// then we need to clear the value
+					return null;
+				}
+			}
 		}
 		
-		// removed only?
-		if (removed && !added) {
-			return REMOVED;
-		} else if (removed && added) {
-			return REPLACED;
-		}
-		return null;
+		// otherwise, keep the current value
+		return cv;
 	}
 }
