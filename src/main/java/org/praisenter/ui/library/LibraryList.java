@@ -458,9 +458,15 @@ public final class LibraryList extends BorderPane implements ActionPane {
 					Translations.get("action.confirm.delete"));
 			Optional<ButtonType> result = alert.showAndWait();
 			if (result.isPresent() && result.get() == ButtonType.OK) {
+				int size = items.size();
+				String btName = Translations.get("action.delete.task.multiple", size);
+				if (size == 1) {
+					btName = Translations.get("action.delete.task", items.get(0).getName());
+				}
+				
 				BackgroundTask task = new BackgroundTask();
-				task.setName(Translations.get("action.delete.task", n));
-				task.setMessage(Translations.get("action.delete.task", n));
+				task.setName(btName);
+				task.setMessage(btName);
 				
 				CompletableFuture<?>[] futures = new CompletableFuture<?>[n];
 				int i = 0;

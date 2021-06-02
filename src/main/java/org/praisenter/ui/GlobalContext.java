@@ -666,9 +666,15 @@ public final class GlobalContext {
 	public CompletableFuture<Void> importFiles(List<File> files) {
 		if (files == null || files.isEmpty()) return CompletableFuture.completedFuture(null);
 		
+		int size = files.size();
+		String btName = Translations.get("action.import.task.multiple", size);
+		if (size == 1) {
+			btName = Translations.get("action.import.task", files.get(0).getName());
+		}
+		
 		final BackgroundTask bt = new BackgroundTask();
-		bt.setName(Translations.get("action.import"));
-		bt.setMessage(Translations.get("action.import"));
+		bt.setName(btName);
+		bt.setMessage(btName);
 		
 		List<CompletableFuture<Void>> futures = new ArrayList<>();
 		
