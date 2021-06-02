@@ -1,7 +1,9 @@
 package org.praisenter.ui.display;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -85,11 +87,11 @@ public final class DisplayManager {
 	private DesktopState onScreensChanged() {
 		DesktopState whatHappened = DesktopState.NO_CHANGE;
 		List<Screen> screens = new ArrayList<Screen>(Screen.getScreens());
-		int size = screens.size();
+		int sSize = screens.size();
 		
 		// get the configured displays
 		ObservableList<Display> displays = this.context.getConfiguration().getDisplays();
-		int n = displays.size();
+		int dSize = displays.size();
 		
 		LOGGER.info("Current Screen Assignment: ");
 		for (Display display : displays) {
@@ -97,19 +99,14 @@ public final class DisplayManager {
 		}
 		
 		// check if the screen count changed
-		if (n != size) {
-			whatHappened = size < n ? DesktopState.DISPLAY_COUNT_DECREASED : DesktopState.DISPLAY_COUNT_INCREASED;
+		if (dSize != sSize) {
+			whatHappened = sSize < dSize ? DesktopState.DISPLAY_COUNT_DECREASED : DesktopState.DISPLAY_COUNT_INCREASED;
 		}
 		
-		if (n == 0) {
+		if (dSize == 0) {
 			// screens have never been assigned so auto-assign them
-			for (int i = 0; i < size; i++) {
-				DisplayRole role = DisplayRole.NONE;
-				if (i == 0 && size == 1) role = DisplayRole.MAIN;
-				if (i == 0 && size == 2) role = DisplayRole.NONE;
-				if (i == 1 && size == 2) role = DisplayRole.MAIN;
-				if (i == 2 && size >= 3) role = DisplayRole.TELEPROMPT;
-				if (i > 2) role = DisplayRole.OTHER;
+			for (int i = 0; i < sSize; i++) {
+				DisplayRole role = this.getDisplayRoleForScreenNumber(i, sSize);
 
 				Display display = this.toDisplay(screens.get(i), i, role);
 				displays.add(display);
@@ -123,10 +120,36 @@ public final class DisplayManager {
 			List<Display> toRemove = new ArrayList<>();
 			List<Display> toAdd = new ArrayList<>();
 			
+			// map the screens by index
+			Map<Integer, Screen> s = new HashMap<>();
+			for (int i = 0; i < sSize; i++) {
+				s.put(i, screens.get(i));
+			}
+			
 			// verify each display's state
-			for (final Display display : displays) {
-				int index = display.getId();
-				Screen screen = index >= 0 && index < size ? screens.get(index) : null;
+			int n = Math.max(sSize, dSize);
+			for (int i = 0; i < n; i++) {
+				Display display = null;
+				if (i < dSize) {
+					display = displays.get(i);
+				}
+				
+				int index = -1;
+				Screen screen = null;
+				if (display != null) {
+					index = display.getId();
+					screen = s.remove(index);
+				} else {
+					for (Integer j : s.keySet()) 
+					{
+						index = j;
+						screen = s.get(j);
+						break;
+					}
+					if (index >= 0) {
+						s.remove(index);
+					}
+				}
 				
 				DisplayState state = this.getDisplayState(display, screen);
 				
@@ -141,7 +164,7 @@ public final class DisplayManager {
 					case POSITION_CHANGED:
 					case RESOLUTION_CHANGED:
 					case POSITION_AND_RESOLUTION_CHANGED:
-						Display replacement = this.toDisplay(screens.get(index), index, display.getRole());
+						Display replacement = this.toDisplay(screen, index, display.getRole());
 						toRemove.add(display);
 						toAdd.add(replacement);
 						
@@ -160,6 +183,14 @@ public final class DisplayManager {
 						}
 						break;
 					case SCREEN_NOT_ASSIGNED:
+						DisplayRole role = this.getDisplayRoleForScreenNumber(i, sSize);
+						Display newDisplay = this.toDisplay(screen, index, role);
+						toAdd.add(newDisplay);
+						
+						this.targets.add(new DisplayTarget(this.context, newDisplay));
+						
+						whatHappened = DesktopState.DISPLAY_COUNT_INCREASED;
+						break;
 					default:
 						// do nothing?
 						break;
@@ -179,6 +210,15 @@ public final class DisplayManager {
 		return whatHappened;
 	}
 
+	private DisplayRole getDisplayRoleForScreenNumber(int index, int screenCount) {
+		DisplayRole role = DisplayRole.OTHER;
+		if (index == 0 && screenCount == 1) role = DisplayRole.MAIN;
+		if (index == 0 && screenCount == 2) role = DisplayRole.NONE;
+		if (index == 1 && screenCount == 2) role = DisplayRole.MAIN;
+		if (index == 2 && screenCount >= 3) role = DisplayRole.TELEPROMPT;
+		return role;
+	}
+	
 	private Display toDisplay(Screen screen, int index, DisplayRole role) {
 		Display display = new Display();
 		display.setHeight((int)screen.getBounds().getHeight());
