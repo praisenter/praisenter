@@ -121,6 +121,9 @@ https://stackoverflow.com/questions/50011276/javafx-treeview-expand-collapse-dis
 .library-list-cell > .image-wrapper > .image-underlay > .bible {
 	-fx-image: url("/org/praisenter/images/bible-icon.png");
 }
+.library-list-cell > .image-wrapper > .image-underlay > .song {
+	-fx-image: url("/org/praisenter/images/song-lyrics-icon.png");
+}
 .library-list-cell > .image-wrapper > .image-underlay {
 }
 .library-list-cell > .image-wrapper > .dropshadow-underlay {

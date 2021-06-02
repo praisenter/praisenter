@@ -338,6 +338,8 @@ final class LibraryItemDetails extends BorderPane {
 				}
 			} else if (item instanceof Bible) {
 				return this.context.getImageCache().getOrLoadClasspathImage("/org/praisenter/images/bible-icon.png");
+			} else if (item instanceof Song) {
+				return this.context.getImageCache().getOrLoadClasspathImage("/org/praisenter/images/song-lyrics-icon.png");
 			}
 			return null;
 		}, this.item));
