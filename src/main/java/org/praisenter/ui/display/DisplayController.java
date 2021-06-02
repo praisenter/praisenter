@@ -136,15 +136,23 @@ public final class DisplayController extends BorderPane {
 		// TODO how can we allow the user to select nothing?
 		cmbSlideTemplate.getItems().addListener((Change<? extends Slide> c) -> {
 			Slide cv = cmbSlideTemplate.getValue();
-			Slide newSelection = this.getNewSelection(c, cv);
-			cmbSlideTemplate.setValue(null);
-			cmbSlideTemplate.setValue(newSelection);
+			String action = this.getChangeAction(c, cv);
+			if (action == REMOVED) {
+				cmbSlideTemplate.setValue(null);
+			} else if (action == REPLACED) {
+				cmbSlideTemplate.setValue(null);
+				cmbSlideTemplate.setValue(cv);
+			}
         });
 		cmbNotificationTemplate.getItems().addListener((Change<? extends Slide> c) -> {
 			Slide cv = cmbNotificationTemplate.getValue();
-			Slide newSelection = this.getNewSelection(c, cv);
-			cmbNotificationTemplate.setValue(null);
-			cmbNotificationTemplate.setValue(newSelection);
+			String action = this.getChangeAction(c, cv);
+			if (action == REMOVED) {
+				cmbNotificationTemplate.setValue(null);
+			} else if (action == REPLACED) {
+				cmbNotificationTemplate.setValue(null);
+				cmbNotificationTemplate.setValue(cv);
+			}
         });
 		
 		cmbSlideTemplate.valueProperty().addListener((obs, ov, nv) -> {
@@ -180,7 +188,7 @@ public final class DisplayController extends BorderPane {
 		return false;
 	}
 	
-	private Slide getNewSelection(Change<? extends Slide> c, Slide cv) {
+	private String getChangeAction(Change<? extends Slide> c, Slide cv) {
 		// if the items change we need to examine if the change was the current slide we're on
 		while (c.next()) {
 			// first check if the slide we currently have selected was
@@ -189,7 +197,7 @@ public final class DisplayController extends BorderPane {
 			for (Slide add : as) {
 				if (add.equals(cv)) {
 					// then we need to update the value
-					return add;
+					return REPLACED;
 				}
 			}
 			
@@ -199,12 +207,12 @@ public final class DisplayController extends BorderPane {
 			for (Slide rm : rs) {
 				if (rm.equals(cv)) {
 					// then we need to clear the value
-					return null;
+					return REMOVED;
 				}
 			}
 		}
 		
 		// otherwise, keep the current value
-		return cv;
+		return null;
 	}
 }
