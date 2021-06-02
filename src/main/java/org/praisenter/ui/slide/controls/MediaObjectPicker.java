@@ -131,6 +131,7 @@ public final class MediaObjectPicker extends VBox {
 		grid.addRow(r++, new Label(Translations.get("slide.media.mute")), chkMute);
 		grid.addRow(r++, new Label(Translations.get("slide.media.scale.type")), cbScaleType);
 		grid.add(pkrColorAdjust, 0, r++, 2);
+		grid.showRowsOnly(0);
 		
 		this.getChildren().add(grid);
 		
@@ -219,7 +220,8 @@ public final class MediaObjectPicker extends VBox {
 			mo.setMediaName(media.getName());
 			mo.setMediaType(media.getMediaType());
 			mo.setMuted(this.mute.get());
-			mo.setScaleType(this.scaleType.get());
+			ScaleType st = this.scaleType.get();
+			mo.setScaleType(st == null ? ScaleType.NONE : st);
 			return mo;
 		}
 		return null;
