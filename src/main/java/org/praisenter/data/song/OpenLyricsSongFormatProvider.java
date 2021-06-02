@@ -347,7 +347,7 @@ final class OpenLyricsSongFormatProvider implements DataFormatProvider<Song> {
 				this.song.setPrimaryLyrics(lyrics.getId());
 			} else if ("title".equalsIgnoreCase(qName)) {
 				if (this.dataBuilder != null) {
-					this.lyrics.setTitle(this.dataBuilder.toString().trim());
+					this.lyrics.setTitle(this.dataBuilder.toString().trim().replaceAll("\r?\n", " "));
 				}
 			} else if ("author".equalsIgnoreCase(qName)) {
 				if (this.dataBuilder != null) {

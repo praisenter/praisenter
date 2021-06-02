@@ -224,7 +224,7 @@ final class Praisenter1SongFormatProvider implements DataFormatProvider<Song> {
 				// make sure the tag was not self terminating
 				if (this.dataBuilder != null) {
 					// set the song title
-					this.lyrics.setTitle(StringEscapeUtils.unescapeXml(this.dataBuilder.toString().trim()));
+					this.lyrics.setTitle(StringEscapeUtils.unescapeXml(this.dataBuilder.toString().trim().replaceAll("\r?\n", " ")));
 				}
 			} else if ("Notes".equalsIgnoreCase(qName)) {
 				// make sure the tag was not self terminating
