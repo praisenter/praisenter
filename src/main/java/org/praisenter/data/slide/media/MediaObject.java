@@ -71,7 +71,7 @@ public final class MediaObject implements ReadOnlyMediaObject, SlidePaint, Copya
 		this.mediaId = new SimpleObjectProperty<>();
 		this.mediaName = new SimpleStringProperty();
 		this.mediaType = new SimpleObjectProperty<>();
-		this.scaleType = new SimpleObjectProperty<>(ScaleType.UNIFORM);
+		this.scaleType = new SimpleObjectProperty<>();
 		this.loopEnabled = new SimpleBooleanProperty();
 		this.muted = new SimpleBooleanProperty();
 		this.colorAdjust = new SimpleObjectProperty<>();
