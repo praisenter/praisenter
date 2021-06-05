@@ -108,7 +108,7 @@ public final class ImageCache {
 		return getOrLoad(key, () -> {
 			try {
 				LOGGER.debug("Loading image from classpath '{}'.", classpath);
-				return new Image(classpath);
+				return new Image(ImageCache.class.getResourceAsStream(classpath));
 			} catch (Exception ex) {
 				LOGGER.error("Failed to load image from path '" + classpath + "'", ex);
 			}

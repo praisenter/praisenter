@@ -1,5 +1,9 @@
 package org.praisenter.ui.translations;
 
+import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -25,13 +29,25 @@ import org.praisenter.Constants;
 public final class Translations {
 	private static final Logger LOGGER = LogManager.getLogger();
 
-	private static final String BUNDLE_BASE_NAME = "org.praisenter.translations.messages";
+	private static final String BUNDLE_BASE_NAME = "messages";
 	private static final Pattern TRANSLATION_PATTERN = Pattern.compile("^messages_(.+)\\.properties$", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
-	private static final ResourceBundle.Control DEFAULT_CONTROL = new FileSystemControl();
+//	private static final ResourceBundle.Control DEFAULT_CONTROL = new FileSystemControl();
+	private static final ClassLoader RESOURCES_LOADER;
 	
 //	private static final ResourceBundle DEFAULT_BUNDLE = ResourceBundle.getBundle(BUNDLE_BASE_NAME, Locale.ROOT);
 	
 	static {
+		ClassLoader cl = null;
+		try {
+			Path path = Paths.get(Constants.LOCALES_ABSOLUTE_FILE_PATH);
+			cl = new URLClassLoader(new URL[] { path.toUri().toURL() });
+		} catch (MalformedURLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		RESOURCES_LOADER = cl;
+		
 //		try {
 //			Files.createDirectories(Paths.get(Constants.LOCALES_ABSOLUTE_FILE_PATH));
 //		} catch (Exception ex) {
@@ -111,7 +127,7 @@ public final class Translations {
 		Locale locale = Locale.getDefault();
 		try {
 			// this bundle will fallback to the default bundle when the key is not found
-			return ResourceBundle.getBundle(BUNDLE_BASE_NAME, locale, DEFAULT_CONTROL).getString(key);
+			return ResourceBundle.getBundle(BUNDLE_BASE_NAME, locale, RESOURCES_LOADER).getString(key);
 		} catch (MissingResourceException ex) {
 			LOGGER.warn("Failed to find key '" + key + "' for locale '" + locale.toString() + "' and in the default translation.");
 		}

@@ -54,7 +54,7 @@ import javafx.scene.shape.StrokeType;
 // JAVABUG (L) 06/14/17 [workaround] Color picker in context menu (or other dialog) doesn't work if you click the "Custom Color" link https://bugs.openjdk.java.net/browse/JDK-8175803
 
 public final class SlideGradientPicker extends VBox {
-	private static final Image TRANSPARENT_PATTERN = ClasspathLoader.getImage("org/praisenter/images/transparent.png");
+	private static final Image TRANSPARENT_PATTERN = new Image(SlideGradientPicker.class.getResourceAsStream("/org/praisenter/images/transparent.png"));
 	private static final double WIDTH = 125;
 	private static final double HEIGHT = 125;
 	

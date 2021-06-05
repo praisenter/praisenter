@@ -74,7 +74,7 @@ final class LoadingPane extends Pane {
 		// set the background image
     	setBackground(new Background(
     			new BackgroundImage(
-    					new Image("org/praisenter/images/splash.jpg"), 
+    					new Image(LoadingPane.class.getResourceAsStream("/org/praisenter/images/splash.jpg")), 
     					BackgroundRepeat.NO_REPEAT, 
     					BackgroundRepeat.NO_REPEAT, 
     					null, 
