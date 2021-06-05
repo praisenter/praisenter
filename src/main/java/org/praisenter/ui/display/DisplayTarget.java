@@ -7,6 +7,7 @@ import org.praisenter.data.TextStore;
 import org.praisenter.data.configuration.Display;
 import org.praisenter.data.slide.Slide;
 import org.praisenter.ui.GlobalContext;
+import org.praisenter.ui.Praisenter;
 import org.praisenter.ui.slide.SlideMode;
 import org.praisenter.ui.slide.SlideView;
 
@@ -46,14 +47,14 @@ public final class DisplayTarget {
 		this.stage = new Stage(StageStyle.TRANSPARENT);
 
     	// icons
-		this.stage.getIcons().add(new Image("org/praisenter/logo/icon16x16alt.png", 16, 16, true, true));
-		this.stage.getIcons().add(new Image("org/praisenter/logo/icon32x32.png"));
-		this.stage.getIcons().add(new Image("org/praisenter/logo/icon48x48.png"));
-		this.stage.getIcons().add(new Image("org/praisenter/logo/icon64x64.png"));
-		this.stage.getIcons().add(new Image("org/praisenter/logo/icon96x96.png"));
-		this.stage.getIcons().add(new Image("org/praisenter/logo/icon128x128.png"));
-		this.stage.getIcons().add(new Image("org/praisenter/logo/icon256x256.png"));
-		this.stage.getIcons().add(new Image("org/praisenter/logo/icon512x512.png"));
+		this.stage.getIcons().add(new Image(Praisenter.class.getResourceAsStream("/org/praisenter/logo/icon16x16alt.png"), 16, 16, true, true));
+		this.stage.getIcons().add(new Image(Praisenter.class.getResourceAsStream("/org/praisenter/logo/icon32x32.png")));
+		this.stage.getIcons().add(new Image(Praisenter.class.getResourceAsStream("/org/praisenter/logo/icon48x48.png")));
+		this.stage.getIcons().add(new Image(Praisenter.class.getResourceAsStream("/org/praisenter/logo/icon64x64.png")));
+		this.stage.getIcons().add(new Image(Praisenter.class.getResourceAsStream("/org/praisenter/logo/icon96x96.png")));
+		this.stage.getIcons().add(new Image(Praisenter.class.getResourceAsStream("/org/praisenter/logo/icon128x128.png")));
+		this.stage.getIcons().add(new Image(Praisenter.class.getResourceAsStream("/org/praisenter/logo/icon256x256.png")));
+		this.stage.getIcons().add(new Image(Praisenter.class.getResourceAsStream("/org/praisenter/logo/icon512x512.png")));
     	
 		this.stage.initModality(Modality.NONE);
 		this.stage.setResizable(false);

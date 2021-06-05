@@ -1,7 +1,6 @@
 package org.praisenter.ui.slide;
 
 import org.praisenter.data.slide.Slide;
-import org.praisenter.utility.ClasspathLoader;
 
 import javafx.beans.binding.Bindings;
 import javafx.scene.control.ListCell;
@@ -13,7 +12,7 @@ import javafx.scene.layout.BackgroundRepeat;
 import javafx.scene.layout.Pane;
 
 final class SlideListCell extends ListCell<Slide> {
-	private static final Image TRANSPARENT_PATTERN = ClasspathLoader.getImage("org/praisenter/images/transparent.png");
+	private static final Image TRANSPARENT_PATTERN = new Image(SlideListCell.class.getResourceAsStream("/org/praisenter/images/transparent.png"));
 	
 	private final ImageView graphic;
 	private final Pane pane;

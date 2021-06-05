@@ -22,7 +22,6 @@ import org.praisenter.data.slide.text.TextPlaceholderComponent;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.Playable;
 import org.praisenter.ui.slide.convert.TransitionConverter;
-import org.praisenter.utility.ClasspathLoader;
 import org.praisenter.utility.Scaling;
 
 import javafx.animation.ParallelTransition;
@@ -50,7 +49,7 @@ import javafx.scene.transform.Scale;
 import javafx.util.Duration;
 
 public class SlideView extends Region implements Playable {
-	private static final Image TRANSPARENT_PATTERN = ClasspathLoader.getImage("org/praisenter/images/transparent.png");
+	private static final Image TRANSPARENT_PATTERN = new Image(SlideView.class.getResourceAsStream("/org/praisenter/images/transparent.png"));
 	
 	private final GlobalContext context;
 	

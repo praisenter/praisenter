@@ -53,6 +53,8 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 
+//FEATURE (L-L) Implement import from PDF for song lyrics
+//FEATURE (L-L) Implement upload of chord sheet for display on a teleprompter
 //JAVABUG (L) 11/03/16 Dragging to the edge of a scrollable window doesn't scroll it and there's no good way to scroll it manually
 
 public final class SongEditor extends BorderPane implements DocumentEditor<Song> {

@@ -54,6 +54,8 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.util.Duration;
 
+// FIXME Controlsfx issue at runtime when using modules => https://stackoverflow.com/questions/53695304/autocompletionbinding-cannot-access-class-com-sun-javafx-event-eventhandlermanag / https://github.com/controlsfx/controlsfx/blob/9.0.0/build.gradle#L1
+
 // FIXME fix the manifest
 // FIXME explore deployment options
 // FIXME testing on High DPI screens
@@ -128,11 +130,25 @@ public final class Praisenter extends Application {
 			}
 		}
 		
+		// set the log4j configuration file path
+		Path englishTranslationPath = Paths.get(Constants.LOCALES_ABSOLUTE_FILE_PATH, "messages.properties");
+		if (!Files.exists(englishTranslationPath)) {
+			// read the file from 
+			try {
+				Files.createDirectories(Paths.get(Constants.LOCALES_ABSOLUTE_FILE_PATH));
+				ClasspathLoader.copy("/org/praisenter/translations/messages.properties", englishTranslationPath);
+			} catch (Exception e) {
+				// attempt to write to something
+				e.printStackTrace();
+				throw new RuntimeException("Failed to copy messages.properties file from classpath to Praisenter root path", e);
+			}
+		}
+		
 		System.setProperty(XmlConfigurationFactory.CONFIGURATION_FILE_PROPERTY, log4jPath.toAbsolutePath().toString());
 		
 		// create a logger for this class after the log4j has been initialized
 		LOGGER = LogManager.getLogger();
-    	
+    		
 		// log some system info
     	LOGGER.info(Constants.NAME + " v" + Version.STRING);
     	LOGGER.info("OS:        " + (RuntimeProperties.IS_WINDOWS_OS ? "[Windows] " : RuntimeProperties.IS_MAC_OS ? "[MacOS] " : RuntimeProperties.IS_LINUX_OS ? "[Linux] " : "[Other] ") + RuntimeProperties.OPERATING_SYSTEM + " " + RuntimeProperties.ARCHITECTURE);
@@ -192,14 +208,14 @@ public final class Praisenter extends Application {
     	stage.setTitle(Constants.NAME + " " + Version.STRING);
     	
     	// icons
-    	stage.getIcons().add(new Image("org/praisenter/logo/icon16x16alt.png", 16, 16, true, true));
-    	stage.getIcons().add(new Image("org/praisenter/logo/icon32x32.png"));
-    	stage.getIcons().add(new Image("org/praisenter/logo/icon48x48.png"));
-    	stage.getIcons().add(new Image("org/praisenter/logo/icon64x64.png"));
-    	stage.getIcons().add(new Image("org/praisenter/logo/icon96x96.png"));
-    	stage.getIcons().add(new Image("org/praisenter/logo/icon128x128.png"));
-    	stage.getIcons().add(new Image("org/praisenter/logo/icon256x256.png"));
-    	stage.getIcons().add(new Image("org/praisenter/logo/icon512x512.png"));
+    	stage.getIcons().add(new Image(Praisenter.class.getResourceAsStream("/org/praisenter/logo/icon16x16alt.png"), 16, 16, true, true));
+    	stage.getIcons().add(new Image(Praisenter.class.getResourceAsStream("/org/praisenter/logo/icon32x32.png")));
+    	stage.getIcons().add(new Image(Praisenter.class.getResourceAsStream("/org/praisenter/logo/icon48x48.png")));
+    	stage.getIcons().add(new Image(Praisenter.class.getResourceAsStream("/org/praisenter/logo/icon64x64.png")));
+    	stage.getIcons().add(new Image(Praisenter.class.getResourceAsStream("/org/praisenter/logo/icon96x96.png")));
+    	stage.getIcons().add(new Image(Praisenter.class.getResourceAsStream("/org/praisenter/logo/icon128x128.png")));
+    	stage.getIcons().add(new Image(Praisenter.class.getResourceAsStream("/org/praisenter/logo/icon256x256.png")));
+    	stage.getIcons().add(new Image(Praisenter.class.getResourceAsStream("/org/praisenter/logo/icon512x512.png")));
     	
 		// load fonts
     	LOGGER.info("Loading glyph fonts.");
@@ -336,48 +352,53 @@ public final class Praisenter extends Application {
     		LOGGER.info("Starting load");
     		loadingPane.start().thenRun(() -> {
     			Platform.runLater(() -> {
-    				// setup the display manager
-    				LOGGER.info("Initializing the screen manager.");
-    				context.getDisplayManager().initialize();
-    				
-    				// load fonts
-    				LOGGER.info("Loading fonts.");
-    				List<String> families = Font.getFamilies();
-    				Font.getFontNames();
-    				// to improve performance of font pickers, we need to preload
-    				// the fonts by creating a font for each one
-    				for (String family : families) {
-    					Font.font(family);
+    				try {
+	    				// setup the display manager
+	    				LOGGER.info("Initializing the screen manager.");
+	    				context.getDisplayManager().initialize();
+	    				
+	    				// load fonts
+	    				LOGGER.info("Loading fonts.");
+	    				List<String> families = Font.getFamilies();
+	    				Font.getFontNames();
+	    				// to improve performance of font pickers, we need to preload
+	    				// the fonts by creating a font for each one
+	    				for (String family : families) {
+	    					Font.font(family);
+	    				}
+	    				LOGGER.info("Fonts loaded.");
+	    				
+	    				LOGGER.info("Building UI");
+	    	    		PraisenterPane main = new PraisenterPane(context);
+	    	    		layout.getChildren().add(0, main);
+	    	    		
+	    				// fade out the loader
+	    				FadeTransition fade = new FadeTransition(Duration.millis(600), loadingPane);
+	    				fade.setFromValue(1.0);
+	    				fade.setToValue(0.0);
+	    				
+	    				// we'll pause for a moment to let the user see it completed
+	    				SequentialTransition seq = new SequentialTransition(new PauseTransition(Duration.millis(1500)), fade);
+	    				seq.setAutoReverse(false);
+	    				seq.setCycleCount(1);
+	    				
+	    				// when the fade out is complete
+	    				seq.statusProperty().addListener((fadeStatus, oldFadeStatus, newFadeStatus) -> {
+	    					if (newFadeStatus == Animation.Status.STOPPED) {
+	    						LOGGER.info("Fade out of loading screen complete.");
+	    						layout.getChildren().remove(loadingPane);
+	    						LOGGER.info("Loading scene removed from the scene graph. {} node(s) remaining.", layout.getChildren().size());
+	    						final long endTime = System.nanoTime();
+	    						LOGGER.info("Loading completed in {} seconds.", (endTime - startTime) / 1e9);
+	    					}
+	    				});
+	    				
+	    				// play the fade out
+	    				seq.play();
+    				} catch (Exception ex) {
+    					LOGGER.error(ex.getMessage(), ex);
+    					this.showExecptionAlertThenExit(ex, stage);
     				}
-    				LOGGER.info("Fonts loaded.");
-    				
-    				LOGGER.info("Building UI");
-    	    		PraisenterPane main = new PraisenterPane(context);
-    	    		layout.getChildren().add(0, main);
-    	    		
-    				// fade out the loader
-    				FadeTransition fade = new FadeTransition(Duration.millis(600), loadingPane);
-    				fade.setFromValue(1.0);
-    				fade.setToValue(0.0);
-    				
-    				// we'll pause for a moment to let the user see it completed
-    				SequentialTransition seq = new SequentialTransition(new PauseTransition(Duration.millis(1500)), fade);
-    				seq.setAutoReverse(false);
-    				seq.setCycleCount(1);
-    				
-    				// when the fade out is complete
-    				seq.statusProperty().addListener((fadeStatus, oldFadeStatus, newFadeStatus) -> {
-    					if (newFadeStatus == Animation.Status.STOPPED) {
-    						LOGGER.info("Fade out of loading screen complete.");
-    						layout.getChildren().remove(loadingPane);
-    						LOGGER.info("Loading scene removed from the scene graph. {} node(s) remaining.", layout.getChildren().size());
-    						final long endTime = System.nanoTime();
-    						LOGGER.info("Loading completed in {} seconds.", (endTime - startTime) / 1e9);
-    					}
-    				});
-    				
-    				// play the fade out
-    				seq.play();
     			});
     		}).exceptionally((ex) -> {
     			this.showExecptionAlertThenExit(ex, stage);
