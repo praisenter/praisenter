@@ -4,59 +4,99 @@ import java.util.List;
 import java.util.Objects;
 
 import org.praisenter.data.StringTextStore;
+import org.praisenter.data.TextStore;
+import org.praisenter.data.configuration.DisplayRole;
 import org.praisenter.data.slide.Slide;
+import org.praisenter.data.slide.graphics.SlideStrokeCap;
 import org.praisenter.ui.GlobalContext;
+import org.praisenter.ui.Option;
 import org.praisenter.ui.bible.BibleNavigationPane;
+import org.praisenter.ui.bind.BindingHelper;
 import org.praisenter.ui.slide.SlideMode;
 import org.praisenter.ui.slide.SlideTemplateComboBox;
 import org.praisenter.ui.slide.SlideView;
 import org.praisenter.ui.translations.Translations;
 
+import javafx.beans.binding.DoubleBinding;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.value.ObservableDoubleValue;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.collections.ListChangeListener.Change;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
+import javafx.scene.image.ImageView;
+import javafx.scene.image.WritableImage;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.robot.Robot;
 
 public final class DisplayController extends BorderPane {
 	private static final String REMOVED = "REMOVED";
 	private static final String REPLACED = "REPLACED";
 	
 	private final GlobalContext context;
+	private final DisplayTarget target;
 	
-	public DisplayController(GlobalContext context) {
+	private final DoubleProperty maxWidth = new SimpleDoubleProperty(400);
+	private final DoubleBinding maxHeight;
+	
+	public DisplayController(GlobalContext context, DisplayTarget target) {
 		this.context = context;
+		this.target = target;
+		
+		Robot robot = new Robot();
+		WritableImage image = robot.getScreenCapture(null, 
+				target.getDisplay().getX(), 
+				target.getDisplay().getY(), 
+				target.getDisplay().getWidth(), 
+				target.getDisplay().getHeight());
+		
+		this.maxHeight = this.maxWidth.divide(target.getDisplay().widthProperty()).multiply(target.getDisplay().heightProperty());
+		
+		ObservableList<Option<DisplayRole>> displayRoleOptions = FXCollections.observableArrayList();
+		displayRoleOptions.add(new Option<>(Translations.get("display.role." + DisplayRole.NONE), DisplayRole.NONE));
+		displayRoleOptions.add(new Option<>(Translations.get("display.role." + DisplayRole.MAIN), DisplayRole.MAIN));
+		displayRoleOptions.add(new Option<>(Translations.get("display.role." + DisplayRole.TELEPROMPT), DisplayRole.TELEPROMPT));
+		displayRoleOptions.add(new Option<>(Translations.get("display.role." + DisplayRole.OTHER), DisplayRole.OTHER));
+		ChoiceBox<Option<DisplayRole>> cbDisplayRole = new ChoiceBox<>(displayRoleOptions);
+		
+		ImageView screen = new ImageView(image);
+		screen.fitWidthProperty().bind(this.maxWidth);
+		screen.setPreserveRatio(true);
 		
 		SlideView slideView = new SlideView(context);
 		slideView.setViewMode(SlideMode.PREVIEW);
 		slideView.setClipEnabled(true);
 		slideView.setFitToWidthEnabled(true);
-		slideView.setMaxWidth(400);
+		slideView.setCheckeredBackgroundEnabled(false);
+		slideView.prefWidthProperty().bind(this.maxWidth);
+		slideView.prefHeightProperty().bind(this.maxHeight);
 	
 		SlideView notificationView = new SlideView(context);
 		notificationView.setViewMode(SlideMode.PREVIEW);
 		notificationView.setClipEnabled(true);
 		notificationView.setFitToWidthEnabled(true);
-		notificationView.setMaxWidth(400);
 		notificationView.setCheckeredBackgroundEnabled(false);
 		notificationView.setAutoHideEnabled(true);
+		notificationView.prefWidthProperty().bind(this.maxWidth);
+		notificationView.prefHeightProperty().bind(this.maxHeight);
 		
 		SlideTemplateComboBox cmbSlideTemplate = new SlideTemplateComboBox(context);
 		SlideTemplateComboBox cmbNotificationTemplate = new SlideTemplateComboBox(context);
 		BibleNavigationPane bibleNavigationPane = new BibleNavigationPane(context);
 		
-		this.setTop(new StackPane(slideView, notificationView));
-		
-		VBox editor = new VBox();
+		VBox layout = new VBox();
 		
 //		Button btnPlay = new Button("Play");
 //		Button btnStop = new Button("Stop");
-//		
-		ComboBox<DisplayTarget> cmbTarget = new ComboBox<DisplayTarget>(context.getDisplayManager().getDisplayTargets());
-		cmbTarget.getSelectionModel().select(0);
+
 		Button btnShowSlide = new Button(Translations.get("display.controller.show"));
 		Button btnClearSlide = new Button(Translations.get("display.controller.hide"));
 		
@@ -65,15 +105,33 @@ public final class DisplayController extends BorderPane {
 		Button btnPreviewNotification = new Button(Translations.get("display.controller.preview"));
 		Button btnShowNotification = new Button(Translations.get("display.controller.show"));
 		Button btnClearNotification = new Button(Translations.get("display.controller.hide"));
+		CheckBox chkAutoShow = new CheckBox(Translations.get("display.controller.autoshow"));
+		CheckBox chkPreviewTransition = new CheckBox(Translations.get("display.controller.previewTransition"));
 		
-		editor.getChildren().add(cmbSlideTemplate);
-		editor.getChildren().add(new HBox(cmbTarget, btnShowSlide, btnClearSlide));
-		editor.getChildren().add(bibleNavigationPane);
-		editor.getChildren().add(cmbNotificationTemplate);
-		editor.getChildren().add(txtNotification);
-		editor.getChildren().add(new HBox(btnPreviewNotification, btnShowNotification, btnClearNotification));
-
-		this.setCenter(editor);
+		layout.getChildren().add(new StackPane(screen, slideView, notificationView));
+		layout.getChildren().add(chkPreviewTransition);
+		layout.getChildren().add(cmbSlideTemplate);
+		layout.getChildren().add(new HBox(chkAutoShow, btnShowSlide, btnClearSlide));
+		layout.getChildren().add(bibleNavigationPane);
+		layout.getChildren().add(cmbNotificationTemplate);
+		layout.getChildren().add(txtNotification);
+		layout.getChildren().add(new HBox(btnPreviewNotification, btnShowNotification, btnClearNotification));
+		
+		this.setTop(cbDisplayRole);
+		this.setCenter(layout);
+		
+		layout.visibleProperty().bind(cbDisplayRole.valueProperty().isNotEqualTo(new Option<>(null, DisplayRole.NONE)));
+		layout.managedProperty().bind(layout.visibleProperty());
+		
+		cbDisplayRole.setValue(new Option<>(null, target.getDisplay().getRole()));
+		BindingHelper.bindBidirectional(cbDisplayRole.valueProperty(), target.getDisplay().roleProperty());
+		
+		cbDisplayRole.valueProperty().addListener((obs, ov, nv) -> {
+			if (nv.getValue() == DisplayRole.NONE) {
+				// clear the screen
+				target.clear();
+			}
+		});
 		
 //		btnPlay.setOnAction(e -> {
 //			//this.slidePreviewPane.stop();
@@ -88,49 +146,48 @@ public final class DisplayController extends BorderPane {
 //		});
 
 		btnShowSlide.setOnAction(e -> {
-			DisplayTarget target = cmbTarget.getValue();
-			
-			Slide newSlide = slideView.getSlide();
+			Slide newSlide = cmbSlideTemplate.getValue();
 			Slide oldSlide = target.getSlide();
 			
+			final TextStore data = bibleNavigationPane.getValue();
 			if (this.isPlaceholderTransitionOnly(oldSlide, newSlide)) {
 				// do placeholders only
-				target.displaySlidePlaceholders(bibleNavigationPane.getValue());
+				target.displaySlidePlaceholders(data);
 			} else {
-				target.displaySlide(newSlide);
+				target.displaySlide(newSlide, data);
 			}
 		});
 		
 		btnClearSlide.setOnAction(e -> {
-			DisplayTarget target = cmbTarget.getValue();
-			target.displaySlide(null);
+			target.displaySlide(null, null);
 		});
 		
 		btnPreviewNotification.setOnAction(e -> {
+			boolean transition = chkPreviewTransition.isSelected();
 			Slide nv = cmbNotificationTemplate.getValue();
 			if (nv != null) {
 				Slide slide = nv.copy();
 				slide.setPlaceholderData(new StringTextStore(txtNotification.getText()));
-				notificationView.transitionSlide(slide);
+				slide.fit(target.getDisplay().getWidth(), target.getDisplay().getHeight());
+				if (transition) {
+					notificationView.transitionSlide(slide);
+				} else { 
+					notificationView.swapSlide(slide);
+				}
 			} else {
-				notificationView.setSlide(null);
+				notificationView.swapSlide(null);
 			}
 		});
 		
 		btnShowNotification.setOnAction(e -> {
-			DisplayTarget target = cmbTarget.getValue();
-			
 			Slide newSlide = cmbNotificationTemplate.getValue();
 			if (newSlide != null) {
-				newSlide = newSlide.copy();
-				newSlide.setPlaceholderData(new StringTextStore(txtNotification.getText()));
-				target.displayNotification(newSlide);
+				target.displayNotification(newSlide, new StringTextStore(txtNotification.getText()));
 			}
 		});
 		
 		btnClearNotification.setOnAction(e -> {
-			DisplayTarget target = cmbTarget.getValue();
-			target.displayNotification(null);
+			target.displayNotification(null, null);
 		});
 		
 		// TODO how can we allow the user to select nothing?
@@ -156,21 +213,44 @@ public final class DisplayController extends BorderPane {
         });
 		
 		cmbSlideTemplate.valueProperty().addListener((obs, ov, nv) -> {
+			boolean transition = chkPreviewTransition.isSelected();
 			if (nv != null) {
 				Slide slide = nv.copy();
-				slide.setPlaceholderData(bibleNavigationPane.getValue());
+				slide.setPlaceholderData(bibleNavigationPane.getValue().copy());
+				slide.fit(target.getDisplay().getWidth(), target.getDisplay().getHeight());
 				// TODO add checkbox for transition slide
 //				this.slideView.swapSlide(slide);
 				// TODO add checkbox for transition placeholders
 //				this.slideView.setSlide(slide);
-				slideView.transitionSlide(slide);
+				if (transition) {
+					slideView.transitionSlide(slide);
+				} else {
+					slideView.swapSlide(slide);
+				}
 			} else {
-				slideView.setSlide(null);
+				slideView.swapSlide(null);
 			}
 		});
 		
 		bibleNavigationPane.valueProperty().addListener((obs, ov, nv) -> {
-			slideView.transitionPlaceholders(nv.copy());
+			boolean transition = chkPreviewTransition.isSelected();
+			if (transition) {
+				slideView.transitionPlaceholders(nv.copy());
+			} else {
+				slideView.swapPlaceholders(nv.copy());
+			}
+			
+			if (chkAutoShow.isSelected()) {
+				Slide newSlide = cmbSlideTemplate.getValue();
+				Slide oldSlide = target.getSlide();
+				
+				if (this.isPlaceholderTransitionOnly(oldSlide, newSlide)) {
+					// do placeholders only
+					target.displaySlidePlaceholders(nv);
+				} else {
+					target.displaySlide(newSlide, nv);
+				}
+			}
 		});
 	}
 	

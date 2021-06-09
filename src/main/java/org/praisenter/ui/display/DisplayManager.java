@@ -77,6 +77,130 @@ public final class DisplayManager {
 		this.targets.clear();
 	}
 
+	private DesktopState onScreensChanged() {
+		DesktopState whatHappened = DesktopState.NO_CHANGE;
+		List<Screen> screens = new ArrayList<Screen>(Screen.getScreens());
+		int sSize = screens.size();
+		
+		// get the configured displays
+		ObservableList<Display> displays = this.context.getConfiguration().getDisplays();
+		int dSize = displays.size();
+		
+		LOGGER.info("Current Screen Assignment: ");
+		for (Display display : displays) {
+			LOGGER.info(display);
+		}
+		
+		// check if the screen count changed
+		if (dSize != sSize) {
+			whatHappened = sSize < dSize ? DesktopState.DISPLAY_COUNT_DECREASED : DesktopState.DISPLAY_COUNT_INCREASED;
+		}
+		
+		if (dSize == 0) {
+			// screens have never been assigned so auto-assign them
+			for (int i = 0; i < sSize; i++) {
+				DisplayRole role = this.getDisplayRoleForScreenNumber(i, sSize);
+
+				Display display = this.toDisplay(screens.get(i), i, role);
+				displays.add(display);
+
+				this.targets.add(new DisplayTarget(this.context, display));
+			}
+			whatHappened = DesktopState.NO_INITIAL_CONFIGURATION;
+		} else {
+			List<Display> toRemove = new ArrayList<>();
+			List<Display> toAdd = new ArrayList<>();
+			
+			// map the screens by index
+			Map<Integer, Screen> s = new HashMap<>();
+			for (int i = 0; i < sSize; i++) {
+				s.put(i, screens.get(i));
+			}
+			
+			// verify each display's state
+			int n = Math.max(sSize, dSize);
+			for (int i = 0; i < n; i++) {
+				Display display = null;
+				if (i < dSize) {
+					display = displays.get(i);
+				}
+				
+				int index = -1;
+				Screen screen = null;
+				if (display != null) {
+					index = display.getId();
+					screen = s.remove(index);
+				} else {
+					for (Integer j : s.keySet()) 
+					{
+						index = j;
+						screen = s.get(j);
+						break;
+					}
+					if (index >= 0) {
+						s.remove(index);
+					}
+				}
+				
+				DisplayState state = this.getDisplayState(display, screen);
+				
+				switch (state) {
+					case SCREEN_INDEX_DOESNT_EXIST:
+						toRemove.add(display);
+						
+						this.removeDisplayTargetForDisplay(display);
+						
+						whatHappened = DesktopState.DISPLAY_COUNT_DECREASED;
+						break;
+					case POSITION_CHANGED:
+					case RESOLUTION_CHANGED:
+					case POSITION_AND_RESOLUTION_CHANGED:
+						Display replacement = this.toDisplay(screen, index, display.getRole());
+						toRemove.add(display);
+						toAdd.add(replacement);
+						
+						this.removeDisplayTargetForDisplay(display);
+						this.targets.add(new DisplayTarget(this.context, replacement));
+						
+						whatHappened = DesktopState.DISPLAY_POSITION_OR_RESOLUTION_CHANGED;
+						break;
+					case VALID:
+						// do we have target for this display?
+//						if (display.getRole() != DisplayRole.NONE) {
+							DisplayTarget target = this.getDisplayTargetForDisplay(display);
+							if (target == null) {
+								this.targets.add(new DisplayTarget(this.context, display));
+							}
+//						}
+						break;
+					case SCREEN_NOT_ASSIGNED:
+						DisplayRole role = this.getDisplayRoleForScreenNumber(i, sSize);
+						Display newDisplay = this.toDisplay(screen, index, role);
+						toAdd.add(newDisplay);
+						
+						this.targets.add(new DisplayTarget(this.context, newDisplay));
+						
+						whatHappened = DesktopState.DISPLAY_COUNT_INCREASED;
+						break;
+					default:
+						// do nothing?
+						break;
+				}
+			}
+			
+			displays.removeAll(toRemove);
+			displays.addAll(toAdd);
+		}
+		
+		LOGGER.info("Screen update result: " + whatHappened);
+		LOGGER.info("New Screen Assignment: ");
+		for (Display display : displays) {
+			LOGGER.info(display);
+		}
+
+		return whatHappened;
+	}
+	
 	/**
 	 * Helper method to perform the automatic screen assignment and adjustment when the screens
 	 * change, move, added, etc.
@@ -84,7 +208,7 @@ public final class DisplayManager {
 	 * Returns true if this process automatically assigns a screen.
 	 * @return DisplayCollectionState
 	 */
-	private DesktopState onScreensChanged() {
+	private DesktopState onScreensChanged2() {
 		DesktopState whatHappened = DesktopState.NO_CHANGE;
 		List<Screen> screens = new ArrayList<Screen>(Screen.getScreens());
 		int sSize = screens.size();

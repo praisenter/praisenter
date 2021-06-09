@@ -54,8 +54,6 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.util.Duration;
 
-// FIXME Controlsfx issue at runtime when using modules => https://stackoverflow.com/questions/53695304/autocompletionbinding-cannot-access-class-com-sun-javafx-event-eventhandlermanag / https://github.com/controlsfx/controlsfx/blob/9.0.0/build.gradle#L1
-
 // FIXME fix the manifest
 // FIXME explore deployment options
 // FIXME testing on High DPI screens
@@ -66,7 +64,7 @@ import javafx.util.Duration;
 // FEATURE (M-L) Evaluate alternate JavaFX styles here https://github.com/JFXtras/jfxtras-styles
 // FEATURE (H-L) Quick send to display - any place in the app when the context contains something that could be displayed offer a Quick Display button to allow the user to quickly get it shown - with configurable settings
 // FEATURE (M-L) From selected media items, generate slides or slide show
-// FEATURE (H-H) Auto-update feature
+// FEATURE (H-H) Auto-update feature (windows only?); Update check (connect out to github packages or something); Auto-download install (download and execute); In config store upgrade number, in app write code to convert from upgrade number to upgrade number;
 
 // a. Generate a self-signed public/private key pair
 // b. Generate a signature for the version-check.json and install.jar files
@@ -130,7 +128,7 @@ public final class Praisenter extends Application {
 			}
 		}
 		
-		// set the log4j configuration file path
+		// copy the default languages files
 		Path englishTranslationPath = Paths.get(Constants.LOCALES_ABSOLUTE_FILE_PATH, "messages.properties");
 		if (!Files.exists(englishTranslationPath)) {
 			// read the file from 
@@ -466,7 +464,7 @@ public final class Praisenter extends Application {
     
     private CompletableFuture<Void> onCloseRequest(GlobalContext context) {
     	// close the presentation screens
-		// TODO this.context.getDisplayManager().release();
+		context.getDisplayManager().release();
 		
     	// wait for any pending async tasks
     	// NOTE: the assumption here is that all asynchronous processing is being performed on the ForkJoinPool commonPool

@@ -10,8 +10,9 @@
 --vendor ${app.vendor}
 --description "${project.description}"
 --copyright "(C) ${app.vendor}"
+--linux-shortcut
 --linux-package-name ${app.vendor}
---linux-menu-group ${app.vendor}
+--linux-menu-group "Office;Presentation;Spirituality"
 --java-options "-Xms1g"
 --java-options "--add-exports=javafx.base/com.sun.javafx.event=ALL-UNNAMED"
 --java-options "--add-exports=javafx.graphics/com.sun.javafx.scene=ALL-UNNAMED"

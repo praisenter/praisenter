@@ -1,9 +1,6 @@
 --type msi
 --name ${app.name}
---win-menu
---win-menu-group ${app.vendor}
---vendor ${app.vendor}
---icon ${project.basedir}\package\windows64\Praisenter.ico
+--icon ${project.basedir}\package\windows64\praisenter.ico
 --dest ${project.build.directory}
 --main-jar ${project.build.finalName}.jar
 --main-class ${main-class}
@@ -11,9 +8,12 @@
 --app-version ${app.version}
 --runtime-image ${project.build.directory}\jvm-image
 --temp ${project.build.directory}\installer-work
---win-upgrade-uuid ${windows.upgrade.uuid}
+--vendor ${app.vendor}
 --description "${project.description}"
 --copyright "(C) ${app.vendor}"
+--win-menu
+--win-menu-group ${app.vendor}
+--win-upgrade-uuid ${windows.upgrade.uuid}
 --java-options "-Xms1g"
 --java-options "--add-exports=javafx.base/com.sun.javafx.event=ALL-UNNAMED"
 --java-options "--add-exports=javafx.graphics/com.sun.javafx.scene=ALL-UNNAMED"
