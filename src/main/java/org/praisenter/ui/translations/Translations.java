@@ -26,6 +26,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.Constants;
 
+// TODO ResourceBundle.Control is no longer supported in modular apps
 public final class Translations {
 	private static final Logger LOGGER = LogManager.getLogger();
 
@@ -39,6 +40,7 @@ public final class Translations {
 	static {
 		ClassLoader cl = null;
 		try {
+			// create a class loader that loads the resource files from the locales directory
 			Path path = Paths.get(Constants.LOCALES_ABSOLUTE_FILE_PATH);
 			cl = new URLClassLoader(new URL[] { path.toUri().toURL() });
 		} catch (MalformedURLException e) {

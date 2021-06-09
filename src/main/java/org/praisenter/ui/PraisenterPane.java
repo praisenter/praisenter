@@ -13,6 +13,7 @@ import org.praisenter.data.Persistable;
 import org.praisenter.data.configuration.Configuration;
 import org.praisenter.ui.controls.Alerts;
 import org.praisenter.ui.display.DisplayController;
+import org.praisenter.ui.display.DisplaysController;
 import org.praisenter.ui.document.DocumentsPane;
 import org.praisenter.ui.library.LibraryList;
 import org.praisenter.ui.library.LibraryListType;
@@ -111,7 +112,7 @@ final class PraisenterPane extends BorderPane {
 		LibraryList itemListing = new LibraryList(context, Orientation.HORIZONTAL, LibraryListType.values());
 		Bindings.bindContent(itemListing.getItems(), this.items);
 		
-		DisplayController sdp = new DisplayController(context);
+		DisplaysController dc = new DisplaysController(context);
 		
 		SplitPane split = new SplitPane(dep, itemListing);
 		split.setDividerPositions(0.75);
@@ -120,7 +121,7 @@ final class PraisenterPane extends BorderPane {
 		this.setTop(mainMenu);
 		this.setCenter(split);
 		this.setLeft(ab);
-		this.setRight(sdp);
+		this.setRight(dc);
 		
 		VBox.setVgrow(dep, Priority.ALWAYS);
 

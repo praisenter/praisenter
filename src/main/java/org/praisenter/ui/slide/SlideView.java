@@ -48,6 +48,8 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.transform.Scale;
 import javafx.util.Duration;
 
+
+// FIXME need to queue incoming transition slide/placeholder requests and play the last
 public class SlideView extends Region implements Playable {
 	private static final Image TRANSPARENT_PATTERN = new Image(SlideView.class.getResourceAsStream("/org/praisenter/images/transparent.png"));
 	
@@ -55,10 +57,7 @@ public class SlideView extends Region implements Playable {
 	
 	private final ObjectProperty<Slide> slide;
 	private final ObjectProperty<SlideNode> slideNode;
-//	
-//	private final ObjectProperty<Slide> slide1;
-//	private final ObjectProperty<SlideNode> slideNode1;
-	
+
 	private final DoubleProperty slideWidth;
 	private final DoubleProperty slideHeight;
 	
@@ -85,10 +84,7 @@ public class SlideView extends Region implements Playable {
 		
 		this.slide = new SimpleObjectProperty<>();
 		this.slideNode = new SimpleObjectProperty<>();
-//		
-//		this.slide1 = new SimpleObjectProperty<>();
-//		this.slideNode1 = new SimpleObjectProperty<>();
-//		
+
 		this.slideWidth = new SimpleDoubleProperty();
 		this.slideHeight = new SimpleDoubleProperty();
 		
@@ -122,42 +118,6 @@ public class SlideView extends Region implements Playable {
 			}
 		});
 		
-//		this.slideNode.addListener((obs, ov, nv) -> {
-//			if (ov != null) {
-//				scaleContainer.getChildren().remove(ov);
-//				ov.dispose();
-//				ov.mode.unbind();
-//			}
-//			if (nv != null) {
-//				scaleContainer.getChildren().add(nv);
-//				nv.mode.bind(this.mode);
-//			}
-//		});
-		
-//		this.slide1.addListener((obs, ov, nv) -> {
-////			this.slideHeight.unbind();
-////			this.slideWidth.unbind();
-//			this.slideNode1.set(null);
-//			
-//			if (nv != null) {
-////				this.slideWidth.bind(nv.widthProperty());
-////				this.slideHeight.bind(nv.heightProperty());
-//				this.slideNode1.set(new SlideNode(context, nv));
-//			}
-//		});
-//		
-//		this.slideNode1.addListener((obs, ov, nv) -> {
-//			if (ov != null) {
-//				scaleContainer.getChildren().remove(ov);
-//				ov.dispose();
-//				ov.mode.unbind();
-//			}
-//			if (nv != null) {
-//				scaleContainer.getChildren().add(nv);
-//				nv.mode.bind(this.mode);
-//			}
-//		});
-		
 		// Node hierarchy:
 		// +-------------------------------+--------------+---------------------------------------------------------+
 		// | Name                          | Type         | Role                                                    |
@@ -169,30 +129,6 @@ public class SlideView extends Region implements Playable {
 		// |       +- slideNode            | StackPane    | The root pane for the slide                             |
 		// +-------------------------------+--------------+---------------------------------------------------------+
 		
-		// clip by the slidePreview area
-//		Rectangle clipRect = new Rectangle(this.getWidth(), this.getHeight());
-//		clipRect.heightProperty().bind(this.heightProperty());
-//		clipRect.widthProperty().bind(this.widthProperty());
-//		this.setClip(clipRect);
-		
-		// create the slideBounds area for the
-		// unscaled transparency background
-		// move to CSS
-//		slideBounds.setBackground(new Background(new BackgroundImage(TRANSPARENT_PATTERN, BackgroundRepeat.REPEAT, BackgroundRepeat.REPEAT, null, null)));
-		// add a drop shadow effect for better looks
-//		DropShadow sdw = new DropShadow();
-//		sdw.setRadius(5);
-//		sdw.setColor(Color.rgb(0, 0, 0, 0.3));
-//		slideBounds.setEffect(sdw);
-//		
-//		this.backgroundProperty().bind(Bindings.createObjectBinding(() -> {
-//			SlideMode mode = this.mode.get();
-//			if (mode != SlideMode.PRESENT && mode != SlideMode.TELEPROMPT) {
-//				return new Background(new BackgroundImage(TRANSPARENT_PATTERN, BackgroundRepeat.REPEAT, BackgroundRepeat.REPEAT, null, null));
-//			}
-//			return null;
-//		}, this.mode));
-//		
 		// we size the slideBounds to a uniform scaled version
 		// using the current available space and the slide's 
 		// target resolution
@@ -368,6 +304,24 @@ public class SlideView extends Region implements Playable {
 			
 			if (this.mode.get() == SlideMode.PRESENT) {
 				newNode.play();
+			}
+			
+			// even if we're doing a swap, we still need to check if
+			// we should hide the slide after the auto-hide time
+			if (this.autoHideEnabled.get()) {
+				long time = slide.getTime();
+				if (time != Slide.TIME_FOREVER && time > 0) {
+					PauseTransition wait = new PauseTransition(new Duration(time * 1000));
+					wait.setOnFinished(e -> {
+						if (slide != null) {
+							Slide current = this.slide.get();
+							if (current == slide) {
+								this.swapSlide(null);
+							}
+						}
+					});
+					wait.play();
+				}
 			}
 		}
 	}

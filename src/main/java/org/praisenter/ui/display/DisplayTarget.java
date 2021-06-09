@@ -10,6 +10,7 @@ import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.Praisenter;
 import org.praisenter.ui.slide.SlideMode;
 import org.praisenter.ui.slide.SlideView;
+import org.praisenter.ui.translations.Translations;
 
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.event.EventHandler;
@@ -117,12 +118,17 @@ public final class DisplayTarget {
 		this.stage.setMaxWidth(display.getWidth());
 		this.stage.setMaxHeight(display.getHeight());
 		
-		this.stage.setTitle(Constants.NAME + " " + display.toString());
+		this.stage.setTitle(Constants.NAME + " " + this.toString());
 	}
 	
 	@Override
 	public String toString() {
-		return this.display.toString();
+		StringBuilder sb = new StringBuilder();
+		sb.append("#").append(this.display.getId() + 1)
+		  .append(" ").append(Translations.get("display.role." + this.display.getRole()))
+		  .append(" ").append(this.display.getWidth())
+		  .append("x").append(this.display.getHeight());
+		return sb.toString();
 	}
 	
 	public void dispose() {
@@ -141,7 +147,7 @@ public final class DisplayTarget {
 		this.stage.toFront();
 	}
 	
-	public void displaySlide(final Slide slide) {
+	public void displaySlide(final Slide slide, final TextStore data) {
 		if (slide == null) {
 			this.slideView.transitionSlide(null);
 			return;
@@ -149,6 +155,10 @@ public final class DisplayTarget {
 		
 		Slide copy = slide.copy();
 
+		if (data != null) {
+			copy.setPlaceholderData(data.copy());
+		}
+		
 		double w = this.display.getWidth();
 		double h = this.display.getHeight();
 		
@@ -159,7 +169,7 @@ public final class DisplayTarget {
 		this.stage.toFront();
 	}
 
-	public void displayNotification(final Slide slide) {
+	public void displayNotification(final Slide slide, final TextStore data) {
 		if (slide == null) {
 			this.notificationView.transitionSlide(null);
 			return;
@@ -167,6 +177,10 @@ public final class DisplayTarget {
 		
 		Slide copy = slide.copy();
 
+		if (data != null) {
+			copy.setPlaceholderData(data.copy());
+		}
+		
 		double w = this.display.getWidth();
 		double h = this.display.getHeight();
 		
@@ -175,6 +189,11 @@ public final class DisplayTarget {
 		this.notificationView.transitionSlide(copy);
 		
 		this.stage.toFront();
+	}
+	
+	public void clear() {
+		this.slideView.swapSlide(null);
+		this.notificationView.swapSlide(null);
 	}
 	
 	public Display getDisplay() {
