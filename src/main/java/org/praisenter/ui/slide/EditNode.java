@@ -218,7 +218,6 @@ final class EditNode extends StackPane {
 					editBorder.setBorder(null);
 				}
 			}
-			e.consume();
 		});
 		
 		this.selected.addListener((obs, ov, nv) -> {

@@ -192,8 +192,8 @@ public enum Action {
 			// slide related sub creates
 			Action.NEW_SLIDE_TEXT_COMPONENT,
 			Action.NEW_SLIDE_MEDIA_COMPONENT,
-			Action.NEW_SLIDE_DATETIME_COMPONENT,
 			Action.NEW_SLIDE_PLACEHOLDER_COMPONENT,
+			Action.NEW_SLIDE_DATETIME_COMPONENT,
 			Action.NEW_SLIDE_COUNTDOWN_COMPONENT,
 			// song related sub creates
 			Action.NEW_LYRICS,

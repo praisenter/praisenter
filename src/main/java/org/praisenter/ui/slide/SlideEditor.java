@@ -36,8 +36,14 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.EventHandler;
+import javafx.event.EventTarget;
 import javafx.event.EventType;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DataFormat;
@@ -166,12 +172,60 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 //		this.addEventFilter(MouseEvent.ANY, e -> {
 //			this.requestFocus();
 //		});
+		
+		// if the user clicks on anything other than an EditNode, then set the selected value to null
 		this.addEventHandler(MouseEvent.ANY, e -> {
 			EventType<?> et = e.getEventType();
 			if (et == MouseEvent.MOUSE_CLICKED || et == MouseEvent.MOUSE_PRESSED || et == MouseEvent.MOUSE_RELEASED) {
-				this.selected.set(null);
+				if (!this.isEventTargetAnEditNode(e.getTarget())) {
+					this.selected.set(null);
+				}
 			}
 		});
+		
+		ContextMenu menu = new ContextMenu();
+		menu.getItems().addAll(
+			this.createMenuItem(Action.NEW_SLIDE_TEXT_COMPONENT),
+			this.createMenuItem(Action.NEW_SLIDE_MEDIA_COMPONENT),
+			this.createMenuItem(Action.NEW_SLIDE_PLACEHOLDER_COMPONENT),
+			this.createMenuItem(Action.NEW_SLIDE_DATETIME_COMPONENT),
+			this.createMenuItem(Action.NEW_SLIDE_COUNTDOWN_COMPONENT),
+			new SeparatorMenuItem(),
+			this.createMenuItem(Action.COPY),
+			this.createMenuItem(Action.CUT),
+			this.createMenuItem(Action.PASTE),
+			new SeparatorMenuItem(),
+			this.createMenuItem(Action.SLIDE_COMPONENT_MOVE_UP),
+			this.createMenuItem(Action.SLIDE_COMPONENT_MOVE_DOWN),
+			this.createMenuItem(Action.SLIDE_COMPONENT_MOVE_FRONT),
+			this.createMenuItem(Action.SLIDE_COMPONENT_MOVE_BACK),
+			new SeparatorMenuItem(),
+			this.createMenuItem(Action.DELETE)
+		);
+		menu.setAutoHide(true);
+		
+		// when the user clicks anywhere, make sure the context menu is hidden
+		this.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> {
+			if (e.isPopupTrigger()) return;
+			menu.hide();
+		});
+
+		this.setOnContextMenuRequested(e -> {
+			menu.show(this, e.getScreenX(), e.getScreenY());
+		});
+	}
+	
+	private MenuItem createMenuItem(Action action) {
+		MenuItem mnu = new MenuItem(Translations.get(action.getMessageKey()));
+		if (action.getGraphicSupplier() != null) {
+			mnu.setGraphic(action.getGraphicSupplier().get());
+		}
+		// NOTE: due to bug in JavaFX, we don't apply the accelerator here
+		//mnu.setAccelerator(value);
+		mnu.setOnAction(e -> this.executeAction(action));
+		mnu.disableProperty().bind(this.context.getActionEnabledProperty(action).not());
+		mnu.setUserData(action);
+		return mnu;
 	}
 	
 	private void clearSelectionExceptFor(EditNode node) {
@@ -180,6 +234,24 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 				n.setSelected(false);
 			}
 		}
+	}
+	
+	/**
+	 * Returns true if the EventTarget has an EditNode in it's node hierarchy.
+	 * @param target
+	 * @return
+	 */
+	private boolean isEventTargetAnEditNode(EventTarget target) {
+		if (target instanceof Node) {
+			Node node = (Node)target;
+			while (node != null) {
+				if (node instanceof EditNode) {
+					return true;
+				}
+				node = node.getParent();
+			}
+		}
+		return false;
 	}
 	
 	private void selectComponent(SlideComponent component) {
