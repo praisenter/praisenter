@@ -67,12 +67,5 @@ public enum SlideMode {
 	 * <p>
 	 * Quality: DEFAULT
 	 */
-	PRESENT,
-
-	/**
-	 * This mode is specifically for teleprompt information.
-	 * <p>
-	 * For now, this means musician information about a song.
-	 */
-	TELEPROMPT
+	PRESENT
 }

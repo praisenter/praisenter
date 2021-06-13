@@ -1,5 +1,6 @@
 package org.praisenter.ui.slide;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.praisenter.data.slide.effects.SlideShadow;
@@ -7,14 +8,18 @@ import org.praisenter.data.slide.graphics.DashPattern;
 import org.praisenter.data.slide.graphics.SlidePadding;
 import org.praisenter.data.slide.graphics.SlidePaint;
 import org.praisenter.data.slide.graphics.SlideStroke;
+import org.praisenter.data.slide.text.CountdownComponent;
+import org.praisenter.data.slide.text.DateTimeComponent;
 import org.praisenter.data.slide.text.FontScaleType;
 import org.praisenter.data.slide.text.HorizontalTextAlignment;
 import org.praisenter.data.slide.text.SlideFont;
 import org.praisenter.data.slide.text.TextComponent;
 import org.praisenter.data.slide.text.TextPlaceholderComponent;
+import org.praisenter.data.slide.text.TimedTextComponent;
 import org.praisenter.data.slide.text.VerticalTextAlignment;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.TextMeasurer;
+import org.praisenter.ui.TimeKeeper;
 import org.praisenter.ui.slide.convert.BorderConverter;
 import org.praisenter.ui.slide.convert.EffectConverter;
 import org.praisenter.ui.slide.convert.FontConverter;
@@ -68,6 +73,22 @@ final class TextComponentNode extends SlideComponentNode<TextComponent> {
 				this.setTextBorderDashes(nv);
 			}
 		});
+		
+		// initialize the now properties for Timed text components
+		if (region instanceof TimedTextComponent) {
+			TimedTextComponent ttc = (TimedTextComponent)region;
+			ttc.nowProperty().unbind();
+			ttc.setNow(LocalDateTime.now());
+
+			this.mode.addListener((obs, ov, nv) -> {
+				ttc.nowProperty().unbind();
+				if (nv == SlideMode.PRESENT) {
+					ttc.nowProperty().bind(TimeKeeper.CURRENT_TIME);
+				} else {
+					ttc.setNow(LocalDateTime.now());
+				}
+			});
+		}
 		
 //		this.wrapper.setMaxSize(USE_PREF_SIZE, USE_PREF_SIZE);
 		

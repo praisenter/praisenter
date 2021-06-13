@@ -433,6 +433,7 @@ public final class GlobalContext {
 				return this.createNewSlideAndOpen();
 			case NEW_SLIDE_SHOW:
 				// TODO implement
+				break;
 			case NEW_SONG:
 				return this.createNewSongAndOpen();
 			default:

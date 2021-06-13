@@ -11,7 +11,7 @@ import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 
-public interface ReadOnlyCountdownComponent extends ReadOnlyTextComponent, ReadOnlySlideComponent, ReadOnlySlideRegion, Copyable, Identifiable {
+public interface ReadOnlyCountdownComponent extends ReadOnlyTextComponent, ReadOnlyTimedTextComponent, ReadOnlySlideComponent, ReadOnlySlideRegion, Copyable, Identifiable {
 	public LocalDateTime getCountdownTarget();
 	public boolean isCountdownTimeOnly();
 	public String getCountdownFormat();
