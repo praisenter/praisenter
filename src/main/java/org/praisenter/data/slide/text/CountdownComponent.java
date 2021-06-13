@@ -60,7 +60,7 @@ import javafx.beans.property.StringProperty;
 	use = JsonTypeInfo.Id.NAME,
 	include = JsonTypeInfo.As.PROPERTY)
 @JsonTypeName(value = "countdownComponent")
-public final class CountdownComponent extends TextComponent implements ReadOnlyCountdownComponent, ReadOnlyTextComponent, ReadOnlySlideComponent, ReadOnlySlideRegion, Copyable, Identifiable {
+public final class CountdownComponent extends TimedTextComponent implements ReadOnlyCountdownComponent, ReadOnlyTimedTextComponent, ReadOnlyTextComponent, ReadOnlySlideComponent, ReadOnlySlideRegion, Copyable, Identifiable {
 	public static final String DEFAULT_FORMAT = "%1$02d:%2$02d:%3$02d:%4$02d:%5$02d:%6$02d";
 	
 	private final ObjectProperty<LocalDateTime> countdownTarget;
@@ -75,6 +75,7 @@ public final class CountdownComponent extends TextComponent implements ReadOnlyC
 		this.text.bind(Bindings.createStringBinding(() -> {
 			boolean timeOnly = this.countdownTimeOnly.get();
 			LocalDateTime target = this.countdownTarget.get();
+			LocalDateTime now = this.now.get();
 			String format = this.countdownFormat.get();
 			
 			if (target == null) target = LocalDateTime.now();
@@ -84,12 +85,12 @@ public final class CountdownComponent extends TextComponent implements ReadOnlyC
 				// get the time of the target only
 				LocalTime time = target.toLocalTime();
 				target = time.atDate(LocalDate.now());
-				if (target.isBefore(LocalDateTime.now())) {
+				if (target.isBefore(now)) {
 					target = target.plusDays(1);
 				}
 			}
-			return formatCountdown(format, target);
-		}, this.countdownTarget, this.countdownFormat, this.countdownTimeOnly));
+			return formatCountdown(format, target, now);
+		}, this.countdownTarget, this.countdownFormat, this.countdownTimeOnly, this.now));
 	}
 	
 	@Override
@@ -108,9 +109,7 @@ public final class CountdownComponent extends TextComponent implements ReadOnlyC
 	 * @param target the target date/time
 	 * @return String
 	 */
-	private final String formatCountdown(String format, LocalDateTime target) {
-		LocalDateTime temp = LocalDateTime.now();
-		
+	private final String formatCountdown(String format, LocalDateTime target, LocalDateTime now) {
 		long years = 0;
 		long months = 0;
 		long days = 0;
@@ -120,12 +119,12 @@ public final class CountdownComponent extends TextComponent implements ReadOnlyC
 		
 		// get the individual durations and advance each time
 		if (target != null) {
-			years	= temp.until(target, ChronoUnit.YEARS); 	temp = temp.plusYears(years);
-			months	= temp.until(target, ChronoUnit.MONTHS); 	temp = temp.plusMonths(months);
-			days	= temp.until(target, ChronoUnit.DAYS); 		temp = temp.plusDays(days);
-			hours	= temp.until(target, ChronoUnit.HOURS); 	temp = temp.plusHours(hours);
-			minutes = temp.until(target, ChronoUnit.MINUTES); 	temp = temp.plusMinutes(minutes);
-			seconds = temp.until(target, ChronoUnit.SECONDS);
+			years	= now.until(target, ChronoUnit.YEARS); 	now = now.plusYears(years);
+			months	= now.until(target, ChronoUnit.MONTHS); 	now = now.plusMonths(months);
+			days	= now.until(target, ChronoUnit.DAYS); 		now = now.plusDays(days);
+			hours	= now.until(target, ChronoUnit.HOURS); 	now = now.plusHours(hours);
+			minutes = now.until(target, ChronoUnit.MINUTES); 	now = now.plusMinutes(minutes);
+			seconds = now.until(target, ChronoUnit.SECONDS);
 		}
 		
 		if (format != null && format.trim().length() > 0) {

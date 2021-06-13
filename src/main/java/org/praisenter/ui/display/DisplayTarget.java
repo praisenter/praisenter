@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import org.praisenter.Constants;
 import org.praisenter.data.TextStore;
 import org.praisenter.data.configuration.Display;
+import org.praisenter.data.configuration.DisplayRole;
 import org.praisenter.data.slide.Slide;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.Praisenter;
@@ -75,7 +76,18 @@ public final class DisplayTarget {
 		this.container.setBackground(null);
 		
 		this.stage.setScene(new Scene(this.container, Color.TRANSPARENT));
-		this.stage.show();
+		
+		if (display.getRole() != DisplayRole.NONE) {
+			this.stage.show();
+		}
+		
+		display.roleProperty().addListener((obs, ov, nv) -> {
+			if (nv == DisplayRole.NONE) {
+				this.stage.hide();
+			} else if (!this.stage.isShowing()) {
+				this.stage.show();
+			}
+		});
 		
 		// setup debug mode notification
 		this.context.getConfiguration().debugModeEnabledProperty().addListener((obs, ov, nv) -> {

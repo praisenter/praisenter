@@ -26,7 +26,6 @@ package org.praisenter.data.slide.text;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
 
@@ -57,7 +56,7 @@ import javafx.beans.property.SimpleObjectProperty;
 	use = JsonTypeInfo.Id.NAME,
 	include = JsonTypeInfo.As.PROPERTY)
 @JsonTypeName(value = "dateTimeComponent")
-public final class DateTimeComponent extends TextComponent implements ReadOnlyDateTimeComponent, ReadOnlyTextComponent, ReadOnlySlideComponent, ReadOnlySlideRegion, Copyable, Identifiable {
+public final class DateTimeComponent extends TimedTextComponent implements ReadOnlyDateTimeComponent, ReadOnlyTimedTextComponent, ReadOnlyTextComponent, ReadOnlySlideComponent, ReadOnlySlideRegion, Copyable, Identifiable {
 	private final ObjectProperty<SimpleDateFormat> dateTimeFormat;
 	
 	public DateTimeComponent() {
@@ -68,9 +67,9 @@ public final class DateTimeComponent extends TextComponent implements ReadOnlyDa
 			
 			if (format == null) format = SimpleDateFormat.getDateInstance();
 			
-			return format.format(Date.from(LocalDate.now().atStartOfDay().atZone(ZoneId.systemDefault()).toInstant()));
+			return format.format(Date.from(this.now.get().atZone(ZoneId.systemDefault()).toInstant()));
 			
-		}, this.dateTimeFormat));
+		}, this.dateTimeFormat, this.now));
 	}
 	
 	@Override

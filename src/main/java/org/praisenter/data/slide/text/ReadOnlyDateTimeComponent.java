@@ -9,7 +9,7 @@ import org.praisenter.data.slide.ReadOnlySlideRegion;
 
 import javafx.beans.property.ReadOnlyObjectProperty;
 
-public interface ReadOnlyDateTimeComponent extends ReadOnlyTextComponent, ReadOnlySlideComponent, ReadOnlySlideRegion, Copyable, Identifiable {
+public interface ReadOnlyDateTimeComponent extends ReadOnlyTextComponent, ReadOnlyTimedTextComponent, ReadOnlySlideComponent, ReadOnlySlideRegion, Copyable, Identifiable {
 	public SimpleDateFormat getDateTimeFormat();
 	
 	public ReadOnlyObjectProperty<SimpleDateFormat> dateTimeFormatProperty();
