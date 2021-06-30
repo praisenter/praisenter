@@ -187,6 +187,14 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 		return documents;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.praisenter.data.slide.SlideRegion#toString()
+	 */
+	@Override
+	public String toString() {
+		return this.name.get();
+	}
+	
 	@Override
 	@JsonProperty(Constants.FORMAT_PROPERTY_NAME)
 	public String getFormat() {

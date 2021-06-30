@@ -70,7 +70,7 @@ final class LoadingPane extends Pane {
 		this.message = new SimpleStringProperty();
 		this.progress = new SimpleDoubleProperty();
 		
-		// FIXME Add "Praisenter" text or logo to the loading pane
+		// TODO Add "Praisenter" text or logo to the loading pane
 		// set the background image
     	setBackground(new Background(
     			new BackgroundImage(

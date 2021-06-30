@@ -1,13 +1,18 @@
 package org.praisenter.ui.slide;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Stack;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.praisenter.data.TextStore;
 import org.praisenter.data.media.Media;
 import org.praisenter.data.media.MediaType;
@@ -24,6 +29,8 @@ import org.praisenter.ui.Playable;
 import org.praisenter.ui.slide.convert.TransitionConverter;
 import org.praisenter.utility.Scaling;
 
+import javafx.animation.Animation.Status;
+import javafx.application.Platform;
 import javafx.animation.ParallelTransition;
 import javafx.animation.PauseTransition;
 import javafx.animation.SequentialTransition;
@@ -37,6 +44,8 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Background;
@@ -48,9 +57,8 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.transform.Scale;
 import javafx.util.Duration;
 
-
-// FIXME need to queue incoming transition slide/placeholder requests and play the last
 public class SlideView extends Region implements Playable {
+	private static final Logger LOGGER = LogManager.getLogger();
 	private static final Image TRANSPARENT_PATTERN = new Image(SlideView.class.getResourceAsStream("/org/praisenter/images/transparent.png"));
 	
 	private final GlobalContext context;
@@ -76,8 +84,8 @@ public class SlideView extends Region implements Playable {
 
 	private final Pane surface;
 	
-	private Transition placeholderTransition;
-	private Transition slideTransition;
+	private final Deque<TransitionRequest> requests;
+	private Transition currentTransition;
 	
 	public SlideView(GlobalContext context) {
 		this.context = context;
@@ -100,6 +108,9 @@ public class SlideView extends Region implements Playable {
 		
 		this.clipEnabled = new SimpleBooleanProperty(false);
 
+		this.requests = new ArrayDeque<>();
+		this.currentTransition = null;
+		
 		this.setSnapToPixel(true);
 		
 		Pane viewBackground = new Pane();
@@ -244,13 +255,10 @@ public class SlideView extends Region implements Playable {
 		if (slideNode != null) {
 			slideNode.dispose();
 		}
-		Transition slideTx = this.slideTransition;
-		if (slideTx != null) {
-			slideTx.stop();
-		}
-		Transition placeholderTx = this.placeholderTransition;
-		if (placeholderTx != null) {
-			placeholderTx.stop();
+		this.requests.clear();
+		Transition tx = this.currentTransition;
+		if (tx != null) {
+			tx.stop();
 		}
 	}
 	
@@ -282,6 +290,16 @@ public class SlideView extends Region implements Playable {
 	public void swapSlide(Slide slide) {
 		Slide oldSlide = this.slide.get();
 		SlideNode oldNode = this.slideNode.get();
+
+		// clear any pending requests
+		this.requests.clear();
+		
+		if (this.currentTransition != null) {
+			LOGGER.debug("Transition in progress - immediately finishing it.");
+			this.currentTransition.jumpTo(this.currentTransition.getCycleDuration());
+		}
+
+		LOGGER.debug("Swapping slide: {} with {}", oldSlide, slide);
 		
 		// clean up
 		if (oldNode != null) {
@@ -327,10 +345,42 @@ public class SlideView extends Region implements Playable {
 	}
 	
 	public void transitionSlide(Slide slide) {
-		// TODO it works without this, but maybe we should enforce it
-//		if (this.slideTransition != null) {
-//			return;
-//		}
+		this.transitionSlide(slide, true);
+	}
+	
+	public void transitionSlide(Slide slide, boolean waitForTransition) {
+		// check if there's a transition currently executing
+		if (this.currentTransition != null && this.currentTransition.getStatus() != Status.STOPPED) {
+			// if there is one, should we stop it where it is and start the new
+			// transition or should we queue it up to play after the executing one
+			if (!waitForTransition) {
+				// if we don't want to wait
+				LOGGER.debug("A transition is currently in progress, stopping and doing new transition");
+				// clear any pending requests so we don't execute them after ending the current transition
+				this.requests.clear();
+				// jump to the end of the current transition
+				this.currentTransition.jumpTo(this.currentTransition.getCycleDuration());
+				// then stop it
+				this.currentTransition.stop();
+				// manually complete any finalization steps for the transition
+				EventHandler<ActionEvent> eh = this.currentTransition.getOnFinished();
+				if (eh != null) {
+					eh.handle(null);
+				}
+				// and set it to null
+				this.currentTransition = null;
+			} else {
+				// if we want to wait, build a transition request and add it to the
+				// request stack
+				LOGGER.debug("A transition is currently in progress, waiting...");
+				TransitionRequest tr = new TransitionRequest(slide);
+				this.requests.push(tr);
+				return;
+			}
+		}
+		
+		LOGGER.debug("Transitioning slide {}", slide);
+		this.requests.clear();
 		
 		Slide oldSlide = this.slide.get();
 		final SlideNode oldNode = this.slideNode.get();
@@ -390,8 +440,12 @@ public class SlideView extends Region implements Playable {
 			});
 		}
 		
-		this.slideTransition = tx;
+		this.currentTransition = tx;
 		
+		// no matter what, we always want to run something after the
+		// transition ends - this gives us the ability to queue transitions
+		// or do clean up after the transition finishes
+		tx.setOnFinished(this::runLastPendingTransition);
 		tx.play();
 	}
 
@@ -403,6 +457,15 @@ public class SlideView extends Region implements Playable {
 		Slide slide = this.slide.get();
 		if (slide == null) return;
 		
+		this.requests.clear();
+		
+		if (this.currentTransition != null) {
+			LOGGER.debug("Transition in progress - immediately finishing it.");
+			this.currentTransition.jumpTo(this.currentTransition.getCycleDuration());
+		}
+		
+		LOGGER.debug("Swapping placeholder data");
+		
 		slide.setPlaceholderData(data);
 	}
 	
@@ -411,17 +474,52 @@ public class SlideView extends Region implements Playable {
 	 * @param data the placeholder data
 	 */
 	public void transitionPlaceholders(TextStore data) {
-		// if the previous transition isn't complete, then do nothing
-		// TODO need to queue it up and take the last one
-		if (this.placeholderTransition != null) {
-			return;
-		}
-		
+		this.transitionPlaceholders(data, true);
+	}
+	
+	/**
+	 * Updates the placeholder data for the currently rendered slide using the slide transition.
+	 * @param data the placeholder data
+	 */
+	public void transitionPlaceholders(TextStore data, boolean waitForTransition) {
 		Slide slide = this.slide.get();
 		if (slide == null) return;
 		
 		SlideNode slideNode = this.slideNode.get();
 		if (slideNode == null) return;
+		
+		// check if there's a transition currently executing
+		if (this.currentTransition != null && this.currentTransition.getStatus() != Status.STOPPED) {
+			// if there is one, should we stop it where it is and start the new
+			// transition or should we queue it up to play after the executing one
+			if (!waitForTransition) {
+				// if we don't want to wait
+				LOGGER.debug("A transition is currently in progress, stopping and doing new transition");
+				// clear any pending requests so we don't execute them after ending the current transition
+				this.requests.clear();
+				// jump to the end of the current transition
+				this.currentTransition.jumpTo(this.currentTransition.getCycleDuration());
+				// then stop it
+				this.currentTransition.stop();
+				// manually complete any finalization steps for the transition
+				EventHandler<ActionEvent> eh = this.currentTransition.getOnFinished();
+				if (eh != null) {
+					eh.handle(null);
+				}
+				// and set it to null
+				this.currentTransition = null;
+			} else {
+				// if we want to wait, build a transition request and add it to the
+				// request stack
+				LOGGER.debug("A transition is currently in progress, waiting...");
+				TransitionRequest tr = new TransitionRequest(data);
+				this.requests.push(tr);
+				return;
+			}
+		}
+		
+		this.requests.clear();
+		LOGGER.debug("Transitioning placeholder data {}", data);
 		
 		// copy the place holder components and convert them to static text components
 		// so that they don't change when we update the place holder data
@@ -481,18 +579,22 @@ public class SlideView extends Region implements Playable {
 			}
 		}
 
+		// no matter what, we always want to run something after the
+		// transition ends - this gives us the ability to queue transitions
+		// or do clean up after the transition finishes
 		// when complete, remove all the asis components
 		tx.setOnFinished(e -> {
 			slide.getComponents().removeAll(asis.values());
-			this.placeholderTransition = null;
+			// make sure to trigger any pending transitions
+			this.runLastPendingTransition(e);
 		});
 		
-		this.placeholderTransition = tx;
+		this.currentTransition = tx;
 		
 		// play the transition
 		tx.play();
 	}
-	
+
 	private boolean isBackgroundVideo(SlideRegion region) {
 		SlidePaint bg = region.getBackground();
 		if (bg instanceof MediaObject) {
@@ -503,6 +605,49 @@ public class SlideView extends Region implements Playable {
 			}
 		}
 		return false;
+	}
+	
+	private void runLastPendingTransition(ActionEvent e) {
+		LOGGER.debug("Transition complete, checking for pending transition requests");
+		
+		this.currentTransition = null;
+		
+		// NOTE: this is put in a run later because if we don't there's a flicker
+		// when performing the slide/placeholder transition immediately
+		Platform.runLater(() -> {
+			int size = this.requests.size();
+			if (size <= 0) {
+				LOGGER.debug("No requests to process");
+				return;
+			}
+			
+			// get the most recent operation
+			TransitionRequest request = this.requests.pop();
+			if (request == null) {
+				LOGGER.debug("No requests to process");
+				// if it's null, then there's nothing to do
+				return;
+			}
+			
+			LOGGER.debug("{} transition requests present. Running {}", size, request.getType());
+			LOGGER.debug("Clearing the transition requests stack");
+			// if it's non-null, then clear the stack of all other pending
+			// operations because we only want to run the most recent
+			this.requests.clear();
+			
+			LOGGER.debug("Running most recent transition request");
+			switch(request.getType()) {
+				case SLIDE:
+					transitionSlide(request.getSlide());
+					break;
+				case PLACEHOLDERS:
+					transitionPlaceholders(request.getPlaceholderData());
+					break;
+				default:
+					LOGGER.warn("Transition request type {} unknown", request.getType());
+					break;
+			}
+		});
 	}
 	
 	public Slide getSlide() {

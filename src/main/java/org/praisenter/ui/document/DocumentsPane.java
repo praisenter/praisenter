@@ -16,11 +16,14 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
+import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TabPane.TabClosingPolicy;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 
@@ -29,7 +32,7 @@ import javafx.scene.layout.Priority;
 
 // TODO use split pane
 
-public final class DocumentsPane extends HBox implements ActionPane {
+public final class DocumentsPane extends BorderPane implements ActionPane {
 	private final MappedList<DocumentTab, DocumentContext<? extends Persistable>> documentToTabMapping;
 	
 	private final TabPane documentTabs;
@@ -37,14 +40,14 @@ public final class DocumentsPane extends HBox implements ActionPane {
 	
 	private final ObjectProperty<DocumentEditor<?>> currentDocumentEditor;
 	private final ObservableList<Object> documentSelectedItems;
-
+	
 	public DocumentsPane(GlobalContext context) {
 		this.documentToTabMapping = new MappedList<DocumentTab, DocumentContext<? extends Persistable>>(
 				context.getOpenDocumentsUnmodifiable(), 
 				(item) -> {
 					return new DocumentTab(context, item);
 				});
-		
+
 		this.documentTabs = new TabPane();
 		this.documentTabs.setTabClosingPolicy(TabClosingPolicy.ALL_TABS);
 		
@@ -115,9 +118,15 @@ public final class DocumentsPane extends HBox implements ActionPane {
 			}
 		});
 		
-		this.getChildren().addAll(this.documentTabs, this.documentSelectionEditor);
+		SplitPane split = new SplitPane(this.documentTabs, this.documentSelectionEditor);
+		split.setDividerPosition(0, 0.7);
+		split.visibleProperty().bind(Bindings.size(this.documentTabs.getTabs()).greaterThan(0));
+		SplitPane.setResizableWithParent(this.documentSelectionEditor, false);
 		
-		HBox.setHgrow(this.documentTabs, Priority.ALWAYS);
+//		this.getChildren().addAll(this.documentTabs, this.documentSelectionEditor);
+//		HBox.setHgrow(this.documentTabs, Priority.ALWAYS);
+		
+		this.setCenter(split);
 	}
 	
 	@Override

@@ -446,7 +446,7 @@ public final class SongEditor extends BorderPane implements DocumentEditor<Song>
 					Object data = containerType == Section.class ? ((SongTreeItem) this.treeView.getSelectionModel().getSelectedItem().getParent()).getValue() : selected;
 					if (data != null && data instanceof Lyrics) {
 						Lyrics lyrics = (Lyrics)data;
-						lyrics.getSections().add(new Section(Translations.get("song.section.name.default"), Translations.get("song.section.text.default")));
+						lyrics.getSections().add(new Section(Translations.get("song.lyrics.section.name.default"), Translations.get("song.lyrics.section.text.default")));
 					}
 				}
 				break;

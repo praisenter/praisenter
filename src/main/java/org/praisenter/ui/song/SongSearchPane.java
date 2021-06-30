@@ -5,25 +5,22 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.regex.Pattern;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.lucene.document.Document;
 import org.praisenter.async.AsyncHelper;
-import org.praisenter.data.PersistableComparator;
-import org.praisenter.data.bible.Bible;
-import org.praisenter.data.bible.BibleSearchCriteria;
-import org.praisenter.data.bible.BibleSearchResult;
-import org.praisenter.data.bible.LocatedVerse;
-import org.praisenter.data.bible.ReadOnlyBook;
-import org.praisenter.data.bible.ReadOnlyVerse;
 import org.praisenter.data.search.SearchResult;
 import org.praisenter.data.search.SearchType;
+import org.praisenter.data.song.Lyrics;
+import org.praisenter.data.song.ReadOnlyLyrics;
+import org.praisenter.data.song.ReadOnlySection;
+import org.praisenter.data.song.Song;
+import org.praisenter.data.song.SongSearchCriteria;
+import org.praisenter.data.song.SongSearchResult;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.Option;
 import org.praisenter.ui.controls.Alerts;
-import org.praisenter.ui.controls.AutoCompleteComboBox;
 import org.praisenter.ui.controls.ProgressOverlay;
 import org.praisenter.ui.translations.Translations;
 
@@ -62,7 +59,7 @@ import javafx.scene.layout.StackPane;
 
 // FEATURE (M-M) add searching to the bible editor for finding and editing easily
 
-public final class BibleSearchPane extends BorderPane {
+public final class SongSearchPane extends BorderPane {
 	private static final Logger LOGGER = LogManager.getLogger();
 
 	private static final DecimalFormat SCORE_FORMAT = new DecimalFormat(Translations.get("search.score.format"));
@@ -71,71 +68,28 @@ public final class BibleSearchPane extends BorderPane {
 	
 	// data
 	
-	private final ObservableList<Bible> bibles;
-	private final ObjectProperty<Bible> bible;
-	private final ObservableList<ReadOnlyBook> books;
-	private final ObjectProperty<ReadOnlyBook> book;
 	private final ObjectProperty<Option<SearchType>> searchType;
 	private final StringProperty terms;
+	private final ObservableList<SongSearchResult> results;
 	
 	// value
 	
-	private final ObjectProperty<BibleSearchResult> value;
-	private final BooleanProperty append;
+	private final ObjectProperty<SongSearchResult> value;
 	
-	public BibleSearchPane(GlobalContext context) {
+	public SongSearchPane(GlobalContext context) {
 		this.context = context;
 		
-		this.bibles = FXCollections.observableArrayList();
-		this.bible = new SimpleObjectProperty<Bible>();
-		this.books = FXCollections.observableArrayList();
-		this.book = new SimpleObjectProperty<ReadOnlyBook>();
 		this.searchType = new SimpleObjectProperty<Option<SearchType>>();
 		this.terms = new SimpleStringProperty();
+		this.results = FXCollections.observableArrayList();
 		
-		this.value = new SimpleObjectProperty<BibleSearchResult>();
-		this.append = new SimpleBooleanProperty(false);
+		this.value = new SimpleObjectProperty<SongSearchResult>();
 		
 		ObservableList<Option<SearchType>> types = FXCollections.observableArrayList();
 		types.add(new Option<SearchType>(Translations.get("search.type.phrase"), SearchType.PHRASE));
 		types.add(new Option<SearchType>(Translations.get("search.type.allwords"), SearchType.ALL_WORDS));
 		types.add(new Option<SearchType>(Translations.get("search.type.anyword"), SearchType.ANY_WORD));
 		this.searchType.setValue(types.get(0));
-		
-		ObservableList<Bible> bibles = context.getDataManager().getItemsUnmodifiable(Bible.class).sorted(new PersistableComparator<Bible>());
-		Bindings.bindContent(this.bibles, bibles);
-		
-		this.bible.addListener((obs, ov, nv) -> {
-			ReadOnlyBook book = this.book.get();
-			if (ov != null) {
-				Bindings.unbindContent(this.books, ov.getBooks());
-			}
-			if (nv != null) {
-				Bindings.bindContent(this.books, nv.getBooks());
-				ReadOnlyBook newBook = nv.getMatchingBook(book);
-				if (newBook != null) {
-					this.book.set(newBook);
-				}
-			}
-		});
-		
-		Bible backupBible = null;
-		if (bibles != null && bibles.size() > 0) {
-			backupBible = bibles.get(0);
-		}
-		
-		UUID primaryId = context.getConfiguration().getPrimaryBibleId();
-		
-		Bible primaryBible = null;
-		if (primaryId != null) {
-			primaryBible = context.getDataManager().getItem(Bible.class, primaryId);
-		}
-		
-		if (primaryBible == null) {
-			primaryBible = backupBible;
-		}
-		
-		this.bible.set(primaryBible);
 		
 		TextField txtSearch = new TextField();
 		txtSearch.setPromptText(Translations.get("search.terms.placeholder"));
@@ -145,22 +99,9 @@ public final class BibleSearchPane extends BorderPane {
 		cmbSearchType.setValue(types.get(0));
 		cmbSearchType.valueProperty().bindBidirectional(this.searchType);
 		
-		ComboBox<Bible> cmbBible = new ComboBox<Bible>(bibles);
-		cmbBible.valueProperty().bindBidirectional(this.bible);
-		
-		ComboBox<ReadOnlyBook> cmbBook = new AutoCompleteComboBox<ReadOnlyBook>(this.books, (typedText, book) -> {
-			Pattern pattern = Pattern.compile("^" + Pattern.quote(typedText) + ".*", Pattern.CASE_INSENSITIVE);
-			if (pattern.matcher(book.getName()).matches()) {
-				return true;
-			}
-			return false;
-		});
-		cmbBook.valueProperty().bindBidirectional(this.book);
-		cmbBook.setPromptText(Translations.get("bible.book.placeholder"));
-		
 		Button btnSearch = new Button(Translations.get("search.button"));
 		
-		HBox top = new HBox(5, txtSearch, cmbBible, cmbBook, cmbSearchType, btnSearch);
+		HBox top = new HBox(5, txtSearch, cmbSearchType, btnSearch);
 		HBox.setHgrow(txtSearch, Priority.ALWAYS);
 		top.setPadding(new Insets(0, 0, 5, 0));
 		
@@ -170,18 +111,18 @@ public final class BibleSearchPane extends BorderPane {
 
 		this.setPadding(new Insets(5));
 		
-		TableView<BibleSearchResult> table = new TableView<BibleSearchResult>();
+		TableView<SongSearchResult> table = new TableView<SongSearchResult>();
 		
 		// columns
-		TableColumn<BibleSearchResult, Number> score = new TableColumn<BibleSearchResult, Number>(Translations.get("search.score"));
-		TableColumn<BibleSearchResult, BibleSearchResult> reference = new TableColumn<BibleSearchResult, BibleSearchResult>(Translations.get("bible.search.results.reference"));
-		TableColumn<BibleSearchResult, ReadOnlyVerse> verseText = new TableColumn<BibleSearchResult, ReadOnlyVerse>(Translations.get("bible.search.results.text"));
+		TableColumn<SongSearchResult, Number> score = new TableColumn<SongSearchResult, Number>(Translations.get("search.score"));
+		TableColumn<SongSearchResult, SongSearchResult> reference = new TableColumn<SongSearchResult, SongSearchResult>(Translations.get("song.search.results.reference"));
+		TableColumn<SongSearchResult, ReadOnlySection> sectionText = new TableColumn<SongSearchResult, ReadOnlySection>(Translations.get("song.search.results.text"));
 		
 		score.setCellValueFactory(p -> new ReadOnlyFloatWrapper(p.getValue().getScore()));
-		reference.setCellValueFactory(p -> new ReadOnlyObjectWrapper<BibleSearchResult>(p.getValue()));
-		verseText.setCellValueFactory(p -> new ReadOnlyObjectWrapper<ReadOnlyVerse>(p.getValue().getVerse()));
+		reference.setCellValueFactory(p -> new ReadOnlyObjectWrapper<SongSearchResult>(p.getValue()));
+		sectionText.setCellValueFactory(p -> new ReadOnlyObjectWrapper<ReadOnlySection>(p.getValue().getSection()));
 		
-		score.setCellFactory(p -> new TableCell<BibleSearchResult, Number>() {
+		score.setCellFactory(p -> new TableCell<SongSearchResult, Number>() {
 			{
 				setAlignment(Pos.CENTER_RIGHT);
 			}
@@ -195,21 +136,20 @@ public final class BibleSearchPane extends BorderPane {
 				}
 			}
 		});
-		reference.setCellFactory(p -> new TableCell<BibleSearchResult, BibleSearchResult>() {
+		reference.setCellFactory(p -> new TableCell<SongSearchResult, SongSearchResult>() {
 			@Override
-			protected void updateItem(BibleSearchResult item, boolean empty) {
+			protected void updateItem(SongSearchResult item, boolean empty) {
 				super.updateItem(item, empty);
 				if (item == null || empty) {
 					setText(null);
 				} else {
-					setText(MessageFormat.format("{0} {1}:{2}", 
-							item.getBook().getName(),
-							item.getChapter().getNumber(),
-							item.getVerse().getNumber()));
+					setText(MessageFormat.format("{0} {1}", 
+							item.getLyrics().getTitle(),
+							item.getSection().getName()));
 				}
 			}
 		});
-		verseText.setCellFactory(p -> new TableCell<BibleSearchResult, ReadOnlyVerse>() {
+		sectionText.setCellFactory(p -> new TableCell<SongSearchResult, ReadOnlySection>() {
 			private final Tooltip tooltip;
 			{
 				this.tooltip = new Tooltip();
@@ -218,13 +158,17 @@ public final class BibleSearchPane extends BorderPane {
 				setTooltip(null);
 			}
 			@Override
-			protected void updateItem(ReadOnlyVerse item, boolean empty) {
+			protected void updateItem(ReadOnlySection item, boolean empty) {
 				super.updateItem(item, empty);
 				if (item == null || empty) {
 					setText(null);
 					setTooltip(null);
 				} else {
-					setText(item.getText());
+					String text = item.getText();
+					if (text != null) {
+						text = text.replaceAll("\r?\n", " ");
+					}
+					setText(text);
 					tooltip.setText(item.getText());
 					setTooltip(tooltip);
 				}
@@ -233,25 +177,26 @@ public final class BibleSearchPane extends BorderPane {
 		
 		score.setPrefWidth(75);
 		reference.setPrefWidth(150);
-		verseText.setPrefWidth(600);
+		sectionText.setPrefWidth(600);
 		
 		table.getColumns().add(score);
 		table.getColumns().add(reference);
-		table.getColumns().add(verseText);
-		table.setPlaceholder(new Label(Translations.get("bible.search.results.none")));
+		table.getColumns().add(sectionText);
+		table.setPlaceholder(new Label(Translations.get("song.search.results.none")));
 		
 		table.setRowFactory(tv -> {
-		    TableRow<BibleSearchResult> row = new TableRow<BibleSearchResult>();
+		    TableRow<SongSearchResult> row = new TableRow<SongSearchResult>();
 		    row.setOnMouseClicked(event -> {
 		        if (event.getClickCount() == 2 && (!row.isEmpty())) {
-		        	BibleSearchResult rowData = row.getItem();
+		        	SongSearchResult rowData = row.getItem();
 		            // set the current value
-		        	this.append.set(event.isShortcutDown());
 		        	this.value.set(rowData);
 		        }
 		    });
 		    return row ;
 		});
+		
+		Bindings.bindContent(table.getItems(), this.results);
 		
 		ProgressOverlay overlay = new ProgressOverlay();
 		overlay.setVisible(false);
@@ -264,8 +209,6 @@ public final class BibleSearchPane extends BorderPane {
 		this.setBottom(lblResults);
 		
 		EventHandler<ActionEvent> handler = e -> {
-			Bible bible = this.bible.get();
-			ReadOnlyBook book = this.book.get();
 			String text = this.terms.get();
 			Option<SearchType> type = this.searchType.get();
 			
@@ -273,19 +216,17 @@ public final class BibleSearchPane extends BorderPane {
 				overlay.setVisible(true);
 				
 				final int maxResults = 100;
-				BibleSearchCriteria criteria = new BibleSearchCriteria(
+				SongSearchCriteria criteria = new SongSearchCriteria(
 						text,
 						type.getValue(),
-						maxResults,
-						bible != null ? bible.getId() : null, 
-						book != null ? book.getNumber() : -1);
+						maxResults);
 				
 				context.getDataManager().search(criteria).thenCompose(AsyncHelper.onJavaFXThreadAndWait((result) -> {
-					table.setItems(FXCollections.observableArrayList(this.getSearchResults(result.getResults())));
-					lblResults.setText(MessageFormat.format(Translations.get("bible.search.results.output"), result.hasMore() ? maxResults + "+" : result.getNumberOfResults()));
+					this.results.setAll(this.getSearchResults(result.getResults()));
+					lblResults.setText(MessageFormat.format(Translations.get("song.search.results.output"), result.hasMore() ? maxResults + "+" : result.getNumberOfResults()));
 					overlay.setVisible(false);
 				})).exceptionally(t -> {
-					LOGGER.error("Failed to search bibles using terms '" + text + "' due to: " + t.getMessage(), t);
+					LOGGER.error("Failed to search songs using terms '" + text + "' due to: " + t.getMessage(), t);
 					Platform.runLater(() -> {
 						Alert alert = Alerts.exception(this.context.getStage(), t);
 						alert.show();
@@ -299,57 +240,67 @@ public final class BibleSearchPane extends BorderPane {
 		btnSearch.setOnAction(handler);
 	}
 	
-	private List<BibleSearchResult> getSearchResults(List<SearchResult> results) {
-		List<BibleSearchResult> output = new ArrayList<BibleSearchResult>();
+	private List<SongSearchResult> getSearchResults(List<SearchResult> results) {
+		List<SongSearchResult> output = new ArrayList<SongSearchResult>();
 		for (SearchResult result : results) {
 			Document document = result.getDocument();
-			Bible bible = this.context.getDataManager().getItem(Bible.class, UUID.fromString(document.get(Bible.FIELD_ID)));
-			if (bible == null) {
-				LOGGER.warn("Unable to find bible '{}'. A re-index might fix this problem.", document.get(Bible.FIELD_ID));
+			Song song = this.context.getDataManager().getItem(Song.class, UUID.fromString(document.get(Song.FIELD_ID)));
+			if (song == null) {
+				LOGGER.warn("Unable to find song '{}'. A re-index might fix this problem.", document.get(Song.FIELD_ID));
 				continue;
 			}
 			
 			// get the details
-			int bookNumber = document.getField(Bible.FIELD_BOOK_NUMBER).numericValue().intValue();
-			int chapterNumber = document.getField(Bible.FIELD_VERSE_CHAPTER).numericValue().intValue();
-			int verseNumber = document.getField(Bible.FIELD_VERSE_NUMBER).numericValue().intValue();
+			UUID lyricsId = UUID.fromString(document.getField(Song.FIELD_LYRIC_ID).stringValue());
+			UUID sectionId = UUID.fromString(document.getField(Song.FIELD_SECTION_ID).stringValue());
 			
-			LocatedVerse verse = null;
-			if (bible != null) {
-				verse = bible.getVerse(bookNumber, chapterNumber, verseNumber);
+			ReadOnlyLyrics lyrics = null;
+			ReadOnlySection section = null;
+			if (song != null) {
+				for (Lyrics l : song.getLyrics()) {
+					if (l.getId().equals(lyricsId)) {
+						lyrics = l;
+						break;
+					}
+				}
+			}
+			
+			if (lyrics != null) {
+				for (ReadOnlySection s : lyrics.getSectionsUnmodifiable()) {
+					if (s.getId().equals(sectionId)) {
+						section = s;
+						break;
+					}
+				}
 			}
 			
 			// just continue if its not found
-			if (verse == null) {
-				LOGGER.warn("Unable to find {} {}:{} in '{}'. A re-index might fix this problem.", bookNumber, chapterNumber, verseNumber, bible != null ? bible.getName() : "null");
+			if (lyrics == null) {
+//				LOGGER.warn("Unable to find {} {}:{} in '{}'. A re-index might fix this problem.", bookNumber, chapterNumber, verseNumber, song != null ? song.getName() : "null");
 				continue;
 			}
 			
-			output.add(new BibleSearchResult(
-					verse.getBible(),
-					verse.getBook(), 
-					verse.getChapter(), 
-					verse.getVerse(), 
+			output.add(new SongSearchResult(
+					song,
+					lyrics, 
+					section, 
 					result.getMatches(), 
 					result.getScore()));
 		}
 		return output;
 	}
 	
-	public BibleSearchResult getValue() {
+	public void clear() {
+		this.terms.set(null);
+		this.results.clear();
+	}
+	
+	public SongSearchResult getValue() {
 		return this.value.get();
 	}
 	
-	public ReadOnlyObjectProperty<BibleSearchResult> valueProperty() {
+	public ReadOnlyObjectProperty<SongSearchResult> valueProperty() {
 		return this.value;
-	}
-	
-	public boolean isAppendEnabled() {
-		return this.append.get();
-	}
-	
-	public ReadOnlyBooleanProperty appendProperty() {
-		return this.append;
 	}
 	
 	public String getSearchTerms() {

@@ -1,20 +1,26 @@
 package org.praisenter.data.song;
 
+import java.util.UUID;
+
 import org.praisenter.Watchable;
 import org.praisenter.data.Copyable;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
 public final class Section implements ReadOnlySection, Copyable {
 	public static final int USE_TEMPLATE_FONT_SIZE = -1;
 	
+	private final ObjectProperty<UUID> id;
 	private final StringProperty name;
 	private final StringProperty text;
 	
 	public Section() {
+		this.id = new SimpleObjectProperty<UUID>(UUID.randomUUID());
 		this.name = new SimpleStringProperty();
 		this.text = new SimpleStringProperty();
 	}
@@ -33,6 +39,7 @@ public final class Section implements ReadOnlySection, Copyable {
 	@Override
 	public Section copy() {
 		Section v = new Section();
+		v.id.set(this.id.get());
 		v.name.set(this.name.get());
 		v.text.set(this.text.get());
 		return v;
@@ -49,6 +56,22 @@ public final class Section implements ReadOnlySection, Copyable {
 				(type == null || type.length() == 0 ? "c" : type) + 
 				(number > 0 ? number : "") + 
 				(part == null || part.length() == 0 ? "" : part));
+	}
+
+	@Override
+	@JsonProperty
+	public UUID getId() {
+		return this.id.get();
+	}
+	
+	@JsonProperty
+	public void setId(UUID id) {
+		this.id.set(id);
+	}
+	
+	@Override
+	public ObjectProperty<UUID> idProperty() {
+		return this.id;
 	}
 	
 	@Override

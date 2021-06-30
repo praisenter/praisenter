@@ -23,7 +23,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.Tab;
 import javafx.stage.Modality;
 
-final class DocumentTab extends Tab {
+public final class DocumentTab extends Tab {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
 	private final GlobalContext context;

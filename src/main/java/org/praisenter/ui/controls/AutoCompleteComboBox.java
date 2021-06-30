@@ -22,13 +22,15 @@ public final class AutoCompleteComboBox<T> extends ComboBox<T> {
 			if (text == null || text.length() == 0) {
 				return;
 			}
+			
 			// try to allow some keys
 			if (e.getCode() == KeyCode.BACK_SPACE ||
 				e.getCode() == KeyCode.DELETE ||
 				e.getCode() == KeyCode.SHIFT ||
 				e.getCode() == KeyCode.ALT ||
 				e.getCode() == KeyCode.CONTROL ||
-				e.getCode() == KeyCode.CAPS) {
+				e.getCode() == KeyCode.CAPS ||
+				e.getCode() == KeyCode.TAB) {
 				return;
 			}
 			for (T item : items) {

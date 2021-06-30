@@ -20,16 +20,16 @@ public final class Theme implements Comparable<Theme> {
 	private static final Logger LOGGER = LogManager.getLogger();
 
 	private static final Pattern THEME_PATTERN = Pattern.compile("^(.+)\\.css$", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
-	public static final Theme DEFAULT = new Theme("Default", Theme.class.getResource("/org/praisenter/themes/default.css").toExternalForm());
-	
-	static {
-		Path path = Paths.get(Constants.THEMES_ABSOLUTE_FILE_PATH);
-		try {
-			Files.createDirectories(path);
-		} catch (Exception ex) {
-			LOGGER.warn("Failed to create themes folder.", ex);
-		}
-	}
+	private static final Theme DEFAULT = new Theme("Default", Theme.class.getResource("/org/praisenter/themes/default.css").toExternalForm());
+
+//	static {
+//		Path path = Paths.get(Constants.THEMES_ABSOLUTE_FILE_PATH);
+//		try {
+//			Files.createDirectories(path);
+//		} catch (Exception ex) {
+//			LOGGER.warn("Failed to create themes folder.", ex);
+//		}
+//	}
 	
 	/**
 	 * Returns an unmodifiable list of available themes.
@@ -43,9 +43,9 @@ public final class Theme implements Comparable<Theme> {
 		
 		// create a listing of all the themes
 		List<Theme> themes = new ArrayList<Theme>();
-		
-		// add the default themes
-		themes.add(DEFAULT);
+//		
+//		// add the default themes
+//		themes.add(DEFAULT);
 		
 		// add any themes in the themes dir
 		if (Files.exists(path) && Files.isDirectory(path)) {

@@ -26,10 +26,10 @@ public interface ReadOnlySlideComponent extends ReadOnlySlideRegion, Copyable, I
 	
 	public boolean isOverlapping(ReadOnlySlideComponent component);
 	
-	/**
-	 * Returns the bounds of the component taking any shadow, glow,
-	 * or border spill over from the defined bounds.
-	 * @return {@link Rectangle}
-	 */
-	public Rectangle getLocalOffsetBounds();
+//	/**
+//	 * Returns the bounds of the component taking any shadow, glow,
+//	 * or border spill over from the defined bounds.
+//	 * @return {@link Rectangle}
+//	 */
+//	public Rectangle getLocalOffsetBounds();
 }

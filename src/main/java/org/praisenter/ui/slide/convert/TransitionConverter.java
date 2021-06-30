@@ -21,7 +21,11 @@ import javafx.animation.ScaleTransition;
 import javafx.animation.Transition;
 import javafx.geometry.BoundingBox;
 import javafx.geometry.Bounds;
+import javafx.geometry.Point2D;
+import javafx.geometry.Point3D;
 import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.transform.Transform;
 import javafx.util.Duration;
 
 // TODO should we apply the transitions from the slide or component perspective wrt. placeholder changing?
@@ -154,12 +158,18 @@ public class TransitionConverter {
 	
 	private static final Bounds getTransitionBounds(Slide slide, SlideComponent component) {
 		if (component != null) {
-			Rectangle ob = component.getLocalOffsetBounds();
+			// FEATURE This won't work if we support component level animation.  
+			// The problem is that we don't know exactly the size of the components 
+			// until they are rendered, but we can't render them until we've animated them.
+			// One option is to clip all components to the bounds of the component
+			// I think the only thing that can spill over the bounds are effects, borders, and text.
+			// maybe we can use the TextMeasurer to get real bounds???
+//			Rectangle ob = component.getLocalOffsetBounds();
 			return new BoundingBox(
-				ob.getX(), 
-				ob.getY(), 
-				ob.getWidth(), 
-				ob.getHeight());
+				-component.getX(), 
+				-component.getY(), 
+				slide.getWidth(), 
+				slide.getHeight());
 		} else {
 			return new BoundingBox(
 				0, 

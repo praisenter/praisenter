@@ -11,6 +11,9 @@ import org.praisenter.async.AsyncHelper;
 import org.praisenter.async.BackgroundTask;
 import org.praisenter.data.Persistable;
 import org.praisenter.data.configuration.Configuration;
+import org.praisenter.data.media.Media;
+import org.praisenter.data.slide.Slide;
+import org.praisenter.data.song.Song;
 import org.praisenter.ui.controls.Alerts;
 import org.praisenter.ui.display.DisplayController;
 import org.praisenter.ui.display.DisplaysController;
@@ -24,6 +27,7 @@ import javafx.beans.binding.Bindings;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.geometry.Orientation;
+import javafx.geometry.Side;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
@@ -31,6 +35,9 @@ import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.SplitPane;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
+import javafx.scene.control.TabPane.TabClosingPolicy;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
@@ -99,8 +106,8 @@ final class PraisenterPane extends BorderPane {
 		
 		// main content area
 		
-		ActionBar ab = new ActionBar(context);
-		DocumentsPane dep = new DocumentsPane(context);
+		ActionBar actionBar = new ActionBar(context);
+		DocumentsPane documentsPane = new DocumentsPane(context);
 		
 		this.items = new FilteredList<>(context.getDataManager().getItemsUnmodifiable(), (i) -> {
 			if (i instanceof Configuration) {
@@ -112,18 +119,77 @@ final class PraisenterPane extends BorderPane {
 		LibraryList itemListing = new LibraryList(context, Orientation.HORIZONTAL, LibraryListType.values());
 		Bindings.bindContent(itemListing.getItems(), this.items);
 		
+		
+//		FilteredList<Persistable> media = new FilteredList<>(context.getDataManager().getItemsUnmodifiable(), (i) -> {
+//			if (i instanceof Media) {
+//				return true;
+//			}
+//			return false;
+//		});
+//		
+//		LibraryList mediaList = new LibraryList(context, Orientation.HORIZONTAL, LibraryListType.AUDIO, LibraryListType.VIDEO, LibraryListType.IMAGE);
+//		Bindings.bindContent(mediaList.getItems(), media);
+//		
+//		FilteredList<Persistable> slides = new FilteredList<>(context.getDataManager().getItemsUnmodifiable(), (i) -> {
+//			if (i instanceof Slide) {
+//				return true;
+//			}
+//			return false;
+//		});
+//		
+//		LibraryList slideList = new LibraryList(context, Orientation.HORIZONTAL, LibraryListType.SLIDE);
+//		Bindings.bindContent(slideList.getItems(), slides);
+//		
+//		FilteredList<Persistable> songs = new FilteredList<>(context.getDataManager().getItemsUnmodifiable(), (i) -> {
+//			if (i instanceof Song) {
+//				return true;
+//			}
+//			return false;
+//		});
+//		
+//		LibraryList songList = new LibraryList(context, Orientation.HORIZONTAL, LibraryListType.SONG);
+//		Bindings.bindContent(songList.getItems(), songs);
+//		
+//		TabPane libraryTabs = new TabPane();
+//		libraryTabs.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
+//		libraryTabs.getTabs().add(new Tab("Media", mediaList));
+//		libraryTabs.getTabs().add(new Tab("Slides", slideList));
+//		libraryTabs.getTabs().add(new Tab("Songs", songList));
+		
 		DisplaysController dc = new DisplaysController(context);
 		
-		SplitPane split = new SplitPane(dep, itemListing);
-		split.setDividerPositions(0.75);
-		split.setOrientation(Orientation.VERTICAL);
+//		SplitPane split = new SplitPane(dep, libraryTabs);
+//		split.setDividerPositions(0.75);
+//		split.setOrientation(Orientation.VERTICAL);
+		
+//		BorderPane bp = new BorderPane();
+//		
+////		this.setCenter(split);
+//		bp.setCenter(documentsPane);
+//		bp.setLeft(actionBar);
+//		bp.setBottom(libraryTabs);
+		
+		SplitPane splLibrary = new SplitPane(documentsPane, itemListing);
+		splLibrary.setDividerPosition(0, 0.8);
+		splLibrary.setOrientation(Orientation.VERTICAL);
+		
+		BorderPane bp = new BorderPane();
+		bp.setLeft(actionBar);
+		bp.setCenter(splLibrary);
+		
+		TabPane tabs = new TabPane();
+		tabs.setSide(Side.LEFT);
+		Tab tab1 = new Tab("Present", dc);
+		tab1.setClosable(false);
+		Tab tab2 = new Tab("Manage", bp);
+		tab2.setClosable(false);
+		tabs.getTabs().addAll(tab1, tab2);
 		
 		this.setTop(mainMenu);
-		this.setCenter(split);
-		this.setLeft(ab);
-		this.setRight(dc);
+		this.setCenter(tabs);
 		
-		VBox.setVgrow(dep, Priority.ALWAYS);
+		
+		VBox.setVgrow(documentsPane, Priority.ALWAYS);
 
 		// bottom
 		

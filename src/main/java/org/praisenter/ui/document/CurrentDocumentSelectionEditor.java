@@ -22,7 +22,7 @@ import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.layout.VBox;
 
-final class CurrentDocumentSelectionEditor extends VBox {
+public final class CurrentDocumentSelectionEditor extends VBox {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
 	private final GlobalContext context;

@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
+import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.praisenter.Constants;
@@ -49,6 +50,7 @@ import javafx.collections.ObservableSet;
 @Editable
 public final class Song implements ReadOnlySong, Indexable, Persistable, Copyable, Identifiable {
 	public static final String FIELD_LYRIC_ID = "lyricid";
+	public static final String FIELD_SECTION_ID = "sectionid";
 	public static final String DATA_TYPE_SONG = "song";
 	
 	private final StringProperty format;
@@ -271,6 +273,10 @@ public final class Song implements ReadOnlySong, Indexable, Persistable, Copyabl
 				
 				// allow filtering by type
 				document.add(new StringField(FIELD_TYPE, DATA_TYPE_SONG, Field.Store.YES));
+				
+				// stored data so we can look up the verse
+				document.add(new StoredField(FIELD_LYRIC_ID, lyrics.getId().toString()));
+				document.add(new StoredField(FIELD_SECTION_ID, section.getId().toString()));
 				
 				if (!StringManipulator.isNullOrEmpty(section.getText())) {
 					document.add(new TextField(FIELD_TEXT, section.getText(), Field.Store.YES));
