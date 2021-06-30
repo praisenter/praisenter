@@ -47,6 +47,8 @@ public final class MediaObjectPicker extends VBox {
 	private final ObjectProperty<ScaleType> scaleType;
 	private final ObjectProperty<SlideColorAdjust> colorAdjust;
 	
+	private final ObservableList<Media> mediaList;
+	
 	private Media originalMedia;
 	
 	public MediaObjectPicker(
@@ -78,7 +80,8 @@ public final class MediaObjectPicker extends VBox {
 			MediaType type = m.getMediaType();
 			return Stream.of(allowedTypes).anyMatch(t -> t == type);
 		});
-		Bindings.bindContent(lstMedia.getItems(), filtered); 
+		this.mediaList = filtered;
+		Bindings.bindContent(lstMedia.getItems(), this.mediaList); 
 		
 		Dialog<Media> dlgMedia = new Dialog<>();
 		dlgMedia.setTitle(Translations.get("media"));

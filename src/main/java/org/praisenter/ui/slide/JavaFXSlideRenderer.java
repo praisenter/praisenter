@@ -142,6 +142,8 @@ public final class JavaFXSlideRenderer implements SlideRenderer {
 		BufferedImage image = SwingFXUtils.fromFXImage(fxImage, null);
 		// make sure its a in the right format for scaling
 		image = ImageUtil.toBuffered(image, BufferedImage.TYPE_INT_ARGB);
+		
+		LOGGER.debug("Creating thumbnail from slide snapshot");
 		// we use the FILTER_LANCZOS because it gives good results for text at high resize ratios
 		return ImageManipulator.getUniformScaledImage(image, width, height, ResampleOp.FILTER_LANCZOS);
 	}

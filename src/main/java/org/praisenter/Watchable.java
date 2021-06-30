@@ -6,7 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotation for property values that can be "watched."  The primary use of this annoation
+ * Annotation for property values that can be "watched."  The primary use of this annotation
  * is to flag what properties will take part in undo/redo.
  * @author William Bittle
  *

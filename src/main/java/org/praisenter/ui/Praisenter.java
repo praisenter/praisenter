@@ -54,10 +54,10 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.util.Duration;
 
-// FIXME fix the manifest
-// FIXME explore deployment options
-// FIXME testing on High DPI screens
-// FIXME fix dark theme
+// TODO fix the manifest
+// TODO explore deployment options
+// TODO testing on High DPI screens
+// TODO fix dark theme
 
 // FEATURE (L-M) Evaluate detecting text language for better indexing (a field per language) in lucene; Apache Tika or LangDetect; This would also be used in the searches to know what indexed fields to use
 // FEATURE (L-M) Use Apache POI to read powerpoint files
@@ -96,8 +96,6 @@ import javafx.util.Duration;
 //				5. If it passes
 //					a. Notify the user of the update with option to restart
 
-// JAVABUG (M) 09/28/16 [fixed-9] High DPI https://bugs.openjdk.java.net/browse/JDK-8091832
-// JAVABUG (M) 11/03/16 [fixed-9] Editable ComboBox and Spinner auto commit - https://bugs.openjdk.java.net/browse/JDK-8150946
 // JAVABUG (L) 05/31/17 Java FX just chooses the last image in the set of stage icons rather than choosing the best bugs.openjdk.java.net/browse/JDK-8091186, bugs.openjdk.java.net/browse/JDK-8087459
 
 public final class Praisenter extends Application {
@@ -138,7 +136,21 @@ public final class Praisenter extends Application {
 			} catch (Exception e) {
 				// attempt to write to something
 				e.printStackTrace();
-				throw new RuntimeException("Failed to copy messages.properties file from classpath to Praisenter root path", e);
+				throw new RuntimeException("Failed to copy messages.properties file from classpath to the locales folder", e);
+			}
+		}
+		
+		// copy the default theme files
+		Path defaultThemePath = Paths.get(Constants.THEMES_ABSOLUTE_FILE_PATH, "default.css");
+		if (!Files.exists(defaultThemePath)) {
+			// read the file from 
+			try {
+				Files.createDirectories(Paths.get(Constants.THEMES_ABSOLUTE_FILE_PATH));
+				ClasspathLoader.copy("/org/praisenter/themes/default.css", defaultThemePath);
+			} catch (Exception e) {
+				// attempt to write to something
+				e.printStackTrace();
+				throw new RuntimeException("Failed to copy default.css file from classpath to the themes folder", e);
 			}
 		}
 		
@@ -445,7 +457,7 @@ public final class Praisenter extends Application {
         		future = dataManager.create(newConfiguration).thenApply((o) -> newConfiguration);
         	}
         	
-        	LOGGER.info("Saving configuration.");
+        	LOGGER.info("Configuration loaded.");
         	return future;
     	});
     }

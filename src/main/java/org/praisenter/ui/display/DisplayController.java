@@ -15,11 +15,14 @@ import org.praisenter.ui.bind.BindingHelper;
 import org.praisenter.ui.slide.SlideMode;
 import org.praisenter.ui.slide.SlideTemplateComboBox;
 import org.praisenter.ui.slide.SlideView;
+import org.praisenter.ui.song.SongNavigationPane;
 import org.praisenter.ui.translations.Translations;
 
 import javafx.beans.binding.DoubleBinding;
 import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableDoubleValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -28,7 +31,11 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TabPane.TabClosingPolicy;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
 import javafx.scene.layout.BorderPane;
@@ -47,9 +54,13 @@ public final class DisplayController extends BorderPane {
 	private final DoubleProperty maxWidth = new SimpleDoubleProperty(400);
 	private final DoubleBinding maxHeight;
 	
+	private final ObjectProperty<TextStore> placeholderData;
+	
 	public DisplayController(GlobalContext context, DisplayTarget target) {
 		this.context = context;
 		this.target = target;
+		
+		this.placeholderData = new SimpleObjectProperty<TextStore>();
 		
 		Robot robot = new Robot();
 		WritableImage image = robot.getScreenCapture(null, 
@@ -90,7 +101,9 @@ public final class DisplayController extends BorderPane {
 		
 		SlideTemplateComboBox cmbSlideTemplate = new SlideTemplateComboBox(context);
 		SlideTemplateComboBox cmbNotificationTemplate = new SlideTemplateComboBox(context);
+		// TODO need to account for each navigation pane's value - maybe swap based on selected tab?  are tabs a good way?
 		BibleNavigationPane bibleNavigationPane = new BibleNavigationPane(context);
+		SongNavigationPane songNavigationPane = new SongNavigationPane(context);
 		
 		VBox layout = new VBox();
 		
@@ -106,13 +119,21 @@ public final class DisplayController extends BorderPane {
 		Button btnShowNotification = new Button(Translations.get("display.controller.show"));
 		Button btnClearNotification = new Button(Translations.get("display.controller.hide"));
 		CheckBox chkAutoShow = new CheckBox(Translations.get("display.controller.autoshow"));
+		CheckBox chkWaitForTransition = new CheckBox(Translations.get("display.controller.waitForTransition"));
 		CheckBox chkPreviewTransition = new CheckBox(Translations.get("display.controller.previewTransition"));
 		
+		TabPane tabs = new TabPane();
+		tabs.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
+		// TODO translate
+		tabs.getTabs().add(new Tab("Bible", bibleNavigationPane));
+		tabs.getTabs().add(new Tab("Song", songNavigationPane));
+		tabs.getTabs().add(new Tab("Slide", new Label("slides")));
+		
 		layout.getChildren().add(new StackPane(screen, slideView, notificationView));
-		layout.getChildren().add(chkPreviewTransition);
+		layout.getChildren().add(new HBox(chkPreviewTransition, chkWaitForTransition));
 		layout.getChildren().add(cmbSlideTemplate);
 		layout.getChildren().add(new HBox(chkAutoShow, btnShowSlide, btnClearSlide));
-		layout.getChildren().add(bibleNavigationPane);
+		layout.getChildren().add(tabs);
 		layout.getChildren().add(cmbNotificationTemplate);
 		layout.getChildren().add(txtNotification);
 		layout.getChildren().add(new HBox(btnPreviewNotification, btnShowNotification, btnClearNotification));
@@ -149,17 +170,22 @@ public final class DisplayController extends BorderPane {
 			Slide newSlide = cmbSlideTemplate.getValue();
 			Slide oldSlide = target.getSlide();
 			
-			final TextStore data = bibleNavigationPane.getValue();
+//			final TextStore data = bibleNavigationPane.getValue();
+			TextStore data = this.placeholderData.getValue();
+			if (data == null) {
+				data = new StringTextStore("");
+			}
+			
 			if (this.isPlaceholderTransitionOnly(oldSlide, newSlide)) {
 				// do placeholders only
-				target.displaySlidePlaceholders(data);
+				target.displaySlidePlaceholders(data, chkWaitForTransition.isSelected());
 			} else {
-				target.displaySlide(newSlide, data);
+				target.displaySlide(newSlide, data, chkWaitForTransition.isSelected());
 			}
 		});
 		
 		btnClearSlide.setOnAction(e -> {
-			target.displaySlide(null, null);
+			target.displaySlide(null, null, false);
 		});
 		
 		btnPreviewNotification.setOnAction(e -> {
@@ -170,7 +196,7 @@ public final class DisplayController extends BorderPane {
 				slide.setPlaceholderData(new StringTextStore(txtNotification.getText()));
 				slide.fit(target.getDisplay().getWidth(), target.getDisplay().getHeight());
 				if (transition) {
-					notificationView.transitionSlide(slide);
+					notificationView.transitionSlide(slide, chkWaitForTransition.isSelected());
 				} else { 
 					notificationView.swapSlide(slide);
 				}
@@ -182,12 +208,12 @@ public final class DisplayController extends BorderPane {
 		btnShowNotification.setOnAction(e -> {
 			Slide newSlide = cmbNotificationTemplate.getValue();
 			if (newSlide != null) {
-				target.displayNotification(newSlide, new StringTextStore(txtNotification.getText()));
+				target.displayNotification(newSlide, new StringTextStore(txtNotification.getText()), chkWaitForTransition.isSelected());
 			}
 		});
 		
 		btnClearNotification.setOnAction(e -> {
-			target.displayNotification(null, null);
+			target.displayNotification(null, null, false);
 		});
 		
 		// TODO how can we allow the user to select nothing?
@@ -215,15 +241,20 @@ public final class DisplayController extends BorderPane {
 		cmbSlideTemplate.valueProperty().addListener((obs, ov, nv) -> {
 			boolean transition = chkPreviewTransition.isSelected();
 			if (nv != null) {
+				TextStore data = this.placeholderData.get();
+				if (data == null) {
+					data = new StringTextStore("");
+				}
+				
 				Slide slide = nv.copy();
-				slide.setPlaceholderData(bibleNavigationPane.getValue().copy());
+				slide.setPlaceholderData(data.copy());
 				slide.fit(target.getDisplay().getWidth(), target.getDisplay().getHeight());
 				// TODO add checkbox for transition slide
 //				this.slideView.swapSlide(slide);
 				// TODO add checkbox for transition placeholders
 //				this.slideView.setSlide(slide);
 				if (transition) {
-					slideView.transitionSlide(slide);
+					slideView.transitionSlide(slide, chkWaitForTransition.isSelected());
 				} else {
 					slideView.swapSlide(slide);
 				}
@@ -233,9 +264,17 @@ public final class DisplayController extends BorderPane {
 		});
 		
 		bibleNavigationPane.valueProperty().addListener((obs, ov, nv) -> {
+			this.placeholderData.set(nv);
+		});
+		
+		songNavigationPane.valueProperty().addListener((obs, ov, nv) -> {
+			this.placeholderData.set(nv);
+		});
+		
+		this.placeholderData.addListener((obs, ov, nv) -> {
 			boolean transition = chkPreviewTransition.isSelected();
 			if (transition) {
-				slideView.transitionPlaceholders(nv.copy());
+				slideView.transitionPlaceholders(nv.copy(), chkWaitForTransition.isSelected());
 			} else {
 				slideView.swapPlaceholders(nv.copy());
 			}
@@ -246,12 +285,13 @@ public final class DisplayController extends BorderPane {
 				
 				if (this.isPlaceholderTransitionOnly(oldSlide, newSlide)) {
 					// do placeholders only
-					target.displaySlidePlaceholders(nv);
+					target.displaySlidePlaceholders(nv, chkWaitForTransition.isSelected());
 				} else {
-					target.displaySlide(newSlide, nv);
+					target.displaySlide(newSlide, nv, chkWaitForTransition.isSelected());
 				}
 			}
 		});
+		
 	}
 	
 	private boolean isPlaceholderTransitionOnly(Slide oldSlide, Slide newSlide) {

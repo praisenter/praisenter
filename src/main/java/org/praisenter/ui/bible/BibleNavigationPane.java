@@ -22,6 +22,7 @@ import org.praisenter.ui.controls.AutoCompleteComboBox;
 import org.praisenter.ui.controls.WindowHelper;
 import org.praisenter.ui.translations.Translations;
 
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
@@ -181,16 +182,25 @@ public final class BibleNavigationPane extends BorderPane {
 		});
 		cmbBook.valueProperty().bindBidirectional(this.book);
 		cmbBook.setPromptText(Translations.get("bible.book.placeholder"));
+		cmbBook.focusedProperty().addListener((obs) -> {
+			Platform.runLater(cmbBook.getEditor()::selectAll);
+		});
 		
 		Spinner<Integer> spnChapter = new Spinner<Integer>(1, Short.MAX_VALUE, 1, 1);
 		spnChapter.setEditable(true);
 		spnChapter.setMaxWidth(65);
 		spnChapter.getValueFactory().valueProperty().bindBidirectional(this.chapter);
+		spnChapter.focusedProperty().addListener((obs) -> {
+			Platform.runLater(spnChapter.getEditor()::selectAll);
+		});
 		
 		Spinner<Integer> spnVerse = new Spinner<Integer>(1, Short.MAX_VALUE, 1, 1);
 		spnVerse.setEditable(true);
 		spnVerse.setMaxWidth(65);
 		spnVerse.getValueFactory().valueProperty().bindBidirectional(this.verse);
+		spnVerse.focusedProperty().addListener((obs) -> {
+			Platform.runLater(spnVerse.getEditor()::selectAll);
+		});
 		
 		Label lblChapters = new Label();
 		lblChapters.textProperty().bind(Bindings.createStringBinding(() -> {

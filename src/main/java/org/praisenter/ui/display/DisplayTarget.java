@@ -153,15 +153,15 @@ public final class DisplayTarget {
 		this.stage.close();
 	}
 
-	public void displaySlidePlaceholders(final TextStore data) {
-		this.slideView.transitionPlaceholders(data.copy());
+	public void displaySlidePlaceholders(final TextStore data, boolean waitForTransition) {
+		this.slideView.transitionPlaceholders(data.copy(), waitForTransition);
 		
 		this.stage.toFront();
 	}
 	
-	public void displaySlide(final Slide slide, final TextStore data) {
+	public void displaySlide(final Slide slide, final TextStore data, boolean waitForTransition) {
 		if (slide == null) {
-			this.slideView.transitionSlide(null);
+			this.slideView.transitionSlide(null, false);
 			return;
 		}
 		
@@ -176,14 +176,14 @@ public final class DisplayTarget {
 		
 		copy.fit(w, h);
 		
-		this.slideView.transitionSlide(copy);
+		this.slideView.transitionSlide(copy, waitForTransition);
 		
 		this.stage.toFront();
 	}
 
-	public void displayNotification(final Slide slide, final TextStore data) {
+	public void displayNotification(final Slide slide, final TextStore data, boolean waitForTransition) {
 		if (slide == null) {
-			this.notificationView.transitionSlide(null);
+			this.notificationView.transitionSlide(null, false);
 			return;
 		}
 		
@@ -198,7 +198,7 @@ public final class DisplayTarget {
 		
 		copy.fit(w, h);
 		
-		this.notificationView.transitionSlide(copy);
+		this.notificationView.transitionSlide(copy, waitForTransition);
 		
 		this.stage.toFront();
 	}

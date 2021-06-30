@@ -44,15 +44,18 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
+import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.SplitPane;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
@@ -167,6 +170,13 @@ public final class BibleSearchPane extends BorderPane {
 		this.setTop(top);
 		
 		///////////////////////////
+		
+		TextArea txtVerse = new TextArea();
+		txtVerse.setWrapText(true);
+		txtVerse.setPrefHeight(50);
+		txtVerse.setEditable(false);
+		// TODO translate
+		txtVerse.setPromptText("Select a verse");
 
 		this.setPadding(new Insets(5));
 		
@@ -243,14 +253,24 @@ public final class BibleSearchPane extends BorderPane {
 		table.setRowFactory(tv -> {
 		    TableRow<BibleSearchResult> row = new TableRow<BibleSearchResult>();
 		    row.setOnMouseClicked(event -> {
-		        if (event.getClickCount() == 2 && (!row.isEmpty())) {
-		        	BibleSearchResult rowData = row.getItem();
-		            // set the current value
-		        	this.append.set(event.isShortcutDown());
-		        	this.value.set(rowData);
-		        }
+		    	if (!row.isEmpty()) {
+		    		BibleSearchResult rowData = row.getItem();
+			        if (event.getClickCount() == 2) {
+			            // set the current value
+			        	this.append.set(event.isShortcutDown());
+			        	this.value.set(rowData);
+			        }
+		    	}
 		    });
 		    return row ;
+		});
+		
+		table.getSelectionModel().selectedItemProperty().addListener((obs, ov, nv) -> {
+			if (nv != null) {
+				txtVerse.setText(nv.getVerse().getText());
+			} else {
+				txtVerse.setText(null);
+			}
 		});
 		
 		ProgressOverlay overlay = new ProgressOverlay();
@@ -260,7 +280,12 @@ public final class BibleSearchPane extends BorderPane {
 		
 		Label lblResults = new Label();
 		
-		this.setCenter(stack);
+		SplitPane splt = new SplitPane(stack, txtVerse);
+		splt.setOrientation(Orientation.VERTICAL);
+		splt.setDividerPosition(0, 0.8);
+		SplitPane.setResizableWithParent(txtVerse, false);
+		
+		this.setCenter(splt);
 		this.setBottom(lblResults);
 		
 		EventHandler<ActionEvent> handler = e -> {

@@ -330,6 +330,7 @@ public final class LibraryList extends BorderPane implements ActionPane {
 		this.setTop(top);
 		this.setCenter(this.view);
 		this.setRight(details);
+//		this.setBottom(details);
 	}
 
 	private MenuItem createMenuItem(Action action) {

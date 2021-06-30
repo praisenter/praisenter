@@ -16,8 +16,12 @@
 }
 
 /** force glyphs to color the same way as the text */
-.tree-cell:selected .glyph-font {
+.tree-view:focused .tree-cell:selected .glyph-font {
 	-fx-text-fill: -fx-focused-text-base-color;
+}
+
+.tree-cell:selected .glyph-font {
+	-fx-text-fill: -fx-text-base-color;
 }
 
 /* 

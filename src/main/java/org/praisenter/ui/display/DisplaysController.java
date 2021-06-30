@@ -10,44 +10,41 @@ import org.praisenter.ui.MappedList;
 import javafx.beans.binding.Bindings;
 import javafx.collections.ObservableList;
 import javafx.collections.ListChangeListener.Change;
+import javafx.scene.Node;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.control.TitledPane;
+import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.TilePane;
 
 public final class DisplaysController extends BorderPane {
 	private final GlobalContext context;
 	
-	private final MappedList<Tab, DisplayTarget> displayTargetToTabMapping;
+	private final MappedList<Node, DisplayTarget> displayTargetToNodeMapping;
 	
 	public DisplaysController(GlobalContext context) {
 		this.context = context;
 		
-		this.displayTargetToTabMapping = new MappedList<Tab, DisplayTarget>(context.getDisplayManager().getDisplayTargets(), (DisplayTarget d) -> {
-			Tab tab = new Tab();
-			tab.setText(d.toString());
-			tab.setClosable(false);
-			tab.setContent(new DisplayController(context, d));
-			return tab;
+		this.displayTargetToNodeMapping = new MappedList<Node, DisplayTarget>(context.getDisplayManager().getDisplayTargets(), (DisplayTarget d) -> {
+			TitledPane ctr = new TitledPane(d.toString(), new DisplayController(context, d));
+//			ctr.setMaxWidth(400);
+			ctr.setMinWidth(400);
+			ctr.setCollapsible(false);
+			return ctr;
 		});
 		
-		TabPane tabs = new TabPane();
-		Bindings.bindContent(tabs.getTabs(), this.displayTargetToTabMapping);
+		HBox controllers = new HBox();
+		controllers.setFillHeight(true);
+		Bindings.bindContent(controllers.getChildren(), this.displayTargetToNodeMapping);
 		
-		tabs.getSelectionModel().select(this.getDefaultSelectedTabIndex(context.getConfiguration().getDisplays()));
+		ScrollPane scr = new ScrollPane(controllers);
+		scr.setFitToHeight(true);
+		scr.setVbarPolicy(ScrollBarPolicy.NEVER);
 		
-		this.setCenter(tabs);
+		this.setCenter(scr);
 	}
-	
-	private int getDefaultSelectedTabIndex(List<? extends Display> displays) {
-		int index = 0;
-		for (Display d : this.context.getConfiguration().getDisplays()) {
-			if (d.getRole() == DisplayRole.MAIN) {
-				index = d.getId();
-				break;
-			}
-		}
-		return index;
-	}
-	
 }

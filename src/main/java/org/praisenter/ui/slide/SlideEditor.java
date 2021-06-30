@@ -56,7 +56,6 @@ import javafx.scene.layout.StackPane;
 // FEATURE (L-M) Allow grouping of components
 //		UUID group property on each slide component, when grouped sizing and moving work on the group, can't select individual when grouped; or grouped at selection level only
 // FEATURE (L-M) Add grid snaping to sizing/moving of components
-// FEATURE (L-M) Show context menu in addition to left edit window for more contextual editing
 public final class SlideEditor extends BorderPane implements DocumentEditor<Slide> {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
