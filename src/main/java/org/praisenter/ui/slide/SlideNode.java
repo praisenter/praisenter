@@ -40,9 +40,6 @@ final class SlideNode extends SlideRegionNode<Slide> implements Playable {
 		this.mappingUnmodifiable = FXCollections.unmodifiableObservableList(this.mapping);
 		
 		this.content.getChildren().add(this.components);
-		
-		// TODO animations
-		// TODO transitions without restarting video -- Maybe for this we actually update the slide placeholders - that's really the only place it should be needed
 	}
 
 	@Override

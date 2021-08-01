@@ -498,7 +498,7 @@ final class LibraryItemDetails extends BorderPane {
 				image.setVisible(true);
 				labels.showRowsOnly(0,1,5,10,11,12,13,14,15,16);
 			} else {
-				// TODO properties for songs and other stuff
+				// TODO properties for other stuff
 				labels.showRowsOnly();
 			}
 		});

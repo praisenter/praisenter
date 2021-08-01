@@ -201,7 +201,6 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 			Option<Resolution> option = new Option<>(null, r);
 			option.nameProperty().bind(Bindings.createStringBinding(() -> {
 				boolean isNative = this.isNativeResolution(r);
-				// TODO lookup the screen assignment so we can show something other than "Native" - would be nice to show "Present Screen" or "Teleprompter" stuff like that
 				return isNative 
 						? Translations.get("slide.resolution.native", r.getWidth(), r.getHeight())
 						: Translations.get("slide.resolution", r.getWidth(), r.getHeight());

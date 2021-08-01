@@ -175,8 +175,7 @@ public final class BibleSearchPane extends BorderPane {
 		txtVerse.setWrapText(true);
 		txtVerse.setPrefHeight(50);
 		txtVerse.setEditable(false);
-		// TODO translate
-		txtVerse.setPromptText("Select a verse");
+		txtVerse.setPromptText(Translations.get("bible.search.results.placeholder"));
 
 		this.setPadding(new Insets(5));
 		
@@ -258,6 +257,7 @@ public final class BibleSearchPane extends BorderPane {
 			        if (event.getClickCount() == 2) {
 			            // set the current value
 			        	this.append.set(event.isShortcutDown());
+			        	this.value.set(null);
 			        	this.value.set(rowData);
 			        }
 		    	}

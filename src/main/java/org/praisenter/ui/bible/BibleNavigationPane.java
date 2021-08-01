@@ -80,6 +80,7 @@ public final class BibleNavigationPane extends BorderPane {
 	// nodes
 	
 	private Stage searchDialog;
+	private boolean searchDialogFirstItemSelected = false;
 	
 	public BibleNavigationPane(GlobalContext context) {
 		this.bibles = FXCollections.observableArrayList();
@@ -266,7 +267,25 @@ public final class BibleNavigationPane extends BorderPane {
 								nv.getBook().getNumber(), 
 								nv.getChapter().getNumber(), 
 								nv.getVerse().getNumber());
-						updateValue(triplet, pneSearch.isAppendEnabled()); 
+						boolean isAppendEnabled = pneSearch.isAppendEnabled();
+						
+						// if we aren't appending, then we know they are done - they found
+						// what they were looking for
+						if (!isAppendEnabled) {
+							this.searchDialog.hide();
+						}
+						
+						// if we just opened the dialog and the user is in append mode
+						// we want to set the current value instead of append
+						if (!this.searchDialogFirstItemSelected) {
+							isAppendEnabled = false;
+						}
+						
+						// no matter what, after one value is selected set the
+						// first item selected flag
+						this.searchDialogFirstItemSelected = true;
+						
+						updateValue(triplet, isAppendEnabled);
 					}
 				});
 				
@@ -282,6 +301,7 @@ public final class BibleNavigationPane extends BorderPane {
 				this.searchDialog.setScene(WindowHelper.createSceneWithOwnerCss(pneSearch, owner));
 			}
 			
+			this.searchDialogFirstItemSelected = false;
 			this.searchDialog.show();
 			WindowHelper.centerOnParent(this.getScene().getWindow(), this.searchDialog);
 		});

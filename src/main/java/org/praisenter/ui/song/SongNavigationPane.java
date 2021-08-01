@@ -132,6 +132,7 @@ public final class SongNavigationPane extends BorderPane {
 				pneSearch.valueProperty().addListener((obs, ov, nv) -> {
 					if (nv != null) {
 						this.song.set(nv.getSong());
+						this.searchDialog.hide();
 					}
 				});
 				

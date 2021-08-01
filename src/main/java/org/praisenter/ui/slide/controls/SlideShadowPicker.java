@@ -26,6 +26,7 @@ import javafx.scene.control.TextFormatter;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
+// FIXME replace color pickers with custom one
 public final class SlideShadowPicker extends VBox {
 	private static final Color DEFAULT_COLOR = new Color(0.0, 0.0, 0.0, 0.8);
 	

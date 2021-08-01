@@ -27,7 +27,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
 import javafx.scene.layout.VBox;
 
-// TODO expand to allow edit of animation fields, allow toggle of Transition vs. Animation fields
+// FEATURE (L-H) expand to allow edit of animation fields, allow toggle of Transition vs. Animation fields
 
 public final class SlideAnimationPicker extends VBox {
 	

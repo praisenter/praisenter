@@ -414,6 +414,16 @@ public class SlideView extends Region implements Playable {
 				if (time != Slide.TIME_FOREVER && time > 0) {
 					PauseTransition wait = new PauseTransition(new Duration(time * 1000));
 					tx.getChildren().add(wait);
+					wait.setOnFinished(e -> {
+						if (slide != null) {
+							Slide current = this.slide.get();
+							if (current == slide) {
+								if (time != Slide.TIME_FOREVER && time > 0) {
+									this.transitionSlide(null);
+								}
+							}
+						}
+					});
 				}
 			}
 		}
@@ -425,20 +435,6 @@ public class SlideView extends Region implements Playable {
 				oldNode.dispose();
 			}
 		});
-		
-		if (this.autoHideEnabled.get()) {
-			tx.setOnFinished(e -> {
-				if (slide != null) {
-					Slide current = this.slide.get();
-					if (current == slide) {
-						long time = slide.getTime();
-						if (time != Slide.TIME_FOREVER && time > 0) {
-							this.transitionSlide(null);
-						}
-					}
-				}
-			});
-		}
 		
 		this.currentTransition = tx;
 		
