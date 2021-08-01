@@ -45,6 +45,8 @@ public final class DisplaysController extends BorderPane {
 		scr.setFitToHeight(true);
 		scr.setVbarPolicy(ScrollBarPolicy.NEVER);
 		
+		// TODO add a "Identify Screens" button
+		
 		this.setCenter(scr);
 	}
 }

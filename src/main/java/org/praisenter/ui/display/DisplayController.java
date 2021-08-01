@@ -2,6 +2,9 @@ package org.praisenter.ui.display;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 import org.praisenter.data.StringTextStore;
 import org.praisenter.data.TextStore;
@@ -54,13 +57,13 @@ public final class DisplayController extends BorderPane {
 	private final DoubleProperty maxWidth = new SimpleDoubleProperty(400);
 	private final DoubleBinding maxHeight;
 	
-	private final ObjectProperty<TextStore> placeholderData;
+//	private final ObjectProperty<TextStore> placeholderData;
 	
 	public DisplayController(GlobalContext context, DisplayTarget target) {
 		this.context = context;
 		this.target = target;
 		
-		this.placeholderData = new SimpleObjectProperty<TextStore>();
+//		this.placeholderData = new SimpleObjectProperty<TextStore>();
 		
 		Robot robot = new Robot();
 		WritableImage image = robot.getScreenCapture(null, 
@@ -89,6 +92,8 @@ public final class DisplayController extends BorderPane {
 		slideView.setCheckeredBackgroundEnabled(false);
 		slideView.prefWidthProperty().bind(this.maxWidth);
 		slideView.prefHeightProperty().bind(this.maxHeight);
+		slideView.maxWidthProperty().bind(this.maxWidth);
+		slideView.maxHeightProperty().bind(this.maxHeight);
 	
 		SlideView notificationView = new SlideView(context);
 		notificationView.setViewMode(SlideMode.PREVIEW);
@@ -99,9 +104,7 @@ public final class DisplayController extends BorderPane {
 		notificationView.prefWidthProperty().bind(this.maxWidth);
 		notificationView.prefHeightProperty().bind(this.maxHeight);
 		
-		SlideTemplateComboBox cmbSlideTemplate = new SlideTemplateComboBox(context);
 		SlideTemplateComboBox cmbNotificationTemplate = new SlideTemplateComboBox(context);
-		// TODO need to account for each navigation pane's value - maybe swap based on selected tab?  are tabs a good way?
 		BibleNavigationPane bibleNavigationPane = new BibleNavigationPane(context);
 		SongNavigationPane songNavigationPane = new SongNavigationPane(context);
 		
@@ -125,13 +128,19 @@ public final class DisplayController extends BorderPane {
 		TabPane tabs = new TabPane();
 		tabs.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
 		// TODO translate
-		tabs.getTabs().add(new Tab("Bible", bibleNavigationPane));
-		tabs.getTabs().add(new Tab("Song", songNavigationPane));
-		tabs.getTabs().add(new Tab("Slide", new Label("slides")));
+		
+		SlideTemplateComboBox cmbBibleSlideTemplate = new SlideTemplateComboBox(context);
+		SlideTemplateComboBox cmbSongSlideTemplate = new SlideTemplateComboBox(context);
+		
+		VBox bibleTab = new VBox(cmbBibleSlideTemplate, bibleNavigationPane);
+		VBox songTab = new VBox(cmbSongSlideTemplate, songNavigationPane);
+		
+		tabs.getTabs().add(new Tab("Bible", bibleTab));
+		tabs.getTabs().add(new Tab("Song", songTab));
+		tabs.getTabs().add(new Tab("Slide", new Label("TODO slides")));
 		
 		layout.getChildren().add(new StackPane(screen, slideView, notificationView));
 		layout.getChildren().add(new HBox(chkPreviewTransition, chkWaitForTransition));
-		layout.getChildren().add(cmbSlideTemplate);
 		layout.getChildren().add(new HBox(chkAutoShow, btnShowSlide, btnClearSlide));
 		layout.getChildren().add(tabs);
 		layout.getChildren().add(cmbNotificationTemplate);
@@ -167,20 +176,31 @@ public final class DisplayController extends BorderPane {
 //		});
 
 		btnShowSlide.setOnAction(e -> {
-			Slide newSlide = cmbSlideTemplate.getValue();
-			Slide oldSlide = target.getSlide();
+			Slide slide = null;
+			TextStore data = null;
 			
-//			final TextStore data = bibleNavigationPane.getValue();
-			TextStore data = this.placeholderData.getValue();
-			if (data == null) {
-				data = new StringTextStore("");
+			int index = tabs.getSelectionModel().getSelectedIndex();
+			if (index == 0) {
+				slide = cmbBibleSlideTemplate.getValue();
+				data = bibleNavigationPane.getValue();
+			} else if (index == 1) {
+				slide = cmbSongSlideTemplate.getValue();
+				data = songNavigationPane.getValue();
+			} else if (index == 2) {
+				// TODO slide showing
+			} else {
+				// TODO error
 			}
 			
-			if (this.isPlaceholderTransitionOnly(oldSlide, newSlide)) {
+			boolean waitForTransition = chkWaitForTransition.isSelected();
+			Slide oldSlide = target.getSlide();
+			// we need to do this additional check to make sure the slide
+			// hasn't changed since the last time it was displayed
+			if (this.isPlaceholderTransitionOnly(oldSlide, slide)) {
 				// do placeholders only
-				target.displaySlidePlaceholders(data, chkWaitForTransition.isSelected());
+				target.displaySlidePlaceholders(data, waitForTransition);
 			} else {
-				target.displaySlide(newSlide, data, chkWaitForTransition.isSelected());
+				target.displaySlide(slide, data, waitForTransition);
 			}
 		});
 		
@@ -217,16 +237,28 @@ public final class DisplayController extends BorderPane {
 		});
 		
 		// TODO how can we allow the user to select nothing?
-		cmbSlideTemplate.getItems().addListener((Change<? extends Slide> c) -> {
-			Slide cv = cmbSlideTemplate.getValue();
+		cmbBibleSlideTemplate.getItems().addListener((Change<? extends Slide> c) -> {
+			Slide cv = cmbBibleSlideTemplate.getValue();
 			String action = this.getChangeAction(c, cv);
 			if (action == REMOVED) {
-				cmbSlideTemplate.setValue(null);
+				cmbBibleSlideTemplate.setValue(null);
 			} else if (action == REPLACED) {
-				cmbSlideTemplate.setValue(null);
-				cmbSlideTemplate.setValue(cv);
+				cmbBibleSlideTemplate.setValue(null);
+				cmbBibleSlideTemplate.setValue(cv);
 			}
         });
+		
+		cmbSongSlideTemplate.getItems().addListener((Change<? extends Slide> c) -> {
+			Slide cv = cmbSongSlideTemplate.getValue();
+			String action = this.getChangeAction(c, cv);
+			if (action == REMOVED) {
+				cmbSongSlideTemplate.setValue(null);
+			} else if (action == REPLACED) {
+				cmbSongSlideTemplate.setValue(null);
+				cmbSongSlideTemplate.setValue(cv);
+			}
+        });
+		
 		cmbNotificationTemplate.getItems().addListener((Change<? extends Slide> c) -> {
 			Slide cv = cmbNotificationTemplate.getValue();
 			String action = this.getChangeAction(c, cv);
@@ -238,60 +270,114 @@ public final class DisplayController extends BorderPane {
 			}
         });
 		
-		cmbSlideTemplate.valueProperty().addListener((obs, ov, nv) -> {
+		final Consumer<DisplayChange> handleDisplayChange = (change) -> {
 			boolean transition = chkPreviewTransition.isSelected();
-			if (nv != null) {
-				TextStore data = this.placeholderData.get();
-				if (data == null) {
-					data = new StringTextStore("");
-				}
-				
-				Slide slide = nv.copy();
-				slide.setPlaceholderData(data.copy());
-				slide.fit(target.getDisplay().getWidth(), target.getDisplay().getHeight());
-				// TODO add checkbox for transition slide
-//				this.slideView.swapSlide(slide);
-				// TODO add checkbox for transition placeholders
-//				this.slideView.setSlide(slide);
+			boolean waitForTransition = chkWaitForTransition.isSelected();
+			boolean autoShow = chkAutoShow.isSelected();
+			
+			double tw = target.getDisplay().getWidth();
+			double th = target.getDisplay().getHeight();
+			
+			Slide slide = change.getSlide();
+			TextStore data = change.getData();
+			
+			if (data == null) {
+				data = new StringTextStore("");
+			}
+			
+			// update the slide view
+			if (change.isHide() || slide == null) {
 				if (transition) {
-					slideView.transitionSlide(slide, chkWaitForTransition.isSelected());
+					slideView.transitionSlide(null, waitForTransition);
 				} else {
-					slideView.swapSlide(slide);
+					slideView.swapSlide(null);
+				}
+			} else if (change.isDataChange()) {
+				if (transition) {
+					slideView.transitionPlaceholders(data.copy(), waitForTransition);
+				} else {
+					slideView.swapPlaceholders(data.copy());
 				}
 			} else {
-				slideView.swapSlide(null);
+				Slide sld = slide.copy();
+				sld.setPlaceholderData(data);
+				sld.fit(tw, th);
+				
+				if (transition) {
+					slideView.transitionSlide(sld, waitForTransition);
+				} else {
+					slideView.swapSlide(sld);
+				}
 			}
+			
+			// update the display (if auto-show enabled)
+			if (autoShow) {
+				Slide oldSlide = target.getSlide();
+				// we need to do this additional check to make sure the slide
+				// hasn't changed since the last time it was displayed
+				if (this.isPlaceholderTransitionOnly(oldSlide, slide)) {
+					// do placeholders only
+					target.displaySlidePlaceholders(data, waitForTransition);
+				} else {
+					target.displaySlide(slide, data, waitForTransition);
+				}
+			}
+		};
+		
+		cmbBibleSlideTemplate.valueProperty().addListener((obs, ov, nv) -> {
+			if (tabs.getSelectionModel().getSelectedIndex() != 0) {
+				return;
+			}
+			
+			TextStore data = bibleNavigationPane.getValue();
+			handleDisplayChange.accept(DisplayChange.slide(nv, data));
+		});
+		
+		cmbSongSlideTemplate.valueProperty().addListener((obs, ov, nv) -> {
+			if (tabs.getSelectionModel().getSelectedIndex() != 1) {
+				return;
+			}
+			
+			TextStore data = songNavigationPane.getValue();
+			handleDisplayChange.accept(DisplayChange.slide(nv, data));
+		});
+		
+		tabs.getSelectionModel().selectedIndexProperty().addListener((obs, ov, nv) -> {
+			Slide slide = null;
+			TextStore data = null;
+			
+			if (nv.intValue() == 0) {
+				data = bibleNavigationPane.getValue();
+				slide = cmbBibleSlideTemplate.getValue();
+			} else if (nv.intValue() == 1) {
+				data = songNavigationPane.getValue();
+				slide = cmbSongSlideTemplate.getValue();
+			} else if (nv.intValue() == 2) {
+				// TODO slide handling
+			} else {
+				// TODO error
+			}
+			
+			handleDisplayChange.accept(DisplayChange.slideAndData(slide, data));
 		});
 		
 		bibleNavigationPane.valueProperty().addListener((obs, ov, nv) -> {
-			this.placeholderData.set(nv);
+			if (tabs.getSelectionModel().getSelectedIndex() != 0) {
+				return;
+			}
+			
+			Slide slide = cmbBibleSlideTemplate.getValue();
+			handleDisplayChange.accept(DisplayChange.data(slide, nv));
 		});
 		
 		songNavigationPane.valueProperty().addListener((obs, ov, nv) -> {
-			this.placeholderData.set(nv);
-		});
-		
-		this.placeholderData.addListener((obs, ov, nv) -> {
-			boolean transition = chkPreviewTransition.isSelected();
-			if (transition) {
-				slideView.transitionPlaceholders(nv.copy(), chkWaitForTransition.isSelected());
-			} else {
-				slideView.swapPlaceholders(nv.copy());
+			if (tabs.getSelectionModel().getSelectedIndex() != 1) {
+				return;
 			}
 			
-			if (chkAutoShow.isSelected()) {
-				Slide newSlide = cmbSlideTemplate.getValue();
-				Slide oldSlide = target.getSlide();
-				
-				if (this.isPlaceholderTransitionOnly(oldSlide, newSlide)) {
-					// do placeholders only
-					target.displaySlidePlaceholders(nv, chkWaitForTransition.isSelected());
-				} else {
-					target.displaySlide(newSlide, nv, chkWaitForTransition.isSelected());
-				}
-			}
+			Slide slide = cmbSongSlideTemplate.getValue();
+			handleDisplayChange.accept(DisplayChange.data(slide, nv));
 		});
-		
 	}
 	
 	private boolean isPlaceholderTransitionOnly(Slide oldSlide, Slide newSlide) {

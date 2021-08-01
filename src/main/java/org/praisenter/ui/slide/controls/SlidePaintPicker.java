@@ -67,11 +67,6 @@ public final class SlidePaintPicker extends VBox {
 			cbType.setValue(types.get(0));
 		BindingHelper.bindBidirectional(cbType.valueProperty(), this.type);
 		
-		// TODO maybe replace the color picker with a custom one?
-		// https://stackoverflow.com/questions/27171885/display-custom-color-dialog-directly-javafx-colorpicker/27180647#27180647
-		
-		// JAVABUG (H) 06/29/21 The "use" button of the color picker minimizes the parent window
-		// https://bugs.openjdk.java.net/browse/JDK-8260024
 		ColorPicker pkrColor = new ColorPicker();
 		pkrColor.valueProperty().bindBidirectional(this.color);
 		pkrColor.setMaxWidth(Double.MAX_VALUE);

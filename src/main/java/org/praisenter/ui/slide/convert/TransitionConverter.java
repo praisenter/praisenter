@@ -28,8 +28,6 @@ import javafx.scene.Parent;
 import javafx.scene.transform.Transform;
 import javafx.util.Duration;
 
-// TODO should we apply the transitions from the slide or component perspective wrt. placeholder changing?
-
 public class TransitionConverter {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
@@ -158,7 +156,7 @@ public class TransitionConverter {
 	
 	private static final Bounds getTransitionBounds(Slide slide, SlideComponent component) {
 		if (component != null) {
-			// FEATURE This won't work if we support component level animation.  
+			// FEATURE (L-H) This won't work if we support component level animation.  
 			// The problem is that we don't know exactly the size of the components 
 			// until they are rendered, but we can't render them until we've animated them.
 			// One option is to clip all components to the bounds of the component
