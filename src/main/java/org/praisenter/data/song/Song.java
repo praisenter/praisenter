@@ -262,7 +262,6 @@ public final class Song implements ReadOnlySong, Indexable, Persistable, Copyabl
 	 */
 	@Override
 	public List<Document> index() {
-		// TODO do we need to include other fields in the index (keywords for example)
 		List<Document> documents = new ArrayList<Document>();
 		for (Lyrics lyrics : this.lyrics) {
 			for (Section section : lyrics.getSections()) {

@@ -1,6 +1,5 @@
 package org.praisenter.ui.translations;
 
-import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -26,44 +25,24 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.Constants;
 
-// TODO ResourceBundle.Control is no longer supported in modular apps
 public final class Translations {
 	private static final Logger LOGGER = LogManager.getLogger();
 
 	private static final String BUNDLE_BASE_NAME = "messages";
 	private static final Pattern TRANSLATION_PATTERN = Pattern.compile("^messages_(.+)\\.properties$", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
-//	private static final ResourceBundle.Control DEFAULT_CONTROL = new FileSystemControl();
 	private static final ClassLoader RESOURCES_LOADER;
-	
-//	private static final ResourceBundle DEFAULT_BUNDLE = ResourceBundle.getBundle(BUNDLE_BASE_NAME, Locale.ROOT);
 	
 	static {
 		ClassLoader cl = null;
 		try {
 			// create a class loader that loads the resource files from the locales directory
-			Path path = Paths.get(Constants.LOCALES_ABSOLUTE_FILE_PATH);
+			Path path = Paths.get(Constants.LOCALES_ABSOLUTE_PATH);
 			cl = new URLClassLoader(new URL[] { path.toUri().toURL() });
 		} catch (MalformedURLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LOGGER.error("Failed to convert the locales folder '" + Constants.LOCALES_ABSOLUTE_PATH + "' to a URL: " + e.getMessage(), e);
 		}
 		
 		RESOURCES_LOADER = cl;
-		
-//		try {
-//			Files.createDirectories(Paths.get(Constants.LOCALES_ABSOLUTE_FILE_PATH));
-//		} catch (Exception ex) {
-//			LOGGER.warn("Failed to create translations directory.", ex);
-//		}
-//		
-//		// set the default locale bundle
-//		Locale defaultLocale = Locale.getDefault();
-//		ResourceBundle bundle = DEFAULT_BUNDLE;
-//		try {
-//			bundle = ResourceBundle.getBundle(BUNDLE_BASE_NAME, defaultLocale, DEFAULT_CONTROL);
-//		} catch (MissingResourceException ex) {
-//			LOGGER.warn("Couldn't find messages.properties file for locale '{}', using default.", defaultLocale.toString());
-//		}
 	}
 
 	/**
@@ -77,7 +56,7 @@ public final class Translations {
 		locales.add(Locale.ENGLISH);
 		
 		// look in the locales directory for any additional translations
-		Path localeDir = Paths.get(Constants.LOCALES_ABSOLUTE_FILE_PATH);
+		Path localeDir = Paths.get(Constants.LOCALES_ABSOLUTE_PATH);
 		if (Files.exists(localeDir) && Files.isDirectory(localeDir)) {
 			try (DirectoryStream<Path> paths = Files.newDirectoryStream(localeDir)) {
 				Iterator<Path> it = paths.iterator();

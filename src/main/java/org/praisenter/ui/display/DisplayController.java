@@ -6,6 +6,8 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.praisenter.data.StringTextStore;
 import org.praisenter.data.TextStore;
 import org.praisenter.data.configuration.DisplayRole;
@@ -54,6 +56,8 @@ import javafx.scene.paint.Color;
 import javafx.scene.robot.Robot;
 
 public final class DisplayController extends BorderPane {
+	private static final Logger LOGGER = LogManager.getLogger();
+	
 	private static final String REMOVED = "REMOVED";
 	private static final String REPLACED = "REPLACED";
 	
@@ -199,7 +203,7 @@ public final class DisplayController extends BorderPane {
 			} else if (index == 2) {
 				slide = slideNavigationPane.getValue();
 			} else {
-				// TODO error
+				LOGGER.warn("Tab index '" + index + "' is not supported.");
 			}
 			
 			boolean waitForTransition = chkWaitForTransition.isSelected();
@@ -225,8 +229,12 @@ public final class DisplayController extends BorderPane {
 				Slide slide = nv.copy();
 				// if the slide doesn't have a time defined, choose an
 				// arbitrary one so that it auto-hides
-				if (slide.getTime() == Slide.TIME_FOREVER) {
-					slide.setTime(3000);
+				// this is only for the preview, for the real display
+				// we'll keep it up forever until the user manually
+				// hides it
+				if (slide.getTime() == Slide.TIME_FOREVER ||
+					slide.getTime() == 0) {
+					slide.setTime(3);
 				}
 				slide.setPlaceholderData(new StringTextStore(txtNotification.getText()));
 				slide.fit(target.getDisplay().getWidth(), target.getDisplay().getHeight());
@@ -251,7 +259,6 @@ public final class DisplayController extends BorderPane {
 			target.displayNotification(null, null, false);
 		});
 		
-		// TODO how can we allow the user to select nothing?
 		cmbBibleSlideTemplate.getItems().addListener((Change<? extends Slide> c) -> {
 			Slide cv = cmbBibleSlideTemplate.getValue();
 			String action = this.getChangeAction(c, cv);
@@ -368,17 +375,18 @@ public final class DisplayController extends BorderPane {
 		tabs.getSelectionModel().selectedIndexProperty().addListener((obs, ov, nv) -> {
 			Slide slide = null;
 			TextStore data = null;
+			int index = nv.intValue();
 			
-			if (nv.intValue() == 0) {
+			if (index == 0) {
 				data = bibleNavigationPane.getValue();
 				slide = cmbBibleSlideTemplate.getValue();
-			} else if (nv.intValue() == 1) {
+			} else if (index == 1) {
 				data = songNavigationPane.getValue();
 				slide = cmbSongSlideTemplate.getValue();
-			} else if (nv.intValue() == 2) {
+			} else if (index == 2) {
 				slide = slideNavigationPane.getValue();
 			} else {
-				// TODO error
+				LOGGER.warn("Tab index '" + index + "' is not supported.");
 			}
 			
 			handleDisplayChange.accept(DisplayChange.slideAndData(slide, data));
