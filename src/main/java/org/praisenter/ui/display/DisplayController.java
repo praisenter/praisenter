@@ -16,6 +16,7 @@ import org.praisenter.ui.Option;
 import org.praisenter.ui.bible.BibleNavigationPane;
 import org.praisenter.ui.bind.BindingHelper;
 import org.praisenter.ui.slide.SlideMode;
+import org.praisenter.ui.slide.SlideNavigationPane;
 import org.praisenter.ui.slide.SlideTemplateComboBox;
 import org.praisenter.ui.slide.SlideView;
 import org.praisenter.ui.song.SongNavigationPane;
@@ -38,13 +39,18 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.control.TabPane.TabClosingPolicy;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.scene.robot.Robot;
 
 public final class DisplayController extends BorderPane {
@@ -107,6 +113,7 @@ public final class DisplayController extends BorderPane {
 		SlideTemplateComboBox cmbNotificationTemplate = new SlideTemplateComboBox(context);
 		BibleNavigationPane bibleNavigationPane = new BibleNavigationPane(context);
 		SongNavigationPane songNavigationPane = new SongNavigationPane(context);
+		SlideNavigationPane slideNavigationPane = new SlideNavigationPane(context);
 		
 		VBox layout = new VBox();
 		
@@ -123,11 +130,11 @@ public final class DisplayController extends BorderPane {
 		Button btnClearNotification = new Button(Translations.get("display.controller.hide"));
 		CheckBox chkAutoShow = new CheckBox(Translations.get("display.controller.autoshow"));
 		CheckBox chkWaitForTransition = new CheckBox(Translations.get("display.controller.waitForTransition"));
+		chkWaitForTransition.setTooltip(new Tooltip(Translations.get("display.controller.waitForTransition.tooltip")));
 		CheckBox chkPreviewTransition = new CheckBox(Translations.get("display.controller.previewTransition"));
 		
 		TabPane tabs = new TabPane();
 		tabs.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
-		// TODO translate
 		
 		SlideTemplateComboBox cmbBibleSlideTemplate = new SlideTemplateComboBox(context);
 		SlideTemplateComboBox cmbSongSlideTemplate = new SlideTemplateComboBox(context);
@@ -135,9 +142,9 @@ public final class DisplayController extends BorderPane {
 		VBox bibleTab = new VBox(cmbBibleSlideTemplate, bibleNavigationPane);
 		VBox songTab = new VBox(cmbSongSlideTemplate, songNavigationPane);
 		
-		tabs.getTabs().add(new Tab("Bible", bibleTab));
-		tabs.getTabs().add(new Tab("Song", songTab));
-		tabs.getTabs().add(new Tab("Slide", new Label("TODO slides")));
+		tabs.getTabs().add(new Tab(Translations.get("bible"), bibleTab));
+		tabs.getTabs().add(new Tab(Translations.get("song"), songTab));
+		tabs.getTabs().add(new Tab(Translations.get("slide"), slideNavigationPane));
 		
 		layout.getChildren().add(new StackPane(screen, slideView, notificationView));
 		layout.getChildren().add(new HBox(chkPreviewTransition, chkWaitForTransition));
@@ -146,6 +153,9 @@ public final class DisplayController extends BorderPane {
 		layout.getChildren().add(cmbNotificationTemplate);
 		layout.getChildren().add(txtNotification);
 		layout.getChildren().add(new HBox(btnPreviewNotification, btnShowNotification, btnClearNotification));
+		
+		VBox.setVgrow(tabs, Priority.ALWAYS);
+//		layout.setBackground(new Background(new BackgroundFill(Color.RED, null, null)));
 		
 		this.setTop(cbDisplayRole);
 		this.setCenter(layout);
@@ -187,7 +197,7 @@ public final class DisplayController extends BorderPane {
 				slide = cmbSongSlideTemplate.getValue();
 				data = songNavigationPane.getValue();
 			} else if (index == 2) {
-				// TODO slide showing
+				slide = slideNavigationPane.getValue();
 			} else {
 				// TODO error
 			}
@@ -213,6 +223,11 @@ public final class DisplayController extends BorderPane {
 			Slide nv = cmbNotificationTemplate.getValue();
 			if (nv != null) {
 				Slide slide = nv.copy();
+				// if the slide doesn't have a time defined, choose an
+				// arbitrary one so that it auto-hides
+				if (slide.getTime() == Slide.TIME_FOREVER) {
+					slide.setTime(3000);
+				}
 				slide.setPlaceholderData(new StringTextStore(txtNotification.getText()));
 				slide.fit(target.getDisplay().getWidth(), target.getDisplay().getHeight());
 				if (transition) {
@@ -342,6 +357,14 @@ public final class DisplayController extends BorderPane {
 			handleDisplayChange.accept(DisplayChange.slide(nv, data));
 		});
 		
+		slideNavigationPane.valueProperty().addListener((obs, ov, nv) -> {
+			if (tabs.getSelectionModel().getSelectedIndex() != 2) {
+				return;
+			}
+			
+			handleDisplayChange.accept(DisplayChange.slide(nv, null));
+		});
+		
 		tabs.getSelectionModel().selectedIndexProperty().addListener((obs, ov, nv) -> {
 			Slide slide = null;
 			TextStore data = null;
@@ -353,7 +376,7 @@ public final class DisplayController extends BorderPane {
 				data = songNavigationPane.getValue();
 				slide = cmbSongSlideTemplate.getValue();
 			} else if (nv.intValue() == 2) {
-				// TODO slide handling
+				slide = slideNavigationPane.getValue();
 			} else {
 				// TODO error
 			}
