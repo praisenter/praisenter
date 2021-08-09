@@ -58,8 +58,39 @@ public final class Constants {
 	public static final String LOGS_RELATIVE_PATH = "logs" + RuntimeProperties.PATH_SEPARATOR;
 	
 	/** The absolute path to the logs directory */
-	public static final String LOGS_ABSOLUTE_PATH = Constants.ROOT_PATH + "logs";
+	public static final String LOGS_ABSOLUTE_PATH = Constants.ROOT_PATH + Constants.LOGS_RELATIVE_PATH;
+	
+	/** The logging configuration file name */
+	public static final String LOGS_CONFIGURATION_FILENAME = "log4j2.xml";
+	
+	/** The path to the logging configuration file on the classpath */
+	public static final String LOGS_CONFIGURATION_ON_CLASSPATH = "/org/praisenter/config/" + LOGS_CONFIGURATION_FILENAME;
 
+	
+	
+	///////////////////////////
+	// UPGRADE
+	
+	/** The relative path to the upgrade directory */
+	public static final String UPGRADE_RELATIVE_PATH = "upgrade" + RuntimeProperties.PATH_SEPARATOR;
+	
+	/** The absolute path to the upgrade directory */
+	public static final String UPGRADE_ABSOLUTE_PATH = Constants.ROOT_PATH + Constants.UPGRADE_RELATIVE_PATH;
+	
+	/** The last runtime version of the application */
+	public static final String UPGRADE_VERSION_FILENAME = "version.txt";
+	
+	/** The relative path to the upgrade/archive directory */
+	public static final String UPGRADE_ARCHIVE_RELATIVE_PATH = Constants.UPGRADE_RELATIVE_PATH + "archive" + RuntimeProperties.PATH_SEPARATOR;
+	
+	/** The absolute path to the upgrade/archive directory */
+	public static final String UPGRADE_ARCHIVE_ABSOLUTE_PATH = Constants.ROOT_PATH + Constants.UPGRADE_ARCHIVE_RELATIVE_PATH;
+	
+	/** The URL to check for a new released version of the application */
+	public static final String UPGRADE_VERSION_CHECK_URL = "https://raw.githubusercontent.com/wnbittle/praisenter/version3/release-version.txt";
+
+	
+	
 	///////////////////////////
 	// SEARCH INDEX
 	
@@ -70,6 +101,8 @@ public final class Constants {
 	// /user/home/dir/Praisenter3/_index
 	/** The absolute path to the search index directory */
 	public static final String SEARCH_INDEX_ABSOLUTE_PATH = Constants.ROOT_PATH + SEARCH_INDEX_RELATIVE_PATH;
+	
+	
 	
 	///////////////////////////
 	// CONFIGURATION
@@ -82,21 +115,45 @@ public final class Constants {
 	/** The absolute path to the configuration file */
 	public static final String CONFIG_ABSOLUTE_PATH = Constants.ROOT_PATH + CONFIG_RELATIVE_PATH;
 
+	
+	
+	///////////////////////////
+	// LOCALES
+	
 	// /locales
 	/** The relative path to the locales directory */
-	public static final String LOCALES_RELATIVE_FILE_PATH = "locales" + RuntimeProperties.PATH_SEPARATOR;
+	public static final String LOCALES_RELATIVE_PATH = "locales" + RuntimeProperties.PATH_SEPARATOR;
 	
 	// /user/home/dir/Praisenter3/locales
 	/** The absolute path to the locales directory */
-	public static final String LOCALES_ABSOLUTE_FILE_PATH = Constants.ROOT_PATH + LOCALES_RELATIVE_FILE_PATH;
+	public static final String LOCALES_ABSOLUTE_PATH = Constants.ROOT_PATH + LOCALES_RELATIVE_PATH;
+	
+	/** The default locale file name */
+	public static final String LOCALES_DEFAULT_LOCALE_FILENAME = "messages.properties";
+	
+	/** The path to the default locale file on the classpath */
+	public static final String LOCALES_DEFAULT_LOCALE_ON_CLASSPATH = "/org/praisenter/translations/" + Constants.LOCALES_DEFAULT_LOCALE_FILENAME;
 
+	
+	
+	///////////////////////////
+	// THEMES
+	
 	// /themes
 	/** The relative path to the themes directory */
-	public static final String THEMES_RELATIVE_FILE_PATH = "themes" + RuntimeProperties.PATH_SEPARATOR;
+	public static final String THEMES_RELATIVE_PATH = "themes" + RuntimeProperties.PATH_SEPARATOR;
 	
 	// /user/home/dir/Praisenter3/themes
 	/** The absolute path to the themes directory */
-	public static final String THEMES_ABSOLUTE_FILE_PATH = Constants.ROOT_PATH + THEMES_RELATIVE_FILE_PATH;
+	public static final String THEMES_ABSOLUTE_PATH = Constants.ROOT_PATH + THEMES_RELATIVE_PATH;
+	
+	/** The default theme file name */
+	public static final String THEMES_DEFAULT_THEME_FILENAME = "default.css";
+	
+	/** The path to the default theme file on the classpath */
+	public static final String THEMES_DEFAULT_THEME_ON_CLASSPATH = "/org/praisenter/themes/" + Constants.THEMES_DEFAULT_THEME_FILENAME;
+	
+	
 	
 	///////////////////////////
 	// MEDIA

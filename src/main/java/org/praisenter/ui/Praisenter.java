@@ -1,5 +1,6 @@
 package org.praisenter.ui;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -33,8 +34,10 @@ import org.praisenter.ui.controls.Alerts;
 import org.praisenter.ui.fonts.OpenIconic;
 import org.praisenter.ui.themes.Theme;
 import org.praisenter.ui.translations.Translations;
+import org.praisenter.ui.upgrade.InstallUpgradeHandler;
 import org.praisenter.utility.ClasspathLoader;
 import org.praisenter.utility.RuntimeProperties;
+import org.praisenter.utility.Streams;
 
 import javafx.animation.Animation;
 import javafx.animation.FadeTransition;
@@ -54,8 +57,6 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.util.Duration;
 
-// TODO fix the manifest
-// TODO explore deployment options
 // TODO testing on High DPI screens
 // TODO fix dark theme
 
@@ -66,108 +67,10 @@ import javafx.util.Duration;
 // FEATURE (M-L) From selected media items, generate slides or slide show
 // FEATURE (H-H) Auto-update feature (windows only?); Update check (connect out to github packages or something); Auto-download install (download and execute); In config store upgrade number, in app write code to convert from upgrade number to upgrade number;
 
-// a. Generate a self-signed public/private key pair
-// b. Generate a signature for the version-check.json and install.jar files
-
-// Upon start up
-// 0. Check for install.jar and install.jar.sig
-// 0a. If present perform verification again
-// 0b. If verified execute install.jar
-// 0c. Either way delete all update files
-// 0c. When complete continue startup
-
-// After startup and in the background
-// 1. Download {url}/v/{current-version}/version-check.json
-// 2. Download {url}/v/{current-version}/version-check.json.sig https://docs.oracle.com/javase/tutorial/security/apisign/step3.html
-// 3. Verify the signature of the version-check.json with the version-check.json.sig and the public key
-// 4. If it does not pass
-//		a. Ignore update and notify user
-//		b. Clean up files
-// 5. If it passes
-//		a. Check for a new version
-//			i.  If we are on the current version then stop
-//			ii. Otherwise
-// 				1. Download {url}/v/{current-version}/install.jar
-// 				2. Download {url}/v/{current-version}/install.jar.sig
-// 				3. Verify the signature of the install.jar with the install.jar.sig and the public key
-//				4. If it does not pass
-//					a. Ignore update and notify user
-//					b. clean up files
-//				5. If it passes
-//					a. Notify the user of the update with option to restart
-
 // JAVABUG (L) 05/31/17 Java FX just chooses the last image in the set of stage icons rather than choosing the best bugs.openjdk.java.net/browse/JDK-8091186, bugs.openjdk.java.net/browse/JDK-8087459
 
 public final class Praisenter extends Application {
-	private static final Logger LOGGER;
-	
-	static {
-		// set the log file path (used in the log4j2.xml file)
-		System.setProperty("praisenter.logs.dir", Constants.LOGS_ABSOLUTE_PATH);
-		
-		try {
-			Files.createDirectories(Paths.get(Constants.ROOT_PATH));
-		} catch (IOException e1) {
-			// attempt to write to something
-			e1.printStackTrace();
-			throw new RuntimeException("Failed to create the praisenter root path: '" + Constants.ROOT_PATH + "'", e1);
-		}
-		
-		// set the log4j configuration file path
-		Path log4jPath = Paths.get(Constants.ROOT_PATH, "log4j2.xml");
-		if (!Files.exists(log4jPath)) {
-			// read the file from 
-			try {
-				ClasspathLoader.copy("/org/praisenter/config/log4j2.xml", log4jPath);
-			} catch (Exception e) {
-				// attempt to write to something
-				e.printStackTrace();
-				throw new RuntimeException("Failed to copy log4j2.xml configuration file from classpath to Praisenter root path", e);
-			}
-		}
-		
-		// copy the default languages files
-		Path englishTranslationPath = Paths.get(Constants.LOCALES_ABSOLUTE_FILE_PATH, "messages.properties");
-		if (!Files.exists(englishTranslationPath)) {
-			// read the file from 
-			try {
-				Files.createDirectories(Paths.get(Constants.LOCALES_ABSOLUTE_FILE_PATH));
-				ClasspathLoader.copy("/org/praisenter/translations/messages.properties", englishTranslationPath);
-			} catch (Exception e) {
-				// attempt to write to something
-				e.printStackTrace();
-				throw new RuntimeException("Failed to copy messages.properties file from classpath to the locales folder", e);
-			}
-		}
-		
-		// copy the default theme files
-		Path defaultThemePath = Paths.get(Constants.THEMES_ABSOLUTE_FILE_PATH, "default.css");
-		if (!Files.exists(defaultThemePath)) {
-			// read the file from 
-			try {
-				Files.createDirectories(Paths.get(Constants.THEMES_ABSOLUTE_FILE_PATH));
-				ClasspathLoader.copy("/org/praisenter/themes/default.css", defaultThemePath);
-			} catch (Exception e) {
-				// attempt to write to something
-				e.printStackTrace();
-				throw new RuntimeException("Failed to copy default.css file from classpath to the themes folder", e);
-			}
-		}
-		
-		System.setProperty(XmlConfigurationFactory.CONFIGURATION_FILE_PROPERTY, log4jPath.toAbsolutePath().toString());
-		
-		// create a logger for this class after the log4j has been initialized
-		LOGGER = LogManager.getLogger();
-    		
-		// log some system info
-    	LOGGER.info(Constants.NAME + " v" + Version.STRING);
-    	LOGGER.info("OS:        " + (RuntimeProperties.IS_WINDOWS_OS ? "[Windows] " : RuntimeProperties.IS_MAC_OS ? "[MacOS] " : RuntimeProperties.IS_LINUX_OS ? "[Linux] " : "[Other] ") + RuntimeProperties.OPERATING_SYSTEM + " " + RuntimeProperties.ARCHITECTURE);
-    	LOGGER.info("Java:      " + RuntimeProperties.JAVA_VERSION + " " + RuntimeProperties.JAVA_VENDOR);
-    	LOGGER.info("JVM Args:  " + RuntimeProperties.JVM_ARGUMENTS);
-    	LOGGER.info("Java Home: " + RuntimeProperties.JAVA_HOME);
-    	LOGGER.info("User Home: " + RuntimeProperties.USER_HOME);
-    	LOGGER.info("Locale:    " + Locale.getDefault().toLanguageTag());
-	}
+	private static Logger LOGGER;
 
 	// FEATURE (L-H) We should look at making some of the Java FX features "optional" instead of required
 	/** The array of Java FX features that Praisenter uses */
@@ -190,6 +93,27 @@ public final class Praisenter extends Application {
     @Override
     public void start(Stage stage) throws Exception {
     	long startTime = System.nanoTime();
+
+    	// the very first step is to do any install initialization or 
+    	// upgrade operations
+    	InstallUpgradeHandler installer = new InstallUpgradeHandler();
+    	installer.initialize();
+    	
+    	// set system props for log4j
+    	System.setProperty("praisenter.logs.dir", Constants.LOGS_ABSOLUTE_PATH);
+    	System.setProperty(XmlConfigurationFactory.CONFIGURATION_FILE_PROPERTY, Paths.get(Constants.ROOT_PATH, Constants.LOGS_CONFIGURATION_FILENAME).toAbsolutePath().toString());
+		
+    	// create a logger for this class after the log4j has been initialized
+    	LOGGER = LogManager.getLogger();
+    	
+		// log some system info
+    	LOGGER.info(Constants.NAME + " v" + Version.STRING);
+    	LOGGER.info("OS:        " + (RuntimeProperties.IS_WINDOWS_OS ? "[Windows] " : RuntimeProperties.IS_MAC_OS ? "[MacOS] " : RuntimeProperties.IS_LINUX_OS ? "[Linux] " : "[Other] ") + RuntimeProperties.OPERATING_SYSTEM + " " + RuntimeProperties.ARCHITECTURE);
+    	LOGGER.info("Java:      " + RuntimeProperties.JAVA_VERSION + " " + RuntimeProperties.JAVA_VENDOR);
+    	LOGGER.info("JVM Args:  " + RuntimeProperties.JVM_ARGUMENTS);
+    	LOGGER.info("Java Home: " + RuntimeProperties.JAVA_HOME);
+    	LOGGER.info("User Home: " + RuntimeProperties.USER_HOME);
+    	LOGGER.info("Locale:    " + Locale.getDefault().toLanguageTag());
     	
     	// log supported features
     	LOGGER.info("Java FX Feature Support:");
@@ -351,7 +275,7 @@ public final class Praisenter extends Application {
     		});
     		    		
     		// build the loading UI
-    		LoadingPane loadingPane = new LoadingPane(context);
+    		LoadingPane loadingPane = new LoadingPane(context, installer);
     		StackPane layout = new StackPane(loadingPane);
     		
     		Scene scene = new Scene(layout);

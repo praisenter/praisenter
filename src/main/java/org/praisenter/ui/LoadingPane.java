@@ -16,6 +16,7 @@ import org.praisenter.data.song.Song;
 import org.praisenter.data.song.SongPersistAdapter;
 import org.praisenter.ui.slide.JavaFXSlideRenderer;
 import org.praisenter.ui.translations.Translations;
+import org.praisenter.ui.upgrade.InstallUpgradeHandler;
 import org.praisenter.utility.RuntimeProperties;
 
 import javafx.animation.Animation;
@@ -57,6 +58,7 @@ final class LoadingPane extends Pane {
 	// members
 	
 	private final GlobalContext context;
+	private final InstallUpgradeHandler upgradeHandler;
 	
 	private final StringProperty message;
 	private final DoubleProperty progress;
@@ -64,13 +66,13 @@ final class LoadingPane extends Pane {
 	private final RotateTransition circleAnimation;
 	private Timeline barAnimation;
 	
-	public LoadingPane(GlobalContext context) {
+	public LoadingPane(GlobalContext context, InstallUpgradeHandler upgradeHandler) {
 		this.context = context;
+		this.upgradeHandler = upgradeHandler;
 		
 		this.message = new SimpleStringProperty();
 		this.progress = new SimpleDoubleProperty();
 		
-		// TODO Add "Praisenter" text or logo to the loading pane
 		// set the background image
     	setBackground(new Background(
     			new BackgroundImage(
@@ -195,6 +197,16 @@ final class LoadingPane extends Pane {
 				? "Lucida Grande"
 				: "Sans Serif", size);
 	}
+
+	private CompletableFuture<Void> performUpgrade() {
+		return CompletableFuture.runAsync(() -> {
+			this.message.set(Translations.get("task.loading.upgrade"));
+		}).thenCompose((v) -> {
+			return this.upgradeHandler.performUpgradeSteps();
+		}).thenRun(() -> {
+			this.progress.set(0.1);
+		});
+	}
 	
 	private CompletableFuture<Void> loadBibles() {
 		return CompletableFuture.runAsync(() -> {
@@ -222,7 +234,7 @@ final class LoadingPane extends Pane {
 		}).thenCompose((v) -> {
 			return this.context.dataManager.registerPersistAdapter(Media.class, new MediaPersistAdapter(Paths.get(Constants.MEDIA_ABSOLUTE_PATH), this.context.configuration));
 		}).thenRun(() -> {
-			this.progress.set(0.4);
+			this.progress.set(0.5);
 		});
 	}
 	
@@ -242,7 +254,7 @@ final class LoadingPane extends Pane {
 		}).thenCompose((v) -> {
 			return this.context.dataManager.registerPersistAdapter(SlideShow.class, new SlideShowPersistAdapter(Paths.get(Constants.SLIDESHOWS_ABSOLUTE_PATH)));
 		}).thenRun(() -> {
-			this.progress.set(0.8);
+			this.progress.set(0.7);
 		});
 	}
 	
@@ -253,6 +265,8 @@ final class LoadingPane extends Pane {
 	public CompletableFuture<Void> start() {
 		return CompletableFuture.completedFuture(null)
 		.thenCompose((v) -> {
+			return this.performUpgrade();
+		}).thenCompose((v) -> {
 			return this.loadBibles();
 		}).thenCompose((v) -> {
 			return this.loadSongs();

@@ -93,8 +93,6 @@ final class LibraryItemDetails extends BorderPane {
 	
 	// TODO slide data
 	
-	// TODO slide show data
-	
 	private final IntegerProperty showSlideCount;
 	
 	// song data
@@ -310,7 +308,6 @@ final class LibraryItemDetails extends BorderPane {
 		// preview section
 
 		// slide preview
-		// TODO allow playing the slide transition, videos, animations, -- no sound though
 		SlideView slide = new SlideView(context);
 		slide.setClipEnabled(true);
 		slide.setViewMode(SlideMode.VIEW);
@@ -320,10 +317,7 @@ final class LibraryItemDetails extends BorderPane {
 		slide.setViewScaleAlignCenter(false);
 		slide.setVisible(false);
 		
-		// TODO slide show preview
-		
 		// preview for image
-		// TODO create an extended image view for showing a loading while the image is being loaded
 		ImageView image = new ImageView();
 		image.imageProperty().bind(BindingHelper.createAsyncObjectBinding(() -> {
 			Persistable item = this.item.get();
@@ -498,7 +492,6 @@ final class LibraryItemDetails extends BorderPane {
 				image.setVisible(true);
 				labels.showRowsOnly(0,1,5,10,11,12,13,14,15,16);
 			} else {
-				// TODO properties for other stuff
 				labels.showRowsOnly();
 			}
 		});

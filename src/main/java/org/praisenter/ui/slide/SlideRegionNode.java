@@ -130,36 +130,24 @@ abstract class SlideRegionNode<T extends SlideRegion> extends StackPane implemen
 
 	@Override
 	public void play() {
-		// TODO Auto-generated method stub
-		// animations
-		
 		// media
 		this.background.play();
 	}
 	
 	@Override
 	public void pause() {
-		// TODO Auto-generated method stub
-		// animations
-		
 		// media
 		this.background.pause();
 	}
 	
 	@Override
 	public void stop() {
-		// TODO Auto-generated method stub
-		// animations
-		
 		// media
 		this.background.stop();
 	}
 	
 	@Override
 	public void dispose() {
-		// TODO Auto-generated method stub
-		// animations
-		
 		// media
 		this.background.dispose();
 	}
@@ -175,8 +163,6 @@ abstract class SlideRegionNode<T extends SlideRegion> extends StackPane implemen
 		this.setRotate(0);
 		this.setOpacity(1.0);
 		this.setClip(null);
-		
-		// TODO need to reinitialize animations
 		
 		// media
 		this.stop();

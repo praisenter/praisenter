@@ -85,6 +85,7 @@ public final class Alerts {
 		// Set expandable Exception into the dialog pane.
 		alert.getDialogPane().setExpandableContent(expContent);
 		alert.getDialogPane().setPrefSize(800, 600);
+		alert.getDialogPane().setExpanded(true);
 		
 		return alert;
 	}

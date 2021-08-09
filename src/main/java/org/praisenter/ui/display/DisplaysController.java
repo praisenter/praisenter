@@ -52,8 +52,6 @@ public final class DisplaysController extends BorderPane {
 		scr.setVbarPolicy(ScrollBarPolicy.NEVER);
 //		scr.setBackground(new Background(new BackgroundFill(Color.BLUE, null, null)));
 		
-		// TODO add a "Identify Screens" button
-		
 		this.setCenter(scr);
 	}
 }

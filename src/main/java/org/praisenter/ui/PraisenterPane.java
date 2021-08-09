@@ -3,10 +3,12 @@ package org.praisenter.ui;
 import java.awt.Desktop;
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.Constants;
+import org.praisenter.Version;
 import org.praisenter.async.AsyncHelper;
 import org.praisenter.async.BackgroundTask;
 import org.praisenter.data.Persistable;
@@ -21,6 +23,7 @@ import org.praisenter.ui.document.DocumentsPane;
 import org.praisenter.ui.library.LibraryList;
 import org.praisenter.ui.library.LibraryListType;
 import org.praisenter.ui.translations.Translations;
+import org.praisenter.ui.upgrade.UpgradeChecker;
 
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
@@ -46,6 +49,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.stage.Modality;
 
 final class PraisenterPane extends BorderPane {
 	private static final Logger LOGGER = LogManager.getLogger();
@@ -95,12 +99,46 @@ final class PraisenterPane extends BorderPane {
 				LOGGER.warn("Desktop is not supported. Failed to open log path.");
 			}
 		});
+		MenuItem mnuUpdate = new MenuItem(Translations.get("menu.update.check"));
+		mnuUpdate.setOnAction(e -> {
+			UpgradeChecker uc = new UpgradeChecker();
+			uc.getLatestReleaseVersion().thenAccept(version -> {
+				String message = null;
+				if (version == null) {
+					// we ran into an issue checking for the latest version
+					// go to some URL to check the version manually
+					message = Translations.get("menu.help.check.error");
+				} else if (version.isGreaterThan(Version.VERSION)) {
+					// there's an update
+					message = Translations.get("menu.help.check.updateAvailable1", version.toString(), Version.STRING);
+				} else {
+					// no update available
+					message = Translations.get("menu.help.check.noUpdateAvailable", Version.STRING);
+				}
+				final String msg = message;
+				Platform.runLater(() -> {
+					Alert alert = Alerts.info(
+							context.stage,
+							Modality.WINDOW_MODAL, 
+							Translations.get("menu.update.check.title"), 
+							Translations.get("menu.update.check.header", LocalDateTime.now(), Constants.UPGRADE_VERSION_CHECK_URL), 
+							msg);
+					alert.show();
+				});
+			}).exceptionally(t -> {
+				LOGGER.error("Failed to check for new version: " + t.getMessage(), t);
+				Platform.runLater(() -> {
+					Alert alert = Alerts.exception(context.stage, t);
+					alert.show();
+				});
+				return null;
+			});
+		});
 		
 		MenuItem mnuAbout = new MenuItem(Translations.get("menu.help.about"), Glyphs.MENU_ABOUT.duplicate());
-		// TODO action for about
 		
 		Menu mnuFile = new Menu(Translations.get("menu.file"), null, mnuReindex, mnuSettings);
-		Menu mnuHelp = new Menu(Translations.get("menu.help"), null, mnuLogs, mnuAbout);
+		Menu mnuHelp = new Menu(Translations.get("menu.help"), null, mnuLogs, mnuUpdate, mnuAbout);
 		MenuBar mainMenu = new MenuBar(mnuFile, mnuHelp);
 		mainMenu.setUseSystemMenuBar(true);
 		
