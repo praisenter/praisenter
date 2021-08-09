@@ -6,8 +6,6 @@ import java.io.OutputStream;
 import java.nio.file.Path;
 import java.util.List;
 
-import org.praisenter.data.DataReadResult;
-
 public interface DataFormatProvider<T> {
 	public boolean isSupported(Path path);
 	public boolean isSupported(String mimeType);

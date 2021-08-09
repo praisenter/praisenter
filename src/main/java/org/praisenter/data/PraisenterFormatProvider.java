@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2016 William Bittle  http://www.praisenter.org/
+ * Copyright (c) 2015-2021 William Bittle  http://www.praisenter.org/
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without modification, are permitted 
@@ -33,8 +33,6 @@ import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.praisenter.data.DataFormatProvider;
-import org.praisenter.data.DataReadResult;
 import org.praisenter.data.json.JsonIO;
 import org.praisenter.data.json.PraisenterFormat;
 import org.praisenter.utility.MimeType;

@@ -98,6 +98,9 @@ public final class LibraryList extends BorderPane implements ActionPane {
 	private final ObservableList<Persistable> source;
 	private final FlowListView<Persistable> view;
 	
+	private final BooleanProperty detailsPaneVisible;
+	private final BooleanProperty typeFilterVisible;
+	
 	public LibraryList(GlobalContext context, Orientation orientation, LibraryListType... filterTypes) {
 		this.context = context;
 		
@@ -105,6 +108,9 @@ public final class LibraryList extends BorderPane implements ActionPane {
 		this.typeFilter = new SimpleObjectProperty<>(new Option<LibraryListType>());
 		this.sortField = new SimpleObjectProperty<>(new Option<LibraryListSortField>(LibraryListSortField.NAME.getName(), LibraryListSortField.NAME));
 		this.sortAscending = new SimpleBooleanProperty(true);
+		
+		this.detailsPaneVisible = new SimpleBooleanProperty(true);
+		this.typeFilterVisible = new SimpleBooleanProperty(true);
 		
 		this.view = new FlowListView<>(orientation, (item) -> {
 			return new LibraryListCell(item);
@@ -271,6 +277,8 @@ public final class LibraryList extends BorderPane implements ActionPane {
         ChoiceBox<Option<LibraryListType>> cbTypes = new ChoiceBox<Option<LibraryListType>>(typeFilters);
         cbTypes.setValue(new Option<>());
         cbTypes.valueProperty().bindBidirectional(this.typeFilter);
+        cbTypes.visibleProperty().bind(this.typeFilterVisible);
+        cbTypes.managedProperty().bind(cbTypes.visibleProperty());
 		
         Label lblSort = new Label(Translations.get("list.sort.field"));
         ChoiceBox<Option<LibraryListSortField>> cbSort = new ChoiceBox<Option<LibraryListSortField>>(sortFields);
@@ -305,6 +313,8 @@ public final class LibraryList extends BorderPane implements ActionPane {
         
         LibraryItemDetails details = new LibraryItemDetails(context);
         details.itemProperty().bind(this.view.getSelectionModel().selectedItemProperty());
+        details.visibleProperty().bind(detailsPaneVisible);
+        details.managedProperty().bind(details.visibleProperty());
 		
 //        top.setBorder(new Border(new BorderStroke(Color.GREEN, new BorderStrokeStyle(StrokeType.CENTERED, StrokeLineJoin.MITER, StrokeLineCap.SQUARE, 1.0, 0.0, null), null, new BorderWidths(4.0))));
 //        details.setBorder(new Border(new BorderStroke(Color.MAGENTA, new BorderStrokeStyle(StrokeType.CENTERED, StrokeLineJoin.MITER, StrokeLineCap.SQUARE, 1.0, 0.0, null), null, new BorderWidths(4.0))));
@@ -762,5 +772,29 @@ public final class LibraryList extends BorderPane implements ActionPane {
 	
 	public BooleanProperty multiSelectEnabledProperty() {
 		return this.view.multipleSelectionProperty();
+	}
+	
+	public boolean isDetailsPaneVisible() {
+		return this.detailsPaneVisible.get();
+	}
+	
+	public void setDetailsPaneVisible(boolean enabled) {
+		this.detailsPaneVisible.set(enabled);
+	}
+	
+	public BooleanProperty detailsPaneVisibleProperty() {
+		return this.detailsPaneVisible;
+	}
+	
+	public boolean isTypeFilterVisible() {
+		return this.typeFilterVisible.get();
+	}
+	
+	public void setTypeFilterVisible(boolean enabled) {
+		this.typeFilterVisible.set(enabled);
+	}
+	
+	public BooleanProperty typeFilterVisibleProperty() {
+		return this.typeFilterVisible;
 	}
 }
