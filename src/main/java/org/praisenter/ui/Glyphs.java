@@ -21,6 +21,8 @@ public final class Glyphs {
 	public static final Glyph INFO = FONT_AWESOME.create(FontAwesome.Glyph.INFO_CIRCLE).color(Color.DODGERBLUE);
 	public static final Glyph WARN = FONT_AWESOME.create(FontAwesome.Glyph.WARNING).color(Color.ORANGE);
 	public static final Glyph ERROR = FONT_AWESOME.create(FontAwesome.Glyph.TIMES_CIRCLE).color(Color.RED);
+	public static final Glyph SUCCESS = FONT_AWESOME.create(FontAwesome.Glyph.CHECK_CIRCLE).color(Color.GREEN);
+	public static final Glyph PENDING = FONT_AWESOME.create(FontAwesome.Glyph.CLOCK_ALT).color(Color.GRAY);
 	
 //	public static final Glyph ADD = FONT_AWESOME.create(FontAwesome.Glyph.PLUS).color(Color.LIMEGREEN);
 	

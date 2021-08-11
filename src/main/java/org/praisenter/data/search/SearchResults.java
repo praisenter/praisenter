@@ -21,7 +21,7 @@ public final class SearchResults {
 			results.remove(size - 1);
 		}
 		
-		this.numberOfResults = size - 1;
+		this.numberOfResults = size;
 	}
 
 	public SearchCriteria getCriteria() {

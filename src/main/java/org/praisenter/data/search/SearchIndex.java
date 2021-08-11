@@ -8,6 +8,7 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
@@ -22,6 +23,7 @@ import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.highlight.Highlighter;
 import org.apache.lucene.search.highlight.QueryScorer;
 import org.apache.lucene.search.highlight.Scorer;
+import org.apache.lucene.search.highlight.TokenSources;
 import org.apache.lucene.store.Directory;
 
 public final class SearchIndex {
@@ -103,18 +105,24 @@ public final class SearchIndex {
 			for (ScoreDoc doc : docs) {
 				Document document = searcher.doc(doc.doc);
 				
+				// get the text
+				String text = document.get(Indexable.FIELD_TEXT);
+				
 				// get the text around the match
 				List<SearchTextMatch> matches = new ArrayList<SearchTextMatch>();
-				String[] terms = document.getValues(Indexable.FIELD_TEXT);
-				for (String term : terms) {
-					try {
-						String text = highlighter.getBestFragment(this.analyzer, Indexable.FIELD_TEXT, term);
-						if (text != null) {
-							matches.add(new SearchTextMatch(Indexable.FIELD_TEXT, term, text));
-						}
-					} catch (Exception e) {
-						LOGGER.warn("Failed to find matching text for value '" + term + "' due to an unexpected exception. The match was excluded.", e);
+				
+				try {
+					TokenStream tokens = TokenSources.getTokenStream(Indexable.FIELD_TEXT, null, text, this.analyzer, -1);
+					String[] fragments = highlighter.getBestFragments(tokens, text, 10);
+					
+					for (String fragment : fragments) {
+						matches.add(new SearchTextMatch(Indexable.FIELD_TEXT, text, fragment));
 					}
+				} catch (IllegalArgumentException e) {
+					// https://issues.apache.org/jira/browse/LUCENE-9568
+					LOGGER.warn("Failed to get highlighted text for search '" + criteria.getTerms() + "': " + e.getMessage());
+				} catch (Exception e) {
+					LOGGER.error("Failed to get matching text for terms: '" + criteria.getTerms() + "'", e);
 				}
 				
 				results.add(new SearchResult(document, matches, doc.score));

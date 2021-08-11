@@ -964,7 +964,6 @@ public final class GlobalContext {
 	 */
 	public void addBackgroundTask(ReadOnlyBackgroundTask task) {
 		// check for tasks we should clean up
-		this.backgroundTasks.removeIf(t -> t.isComplete() && t.getException() == null);
 		this.backgroundTasks.add(task);
 	}
 	

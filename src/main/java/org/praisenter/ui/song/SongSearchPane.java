@@ -11,6 +11,7 @@ import org.apache.logging.log4j.Logger;
 import org.apache.lucene.document.Document;
 import org.praisenter.async.AsyncHelper;
 import org.praisenter.data.search.SearchResult;
+import org.praisenter.data.search.SearchTextMatch;
 import org.praisenter.data.search.SearchType;
 import org.praisenter.data.song.Lyrics;
 import org.praisenter.data.song.ReadOnlyLyrics;
@@ -26,13 +27,11 @@ import org.praisenter.ui.translations.Translations;
 
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
-import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyFloatWrapper;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
-import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -51,11 +50,11 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
+import javafx.scene.text.Text;
 
 // FEATURE (M-M) add searching to the song editor for finding and editing easily
 
@@ -115,12 +114,14 @@ public final class SongSearchPane extends BorderPane {
 		
 		// columns
 		TableColumn<SongSearchResult, Number> score = new TableColumn<SongSearchResult, Number>(Translations.get("search.score"));
-		TableColumn<SongSearchResult, SongSearchResult> reference = new TableColumn<SongSearchResult, SongSearchResult>(Translations.get("song.search.results.reference"));
-		TableColumn<SongSearchResult, ReadOnlySection> sectionText = new TableColumn<SongSearchResult, ReadOnlySection>(Translations.get("song.search.results.text"));
+		TableColumn<SongSearchResult, String> song = new TableColumn<SongSearchResult, String>(Translations.get("song.search.results.song"));
+		TableColumn<SongSearchResult, String> section = new TableColumn<SongSearchResult, String>(Translations.get("song.search.results.section"));
+		TableColumn<SongSearchResult, SongSearchResult> sectionText = new TableColumn<SongSearchResult, SongSearchResult>(Translations.get("song.search.results.text"));
 		
 		score.setCellValueFactory(p -> new ReadOnlyFloatWrapper(p.getValue().getScore()));
-		reference.setCellValueFactory(p -> new ReadOnlyObjectWrapper<SongSearchResult>(p.getValue()));
-		sectionText.setCellValueFactory(p -> new ReadOnlyObjectWrapper<ReadOnlySection>(p.getValue().getSection()));
+		song.setCellValueFactory(p -> new ReadOnlyStringWrapper(p.getValue().getLyrics().getTitle()));
+		section.setCellValueFactory(p -> new ReadOnlyObjectWrapper<String>(p.getValue().getSection().getName()));
+		sectionText.setCellValueFactory(p -> new ReadOnlyObjectWrapper<SongSearchResult>(p.getValue()));
 		
 		score.setCellFactory(p -> new TableCell<SongSearchResult, Number>() {
 			{
@@ -136,51 +137,80 @@ public final class SongSearchPane extends BorderPane {
 				}
 			}
 		});
-		reference.setCellFactory(p -> new TableCell<SongSearchResult, SongSearchResult>() {
+		song.setCellFactory(p -> new TableCell<SongSearchResult, String>() {
+			@Override
+			protected void updateItem(String item, boolean empty) {
+				super.updateItem(item, empty);
+				if (item == null || empty) {
+					setText(null);
+				} else {
+					setText(item);
+				}
+			}
+		});
+		section.setCellFactory(p -> new TableCell<SongSearchResult, String>() {
+			@Override
+			protected void updateItem(String item, boolean empty) {
+				super.updateItem(item, empty);
+				if (item == null || empty) {
+					setText(null);
+				} else {
+					setText(item);
+				}
+			}
+		});
+		sectionText.setCellFactory(p -> new TableCell<SongSearchResult, SongSearchResult>() {
 			@Override
 			protected void updateItem(SongSearchResult item, boolean empty) {
 				super.updateItem(item, empty);
 				if (item == null || empty) {
-					setText(null);
+					setGraphic(null);
 				} else {
-					setText(MessageFormat.format("{0} {1}", 
-							item.getLyrics().getTitle(),
-							item.getSection().getName()));
-				}
-			}
-		});
-		sectionText.setCellFactory(p -> new TableCell<SongSearchResult, ReadOnlySection>() {
-			private final Tooltip tooltip;
-			{
-				this.tooltip = new Tooltip();
-				this.tooltip.setWrapText(true);
-				this.tooltip.setMaxWidth(300);
-				setTooltip(null);
-			}
-			@Override
-			protected void updateItem(ReadOnlySection item, boolean empty) {
-				super.updateItem(item, empty);
-				if (item == null || empty) {
-					setText(null);
-					setTooltip(null);
-				} else {
-					String text = item.getText();
-					if (text != null) {
-						text = text.replaceAll("\r?\n", " ");
+					List<SearchTextMatch> matches = item.getMatches();
+					SearchTextMatch match = null;
+					if (matches != null && matches.size() > 0) {
+						match = matches.get(0);
 					}
-					setText(text);
-					tooltip.setText(item.getText());
-					setTooltip(tooltip);
+					
+					if (match == null) {
+						setGraphic(new Text(item.getSection().getText()));
+						return;
+					}
+					
+					// get the matched text
+					String highlighted = match.getMatchedText();
+					HBox text = new HBox();
+					
+					// format the match text from Lucene to show what we matched on
+					String[] mparts = highlighted.replaceAll("\n\r?", " ").split("<B>");
+					for (String mpart : mparts) {
+						if (mpart.contains("</B>")) {
+							String[] nparts = mpart.split("</B>");
+							Text temp = new Text(nparts[0]);
+							temp.getStyleClass().add("highlight");
+							text.getChildren().add(temp);
+							// it's possible mpart could be "blah</B>" which would only give us one part
+							if (nparts.length > 1) {
+								text.getChildren().add(new Text(nparts[1]));
+							}
+						} else {
+							text.getChildren().add(new Text(mpart));
+						}
+					}
+					
+					setGraphic(text);
 				}
 			}
 		});
 		
 		score.setPrefWidth(75);
-		reference.setPrefWidth(150);
+		song.setPrefWidth(150);
+		section.setPrefWidth(75);
 		sectionText.setPrefWidth(600);
 		
 		table.getColumns().add(score);
-		table.getColumns().add(reference);
+		table.getColumns().add(song);
+		table.getColumns().add(section);
 		table.getColumns().add(sectionText);
 		table.setPlaceholder(new Label(Translations.get("song.search.results.none")));
 		

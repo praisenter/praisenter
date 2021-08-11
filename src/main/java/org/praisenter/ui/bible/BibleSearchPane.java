@@ -17,8 +17,8 @@ import org.praisenter.data.bible.BibleSearchCriteria;
 import org.praisenter.data.bible.BibleSearchResult;
 import org.praisenter.data.bible.LocatedVerse;
 import org.praisenter.data.bible.ReadOnlyBook;
-import org.praisenter.data.bible.ReadOnlyVerse;
 import org.praisenter.data.search.SearchResult;
+import org.praisenter.data.search.SearchTextMatch;
 import org.praisenter.data.search.SearchType;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.Option;
@@ -57,11 +57,11 @@ import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
+import javafx.scene.text.Text;
 
 // FEATURE (M-M) add searching to the bible editor for finding and editing easily
 
@@ -184,11 +184,11 @@ public final class BibleSearchPane extends BorderPane {
 		// columns
 		TableColumn<BibleSearchResult, Number> score = new TableColumn<BibleSearchResult, Number>(Translations.get("search.score"));
 		TableColumn<BibleSearchResult, BibleSearchResult> reference = new TableColumn<BibleSearchResult, BibleSearchResult>(Translations.get("bible.search.results.reference"));
-		TableColumn<BibleSearchResult, ReadOnlyVerse> verseText = new TableColumn<BibleSearchResult, ReadOnlyVerse>(Translations.get("bible.search.results.text"));
+		TableColumn<BibleSearchResult, BibleSearchResult> verseText = new TableColumn<BibleSearchResult, BibleSearchResult>(Translations.get("bible.search.results.text"));
 		
 		score.setCellValueFactory(p -> new ReadOnlyFloatWrapper(p.getValue().getScore()));
 		reference.setCellValueFactory(p -> new ReadOnlyObjectWrapper<BibleSearchResult>(p.getValue()));
-		verseText.setCellValueFactory(p -> new ReadOnlyObjectWrapper<ReadOnlyVerse>(p.getValue().getVerse()));
+		verseText.setCellValueFactory(p -> new ReadOnlyObjectWrapper<BibleSearchResult>(p.getValue()));
 		
 		score.setCellFactory(p -> new TableCell<BibleSearchResult, Number>() {
 			{
@@ -218,24 +218,46 @@ public final class BibleSearchPane extends BorderPane {
 				}
 			}
 		});
-		verseText.setCellFactory(p -> new TableCell<BibleSearchResult, ReadOnlyVerse>() {
-			private final Tooltip tooltip;
-			{
-				this.tooltip = new Tooltip();
-				this.tooltip.setWrapText(true);
-				this.tooltip.setMaxWidth(300);
-				setTooltip(null);
-			}
+		verseText.setCellFactory(p -> new TableCell<BibleSearchResult, BibleSearchResult>() {
 			@Override
-			protected void updateItem(ReadOnlyVerse item, boolean empty) {
+			protected void updateItem(BibleSearchResult item, boolean empty) {
 				super.updateItem(item, empty);
 				if (item == null || empty) {
-					setText(null);
-					setTooltip(null);
+					setGraphic(null);
 				} else {
-					setText(item.getText());
-					tooltip.setText(item.getText());
-					setTooltip(tooltip);
+					List<SearchTextMatch> matches = item.getMatches();
+					SearchTextMatch match = null;
+					if (matches != null && matches.size() > 0) {
+						match = matches.get(0);
+					}
+					
+					if (match == null) {
+						setGraphic(new Text(item.getVerse().getText()));
+						return;
+					}
+					
+					// get the matched text
+					String highlighted = match.getMatchedText();
+					HBox text = new HBox();
+					
+					// format the match text from Lucene to show what we matched on
+					String[] mparts = highlighted.replaceAll("\n\r?", " ").split("<B>");
+					for (String mpart : mparts) {
+						if (mpart.contains("</B>")) {
+							String[] nparts = mpart.split("</B>");
+							Text temp = new Text(nparts[0]);
+							temp.getStyleClass().add("highlight");
+							text.getChildren().add(temp);
+							// it's possible mpart could be "blah</B>" which would only give us one part
+							if (nparts.length > 1) {
+								text.getChildren().add(new Text(nparts[1]));
+							}
+						} else {
+							text.getChildren().add(new Text(mpart));
+						}
+					}
+					
+					setGraphic(text);
 				}
 			}
 		});

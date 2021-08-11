@@ -4,6 +4,8 @@ import java.awt.Desktop;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -11,45 +13,48 @@ import org.praisenter.Constants;
 import org.praisenter.Version;
 import org.praisenter.async.AsyncHelper;
 import org.praisenter.async.BackgroundTask;
+import org.praisenter.async.ReadOnlyBackgroundTask;
 import org.praisenter.data.Persistable;
 import org.praisenter.data.configuration.Configuration;
-import org.praisenter.data.media.Media;
-import org.praisenter.data.slide.Slide;
-import org.praisenter.data.song.Song;
 import org.praisenter.ui.controls.Alerts;
-import org.praisenter.ui.display.DisplayController;
 import org.praisenter.ui.display.DisplaysController;
 import org.praisenter.ui.document.DocumentsPane;
 import org.praisenter.ui.library.LibraryList;
 import org.praisenter.ui.library.LibraryListType;
 import org.praisenter.ui.translations.Translations;
 import org.praisenter.ui.upgrade.UpgradeChecker;
+import org.praisenter.utility.RuntimeProperties;
 
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Side;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ProgressBar;
+import javafx.scene.control.Separator;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
-import javafx.scene.control.TabPane.TabClosingPolicy;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
+import javafx.util.Callback;
 
 final class PraisenterPane extends BorderPane {
 	private static final Logger LOGGER = LogManager.getLogger();
@@ -58,9 +63,15 @@ final class PraisenterPane extends BorderPane {
 	
 	private final ObservableList<Persistable> items;
 	
+	private final ObjectProperty<Version> latestVersion;
+	
+	private final ObservableList<ReadOnlyBackgroundTask> sortedTasks;
+	
 	public PraisenterPane(GlobalContext context) {
 		this.context = context;
 
+		this.latestVersion = new SimpleObjectProperty<>();
+		
 		// menu
 		
 		MenuItem mnuReindex = new MenuItem(Translations.get("menu.file.reindex"));
@@ -99,7 +110,7 @@ final class PraisenterPane extends BorderPane {
 				LOGGER.warn("Desktop is not supported. Failed to open log path.");
 			}
 		});
-		MenuItem mnuUpdate = new MenuItem(Translations.get("menu.update.check"));
+		MenuItem mnuUpdate = new MenuItem(Translations.get("menu.help.update.check"));
 		mnuUpdate.setOnAction(e -> {
 			UpgradeChecker uc = new UpgradeChecker();
 			uc.getLatestReleaseVersion().thenAccept(version -> {
@@ -107,21 +118,22 @@ final class PraisenterPane extends BorderPane {
 				if (version == null) {
 					// we ran into an issue checking for the latest version
 					// go to some URL to check the version manually
-					message = Translations.get("menu.help.check.error");
+					message = Translations.get("menu.help.update.check.error");
 				} else if (version.isGreaterThan(Version.VERSION)) {
 					// there's an update
-					message = Translations.get("menu.help.check.updateAvailable1", version.toString(), Version.STRING);
+					message = Translations.get("menu.help.update.check.updateAvailable", version.toString(), Version.STRING);
 				} else {
 					// no update available
-					message = Translations.get("menu.help.check.noUpdateAvailable", Version.STRING);
+					message = Translations.get("menu.help.update.check.noUpdateAvailable", Version.STRING);
 				}
 				final String msg = message;
 				Platform.runLater(() -> {
+					DateTimeFormatter formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG, FormatStyle.SHORT);
 					Alert alert = Alerts.info(
 							context.stage,
 							Modality.WINDOW_MODAL, 
-							Translations.get("menu.update.check.title"), 
-							Translations.get("menu.update.check.header", LocalDateTime.now(), Constants.UPGRADE_VERSION_CHECK_URL), 
+							Translations.get("menu.help.update.check.title"), 
+							Translations.get("menu.help.update.check.header", formatter.format(LocalDateTime.now())), 
 							msg);
 					alert.show();
 				});
@@ -194,7 +206,7 @@ final class PraisenterPane extends BorderPane {
 //		libraryTabs.getTabs().add(new Tab("Slides", slideList));
 //		libraryTabs.getTabs().add(new Tab("Songs", songList));
 		
-		DisplaysController dc = new DisplaysController(context);
+		DisplaysController displayControllers = new DisplaysController(context);
 		
 //		SplitPane split = new SplitPane(dep, libraryTabs);
 //		split.setDividerPositions(0.75);
@@ -211,17 +223,33 @@ final class PraisenterPane extends BorderPane {
 		splLibrary.setDividerPosition(0, 0.8);
 		splLibrary.setOrientation(Orientation.VERTICAL);
 		
-		BorderPane bp = new BorderPane();
-		bp.setLeft(actionBar);
-		bp.setCenter(splLibrary);
+		BorderPane libraryManager = new BorderPane();
+		libraryManager.setLeft(actionBar);
+		libraryManager.setCenter(splLibrary);
+		
+		BorderPane tasks = new BorderPane();
+		this.sortedTasks = context.getBackgroundTasksUnmodifiable().sorted();
+		ListView<ReadOnlyBackgroundTask> taskList = new ListView<>(this.sortedTasks);
+		taskList.setCellFactory(new Callback<ListView<ReadOnlyBackgroundTask>, 
+	            ListCell<ReadOnlyBackgroundTask>>() {
+            @Override 
+            public ListCell<ReadOnlyBackgroundTask> call(ListView<ReadOnlyBackgroundTask> list) {
+                return new BackgroundTaskListCell();
+            }
+        });
+		taskList.setPlaceholder(new Label(Translations.get("task.empty")));
+		tasks.setCenter(taskList);
 		
 		TabPane tabs = new TabPane();
 		tabs.setSide(Side.LEFT);
-		Tab tab1 = new Tab("Present", dc);
+		Tab tab1 = new Tab(Translations.get("area.present"), displayControllers);
 		tab1.setClosable(false);
-		Tab tab2 = new Tab("Manage", bp);
+		Tab tab2 = new Tab(Translations.get("area.manage"), libraryManager);
 		tab2.setClosable(false);
-		tabs.getTabs().addAll(tab1, tab2);
+		Tab tab3 = new Tab(Translations.get("area.tasks"), tasks);
+		tab3.setClosable(false);
+		
+		tabs.getTabs().addAll(tab1, tab2, tab3);
 		
 		this.setTop(mainMenu);
 		this.setCenter(tabs);
@@ -231,12 +259,68 @@ final class PraisenterPane extends BorderPane {
 
 		// bottom
 		
+		Label lblCompletedTasks = new Label();
+		lblCompletedTasks.setPadding(new Insets(0, 0, 0, 5));
+		lblCompletedTasks.textProperty().bind(Bindings.createStringBinding(() -> {
+			return Translations.get("task.complete.count", String.valueOf(context.getBackgroundTasksUnmodifiable().stream().filter(t -> t.isComplete()).count()));
+		}, context.getBackgroundTasksUnmodifiable()));
+		
 		ProgressBar progress = new ProgressBar();
 		progress.visibleProperty().bind(context.backgroundTaskExecutingProperty());
 		Label lblCurrentTask = new Label();
 		lblCurrentTask.textProperty().bind(context.backgroundTaskNameProperty());
 		
-		this.setBottom(new HBox(5, progress, lblCurrentTask));
+		Label lblUpdateAvailable = new Label();
+		lblUpdateAvailable.setGraphicTextGap(5);
+		lblUpdateAvailable.setPadding(new Insets(0, 5, 0, 0));
+		lblUpdateAvailable.textProperty().bind(Bindings.createObjectBinding(() -> {
+			Version latest = this.latestVersion.get();
+			if (latest != null && latest.isGreaterThan(Version.VERSION)) {
+				return "A new version (" + latest + ") is available";
+			}
+			return null;
+		}, this.latestVersion));
+		lblUpdateAvailable.graphicProperty().bind(Bindings.createObjectBinding(() -> {
+			Version latest = this.latestVersion.get();
+			if (latest != null && latest.isGreaterThan(Version.VERSION)) {
+				return Glyphs.INFO.duplicate();
+			}
+			return null;
+		}, this.latestVersion));
+		
+		Label lblVersion = new Label("Praisenter: " + Version.STRING);
+		lblVersion.setPadding(new Insets(0, 5, 0, 0));
+		
+		Label lblJfxVersion = new Label("JFX: " + System.getProperties().get("javafx.runtime.version"));
+		lblJfxVersion.setPadding(new Insets(0, 5, 0, 0));
+
+		Label lblLuceneVersion = new Label("Lucene: " + org.apache.lucene.util.Version.LATEST);
+		lblLuceneVersion.setPadding(new Insets(0, 5, 0, 0));
+		
+		Label lblJavaVersion = new Label("Java: " + RuntimeProperties.JAVA_VERSION);
+		lblJavaVersion.setPadding(new Insets(0, 5, 0, 0));
+		
+		BorderPane bottom = new BorderPane();
+		bottom.setLeft(new HBox(5, 
+				lblCompletedTasks, new Separator(Orientation.VERTICAL),
+				progress, lblCurrentTask));
+		bottom.setRight(new HBox(5, 
+				lblUpdateAvailable, new Separator(Orientation.VERTICAL), 
+				lblJavaVersion, new Separator(Orientation.VERTICAL), 
+				lblJfxVersion, new Separator(Orientation.VERTICAL), 
+				lblLuceneVersion, new Separator(Orientation.VERTICAL), 
+				lblVersion));
+		
+		UpgradeChecker checker = new UpgradeChecker();
+		checker.getLatestReleaseVersion().thenAccept(nv -> {
+			if (nv.isGreaterThan(Version.VERSION)) {
+				Platform.runLater(() -> {
+					this.latestVersion.set(nv);
+				});
+			}
+		});
+		
+		this.setBottom(bottom);
 		
 		// drag-drop handlers
 		
