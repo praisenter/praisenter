@@ -2,19 +2,17 @@ package org.praisenter.ui.display;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.praisenter.TriConsumer;
 import org.praisenter.data.StringTextStore;
 import org.praisenter.data.TextStore;
 import org.praisenter.data.configuration.DisplayRole;
 import org.praisenter.data.slide.Slide;
-import org.praisenter.data.slide.graphics.SlideStrokeCap;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.Option;
+import org.praisenter.ui.Praisenter;
 import org.praisenter.ui.bible.BibleNavigationPane;
 import org.praisenter.ui.bind.BindingHelper;
 import org.praisenter.ui.slide.SlideMode;
@@ -24,36 +22,45 @@ import org.praisenter.ui.slide.SlideView;
 import org.praisenter.ui.song.SongNavigationPane;
 import org.praisenter.ui.translations.Translations;
 
+import javafx.animation.PauseTransition;
+import javafx.animation.Transition;
+import javafx.application.Platform;
 import javafx.beans.binding.DoubleBinding;
 import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.value.ObservableDoubleValue;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.collections.ListChangeListener.Change;
+import javafx.event.EventHandler;
+import javafx.collections.ObservableList;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ChoiceBox;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.control.TabPane.TabClosingPolicy;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
-import javafx.scene.control.TabPane.TabClosingPolicy;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.robot.Robot;
+import javafx.scene.text.Font;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
+import javafx.stage.WindowEvent;
+import javafx.util.Duration;
 
 public final class DisplayController extends BorderPane {
 	private static final Logger LOGGER = LogManager.getLogger();
@@ -90,6 +97,19 @@ public final class DisplayController extends BorderPane {
 		displayRoleOptions.add(new Option<>(Translations.get("display.role." + DisplayRole.TELEPROMPT), DisplayRole.TELEPROMPT));
 		displayRoleOptions.add(new Option<>(Translations.get("display.role." + DisplayRole.OTHER), DisplayRole.OTHER));
 		ChoiceBox<Option<DisplayRole>> cbDisplayRole = new ChoiceBox<>(displayRoleOptions);
+		
+		final DisplayIdentifier identify = new DisplayIdentifier(target.getDisplay());
+		Button btnIdentify = new Button(Translations.get("display.identify"));
+		btnIdentify.setOnAction(e -> {
+			identify.show();
+			
+			Transition tx = new PauseTransition(new Duration(5000));
+			tx.setOnFinished(ev -> {
+				identify.hide();
+			});
+			
+			tx.play();
+		});
 		
 		ImageView screen = new ImageView(image);
 		screen.fitWidthProperty().bind(this.maxWidth);
@@ -161,7 +181,7 @@ public final class DisplayController extends BorderPane {
 		VBox.setVgrow(tabs, Priority.ALWAYS);
 //		layout.setBackground(new Background(new BackgroundFill(Color.RED, null, null)));
 		
-		this.setTop(cbDisplayRole);
+		this.setTop(new HBox(5, cbDisplayRole, btnIdentify));
 		this.setCenter(layout);
 		
 		layout.visibleProperty().bind(cbDisplayRole.valueProperty().isNotEqualTo(new Option<>(null, DisplayRole.NONE)));
@@ -292,7 +312,7 @@ public final class DisplayController extends BorderPane {
 			}
         });
 		
-		final Consumer<DisplayChange> handleDisplayChange = (change) -> {
+		final TriConsumer<DisplayChange, Slide, TextStore> handleDisplayChange = (change, slide, data) -> {
 			boolean transition = chkPreviewTransition.isSelected();
 			boolean waitForTransition = chkWaitForTransition.isSelected();
 			boolean autoShow = chkAutoShow.isSelected();
@@ -300,21 +320,18 @@ public final class DisplayController extends BorderPane {
 			double tw = target.getDisplay().getWidth();
 			double th = target.getDisplay().getHeight();
 			
-			Slide slide = change.getSlide();
-			TextStore data = change.getData();
-			
 			if (data == null) {
 				data = new StringTextStore("");
 			}
 			
 			// update the slide view
-			if (change.isHide() || slide == null) {
+			if (change == DisplayChange.HIDE || slide == null) {
 				if (transition) {
 					slideView.transitionSlide(null, waitForTransition);
 				} else {
 					slideView.swapSlide(null);
 				}
-			} else if (change.isDataChange()) {
+			} else if (change == DisplayChange.DATA) {
 				if (transition) {
 					slideView.transitionPlaceholders(data.copy(), waitForTransition);
 				} else {
@@ -333,7 +350,7 @@ public final class DisplayController extends BorderPane {
 			}
 			
 			// update the display (if auto-show enabled)
-			if (autoShow) {
+			if (autoShow && change == DisplayChange.DATA) {
 				Slide oldSlide = target.getSlide();
 				// we need to do this additional check to make sure the slide
 				// hasn't changed since the last time it was displayed
@@ -352,7 +369,7 @@ public final class DisplayController extends BorderPane {
 			}
 			
 			TextStore data = bibleNavigationPane.getValue();
-			handleDisplayChange.accept(DisplayChange.slide(nv, data));
+			handleDisplayChange.accept(DisplayChange.STANDARD, nv, data);
 		});
 		
 		cmbSongSlideTemplate.valueProperty().addListener((obs, ov, nv) -> {
@@ -361,7 +378,7 @@ public final class DisplayController extends BorderPane {
 			}
 			
 			TextStore data = songNavigationPane.getValue();
-			handleDisplayChange.accept(DisplayChange.slide(nv, data));
+			handleDisplayChange.accept(DisplayChange.STANDARD, nv, data);
 		});
 		
 		slideNavigationPane.valueProperty().addListener((obs, ov, nv) -> {
@@ -369,7 +386,7 @@ public final class DisplayController extends BorderPane {
 				return;
 			}
 			
-			handleDisplayChange.accept(DisplayChange.slide(nv, null));
+			handleDisplayChange.accept(DisplayChange.STANDARD, nv, null);
 		});
 		
 		tabs.getSelectionModel().selectedIndexProperty().addListener((obs, ov, nv) -> {
@@ -389,7 +406,7 @@ public final class DisplayController extends BorderPane {
 				LOGGER.warn("Tab index '" + index + "' is not supported.");
 			}
 			
-			handleDisplayChange.accept(DisplayChange.slideAndData(slide, data));
+			handleDisplayChange.accept(DisplayChange.TAB, slide, data);
 		});
 		
 		bibleNavigationPane.valueProperty().addListener((obs, ov, nv) -> {
@@ -398,7 +415,7 @@ public final class DisplayController extends BorderPane {
 			}
 			
 			Slide slide = cmbBibleSlideTemplate.getValue();
-			handleDisplayChange.accept(DisplayChange.data(slide, nv));
+			handleDisplayChange.accept(DisplayChange.DATA, slide, nv);
 		});
 		
 		songNavigationPane.valueProperty().addListener((obs, ov, nv) -> {
@@ -407,7 +424,7 @@ public final class DisplayController extends BorderPane {
 			}
 			
 			Slide slide = cmbSongSlideTemplate.getValue();
-			handleDisplayChange.accept(DisplayChange.data(slide, nv));
+			handleDisplayChange.accept(DisplayChange.DATA, slide, nv);
 		});
 	}
 	

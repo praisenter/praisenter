@@ -40,14 +40,16 @@ public final class InstallUpgradeHandler {
 		// ensure folders exist
 		this.buildFolders();
 		
+		// make sure these files exist
+		this.installOrUpgradeLog4jConfiguration(false);
+		this.installOrUpgradeDefaultLocale(false);
+		this.installOrUpgradeDefaultTheme(false);
+		
 		// check for existing version file
 		Path path = Paths.get(Constants.UPGRADE_ABSOLUTE_PATH, Constants.UPGRADE_VERSION_FILENAME);
 		if (!Files.exists(path)) {
 			logger.info("Initial install detected, setting up log4j, the default locale, and default theme.");
 			// it's a new install, so initialize the file data
-			this.installOrUpgradeLog4jConfiguration();
-			this.installOrUpgradeDefaultLocale();
-			this.installOrUpgradeDefaultTheme();
 			this.writeVersionFile();
 			return;
 		}
@@ -79,23 +81,23 @@ public final class InstallUpgradeHandler {
 		logger.info("Performing upgrade steps for runtime version '" + runtimeVersion + "' from last runtime version '" + currentVersion + "'");
 
 		// otherwise, perform any upgrade steps
-		this.installOrUpgradeLog4jConfiguration();
-		this.installOrUpgradeDefaultLocale();
-		this.installOrUpgradeDefaultTheme();
+		this.installOrUpgradeLog4jConfiguration(true);
+		this.installOrUpgradeDefaultLocale(true);
+		this.installOrUpgradeDefaultTheme(true);
 		this.writeVersionFile();
 
 		logger.info("All install/upgrade initialization steps have completed successfully.");
 	}
 	
 	public CompletableFuture<Void> performUpgradeSteps() {
-		logger.info("Starting upgrade steps");
+//		logger.info("Starting upgrade steps");
 		
 		// TODO any version to version specific "scripts"
 		// we'll need to be very careful here if we want to prevent issues where we leave the 
 		// application files in a bad state. That might mean we need to manually archive the 
 		// library so we can revert or something like that
 		
-		logger.info("All upgrade steps complete");
+//		logger.info("All upgrade steps complete");
 		
 		return CompletableFuture.completedFuture(null);
 	}
@@ -120,32 +122,35 @@ public final class InstallUpgradeHandler {
 		}
 	}
 	
-	private void installOrUpgradeLog4jConfiguration() {
+	private void installOrUpgradeLog4jConfiguration(boolean isUpgrade) {
 		this.installOrUpgradeClasspathFile(
 				Constants.ROOT_PATH, 
 				Constants.LOGS_CONFIGURATION_FILENAME, 
-				Constants.LOGS_CONFIGURATION_ON_CLASSPATH);
+				Constants.LOGS_CONFIGURATION_ON_CLASSPATH,
+				isUpgrade);
 	}
 	
-	private void installOrUpgradeDefaultLocale() {
+	private void installOrUpgradeDefaultLocale(boolean isUpgrade) {
 		this.installOrUpgradeClasspathFile(
 				Constants.LOCALES_ABSOLUTE_PATH, 
 				Constants.LOCALES_DEFAULT_LOCALE_FILENAME, 
-				Constants.LOCALES_DEFAULT_LOCALE_ON_CLASSPATH);
+				Constants.LOCALES_DEFAULT_LOCALE_ON_CLASSPATH,
+				isUpgrade);
 	}
 	
-	private void installOrUpgradeDefaultTheme() {
+	private void installOrUpgradeDefaultTheme(boolean isUpgrade) {
 		this.installOrUpgradeClasspathFile(
 				Constants.THEMES_ABSOLUTE_PATH, 
 				Constants.THEMES_DEFAULT_THEME_FILENAME, 
-				Constants.THEMES_DEFAULT_THEME_ON_CLASSPATH);
+				Constants.THEMES_DEFAULT_THEME_ON_CLASSPATH,
+				isUpgrade);
 	}
 	
-	private void installOrUpgradeClasspathFile(String filePath, String fileName, String classpathPath) {
+	private void installOrUpgradeClasspathFile(String filePath, String fileName, String classpathPath, boolean isUpgrade) {
 		Path path = Paths.get(filePath, fileName);
 		if (Files.exists(path)) {
 			try {
-				if (!this.isFileContentIdentical(path, classpathPath)) {
+				if (isUpgrade && !this.isFileContentIdentical(path, classpathPath)) {
 					// archive off the file
 					this.archiveFile(path);
 					// delete the current file

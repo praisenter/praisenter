@@ -173,7 +173,16 @@ https://stackoverflow.com/questions/50011276/javafx-treeview-expand-collapse-dis
 	-fx-stroke-width: 1;
 }
 
+.highlight {
+	-fx-font-weight: bold;
+	-fx-underline: true;
+	-fx-fill: blue;
+}
 
+.table-view:focused .table-cell:selected Text,
+.table-view:focused .table-row-cell:selected Text {
+	-fx-fill: -fx-focused-text-base-color;
+}
 
 
 
