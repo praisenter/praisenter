@@ -1,8 +1,10 @@
-package org.praisenter.data;
+package org.praisenter.data.workspace;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -15,20 +17,48 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.zip.ZipOutputStream;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.CharArraySet;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.store.FSDirectory;
 import org.praisenter.async.AsyncHelper;
+import org.praisenter.data.DataImportResult;
+import org.praisenter.data.KnownFormat;
+import org.praisenter.data.PersistAdapter;
+import org.praisenter.data.Persistable;
+import org.praisenter.data.PersistentStore;
+import org.praisenter.data.Tag;
+import org.praisenter.data.bible.Bible;
+import org.praisenter.data.bible.BiblePersistAdapter;
+import org.praisenter.data.json.JsonIO;
+import org.praisenter.data.media.Media;
+import org.praisenter.data.media.MediaPersistAdapter;
 import org.praisenter.data.search.Indexable;
 import org.praisenter.data.search.SearchCriteria;
 import org.praisenter.data.search.SearchIndex;
 import org.praisenter.data.search.SearchResults;
+import org.praisenter.data.slide.Slide;
+import org.praisenter.data.slide.SlidePersistAdapter;
+import org.praisenter.data.slide.SlideRenderer;
+import org.praisenter.data.song.Song;
+import org.praisenter.data.song.SongPersistAdapter;
 
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableSet;
 
-public final class DataManager {
+public final class WorkspaceManager {
+	private static final Logger LOGGER = LogManager.getLogger();
+	
+	private final WorkspacePathResolver pathResolver;
+	private final WorkspaceConfiguration workspaceConfiguration;
+	private final SearchIndex searchIndex;
+	private final Set<Path> otherWorkspaces;
+	
 	private final ConcurrentMap<Class<?>, PersistentStore<?>> adapters;
-	private final SearchIndex index;
 	
 	private final Map<UUID, Persistable> itemLookup;
 	
@@ -38,9 +68,17 @@ public final class DataManager {
 	private final ObservableSet<Tag> tags;
 	private final ObservableSet<Tag> tagsReadOnly;
 	
-	public DataManager(SearchIndex index) {
+	private WorkspaceManager(
+			WorkspacePathResolver pathResolver,
+			WorkspaceConfiguration workspaceConfiguration,
+			SearchIndex searchIndex,
+			Set<Path> otherWorkspaces) {
+		this.pathResolver = pathResolver;
+		this.workspaceConfiguration = workspaceConfiguration;
+		this.searchIndex = searchIndex;
+		this.otherWorkspaces = otherWorkspaces;
+		
 		this.adapters = new ConcurrentHashMap<>();
-		this.index = index;
 		
 		this.itemLookup = new HashMap<>();
 		
@@ -51,8 +89,112 @@ public final class DataManager {
 		this.tagsReadOnly = FXCollections.unmodifiableObservableSet(this.tags);
 	}
 	
+	public static WorkspaceManager open(Path basePath, Set<Path> otherWorkspaces) throws IOException {
+		WorkspacePathResolver pathResolver = new WorkspacePathResolver(basePath);
+		
+		// create all the paths for the workspace
+		LOGGER.info("Initializing workspace folders...");
+		Path[] paths = new Path[] {
+			pathResolver.getBasePath(),
+			pathResolver.getLogsPath(),
+			pathResolver.getBiblesPath(),
+			pathResolver.getConfigurationPath(),
+			pathResolver.getMediaPath(),
+			pathResolver.getSearchIndexPath(),
+			pathResolver.getSlidesPath(),
+			pathResolver.getSongsPath()
+		};
+		
+		for (Path path : paths) {
+			try {
+				Files.createDirectories(path);
+			} catch (Exception ex) {
+				LOGGER.warn("Failed to create the directory '" + path.toAbsolutePath() + "': " + ex.getMessage(), ex);
+				throw ex;
+			}
+		}
+		
+		// setup the configuration
+		LOGGER.info("Loading workspace configuration...");
+		WorkspaceConfiguration workspaceConfiguration = null;
+		Path configFilePath = pathResolver.getConfigurationFilePath();
+		if (Files.exists(configFilePath)) {
+			// read the file
+			try {
+				workspaceConfiguration = JsonIO.read(configFilePath, WorkspaceConfiguration.class);
+			} catch (Exception ex) {
+				LOGGER.error("Failed to read the file '" + configFilePath.toAbsolutePath() + "' as '" + WorkspaceConfiguration.class + "': " + ex.getMessage(), ex);
+				throw ex;
+			}
+		} else {
+			// generate the file
+			workspaceConfiguration = new WorkspaceConfiguration();
+			try {
+				JsonIO.write(configFilePath, workspaceConfiguration);
+			} catch (Exception ex) {
+				LOGGER.warn("Failed to save the file '" + configFilePath.toAbsolutePath() + "': " + ex.getMessage(), ex);
+			}
+		}
+
+		// setup the search index
+		LOGGER.info("Setting up search index...");
+		SearchIndex searchIndex = null;
+		try {
+			final FSDirectory directory = FSDirectory.open(pathResolver.getSearchIndexPath());
+			final Analyzer analyzer = new StandardAnalyzer(new CharArraySet(1, false));
+			searchIndex = new SearchIndex(directory, analyzer);
+		} catch (Exception ex) {
+			LOGGER.warn("Failed to initialize the search index at '" + pathResolver.getSearchIndexPath() + "': " + ex.getMessage(), ex);
+			throw ex;
+		}
+		
+		return new WorkspaceManager(
+				pathResolver,
+				workspaceConfiguration,
+				searchIndex,
+				Collections.unmodifiableSet(otherWorkspaces));
+	}
+	
+	public WorkspacePathResolver getWorkspacePathResolver() {
+		return this.pathResolver;
+	}
+	
+	public WorkspaceConfiguration getWorkspaceConfiguration() {
+		return this.workspaceConfiguration;
+	}
+	
+	public CompletableFuture<Void> saveWorkspaceConfiguration() {
+		return CompletableFuture.runAsync(() -> {
+			try {
+				JsonIO.write(this.pathResolver.getConfigurationFilePath(), this.workspaceConfiguration);
+			} catch (Exception e) {
+				throw new CompletionException(e);
+			}
+		});
+	}
+	
+	public Set<Path> getOtherWorkspaces() {
+		return this.otherWorkspaces;
+	}
+	
+	public CompletableFuture<Void> registerBiblePersistAdapter() {
+		return this.registerPersistAdapter(Bible.class, new BiblePersistAdapter(this.pathResolver.getBiblesPath()));
+	}
+
+	public CompletableFuture<Void> registerSongPersistAdapter() {
+		return this.registerPersistAdapter(Song.class, new SongPersistAdapter(this.pathResolver.getSongsPath()));
+	}
+	
+	public CompletableFuture<Void> registerMediaPersistAdapter() {
+		return this.registerPersistAdapter(Media.class, new MediaPersistAdapter(this.pathResolver.getMediaPath(), this.workspaceConfiguration));
+	}
+	
+	public CompletableFuture<Void> registerSlidePersistAdapter(SlideRenderer slideRenderer) {
+		return this.registerPersistAdapter(Slide.class, new SlidePersistAdapter(this.pathResolver.getSlidesPath(), slideRenderer, this.workspaceConfiguration));
+	}
+	
 	public <T extends Persistable> CompletableFuture<Void> registerPersistAdapter(Class<T> clazz, PersistAdapter<T> adapter) {
-		PersistentStore<T> store = new PersistentStore<T>(adapter, this.index);
+		PersistentStore<T> store = new PersistentStore<T>(adapter, this.searchIndex);
 		return store.initialize().thenApply((items) -> {
 			this.adapters.put(clazz, store);
 			return items;
@@ -71,7 +213,7 @@ public final class DataManager {
 			this.items.addAll(items);
 		}));
 	}
-	
+
 	public ObservableList<Persistable> getItemsUnmodifiable() {
 		return this.itemsReadOnly;
 	}
@@ -99,13 +241,6 @@ public final class DataManager {
 		}
 		return null;
 	}
-	
-//	@SuppressWarnings("unchecked")
-//	private <T extends Persistable> T getItemByClass(Class<T> clazz, UUID id) {
-//		PersistentStore<?> adapter = this.adapters.get(clazz);
-//		if (adapter == null) return null;
-//		return (T)adapter.getItem(id);
-//	}
 	
 	@SuppressWarnings("unchecked")
 	public <T extends Persistable> CompletableFuture<Void> create(T item) {
@@ -290,7 +425,7 @@ public final class DataManager {
 	public CompletableFuture<SearchResults> search(SearchCriteria criteria) {
 		return CompletableFuture.supplyAsync(() -> {
 			try {
-				return this.index.search(criteria);
+				return this.searchIndex.search(criteria);
 			} catch (Exception ex) {
 				throw new CompletionException(ex);
 			}
@@ -301,7 +436,7 @@ public final class DataManager {
 		List<? extends Indexable> items = new ArrayList<Persistable>(this.items);
 		return CompletableFuture.runAsync(() -> {
 			try {
-				this.index.reindex(items);
+				this.searchIndex.reindex(items);
 			} catch (IOException e) {
 				throw new CompletionException(e);
 			}	

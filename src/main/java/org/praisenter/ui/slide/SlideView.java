@@ -268,7 +268,7 @@ public class SlideView extends Region implements Playable {
 		final List<Media> mediaToLoad = new ArrayList<>();
 		
 		for (UUID mediaId : mediaIds) {
-			Media media = this.context.getDataManager().getItem(Media.class, mediaId);
+			Media media = this.context.getWorkspaceManager().getItem(Media.class, mediaId);
 			if (media != null) {
 				mediaToLoad.add(media);
 			}

@@ -1,6 +1,6 @@
 package org.praisenter.ui.display;
 
-import org.praisenter.data.configuration.Display;
+import org.praisenter.data.workspace.Display;
 import org.praisenter.ui.Praisenter;
 
 import javafx.event.EventHandler;

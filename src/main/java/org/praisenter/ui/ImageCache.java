@@ -131,6 +131,13 @@ public final class ImageCache {
 	}
 	
 	/**
+	 * Removes everything from the cache.
+	 */
+	public void clear() {
+		this.images.clear();
+	}
+	
+	/**
 	 * Loads an Image from the given path.
 	 * @param path the path
 	 * @return Image

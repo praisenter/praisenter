@@ -75,7 +75,7 @@ public final class MediaObjectPicker extends VBox {
 		
 		LibraryList lstMedia = new LibraryList(context, Orientation.HORIZONTAL, types);
 		lstMedia.setMultiSelectEnabled(false);
-		FilteredList<Media> filtered = new FilteredList<>(context.getDataManager().getItemsUnmodifiable(Media.class));
+		FilteredList<Media> filtered = new FilteredList<>(context.getWorkspaceManager().getItemsUnmodifiable(Media.class));
 		filtered.setPredicate(m -> {
 			MediaType type = m.getMediaType();
 			return Stream.of(allowedTypes).anyMatch(t -> t == type);
@@ -196,7 +196,7 @@ public final class MediaObjectPicker extends VBox {
 			public Media convertTo(MediaObject e) {
 				if (e == null) return null;
 				if (e.getMediaId() == null) return null;
-				return context.getDataManager().getItem(Media.class, e.getMediaId());
+				return context.getWorkspaceManager().getItem(Media.class, e.getMediaId());
 			}
 		});
 		

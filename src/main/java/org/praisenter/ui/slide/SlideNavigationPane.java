@@ -37,7 +37,7 @@ public final class SlideNavigationPane extends BorderPane {
 		slides.setDetailsPaneVisible(false);
 		slides.setPrefWidth(400);
 		
-		FilteredList<Slide> filtered = new FilteredList<>(context.getDataManager().getItemsUnmodifiable(Slide.class));
+		FilteredList<Slide> filtered = new FilteredList<>(context.getWorkspaceManager().getItemsUnmodifiable(Slide.class));
 		filtered.setPredicate(s -> {
 			return !s.hasPlaceholders();
 		});

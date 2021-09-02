@@ -13,7 +13,7 @@ import org.apache.lucene.document.Document;
 import org.praisenter.async.AsyncHelper;
 import org.praisenter.data.PersistableComparator;
 import org.praisenter.data.bible.Bible;
-import org.praisenter.data.bible.BibleSearchCriteria;
+import org.praisenter.data.bible.BibleTextSearchCriteria;
 import org.praisenter.data.bible.BibleSearchResult;
 import org.praisenter.data.bible.LocatedVerse;
 import org.praisenter.data.bible.ReadOnlyBook;
@@ -105,7 +105,7 @@ public final class BibleSearchPane extends BorderPane {
 		types.add(new Option<SearchType>(Translations.get("search.type.anyword"), SearchType.ANY_WORD));
 		this.searchType.setValue(types.get(0));
 		
-		ObservableList<Bible> bibles = context.getDataManager().getItemsUnmodifiable(Bible.class).sorted(new PersistableComparator<Bible>());
+		ObservableList<Bible> bibles = context.getWorkspaceManager().getItemsUnmodifiable(Bible.class).sorted(new PersistableComparator<Bible>());
 		Bindings.bindContent(this.bibles, bibles);
 		
 		this.bible.addListener((obs, ov, nv) -> {
@@ -131,7 +131,7 @@ public final class BibleSearchPane extends BorderPane {
 		
 		Bible primaryBible = null;
 		if (primaryId != null) {
-			primaryBible = context.getDataManager().getItem(Bible.class, primaryId);
+			primaryBible = context.getWorkspaceManager().getItem(Bible.class, primaryId);
 		}
 		
 		if (primaryBible == null) {
@@ -320,14 +320,14 @@ public final class BibleSearchPane extends BorderPane {
 				overlay.setVisible(true);
 				
 				final int maxResults = 100;
-				BibleSearchCriteria criteria = new BibleSearchCriteria(
+				BibleTextSearchCriteria criteria = new BibleTextSearchCriteria(
 						text,
 						type.getValue(),
 						maxResults,
 						bible != null ? bible.getId() : null, 
 						book != null ? book.getNumber() : -1);
 				
-				context.getDataManager().search(criteria).thenCompose(AsyncHelper.onJavaFXThreadAndWait((result) -> {
+				context.getWorkspaceManager().search(criteria).thenCompose(AsyncHelper.onJavaFXThreadAndWait((result) -> {
 					table.setItems(FXCollections.observableArrayList(this.getSearchResults(result.getResults())));
 					lblResults.setText(MessageFormat.format(Translations.get("bible.search.results.output"), result.hasMore() ? maxResults + "+" : result.getNumberOfResults()));
 					overlay.setVisible(false);
@@ -350,7 +350,7 @@ public final class BibleSearchPane extends BorderPane {
 		List<BibleSearchResult> output = new ArrayList<BibleSearchResult>();
 		for (SearchResult result : results) {
 			Document document = result.getDocument();
-			Bible bible = this.context.getDataManager().getItem(Bible.class, UUID.fromString(document.get(Bible.FIELD_ID)));
+			Bible bible = this.context.getWorkspaceManager().getItem(Bible.class, UUID.fromString(document.get(Bible.FIELD_ID)));
 			if (bible == null) {
 				LOGGER.warn("Unable to find bible '{}'. A re-index might fix this problem.", document.get(Bible.FIELD_ID));
 				continue;

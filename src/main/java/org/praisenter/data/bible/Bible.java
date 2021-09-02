@@ -105,14 +105,6 @@ public final class Bible implements ReadOnlyBible, Indexable, Persistable, Copya
 	}
 	
 	/* (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
-	@Override
-	public boolean equals(Object obj) {
-		return this.identityEquals(obj);
-	}
-	
-	/* (non-Javadoc)
 	 * @see java.lang.Object#hashCode()
 	 */
 	@Override
@@ -213,7 +205,7 @@ public final class Bible implements ReadOnlyBible, Indexable, Persistable, Copya
 			Document document = new Document();
 			document.add(new StringField(FIELD_ID, this.getId().toString(), Field.Store.YES));
 			document.add(new StringField(FIELD_TYPE, DATA_TYPE_BIBLE, Field.Store.YES));
-			document.add(new TextField(FIELD_TEXT, tags, Field.Store.YES));
+			document.add(new TextField(FIELD_TAGS, tags, Field.Store.YES));
 			documents.add(document);
 		}
 		

@@ -1,19 +1,11 @@
 package org.praisenter.ui;
 
-import java.nio.file.Paths;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-import org.praisenter.Constants;
-import org.praisenter.data.bible.Bible;
-import org.praisenter.data.bible.BiblePersistAdapter;
-import org.praisenter.data.media.Media;
-import org.praisenter.data.media.MediaPersistAdapter;
-import org.praisenter.data.slide.Slide;
-import org.praisenter.data.slide.SlidePersistAdapter;
-import org.praisenter.data.slide.SlideShow;
-import org.praisenter.data.slide.SlideShowPersistAdapter;
-import org.praisenter.data.song.Song;
-import org.praisenter.data.song.SongPersistAdapter;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.praisenter.async.AsyncHelper;
 import org.praisenter.ui.slide.JavaFXSlideRenderer;
 import org.praisenter.ui.translations.Translations;
 import org.praisenter.ui.upgrade.InstallUpgradeHandler;
@@ -31,6 +23,7 @@ import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.scene.Node;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundImage;
@@ -50,10 +43,13 @@ import javafx.util.Duration;
 // FEATURE (L-L) Replace the current loading background image
 
 final class LoadingPane extends Pane {
+	private static final Logger LOGGER = LogManager.getLogger();
+	
 	private static final double BAR_X_OFFSET = 75.0;
 	private static final double BAR_Y_OFFSET = 50.0;
 	private static final double CIRCLE_RADIUS = 50.0;
 	private static final double LINE_WIDTH = 4.0;
+	private static final long ANIMATION_DURATION = 300;
 	
 	// members
 	
@@ -166,7 +162,7 @@ final class LoadingPane extends Pane {
     		// create a new timeline to animate the end x property of the loading bar
     		Timeline tn = new Timeline(
     				new KeyFrame(
-    						Duration.millis(300), 
+    						Duration.millis(ANIMATION_DURATION), 
     						new KeyValue(
     								barfg.endXProperty(), 
     								BAR_X_OFFSET + nv.doubleValue() * (LoadingPane.this.getWidth() - BAR_X_OFFSET * 2), 
@@ -199,70 +195,113 @@ final class LoadingPane extends Pane {
 	}
 
 	private CompletableFuture<Void> performUpgrade() {
-		return CompletableFuture.runAsync(() -> {
+		return AsyncHelper.onJavaFXThreadAndWait(() -> {
 			this.message.set(Translations.get("task.loading.upgrade"));
-		}).thenCompose((v) -> {
+		}).apply(null).thenCompose((v) -> {
+			LOGGER.info("Performing any upgrade steps");
 			return this.upgradeHandler.performUpgradeSteps();
-		}).thenRun(() -> {
+		}).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
 			this.progress.set(0.1);
-		});
+		}));
 	}
 	
 	private CompletableFuture<Void> loadBibles() {
-		return CompletableFuture.runAsync(() -> {
+		return AsyncHelper.onJavaFXThreadAndWait(() -> {
 			this.message.set(Translations.get("task.loading.bible"));
-		}).thenCompose((v) -> {
-			return this.context.dataManager.registerPersistAdapter(Bible.class, new BiblePersistAdapter(Paths.get(Constants.BIBLES_ABSOLUTE_PATH)));
-		}).thenRun(() -> {
-			this.progress.set(0.2);
-		});
+		}).apply(null).thenCompose((v) -> {
+			LOGGER.info("Loading bibles");
+			return this.context.workspaceManager.registerBiblePersistAdapter();
+		}).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
+			this.progress.set(0.3);
+		}));
 	}
 
 	private CompletableFuture<Void> loadSongs() {
-		return CompletableFuture.runAsync(() -> {
+		return AsyncHelper.onJavaFXThreadAndWait(() -> {
 			this.message.set(Translations.get("task.loading.song"));
-		}).thenCompose((v) -> {
-			return this.context.dataManager.registerPersistAdapter(Song.class, new SongPersistAdapter(Paths.get(Constants.SONGS_ABSOLUTE_PATH)));
-		}).thenRun(() -> {
-			this.progress.set(0.3);
-		});
+		}).apply(null).thenCompose((v) -> {
+			LOGGER.info("Loading songs");
+			return this.context.workspaceManager.registerSongPersistAdapter();
+		}).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
+			this.progress.set(0.5);
+		}));
 	}
 	
 	private CompletableFuture<Void> loadMedia() {
-		return CompletableFuture.runAsync(() -> {
+		return AsyncHelper.onJavaFXThreadAndWait(() -> {
 			this.message.set(Translations.get("task.loading.media"));
-		}).thenCompose((v) -> {
-			return this.context.dataManager.registerPersistAdapter(Media.class, new MediaPersistAdapter(Paths.get(Constants.MEDIA_ABSOLUTE_PATH), this.context.configuration));
-		}).thenRun(() -> {
-			this.progress.set(0.5);
-		});
+		}).apply(null).thenCompose((v) -> {
+			LOGGER.info("Loading media");
+			return this.context.workspaceManager.registerMediaPersistAdapter();
+		}).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
+			this.progress.set(0.7);
+		}));
 	}
 	
 	private CompletableFuture<Void> loadSlides() {
-		return CompletableFuture.runAsync(() -> {
+		return AsyncHelper.onJavaFXThreadAndWait(() -> {
 			this.message.set(Translations.get("task.loading.slide"));
-		}).thenCompose((v) -> {
-			return this.context.dataManager.registerPersistAdapter(Slide.class, new SlidePersistAdapter(Paths.get(Constants.SLIDES_ABSOLUTE_PATH), new JavaFXSlideRenderer(this.context), this.context.configuration));
-		}).thenRun(() -> {
-			this.progress.set(0.6);
+		}).apply(null).thenCompose((v) -> {
+			LOGGER.info("Loading slides");
+			return this.context.workspaceManager.registerSlidePersistAdapter(new JavaFXSlideRenderer(this.context));
+		}).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
+			this.progress.set(0.8);
+		}));
+	}
+
+	private CompletableFuture<Void> loadDisplayManager() {
+		return AsyncHelper.onJavaFXThreadAndWait(() -> {
+			this.message.set(Translations.get("task.loading.displays"));
+			// setup the display manager
+			LOGGER.info("Initializing the screen manager.");
+			this.context.getDisplayManager().initialize();
+			this.progress.set(0.85);
+		}).apply(null).thenRunAsync(() -> {
+			this.waitForAnimation();
 		});
 	}
 	
-	private CompletableFuture<Void> loadSlideShows() {
-		return CompletableFuture.runAsync(() -> {
-			this.message.set(Translations.get("task.loading.show"));
-		}).thenCompose((v) -> {
-			return this.context.dataManager.registerPersistAdapter(SlideShow.class, new SlideShowPersistAdapter(Paths.get(Constants.SLIDESHOWS_ABSOLUTE_PATH)));
-		}).thenRun(() -> {
-			this.progress.set(0.7);
+	private CompletableFuture<Void> loadFonts() {
+		return AsyncHelper.onJavaFXThreadAndWait(() -> {
+			this.message.set(Translations.get("task.loading.fonts"));
+			LOGGER.info("Loading fonts.");
+			List<String> families = Font.getFamilies();
+			Font.getFontNames();
+			// to improve performance of font pickers, we need to preload
+			// the fonts by creating a font for each one
+			for (String family : families) {
+				Font.font(family);
+			}
+			LOGGER.info("Fonts loaded.");
+			this.progress.set(0.9);
+		}).apply(null).thenRunAsync(() -> {
+			this.waitForAnimation();
 		});
+	}
+	
+	private CompletableFuture<Node> loadMainUI() {
+		return AsyncHelper.onJavaFXThreadAndWait((v) -> {
+			this.message.set(Translations.get("task.loading.ui"));
+			LOGGER.info("Building UI");
+			PraisenterPane main = new PraisenterPane(this.context);
+			this.progress.set(1.0);
+			return main;
+		}).apply(null).thenApplyAsync((ui) -> {
+			this.waitForAnimation();
+			return ui;
+		});
+	}
+	
+	private void waitForAnimation() {
+		try {
+			Thread.sleep(ANIMATION_DURATION);
+		} catch (InterruptedException e) {}
 	}
 	
 	/**
 	 * Starts the loading process on another thread.
-	 * @throws IllegalStateException if start has already been called
 	 */
-	public CompletableFuture<Void> start() {
+	public CompletableFuture<Node> start() {
 		return CompletableFuture.completedFuture(null)
 		.thenCompose((v) -> {
 			return this.performUpgrade();
@@ -275,7 +314,11 @@ final class LoadingPane extends Pane {
 		}).thenCompose((v) -> {
 			return this.loadSlides();
 		}).thenCompose((v) -> {
-			return this.loadSlideShows();
+			return this.loadDisplayManager();
+		}).thenCompose((v) -> {
+			return this.loadFonts();
+		}).thenCompose((v) -> {
+			return this.loadMainUI();
 		});
 	}
 }

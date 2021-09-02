@@ -482,7 +482,7 @@ public final class LibraryList extends BorderPane implements ActionPane {
 				CompletableFuture<?>[] futures = new CompletableFuture<?>[n];
 				int i = 0;
 				for (Persistable item : items) {
-					futures[i++] = this.context.getDataManager().delete(item).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
+					futures[i++] = this.context.getWorkspaceManager().delete(item).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
 						// close the document if its open
 						this.context.closeDocument(item);
 					})).exceptionally((t) -> {
@@ -551,7 +551,7 @@ public final class LibraryList extends BorderPane implements ActionPane {
 					task.setMessage(Translations.get("action.rename.task", oldName, newName));
 					
 					this.context.addBackgroundTask(task);
-					return this.context.getDataManager().update(copy).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
+					return this.context.getWorkspaceManager().update(copy).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
 		    			// is it open as a document?
 		    			DocumentContext<? extends Persistable> document = this.context.getOpenDocument(item);
 		    			if (document != null) {
@@ -598,7 +598,7 @@ public final class LibraryList extends BorderPane implements ActionPane {
 			
 			// get all files
 			List<File> files = items.stream().map(i -> {
-				Path path = this.context.getDataManager().getFilePath(i);
+				Path path = this.context.getWorkspaceManager().getFilePath(i);
 				if (path == null) return null;
 				return path.toFile();
 			}).filter(f -> f != null).collect(Collectors.toList());
@@ -636,7 +636,7 @@ public final class LibraryList extends BorderPane implements ActionPane {
 				for (Object entry : entries) {
 					if (entry instanceof UUID) {
 						UUID id = (UUID)entry; 
-						Persistable item = this.context.getDataManager().getPersistableById(id);
+						Persistable item = this.context.getWorkspaceManager().getPersistableById(id);
 						if (item != null) {
 							item = item.copy();
 							item.setId(UUID.randomUUID());
@@ -672,7 +672,7 @@ public final class LibraryList extends BorderPane implements ActionPane {
 				int i = 0;
 				final CompletableFuture<?>[] futures = new CompletableFuture<?>[items.size()];
 				for (Persistable item : items) {
-					futures[i++] = this.context.getDataManager().create(item).exceptionally(t -> {
+					futures[i++] = this.context.getWorkspaceManager().create(item).exceptionally(t -> {
 						LOGGER.error("Failed to paste item '" + item.getName() + "' due to: " + t.getMessage(), t);
 						throw new CompletionException(t);
 					});
@@ -730,7 +730,7 @@ public final class LibraryList extends BorderPane implements ActionPane {
 						BufferedOutputStream bos = new BufferedOutputStream(fos);
 			    		ZipOutputStream zos = new ZipOutputStream(bos);) {
 						
-						this.context.getDataManager().exportData(KnownFormat.PRAISENTER3, zos, items);
+						this.context.getWorkspaceManager().exportData(KnownFormat.PRAISENTER3, zos, items);
 					} catch (Exception ex) {
 						throw new CompletionException(ex);
 					}

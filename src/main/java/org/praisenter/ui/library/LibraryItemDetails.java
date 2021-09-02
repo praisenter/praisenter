@@ -249,7 +249,7 @@ final class LibraryItemDetails extends BorderPane {
 		Label lblSizeValue = new Label();
 		Label lblLengthValue = new Label();
 		
-		TagListView viewTags = new TagListView(this.context.getDataManager().getTagsUmodifiable());
+		TagListView viewTags = new TagListView(this.context.getWorkspaceManager().getTagsUmodifiable());
 		Bindings.bindContentBidirectional(viewTags.getTags(), this.tags);
 		
 		Label lblBibleLanguageValue = new Label();
@@ -511,7 +511,7 @@ final class LibraryItemDetails extends BorderPane {
 	
 	private long getFileSize(Persistable item) {
 		try {
-			return Files.size(context.getDataManager().getFilePath(item));
+			return Files.size(context.getWorkspaceManager().getFilePath(item));
 		} catch (IOException e) {
 			LOGGER.warn("Failed to retrieve file size for item '" + item.getName() + "'");
 		}
@@ -524,7 +524,7 @@ final class LibraryItemDetails extends BorderPane {
 		task.setMessage(Translations.get("task.saving", p.getName()));
 		this.context.addBackgroundTask(task);
 		
-		this.context.getDataManager().update(p).thenRun(() -> {
+		this.context.getWorkspaceManager().update(p).thenRun(() -> {
 			// complete the task
 			task.setProgress(1.0);
 		}).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {

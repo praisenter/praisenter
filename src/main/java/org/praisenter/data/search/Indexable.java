@@ -10,6 +10,7 @@ public interface Indexable extends Identifiable {
 	public static final String FIELD_ID = "docId";
 	public static final String FIELD_TEXT = "docText";
 	public static final String FIELD_TYPE = "docType";
+	public static final String FIELD_TAGS = "docTags";
 	
 	public String getName();
 	public List<Document> index();

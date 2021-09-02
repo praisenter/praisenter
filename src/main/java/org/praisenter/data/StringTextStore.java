@@ -28,4 +28,9 @@ public final class StringTextStore implements TextStore {
 	public TextItem get(TextVariant variant, TextType type) {
 		return this.items.get(TextType.TEXT);
 	}
+	
+	@Override
+	public String toString() {
+		return this.text;
+	}
 }

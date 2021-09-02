@@ -2,6 +2,7 @@ package org.praisenter.ui;
 
 import java.awt.Desktop;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -15,7 +16,6 @@ import org.praisenter.async.AsyncHelper;
 import org.praisenter.async.BackgroundTask;
 import org.praisenter.async.ReadOnlyBackgroundTask;
 import org.praisenter.data.Persistable;
-import org.praisenter.data.configuration.Configuration;
 import org.praisenter.ui.controls.Alerts;
 import org.praisenter.ui.display.DisplaysController;
 import org.praisenter.ui.document.DocumentsPane;
@@ -81,7 +81,7 @@ final class PraisenterPane extends BorderPane {
 			task.setMessage(Translations.get("task.reindex"));
 			this.context.addBackgroundTask(task);
 			
-			this.context.dataManager.reindex().thenApply(AsyncHelper.onJavaFXThreadAndWait(() -> {
+			this.context.workspaceManager.reindex().thenApply(AsyncHelper.onJavaFXThreadAndWait(() -> {
 				task.setProgress(1);
 			})).exceptionally((ex) -> {
 				LOGGER.error("Failed to reindex the lucene search index: " + ex.getMessage(), ex);
@@ -97,12 +97,53 @@ final class PraisenterPane extends BorderPane {
 		MenuItem mnuSettings = new MenuItem(Translations.get("menu.file.settings"), Glyphs.MENU_PREFERENCES.duplicate());
 		// TODO action for settings
 		
-		MenuItem mnuLogs = new MenuItem(Translations.get("menu.help.logs"));
-		mnuLogs.setOnAction(e -> {
+		Menu mnuSwitchWorkspace = new Menu(Translations.get("menu.file.switchWorkspace"));
+		
+		for (Path path : context.getWorkspaceManager().getOtherWorkspaces()) {
+			MenuItem mnuSelectWorkspace = new MenuItem(path.toAbsolutePath().toString());
+			mnuSelectWorkspace.setOnAction(e -> {
+				StartupHandler sh = new StartupHandler();
+				try {
+					sh.restart(context, path);
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			});
+			mnuSwitchWorkspace.getItems().add(mnuSelectWorkspace);
+		}
+		
+		MenuItem mnuNewWorkspace = new MenuItem(Translations.get("menu.file.newWorkspace"));
+		mnuNewWorkspace.setOnAction(e -> {
+			StartupHandler sh = new StartupHandler();
+			try {
+				sh.restart(context);
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		});
+		mnuSwitchWorkspace.getItems().add(mnuNewWorkspace);
+		
+		MenuItem mnuApplicationLogs = new MenuItem(Translations.get("menu.help.startupLogs"));
+		mnuApplicationLogs.setOnAction(e -> {
 			// open the log directory
 			if (Desktop.isDesktopSupported()) {
 			    try {
 					Desktop.getDesktop().open(Paths.get(Constants.LOGS_ABSOLUTE_PATH).toFile());
+				} catch (IOException ex) {
+					LOGGER.error("Unable to open logs directory due to: " + ex.getMessage(), ex);
+				}
+			} else {
+				LOGGER.warn("Desktop is not supported. Failed to open log path.");
+			}
+		});
+		MenuItem mnuWorkspaceLogs = new MenuItem(Translations.get("menu.help.workspaceLogs"));
+		mnuWorkspaceLogs.setOnAction(e -> {
+			// open the log directory
+			if (Desktop.isDesktopSupported()) {
+			    try {
+					Desktop.getDesktop().open(context.getWorkspaceManager().getWorkspacePathResolver().getLogsPath().toFile());
 				} catch (IOException ex) {
 					LOGGER.error("Unable to open logs directory due to: " + ex.getMessage(), ex);
 				}
@@ -149,8 +190,8 @@ final class PraisenterPane extends BorderPane {
 		
 		MenuItem mnuAbout = new MenuItem(Translations.get("menu.help.about"), Glyphs.MENU_ABOUT.duplicate());
 		
-		Menu mnuFile = new Menu(Translations.get("menu.file"), null, mnuReindex, mnuSettings);
-		Menu mnuHelp = new Menu(Translations.get("menu.help"), null, mnuLogs, mnuUpdate, mnuAbout);
+		Menu mnuFile = new Menu(Translations.get("menu.file"), null, mnuReindex, mnuSettings, mnuSwitchWorkspace);
+		Menu mnuHelp = new Menu(Translations.get("menu.help"), null, mnuApplicationLogs, mnuWorkspaceLogs, mnuUpdate, mnuAbout);
 		MenuBar mainMenu = new MenuBar(mnuFile, mnuHelp);
 		mainMenu.setUseSystemMenuBar(true);
 		
@@ -159,10 +200,7 @@ final class PraisenterPane extends BorderPane {
 		ActionBar actionBar = new ActionBar(context);
 		DocumentsPane documentsPane = new DocumentsPane(context);
 		
-		this.items = new FilteredList<>(context.getDataManager().getItemsUnmodifiable(), (i) -> {
-			if (i instanceof Configuration) {
-				return false;
-			}
+		this.items = new FilteredList<>(context.getWorkspaceManager().getItemsUnmodifiable(), (i) -> {
 			return true;
 		});
 		

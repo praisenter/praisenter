@@ -1,4 +1,4 @@
-package org.praisenter.data.configuration;
+package org.praisenter.data.workspace;
 
 import org.praisenter.data.Copyable;
 

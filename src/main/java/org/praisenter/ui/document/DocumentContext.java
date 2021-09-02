@@ -92,7 +92,8 @@ public final class DocumentContext<T extends Persistable> {
 		if (obj == null) return false;
 		if (obj == this) return true;
 		if (obj instanceof DocumentContext) {
-			return Objects.equals(((DocumentContext<?>) obj).document.get(), this.document.get());
+			Object p = ((DocumentContext<?>) obj).document.get();
+			return this.document.get().identityEquals(p);
 		}
 		return false;
 	}

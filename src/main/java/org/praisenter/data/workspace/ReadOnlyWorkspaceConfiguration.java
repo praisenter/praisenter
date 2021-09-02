@@ -1,12 +1,9 @@
-package org.praisenter.data.configuration;           
+package org.praisenter.data.workspace;           
 
 import java.util.UUID;
 
-import org.praisenter.data.Copyable;
 import org.praisenter.data.Identifiable;
-import org.praisenter.data.Persistable;
 import org.praisenter.data.media.MediaConfiguration;
-import org.praisenter.data.search.Indexable;
 import org.praisenter.data.slide.SlideConfiguration;
 
 import javafx.beans.property.ReadOnlyBooleanProperty;
@@ -16,7 +13,10 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.collections.ObservableList;
 
-public interface ReadOnlyConfiguration extends MediaConfiguration, SlideConfiguration, Indexable, Persistable, Copyable, Identifiable {
+public interface ReadOnlyWorkspaceConfiguration extends MediaConfiguration, SlideConfiguration, Identifiable {
+	public String getFormat();
+	public String getVersion();
+	
 	public UUID getPrimaryBibleId();
 	public UUID getSecondaryBibleId();
 	public boolean isRenumberBibleWarningEnabled();
@@ -32,6 +32,9 @@ public interface ReadOnlyConfiguration extends MediaConfiguration, SlideConfigur
 	public double getApplicationHeight();
 	public boolean isApplicationMaximized();
 	public boolean isDebugModeEnabled();
+	
+	public ReadOnlyStringProperty formatProperty();
+	public ReadOnlyStringProperty versionProperty();
 	
 	public ReadOnlyObjectProperty<UUID> primaryBibleIdProperty();
 	public ReadOnlyObjectProperty<UUID> secondaryBibleIdProperty();

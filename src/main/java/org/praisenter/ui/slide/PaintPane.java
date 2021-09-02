@@ -309,7 +309,7 @@ final class PaintPane extends StackPane implements Playable {
 		if (mo != null) {
 			UUID id = mo.getMediaId();
 			if (id != null) {
-				return this.context.getDataManager().getItem(Media.class, id);
+				return this.context.getWorkspaceManager().getItem(Media.class, id);
 			}
 		}
 		return null;

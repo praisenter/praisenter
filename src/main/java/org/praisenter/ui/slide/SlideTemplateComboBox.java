@@ -12,7 +12,7 @@ import javafx.scene.control.ListCell;
 
 public class SlideTemplateComboBox extends ComboBox<Slide> {
 	public SlideTemplateComboBox(GlobalContext context) {
-		ObservableList<Slide> allSlides = context.getDataManager().getItemsUnmodifiable(Slide.class);
+		ObservableList<Slide> allSlides = context.getWorkspaceManager().getItemsUnmodifiable(Slide.class);
         FilteredList<Slide> filtered = allSlides.filtered(s -> s.hasPlaceholders());
         SortedList<Slide> sorted = filtered.sorted(new PersistableComparator<Slide>());
         this.setItems(sorted);
@@ -20,7 +20,7 @@ public class SlideTemplateComboBox extends ComboBox<Slide> {
         // JAVABUG (L) 09/16/17 [workaround] The combobox's drop down goes off screen - I've mitigated by reducing the number of items visible at one time
         this.setVisibleRowCount(6);
 		this.setCellFactory((view) -> {
-			return new SlideListCell();
+			return new SlideThumbnailListCell();
 		});
 		this.setButtonCell(new ListCell<Slide>() {
 			@Override

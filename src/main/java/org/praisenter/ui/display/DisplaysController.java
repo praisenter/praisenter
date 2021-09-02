@@ -2,8 +2,8 @@ package org.praisenter.ui.display;
 
 import java.util.List;
 
-import org.praisenter.data.configuration.Display;
-import org.praisenter.data.configuration.DisplayRole;
+import org.praisenter.data.workspace.Display;
+import org.praisenter.data.workspace.DisplayRole;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.MappedList;
 

@@ -42,7 +42,7 @@ public final class Constants {
 	public static final String NEW_LINE = "\n";
 
 	/** The relative path to the root of all the Praisenter files */
-	public static final String ROOT_RELATIVE_PATH = "Praisenter3" + RuntimeProperties.PATH_SEPARATOR;
+	public static final String ROOT_RELATIVE_PATH = ".praisenter3" + RuntimeProperties.PATH_SEPARATOR;
 	
 	/** The absolute path to the root of all the Praisenter files */
 	public static final String ROOT_PATH = RuntimeProperties.USER_HOME.isEmpty() ? 
@@ -78,7 +78,7 @@ public final class Constants {
 	public static final String UPGRADE_ABSOLUTE_PATH = Constants.ROOT_PATH + Constants.UPGRADE_RELATIVE_PATH;
 	
 	/** The last runtime version of the application */
-	public static final String UPGRADE_VERSION_FILENAME = "version.txt";
+	public static final String UPGRADE_VERSION_FILENAME = ".version";
 	
 	/** The relative path to the upgrade/archive directory */
 	public static final String UPGRADE_ARCHIVE_RELATIVE_PATH = Constants.UPGRADE_RELATIVE_PATH + "archive" + RuntimeProperties.PATH_SEPARATOR;
@@ -89,33 +89,6 @@ public final class Constants {
 	/** The URL to check for a new released version of the application */
 	public static final String UPGRADE_VERSION_CHECK_URL = "https://raw.githubusercontent.com/wnbittle/praisenter/version3/release-version.txt";
 
-	
-	
-	///////////////////////////
-	// SEARCH INDEX
-	
-	// /_index
-	/** The relative path to the search index directory */
-	public static final String SEARCH_INDEX_RELATIVE_PATH = "_index";
-	
-	// /user/home/dir/Praisenter3/_index
-	/** The absolute path to the search index directory */
-	public static final String SEARCH_INDEX_ABSOLUTE_PATH = Constants.ROOT_PATH + SEARCH_INDEX_RELATIVE_PATH;
-	
-	
-	
-	///////////////////////////
-	// CONFIGURATION
-	
-	// /config
-	/** The relative path to the configuration file */
-	public static final String CONFIG_RELATIVE_PATH = "config";
-	
-	// /user/home/dir/Praisenter3/config
-	/** The absolute path to the configuration file */
-	public static final String CONFIG_ABSOLUTE_PATH = Constants.ROOT_PATH + CONFIG_RELATIVE_PATH;
-
-	
 	
 	///////////////////////////
 	// LOCALES
@@ -153,62 +126,6 @@ public final class Constants {
 	/** The path to the default theme file on the classpath */
 	public static final String THEMES_DEFAULT_THEME_ON_CLASSPATH = "/org/praisenter/themes/" + Constants.THEMES_DEFAULT_THEME_FILENAME;
 	
-	
-	
-	///////////////////////////
-	// MEDIA
-
-	// /media
-	/** The relative path to the media folder */
-	public static final String MEDIA_RELATIVE_PATH = "media" + RuntimeProperties.PATH_SEPARATOR;
-	
-	// /user/home/dir/Praisenter3/media/
-	/** The absolute path to the media folder */
-	public static final String MEDIA_ABSOLUTE_PATH = Constants.ROOT_PATH + MEDIA_RELATIVE_PATH;
-	
-	///////////////////////////
-	// SONGS
-	
-	// /songs
-	/** The relative path to the songs folder */
-	public static final String SONGS_RELATIVE_PATH = "songs" + RuntimeProperties.PATH_SEPARATOR;
-	
-	// /user/home/dir/Praisenter3/songs
-	/** The absolute path to the songs folder */
-	public static final String SONGS_ABSOLUTE_PATH = Constants.ROOT_PATH + SONGS_RELATIVE_PATH;
-
-	///////////////////////////
-	// SLIDES
-	
-	// /slides
-	/** The relative path to the slides folder */
-	public static final String SLIDES_RELATIVE_PATH = "slides" + RuntimeProperties.PATH_SEPARATOR;
-	
-	// /user/home/dir/Praisenter3/slides
-	/** The absolute path to the slides folder */
-	public static final String SLIDES_ABSOLUTE_PATH = Constants.ROOT_PATH + SLIDES_RELATIVE_PATH;
-	
-	///////////////////////////
-	// SLIDESHOWS
-	
-	// /slides
-	/** The relative path to the slides folder */
-	public static final String SLIDESHOWS_RELATIVE_PATH = "slideshows" + RuntimeProperties.PATH_SEPARATOR;
-	
-	// /user/home/dir/Praisenter3/slides
-	/** The absolute path to the slides folder */
-	public static final String SLIDESHOWS_ABSOLUTE_PATH = Constants.ROOT_PATH + SLIDESHOWS_RELATIVE_PATH;
-	
-	///////////////////////////
-	// BIBLES
-	
-	// /bibles
-	/** The relative path to the database */
-	public static final String BIBLES_RELATIVE_PATH = "bibles" + RuntimeProperties.PATH_SEPARATOR;
-	
-	// /user/home/dir/Praisenter3/bibles
-	/** The absolute path to the database */
-	public static final String BIBLES_ABSOLUTE_PATH = Constants.ROOT_PATH + BIBLES_RELATIVE_PATH;
 	
 	///////////////////////////
 	// OTHER

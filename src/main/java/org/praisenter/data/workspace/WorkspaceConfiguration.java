@@ -1,28 +1,17 @@
-package org.praisenter.data.configuration;
+package org.praisenter.data.workspace;
 
-import java.time.Instant;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
-import org.apache.lucene.document.Document;
 import org.praisenter.Constants;
 import org.praisenter.Version;
-import org.praisenter.data.Copyable;
 import org.praisenter.data.Identifiable;
-import org.praisenter.data.Persistable;
-import org.praisenter.data.Tag;
-import org.praisenter.data.json.InstantJsonDeserializer;
-import org.praisenter.data.json.InstantJsonSerializer;
 import org.praisenter.data.media.MediaConfiguration;
-import org.praisenter.data.search.Indexable;
 import org.praisenter.data.slide.SlideConfiguration;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
@@ -37,21 +26,17 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.collections.ObservableSet;
 
 @JsonTypeInfo(
-		use = JsonTypeInfo.Id.NAME,
-		include = JsonTypeInfo.As.PROPERTY)
-@JsonTypeName(value = "configuration")
-public final class Configuration implements ReadOnlyConfiguration, MediaConfiguration, SlideConfiguration, Indexable, Persistable, Copyable, Identifiable {
+	use = JsonTypeInfo.Id.NAME,
+	include = JsonTypeInfo.As.PROPERTY)
+@JsonTypeName(value = "workspace")
+public final class WorkspaceConfiguration implements ReadOnlyWorkspaceConfiguration, MediaConfiguration, SlideConfiguration, Identifiable {
 	public static final double POSITION_SIZE_UNSET = -1;
 	
 	private final StringProperty format;
 	private final StringProperty version;
 	private final ObjectProperty<UUID> id;
-	private final StringProperty name;
-	private final ObjectProperty<Instant> createdDate;
-	private final ObjectProperty<Instant> modifiedDate;
 	
 	private final ObjectProperty<UUID> primaryBibleId;
 	private final ObjectProperty<UUID> secondaryBibleId;
@@ -86,13 +71,10 @@ public final class Configuration implements ReadOnlyConfiguration, MediaConfigur
 	private final ObservableList<Resolution> resolutions;
 	private final ObservableList<Resolution> resolutionsReadOnly;
 	
-	public Configuration() {
+	public WorkspaceConfiguration() {
 		this.format = new SimpleStringProperty(Constants.FORMAT_NAME);
 		this.version = new SimpleStringProperty(Version.STRING);
 		this.id = new SimpleObjectProperty<UUID>(UUID.randomUUID());
-		this.name = new SimpleStringProperty("Application Configuration");
-		this.createdDate = new SimpleObjectProperty<Instant>(Instant.now());
-		this.modifiedDate = new SimpleObjectProperty<Instant>(this.createdDate.get());
 		
 		this.primaryBibleId = new SimpleObjectProperty<>();
 		this.secondaryBibleId = new SimpleObjectProperty<>();
@@ -132,83 +114,17 @@ public final class Configuration implements ReadOnlyConfiguration, MediaConfigur
 	public boolean identityEquals(Object other) {
 		if (other == null) return false;
 		if (other == this) return true;
-		if (other instanceof Configuration) {
-			return this.id.get().equals(((Configuration)other).id.get());
+		if (other instanceof WorkspaceConfiguration) {
+			return this.id.get().equals(((WorkspaceConfiguration)other).id.get());
 		}
 		return false;
-	}
-	
-	@Override
-	public boolean equals(Object obj) {
-		return this.identityEquals(obj);
 	}
 	
 	@Override
 	public int hashCode() {
 		return this.id.get().hashCode();
 	}
-	
-	@Override
-	public String toString() {
-		return this.name.get();
-	}
-	
-	@Override
-	public Configuration copy() {
-		Configuration config = new Configuration();
-		
-		config.format.set(this.format.get());
-		config.version.set(this.version.get());
-		config.id.set(this.id.get());
-		config.name.set(this.name.get());
-		config.createdDate.set(this.createdDate.get());
-		config.modifiedDate.set(this.modifiedDate.get());
-		
-		config.primaryBibleId.set(this.primaryBibleId.get());
-		config.secondaryBibleId.set(this.secondaryBibleId.get());
-		config.renumberBibleWarningEnabled.set(this.renumberBibleWarningEnabled.get());
-		config.reorderBibleWarningEnabled.set(this.reorderBibleWarningEnabled.get());
-		
-		config.thumbnailWidth.set(this.thumbnailWidth.get());
-		config.thumbnailHeight.set(this.thumbnailHeight.get());
-		config.audioTranscodingEnabled.set(this.audioTranscodingEnabled.get());
-		config.videoTranscodingEnabled.set(this.videoTranscodingEnabled.get());
-		config.audioTranscodeExtension.set(this.audioTranscodeExtension.get());
-		config.videoTranscodeExtension.set(this.videoTranscodeExtension.get());
-		config.volumeAdjustmentEnabled.set(this.volumeAdjustmentEnabled.get());
-		config.audioTranscodeCommand.set(this.audioTranscodeCommand.get());
-		config.videoTranscodeCommand.set(this.videoTranscodeCommand.get());
-		config.videoFrameExtractCommand.set(this.videoFrameExtractCommand.get());
-		config.targetMeanVolume.set(this.targetMeanVolume.get());
-		
-		config.waitForTransitionsToCompleteEnabled.set(this.waitForTransitionsToCompleteEnabled.get());
-		
-		config.languageTag.set(this.languageTag.get());
-		config.themeName.set(this.themeName.get());
-		config.applicationX.set(this.applicationX.get());
-		config.applicationY.set(this.applicationY.get());
-		config.applicationWidth.set(this.applicationWidth.get());
-		config.applicationHeight.set(this.applicationHeight.get());
-		config.applicationMaximized.set(this.applicationMaximized.get());
-		config.debugModeEnabled.set(this.debugModeEnabled.get());
-		
-		for (Display display : this.displays) {
-			config.displays.add(display.copy());
-		}
-		
-		for (Resolution resolution : this.resolutions) {
-			config.resolutions.add(resolution.copy());
-		}
-		
-		return config;
-	}
-	
-	@Override
-	public List<Document> index() {
-		// not included in the index
-		return null;
-	}
-	
+
 	@Override
 	@JsonProperty(Constants.FORMAT_PROPERTY_NAME)
 	public String getFormat() {
@@ -257,58 +173,6 @@ public final class Configuration implements ReadOnlyConfiguration, MediaConfigur
 		return this.id;
 	}
 	
-	@Override
-	@JsonProperty
-	public String getName() {
-		return this.name.get();
-	}
-	
-	@JsonProperty
-	public void setName(String name) {
-		this.name.set(name);
-	}
-	
-	@Override
-	public StringProperty nameProperty() {
-		return this.name;
-	}
-
-	@Override
-	@JsonProperty
-	@JsonSerialize(using = InstantJsonSerializer.class)
-	public Instant getCreatedDate() {
-		return this.createdDate.get();
-	}
-	
-	@JsonProperty
-	@JsonDeserialize(using = InstantJsonDeserializer.class)
-	public void setCreatedDate(Instant date) {
-		this.createdDate.set(date);
-	}
-	
-	@Override
-	public ObjectProperty<Instant> createdDateProperty() {
-		return this.createdDate;
-	}
-
-	@Override
-	@JsonProperty
-	@JsonSerialize(using = InstantJsonSerializer.class)
-	public Instant getModifiedDate() {
-		return this.modifiedDate.get();
-	}
-	
-	@JsonProperty
-	@JsonDeserialize(using = InstantJsonDeserializer.class)
-	public void setModifiedDate(Instant date) {
-		this.modifiedDate.set(date);
-	}
-	
-	@Override
-	public ObjectProperty<Instant> modifiedDateProperty() {
-		return this.modifiedDate;
-	}
-
 	@Override
 	@JsonProperty
 	public UUID getPrimaryBibleId() {
@@ -721,20 +585,5 @@ public final class Configuration implements ReadOnlyConfiguration, MediaConfigur
 	@Override
 	public ObservableList<Resolution> getResolutionsUnmodifiable() {
 		return this.resolutionsReadOnly;
-	}
-	
-	@Override
-	public ObservableSet<Tag> getTags() {
-		return null;
-	}
-	
-	@Override
-	public void setTags(Set<Tag> tags) {
-		// no-op
-	}
-	
-	@Override
-	public ObservableSet<Tag> getTagsUnmodifiable() {
-		return null;
 	}
 }

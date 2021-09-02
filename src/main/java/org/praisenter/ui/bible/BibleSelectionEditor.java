@@ -216,7 +216,7 @@ public final class BibleSelectionEditor extends VBox implements DocumentSelectio
 		txtBibleNotes.textProperty().bindBidirectional(this.notes);
 		txtBibleNotes.setWrapText(true);
 		
-		TagListView viewTags = new TagListView(this.context.getDataManager().getTagsUmodifiable());
+		TagListView viewTags = new TagListView(this.context.getWorkspaceManager().getTagsUmodifiable());
 		Bindings.bindContentBidirectional(viewTags.getTags(), this.tags);
 		
 		Label lblBookName = new Label(Translations.get("item.name"));

@@ -1,49 +1,50 @@
 package org.praisenter.ui.slide;
 
 import org.praisenter.data.slide.Slide;
+import org.praisenter.ui.GlobalContext;
 
-import javafx.beans.binding.Bindings;
+import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.ListCell;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundImage;
-import javafx.scene.layout.BackgroundRepeat;
-import javafx.scene.layout.Pane;
 
 final class SlideListCell extends ListCell<Slide> {
-	private static final Image TRANSPARENT_PATTERN = new Image(SlideListCell.class.getResourceAsStream("/org/praisenter/images/transparent.png"));
+	private final SlideView view;
 	
-	private final ImageView graphic;
-	private final Pane pane;
-	
-	public SlideListCell() {	
-		this.pane = new Pane();
-		this.pane.setBackground(new Background(new BackgroundImage(TRANSPARENT_PATTERN, BackgroundRepeat.REPEAT, BackgroundRepeat.REPEAT, null, null)));
+	public SlideListCell(GlobalContext context, double w, double h) {
+		this.view = new SlideView(context);
+		this.view.setAutoHideEnabled(false);
+		this.view.setCheckeredBackgroundEnabled(true);
+		this.view.setFitToWidthEnabled(true);
+		this.view.setFitToHeightEnabled(true);
+		this.view.setViewMode(SlideMode.VIEW);
+		this.view.setViewScaleAlignCenter(true);
+		// TODO css - needs to be slightly smaller than the listview width
 		
-		this.graphic = new ImageView();
-		this.graphic.setFitWidth(100);
+		// TODO i don't really like this as now it's not auto-sizing based on css
+//		double tw = 200;
+//		double th = (tw / w) * h;
+//		this.view.setMaxWidth(tw);
+//		
+////		this.setMinSize(tw, th);
+//		this.setPrefSize(tw+10, th+10);
 		
-		this.pane.getChildren().add(this.graphic);
+		// this doesn't work either because of the scrollbars that show up that we can't control
+		this.setPrefHeight(150);
 		
-		this.setGraphic(this.pane);
-		this.setWrapText(true);
-	}
-	
-	@Override
-	protected void updateItem(Slide item, boolean empty) {
-		super.updateItem(item, empty);
-		if (item == null || empty) {
-			this.textProperty().unbind();
-			this.graphic.imageProperty().unbind();
-			this.graphic.setImage(null);
-			this.pane.setVisible(false);
-		} else {
-			this.textProperty().bind(item.nameProperty());
-			this.graphic.imageProperty().bind(Bindings.createObjectBinding(() -> {
-    			return new Image(item.getThumbnailPath().toUri().toURL().toExternalForm());
-    		}, item.thumbnailPathProperty()));
-			this.pane.setVisible(true);
-		}
+		this.setGraphic(null);
+		this.setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
+		
+		this.itemProperty().addListener((obs, oldItem, newItem) -> {
+	        if (newItem != null) {
+	        	this.view.setSlide(newItem);
+	        }
+	    });
+		
+	    this.emptyProperty().addListener((obs, wasEmpty, isEmpty) -> {
+	        if (isEmpty) {
+	            this.setGraphic(null);
+	        } else {
+	            this.setGraphic(this.view);
+	        }
+	    });
 	}
 }
