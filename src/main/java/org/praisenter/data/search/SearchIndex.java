@@ -22,7 +22,6 @@ import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.highlight.Highlighter;
 import org.apache.lucene.search.highlight.QueryScorer;
-import org.apache.lucene.search.highlight.Scorer;
 import org.apache.lucene.search.highlight.TokenSources;
 import org.apache.lucene.store.Directory;
 
@@ -99,7 +98,7 @@ public final class SearchIndex {
 			TopDocs result = searcher.search(query, criteria.getMaxResults() + 1);
 			ScoreDoc[] docs = result.scoreDocs;
 			
-			Scorer scorer = new QueryScorer(query);
+			QueryScorer scorer = new QueryScorer(query);
 			Highlighter highlighter = new Highlighter(scorer);
 			
 			for (ScoreDoc doc : docs) {

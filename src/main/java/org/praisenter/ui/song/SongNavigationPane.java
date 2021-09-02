@@ -154,7 +154,7 @@ public final class SongNavigationPane extends BorderPane {
 		});
 		
 		// listen for edit changes
-		context.getDataManager().getItemsUnmodifiable().addListener((Change<? extends Persistable> c) -> {
+		context.getWorkspaceManager().getItemsUnmodifiable().addListener((Change<? extends Persistable> c) -> {
 			ReadOnlySong song = this.song.get();
 			if (song != null) {
 				while (c.next()) {

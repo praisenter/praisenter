@@ -184,9 +184,27 @@ https://stackoverflow.com/questions/50011276/javafx-treeview-expand-collapse-dis
 	-fx-fill: -fx-focused-text-base-color;
 }
 
-
-
-
+.workspace-selector {}
+.workspace-selector .workspace-title {
+	-fx-font-weight: bold;
+}
+.workspace-selector .workspace-description {}
+.workspace-selector .workspace-overview {
+	-fx-padding: 10 10 10 10;
+	-fx-background-color: white;
+	-fx-spacing: 5;
+}
+.workspace-selector .workspace-selection {
+	-fx-padding: 10 10 0 10;
+	-fx-spacing: 5;
+}
+.workspace-selector .workspace-buttons {
+	-fx-padding: 30 10 10 10;
+	-fx-spacing: 5;
+}
+.workspace-selector .workspace-launch-button {
+	-fx-font-weight: bold;
+}
 
 
 

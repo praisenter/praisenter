@@ -9,7 +9,6 @@ import java.util.List;
 import org.praisenter.data.Tag;
 import org.praisenter.data.TextType;
 import org.praisenter.data.TextVariant;
-import org.praisenter.data.configuration.Resolution;
 import org.praisenter.data.media.MediaType;
 import org.praisenter.data.slide.Slide;
 import org.praisenter.data.slide.SlideComponent;
@@ -29,6 +28,7 @@ import org.praisenter.data.slide.text.SlideFont;
 import org.praisenter.data.slide.text.TextComponent;
 import org.praisenter.data.slide.text.TextPlaceholderComponent;
 import org.praisenter.data.slide.text.VerticalTextAlignment;
+import org.praisenter.data.workspace.Resolution;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.Glyphs;
 import org.praisenter.ui.MappedList;
@@ -195,7 +195,7 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 		this.updateSlideResolutions(resolutions);
 		
 		Screen.getScreens().addListener((InvalidationListener)(obs -> this.updateScreenResolutions(resolutions)));
-		this.context.getDataManager().getItemsUnmodifiable(Slide.class).addListener((InvalidationListener)obs -> this.updateSlideResolutions(resolutions));
+		this.context.getWorkspaceManager().getItemsUnmodifiable(Slide.class).addListener((InvalidationListener)obs -> this.updateSlideResolutions(resolutions));
 		
 		this.resolutions = new MappedList<Option<Resolution>, Resolution>(resolutions.sorted(), r -> {
 			Option<Resolution> option = new Option<>(null, r);
@@ -561,7 +561,7 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 		SlideAnimationPicker pkrTransition = new SlideAnimationPicker();
 		pkrTransition.valueProperty().bindBidirectional(this.transition);
 		
-		TagListView viewTags = new TagListView(this.context.getDataManager().getTagsUmodifiable());
+		TagListView viewTags = new TagListView(this.context.getWorkspaceManager().getTagsUmodifiable());
 		Bindings.bindContentBidirectional(viewTags.getTags(), this.tags);
 		
 		// generic component
@@ -818,7 +818,7 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 	
 	private void updateSlideResolutions(ObservableList<Resolution> resolutions) {
 		// add any screen sizes based on the current set of slides
-		List<Slide> slides = this.context.getDataManager().getItemsUnmodifiable(Slide.class);
+		List<Slide> slides = this.context.getWorkspaceManager().getItemsUnmodifiable(Slide.class);
 		List<Resolution> nr = new ArrayList<>();
 		for (Slide slide : slides) {
 			Resolution r = new Resolution((int)Math.ceil(slide.getWidth()), (int)Math.ceil(slide.getHeight()));

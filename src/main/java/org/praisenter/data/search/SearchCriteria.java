@@ -17,14 +17,20 @@ import org.apache.lucene.search.spans.SpanNearQuery;
 import org.apache.lucene.search.spans.SpanQuery;
 
 public class SearchCriteria {
+	private final String field;
 	private final String terms;
 	private final SearchType type;
 	private final int maxResults;
 	
-	public SearchCriteria(String terms, SearchType type, int maxResults) {
+	public SearchCriteria(String field, String terms, SearchType type, int maxResults) {
+		this.field = field;
 		this.terms = terms;
 		this.type = type;
 		this.maxResults = maxResults;
+	}
+	
+	public String getField() {
+		return this.field;
 	}
 	
 	public String getTerms() {
@@ -42,14 +48,13 @@ public class SearchCriteria {
 	/**
 	 * Uses the lucene analyzer to tokenize the given text for the given lucene field.
 	 * @param text the text to tokenize
-	 * @param field the lucene field the tokens will be searching
 	 * @return List&lt;String&gt;
 	 * @throws IOException
 	 */
 	protected final List<String> getTokens(Analyzer analyzer) throws IOException {
 		List<String> tokens = new ArrayList<String>();
 		
-		TokenStream stream = analyzer.tokenStream(Indexable.FIELD_TEXT, this.terms);
+		TokenStream stream = analyzer.tokenStream(this.field, this.terms);
 		CharTermAttribute attr = stream.addAttribute(CharTermAttribute.class);
 		stream.reset();
 
@@ -75,14 +80,14 @@ public class SearchCriteria {
 		if (tokens.size() == 1) {
 			// single term, just do a fuzzy query on it with a larger max edit distance
 			String token = tokens.get(0);
-			query = new FuzzyQuery(new Term(Indexable.FIELD_TEXT, token));
+			query = new FuzzyQuery(new Term(this.field, token));
 		// PHRASE
-		} else if (type == SearchType.PHRASE) {
+		} else if (this.type == SearchType.PHRASE) {
 			// for phrase, do a span-near-fuzzy query since we 
 			// care if the words are close to each other
 			SpanQuery[] sqs = new SpanQuery[tokens.size()];
 			for (int i = 0; i < tokens.size(); i++) {
-				sqs[i] = new SpanMultiTermQueryWrapper<FuzzyQuery>(new FuzzyQuery(new Term(Indexable.FIELD_TEXT, tokens.get(i))));
+				sqs[i] = new SpanMultiTermQueryWrapper<FuzzyQuery>(new FuzzyQuery(new Term(this.field, tokens.get(i))));
 			}
 			// the terms should be within 3 terms of each other
 			query = new SpanNearQuery(sqs, 3, false);
@@ -91,7 +96,7 @@ public class SearchCriteria {
 			// do an and/or combination of fuzzy queries
 			BooleanQuery.Builder builder = new BooleanQuery.Builder();
 			for (String token : tokens) {
-				builder.add(new FuzzyQuery(new Term(Indexable.FIELD_TEXT, token)), type == SearchType.ALL_WORDS ? Occur.MUST : Occur.SHOULD);
+				builder.add(new FuzzyQuery(new Term(this.field, token)), this.type == SearchType.ALL_WORDS ? Occur.MUST : Occur.SHOULD);
 			}
 			query = builder.build();
 		}

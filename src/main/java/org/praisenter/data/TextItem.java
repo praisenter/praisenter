@@ -54,6 +54,14 @@ public final class TextItem {
 		this.text = text;
 		this.fontSize = fontSize;
 	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return this.text;
+	}
 	
 	/**
 	 * Returns the text.

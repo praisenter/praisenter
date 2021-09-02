@@ -12,6 +12,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
@@ -21,15 +22,11 @@ import org.apache.logging.log4j.Logger;
 import org.praisenter.async.AsyncHelper;
 import org.praisenter.async.BackgroundTask;
 import org.praisenter.async.ReadOnlyBackgroundTask;
-import org.praisenter.data.DataManager;
 import org.praisenter.data.Persistable;
 import org.praisenter.data.bible.Bible;
 import org.praisenter.data.bible.Book;
 import org.praisenter.data.bible.Chapter;
 import org.praisenter.data.bible.Verse;
-import org.praisenter.data.configuration.Configuration;
-import org.praisenter.data.configuration.DisplayRole;
-import org.praisenter.data.configuration.Resolution;
 import org.praisenter.data.media.Media;
 import org.praisenter.data.slide.Slide;
 import org.praisenter.data.slide.SlideShow;
@@ -38,6 +35,10 @@ import org.praisenter.data.song.Author;
 import org.praisenter.data.song.Lyrics;
 import org.praisenter.data.song.Section;
 import org.praisenter.data.song.Song;
+import org.praisenter.data.workspace.DisplayRole;
+import org.praisenter.data.workspace.Resolution;
+import org.praisenter.data.workspace.WorkspaceConfiguration;
+import org.praisenter.data.workspace.WorkspaceManager;
 import org.praisenter.ui.controls.Alerts;
 import org.praisenter.ui.display.DisplayManager;
 import org.praisenter.ui.display.DisplayTarget;
@@ -47,6 +48,7 @@ import org.praisenter.ui.translations.Translations;
 
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
@@ -58,6 +60,7 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ListChangeListener.Change;
@@ -80,8 +83,7 @@ public final class GlobalContext {
 	
 	final Application application;
 	final Stage stage;
-	final DataManager dataManager;
-	final Configuration configuration;
+	final WorkspaceManager workspaceManager;
 	final ImageCache imageCache;
 	final DisplayManager displayManager;
 	
@@ -110,15 +112,23 @@ public final class GlobalContext {
 	private final BooleanProperty backgroundTaskFailed;
 	private final StringProperty backgroundTaskName;
 
+	// listeners (tracking them here so we can clean up)
+	
+	private final ChangeListener<? super Scene> sceneListener;
+	private final ChangeListener<? super Node> focusListener;
+	private final ChangeListener<? super ActionPane> closestActionPaneListener;
+	private final ChangeListener<? super DocumentContext<? extends Persistable>> currentDocumentListener;
+	private final ChangeListener<? super Boolean> windowFocusedListener;
+	private final ChangeListener<? super Boolean> textSelectedListener;
+	private final InvalidationListener screensListener;
+	
 	public GlobalContext(
 			Application application, 
 			Stage stage,
-			DataManager dataManager,
-			Configuration configuration) {
+			WorkspaceManager workspaceManager) {
 		this.application = application;
 		this.stage = stage;
-		this.dataManager = dataManager;
-		this.configuration = configuration;
+		this.workspaceManager = workspaceManager;
 		this.imageCache = new ImageCache();
 		this.displayManager = new DisplayManager(this);
 		
@@ -159,14 +169,17 @@ public final class GlobalContext {
 		this.scene.bind(this.stage.sceneProperty());
 		this.windowFocused.bind(this.stage.focusedProperty());
 		
-		this.scene.addListener((obs, ov, nv) -> {
+		// bind/unbind the focusOwner property when the scene changes
+		this.sceneListener = (obs, ov, nv) -> {
 			this.focusOwner.unbind();
 			if (nv != null) {
 				this.focusOwner.bind(nv.focusOwnerProperty());
 			}
-		});
+		};
+		this.scene.addListener(this.sceneListener);
 		
-		this.focusOwner.addListener((obs, ov, nv) -> {
+		// keep track of the focus owner (what node owns focus)
+		this.focusListener = (obs, ov, nv) -> {
 			// detach selection change event handler if text input
 			this.selectedText.unbind();
 			if (nv != null && nv instanceof TextInputControl) {
@@ -191,7 +204,8 @@ public final class GlobalContext {
 			this.closestActionPane.set(ap);
 			
 			this.onActionStateChanged("FOCUS_CHANGED=" + (nv != null ? nv.getClass().getName() : "null"));
-		});
+		};
+		this.focusOwner.addListener(this.focusListener);
 		
 		this.textSelected.bind(Bindings.createBooleanBinding(() -> {
 			String selection = this.selectedText.get();
@@ -217,7 +231,8 @@ public final class GlobalContext {
 			this.onActionStateChanged("SELECTION_CHANGED=" + (selectedItem != null ? selectedItem.toString() : "null"));
 		};
 		
-		this.closestActionPane.addListener((obs, ov, nv) -> {
+		// add/remove listeners/event handlers when the closest focused action pane changes
+		this.closestActionPaneListener = (obs, ov, nv) -> {
 			if (ov != null) {
 				ov.removeEventHandler(ActionStateChangedEvent.ALL, eh);
 				ov.getSelectedItems().removeListener(lcl);
@@ -226,18 +241,22 @@ public final class GlobalContext {
 				nv.addEventHandler(ActionStateChangedEvent.ALL, eh);
 				nv.getSelectedItems().addListener(lcl);
 			}
-		});
+		};
+		this.closestActionPane.addListener(this.closestActionPaneListener);
 		
-		this.currentDocument.addListener((obs, ov, nv) -> {
+		this.currentDocumentListener = (obs, ov, nv) -> {
 			this.onActionStateChanged("CURRENT_DOCUMENT_CHANGED=" + this.currentDocument.get());
-		});
+		};
+		this.currentDocument.addListener(this.currentDocumentListener);
 		
 		// we need to re-evaluate the action states when:
 		// 1. the focus between windows change (clipboard content may have changed)
 		// 2. text is selected (for copy/cut/delete)
 		// 3. when the last focused element changes
-		this.windowFocused.addListener((obs, ov, nv) -> this.onActionStateChanged("WINDOW_FOCUS_CHANGED=" + nv));
-		this.textSelected.addListener((obs, ov, nv) -> this.onActionStateChanged("TEXT_SELECTED=" + nv));
+		this.windowFocusedListener = (obs, ov, nv) -> this.onActionStateChanged("WINDOW_FOCUS_CHANGED=" + nv);
+		this.textSelectedListener = (obs, ov, nv) -> this.onActionStateChanged("TEXT_SELECTED=" + nv);
+		this.windowFocused.addListener(this.windowFocusedListener);
+		this.textSelected.addListener(this.textSelectedListener);
 		
 		this.backgroundTaskExecuting.bind(Bindings.createBooleanBinding(() -> {
 			boolean isTaskExecuting = this.backgroundTasks.stream().anyMatch(t -> !t.isComplete());
@@ -257,12 +276,40 @@ public final class GlobalContext {
 		}, this.backgroundTasks));
 
 		// watch for screen resolution changes
-		Screen.getScreens().addListener((Observable obs) -> {
+		this.screensListener = (Observable obs) -> {
 			LOGGER.info("Screen change detected.");
 			this.addMissingResolutionsBasedOnHost();
-		});
+		};
+		Screen.getScreens().addListener(this.screensListener);
 		
 		this.addMissingResolutionsBasedOnHost();
+	}
+	
+	public void dispose() {
+		// remove listeners
+		Screen.getScreens().removeListener(this.screensListener);
+		this.scene.removeListener(this.sceneListener);
+		this.focusOwner.removeListener(this.focusListener);
+		this.closestActionPane.removeListener(this.closestActionPaneListener);
+		this.currentDocument.removeListener(this.currentDocumentListener);
+		this.windowFocused.removeListener(this.windowFocusedListener);
+		this.textSelected.removeListener(this.textSelectedListener);
+		
+		// remove bindings
+		this.backgroundTaskExecuting.unbind();
+		this.backgroundTaskFailed.unbind();
+		this.backgroundTaskName.unbind();
+		this.closestActionPane.unbind();
+		this.currentDocument.unbind();
+		this.focusOwner.unbind();
+		this.scene.unbind();
+		this.selectedText.unbind();
+		this.textSelected.unbind();
+		this.windowFocused.unbind();
+		
+		// clean up resources / memory
+		this.imageCache.clear();
+		this.displayManager.dispose();
 	}
 	
 	/**
@@ -274,14 +321,14 @@ public final class GlobalContext {
 			Rectangle2D bounds = screen.getBounds();
 			Resolution res = new Resolution((int)bounds.getWidth(), (int)bounds.getHeight());
 			boolean found = false;
-			for (Resolution r : this.configuration.getResolutions()) {
+			for (Resolution r : this.workspaceManager.getWorkspaceConfiguration().getResolutions()) {
 				if (r.equals(res)) {
 					found = true;
 					break;
 				}
 			}
 			if (!found) {
-				this.configuration.getResolutions().add(res);
+				this.workspaceManager.getWorkspaceConfiguration().getResolutions().add(res);
 			}
 		}
 	}
@@ -626,9 +673,9 @@ public final class GlobalContext {
 				
 				// check if the document has been saved before
 				if (context.isNew()) {
-					future = this.getDataManager().create(copy);
+					future = this.getWorkspaceManager().create(copy);
 				} else {
-					future = this.getDataManager().update(copy);
+					future = this.getWorkspaceManager().update(copy);
 				}
 				
 				// regardless of create/update, we want to handle success and error the same
@@ -681,7 +728,7 @@ public final class GlobalContext {
 		
 		for (File file : files) {
 			LOGGER.info("Beginning import of '{}'", file.toPath().toAbsolutePath().toString());
-			CompletableFuture<Void> future = this.dataManager.importData(file.toPath(), Bible.class, Slide.class, SlideShow.class, Media.class, Song.class).exceptionally(t -> {
+			CompletableFuture<Void> future = this.workspaceManager.importData(file.toPath(), Bible.class, Slide.class, SlideShow.class, Media.class, Song.class).exceptionally(t -> {
 				LOGGER.error("Failed to import file '" + file.toPath().toAbsolutePath().toString() + "' due to: " + t.getMessage(), t);
 				if (t instanceof CompletionException) throw (CompletionException)t; 
 				throw new CompletionException(t);
@@ -760,12 +807,12 @@ public final class GlobalContext {
 		return this.stage;
 	}
 	
-	public DataManager getDataManager() {
-		return this.dataManager;
+	public WorkspaceManager getWorkspaceManager() {
+		return this.workspaceManager;
 	}
 	
-	public Configuration getConfiguration() {
-		return this.configuration;
+	public WorkspaceConfiguration getConfiguration() {
+		return this.workspaceManager.getWorkspaceConfiguration();
 	}
 	
 	public ImageCache getImageCache() {
@@ -777,7 +824,7 @@ public final class GlobalContext {
 	}
 	
 	public CompletableFuture<Void> saveConfiguration() {
-		return this.dataManager.update(this.configuration);
+		return this.workspaceManager.saveWorkspaceConfiguration();
 	}
 	
 	public Scene getScene() {
@@ -850,7 +897,7 @@ public final class GlobalContext {
 		DocumentContext<? extends Persistable> context = null;
 		if (!isNewDocument) {
 			for (DocumentContext<? extends Persistable> ctx : this.openDocuments) {
-				if (Objects.equals(ctx.getDocument(), document)) {
+				if (ctx.getDocument().identityEquals(document)) {
 					context = ctx;
 					break;
 				}
@@ -873,11 +920,11 @@ public final class GlobalContext {
 	
 	/**
 	 * Closes the given document.
-	 * @param document the document to close
+	 * @param documentContext the document to close
 	 */
-	public void closeDocument(DocumentContext<? extends Persistable> document) {
-		this.openDocuments.removeIf(d -> Objects.equals(d, document));
-		if (Objects.equals(document, this.currentDocument.get())) {
+	public void closeDocument(DocumentContext<? extends Persistable> documentContext) {
+		this.openDocuments.removeIf(ctx -> Objects.equals(ctx, documentContext));
+		if (Objects.equals(documentContext, this.currentDocument.get())) {
 			this.currentDocument.set(null);
 		}
 	}
@@ -887,9 +934,9 @@ public final class GlobalContext {
 	 * @param item the item of the document to close
 	 */
 	public void closeDocument(Persistable item) {
-		this.openDocuments.removeIf(d -> Objects.equals(d.getDocument(), item));
+		this.openDocuments.removeIf(d -> d.getDocument().identityEquals(item));
 		DocumentContext<?> currentDocument = this.currentDocument.get();
-		if (currentDocument != null && Objects.equals(currentDocument.getDocument(), item)) {
+		if (currentDocument != null && currentDocument.getDocument().identityEquals(item)) {
 			this.currentDocument.set(null);
 		}
 	}
@@ -901,7 +948,7 @@ public final class GlobalContext {
 	 */
 	public DocumentContext<? extends Persistable> getOpenDocument(Persistable item) {
 		for (DocumentContext<? extends Persistable> dc : this.openDocuments) {
-			if (Objects.equals(dc.getDocument(), item)) {
+			if (dc.getDocument().identityEquals(item)) {
 				return dc;
 			}
 		}

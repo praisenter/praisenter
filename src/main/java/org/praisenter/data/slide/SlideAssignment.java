@@ -57,11 +57,6 @@ public final class SlideAssignment implements ReadOnlySlideAssignment, Copyable,
 	}
 	
 	@Override
-	public boolean equals(Object obj) {
-		return this.identityEquals(obj);
-	}
-	
-	@Override
 	public int hashCode() {
 		return this.id.get().hashCode();
 	}

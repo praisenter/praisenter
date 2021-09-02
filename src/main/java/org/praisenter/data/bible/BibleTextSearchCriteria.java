@@ -14,24 +14,24 @@ import org.praisenter.data.search.Indexable;
 import org.praisenter.data.search.SearchCriteria;
 import org.praisenter.data.search.SearchType;
 
-public final class BibleSearchCriteria extends SearchCriteria {
+public final class BibleTextSearchCriteria extends SearchCriteria {
 	private final UUID bibleId;
 	private final int bookNumber;
 	
-	public BibleSearchCriteria(String terms, SearchType type, int maxResults) {
+	public BibleTextSearchCriteria(String terms, SearchType type, int maxResults) {
 		this(terms, type, maxResults, null, -1);
 	}
 	
-	public BibleSearchCriteria(String terms, SearchType type, int maxResults, int bookNumber) {
+	public BibleTextSearchCriteria(String terms, SearchType type, int maxResults, int bookNumber) {
 		this(terms, type, maxResults, null, bookNumber);
 	}
 	
-	public BibleSearchCriteria(String terms, SearchType type, int maxResults, UUID bibleId) {
+	public BibleTextSearchCriteria(String terms, SearchType type, int maxResults, UUID bibleId) {
 		this(terms, type, maxResults, bibleId, -1);
 	}
 	
-	public BibleSearchCriteria(String terms, SearchType type, int maxResults, UUID bibleId, int bookNumber) {
-		super(terms, type, maxResults);
+	public BibleTextSearchCriteria(String terms, SearchType type, int maxResults, UUID bibleId, int bookNumber) {
+		super(Indexable.FIELD_TEXT, terms, type, maxResults);
 		this.bibleId = bibleId;
 		this.bookNumber = bookNumber;
 	}

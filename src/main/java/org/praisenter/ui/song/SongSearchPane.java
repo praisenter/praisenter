@@ -9,6 +9,7 @@ import java.util.UUID;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.lucene.document.Document;
+import org.apache.lucene.index.IndexableField;
 import org.praisenter.async.AsyncHelper;
 import org.praisenter.data.search.SearchResult;
 import org.praisenter.data.search.SearchTextMatch;
@@ -17,7 +18,7 @@ import org.praisenter.data.song.Lyrics;
 import org.praisenter.data.song.ReadOnlyLyrics;
 import org.praisenter.data.song.ReadOnlySection;
 import org.praisenter.data.song.Song;
-import org.praisenter.data.song.SongSearchCriteria;
+import org.praisenter.data.song.SongTextSearchCriteria;
 import org.praisenter.data.song.SongSearchResult;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.Option;
@@ -115,12 +116,10 @@ public final class SongSearchPane extends BorderPane {
 		// columns
 		TableColumn<SongSearchResult, Number> score = new TableColumn<SongSearchResult, Number>(Translations.get("search.score"));
 		TableColumn<SongSearchResult, String> song = new TableColumn<SongSearchResult, String>(Translations.get("song.search.results.song"));
-		TableColumn<SongSearchResult, String> section = new TableColumn<SongSearchResult, String>(Translations.get("song.search.results.section"));
 		TableColumn<SongSearchResult, SongSearchResult> sectionText = new TableColumn<SongSearchResult, SongSearchResult>(Translations.get("song.search.results.text"));
 		
 		score.setCellValueFactory(p -> new ReadOnlyFloatWrapper(p.getValue().getScore()));
-		song.setCellValueFactory(p -> new ReadOnlyStringWrapper(p.getValue().getLyrics().getTitle()));
-		section.setCellValueFactory(p -> new ReadOnlyObjectWrapper<String>(p.getValue().getSection().getName()));
+		song.setCellValueFactory(p -> new ReadOnlyStringWrapper(p.getValue().getSong().getName()));
 		sectionText.setCellValueFactory(p -> new ReadOnlyObjectWrapper<SongSearchResult>(p.getValue()));
 		
 		score.setCellFactory(p -> new TableCell<SongSearchResult, Number>() {
@@ -148,17 +147,6 @@ public final class SongSearchPane extends BorderPane {
 				}
 			}
 		});
-		section.setCellFactory(p -> new TableCell<SongSearchResult, String>() {
-			@Override
-			protected void updateItem(String item, boolean empty) {
-				super.updateItem(item, empty);
-				if (item == null || empty) {
-					setText(null);
-				} else {
-					setText(item);
-				}
-			}
-		});
 		sectionText.setCellFactory(p -> new TableCell<SongSearchResult, SongSearchResult>() {
 			@Override
 			protected void updateItem(SongSearchResult item, boolean empty) {
@@ -173,7 +161,7 @@ public final class SongSearchPane extends BorderPane {
 					}
 					
 					if (match == null) {
-						setGraphic(new Text(item.getSection().getText()));
+						setGraphic(new Text(item.getSong().getName()));
 						return;
 					}
 					
@@ -205,12 +193,10 @@ public final class SongSearchPane extends BorderPane {
 		
 		score.setPrefWidth(75);
 		song.setPrefWidth(150);
-		section.setPrefWidth(75);
 		sectionText.setPrefWidth(600);
 		
 		table.getColumns().add(score);
 		table.getColumns().add(song);
-		table.getColumns().add(section);
 		table.getColumns().add(sectionText);
 		table.setPlaceholder(new Label(Translations.get("song.search.results.none")));
 		
@@ -246,12 +232,12 @@ public final class SongSearchPane extends BorderPane {
 				overlay.setVisible(true);
 				
 				final int maxResults = 100;
-				SongSearchCriteria criteria = new SongSearchCriteria(
+				SongTextSearchCriteria criteria = new SongTextSearchCriteria(
 						text,
 						type.getValue(),
 						maxResults);
 				
-				context.getDataManager().search(criteria).thenCompose(AsyncHelper.onJavaFXThreadAndWait((result) -> {
+				context.getWorkspaceManager().search(criteria).thenCompose(AsyncHelper.onJavaFXThreadAndWait((result) -> {
 					this.results.setAll(this.getSearchResults(result.getResults()));
 					lblResults.setText(MessageFormat.format(Translations.get("song.search.results.output"), result.hasMore() ? maxResults + "+" : result.getNumberOfResults()));
 					overlay.setVisible(false);
@@ -274,49 +260,19 @@ public final class SongSearchPane extends BorderPane {
 		List<SongSearchResult> output = new ArrayList<SongSearchResult>();
 		for (SearchResult result : results) {
 			Document document = result.getDocument();
-			Song song = this.context.getDataManager().getItem(Song.class, UUID.fromString(document.get(Song.FIELD_ID)));
+			
+			Song song = this.context.getWorkspaceManager().getItem(Song.class, UUID.fromString(document.get(Song.FIELD_ID)));
 			if (song == null) {
 				LOGGER.warn("Unable to find song '{}'. A re-index might fix this problem.", document.get(Song.FIELD_ID));
 				continue;
 			}
 			
-			// get the details
-			UUID lyricsId = UUID.fromString(document.getField(Song.FIELD_LYRIC_ID).stringValue());
-			UUID sectionId = UUID.fromString(document.getField(Song.FIELD_SECTION_ID).stringValue());
-			
-			ReadOnlyLyrics lyrics = null;
-			ReadOnlySection section = null;
-			if (song != null) {
-				for (Lyrics l : song.getLyrics()) {
-					if (l.getId().equals(lyricsId)) {
-						lyrics = l;
-						break;
-					}
-				}
-			}
-			
-			if (lyrics != null) {
-				for (ReadOnlySection s : lyrics.getSectionsUnmodifiable()) {
-					if (s.getId().equals(sectionId)) {
-						section = s;
-						break;
-					}
-				}
-			}
-			
-			// just continue if its not found
-			if (lyrics == null) {
-//				LOGGER.warn("Unable to find {} {}:{} in '{}'. A re-index might fix this problem.", bookNumber, chapterNumber, verseNumber, song != null ? song.getName() : "null");
-				continue;
-			}
-			
 			output.add(new SongSearchResult(
 					song,
-					lyrics, 
-					section, 
 					result.getMatches(), 
 					result.getScore()));
 		}
+		
 		return output;
 	}
 	

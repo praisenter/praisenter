@@ -318,7 +318,7 @@ public final class SongSelectionEditor extends VBox implements DocumentSelection
 		txtSongNotes.textProperty().bindBidirectional(this.notes);
 		txtSongNotes.setWrapText(true);
 
-		TagListView viewTags = new TagListView(this.context.getDataManager().getTagsUmodifiable());
+		TagListView viewTags = new TagListView(this.context.getWorkspaceManager().getTagsUmodifiable());
 		Bindings.bindContentBidirectional(viewTags.getTags(), this.tags);
 		
 		// author

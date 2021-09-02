@@ -30,6 +30,20 @@ public final class SongReferenceTextStore implements TextStore {
 	}
 	
 	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		SongReferenceVerse srv = this.variants.get(TextVariant.PRIMARY);
+		if (srv != null) {
+			String title = srv.getText(TextType.TITLE);
+			String text = srv.getText(TextType.TEXT);
+			return String.join(": ", title, text);
+		}
+		return super.toString();
+	}
+	
+	/* (non-Javadoc)
 	 * @see org.praisenter.TextStore#copy()
 	 */
 	@Override

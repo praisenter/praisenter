@@ -12,9 +12,9 @@ import org.praisenter.data.search.Indexable;
 import org.praisenter.data.search.SearchCriteria;
 import org.praisenter.data.search.SearchType;
 
-public final class SongSearchCriteria extends SearchCriteria {
-	public SongSearchCriteria(String terms, SearchType type, int maxResults) {
-		super(terms, type, maxResults);
+public final class SongTextSearchCriteria extends SearchCriteria {
+	public SongTextSearchCriteria(String terms, SearchType type, int maxResults) {
+		super(Indexable.FIELD_TEXT, terms, type, maxResults);
 	}
 	
 	@Override

@@ -4,9 +4,9 @@ import java.util.ArrayList;
 
 import org.praisenter.Constants;
 import org.praisenter.data.TextStore;
-import org.praisenter.data.configuration.Display;
-import org.praisenter.data.configuration.DisplayRole;
 import org.praisenter.data.slide.Slide;
+import org.praisenter.data.workspace.Display;
+import org.praisenter.data.workspace.DisplayRole;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.Praisenter;
 import org.praisenter.ui.slide.SlideMode;
@@ -14,6 +14,7 @@ import org.praisenter.ui.slide.SlideView;
 import org.praisenter.ui.translations.Translations;
 
 import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
@@ -41,6 +42,8 @@ public final class DisplayTarget {
 	
 	private final SlideView slideView;
 	private final SlideView notificationView;
+	
+	private final ChangeListener<? super DisplayRole> displayRoleListener;
 	
 	public DisplayTarget(GlobalContext context, Display display) {
 		this.context = context;
@@ -81,26 +84,23 @@ public final class DisplayTarget {
 			this.stage.show();
 		}
 		
-		display.roleProperty().addListener((obs, ov, nv) -> {
+		this.displayRoleListener = (obs, ov, nv) -> {
 			if (nv == DisplayRole.NONE) {
 				this.stage.hide();
 			} else if (!this.stage.isShowing()) {
 				this.stage.show();
 			}
-		});
+		};
+		display.roleProperty().addListener(this.displayRoleListener);
 		
 		// setup debug mode notification
-		this.context.getConfiguration().debugModeEnabledProperty().addListener((obs, ov, nv) -> {
-			if (nv) {
-				this.container.setBorder(new Border(new BorderStroke(
+		if (context.getConfiguration().isDebugModeEnabled()) {
+			this.container.setBorder(new Border(new BorderStroke(
 					Color.RED, 
 					new BorderStrokeStyle(StrokeType.INSIDE, StrokeLineJoin.MITER, StrokeLineCap.SQUARE, 10, 0, new ArrayList<Double>()), 
 					null, 
 					new BorderWidths(10))));
-			} else {
-				this.container.setBorder(null);
-			}
-		});
+		}
 		
 		this.slideView = new SlideView(context);
 		this.slideView.setClipEnabled(false);
@@ -144,6 +144,8 @@ public final class DisplayTarget {
 	}
 	
 	public void dispose() {
+		this.display.roleProperty().removeListener(this.displayRoleListener);
+		
 		this.slideView.dispose();
 		
 		this.container.getChildren().clear();

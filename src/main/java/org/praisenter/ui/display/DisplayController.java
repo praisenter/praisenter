@@ -1,5 +1,6 @@
 package org.praisenter.ui.display;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -8,13 +9,14 @@ import org.apache.logging.log4j.Logger;
 import org.praisenter.TriConsumer;
 import org.praisenter.data.StringTextStore;
 import org.praisenter.data.TextStore;
-import org.praisenter.data.configuration.DisplayRole;
 import org.praisenter.data.slide.Slide;
+import org.praisenter.data.workspace.DisplayRole;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.Option;
 import org.praisenter.ui.Praisenter;
 import org.praisenter.ui.bible.BibleNavigationPane;
 import org.praisenter.ui.bind.BindingHelper;
+import org.praisenter.ui.slide.SlideList;
 import org.praisenter.ui.slide.SlideMode;
 import org.praisenter.ui.slide.SlideNavigationPane;
 import org.praisenter.ui.slide.SlideTemplateComboBox;
@@ -25,6 +27,7 @@ import org.praisenter.ui.translations.Translations;
 import javafx.animation.PauseTransition;
 import javafx.animation.Transition;
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
 import javafx.beans.binding.DoubleBinding;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
@@ -74,11 +77,15 @@ public final class DisplayController extends BorderPane {
 	private final DoubleProperty maxWidth = new SimpleDoubleProperty(400);
 	private final DoubleBinding maxHeight;
 	
+	private final ObservableList<Slide> slides;
+	
 //	private final ObjectProperty<TextStore> placeholderData;
 	
 	public DisplayController(GlobalContext context, DisplayTarget target) {
 		this.context = context;
 		this.target = target;
+		
+		this.slides = FXCollections.observableArrayList();
 		
 //		this.placeholderData = new SimpleObjectProperty<TextStore>();
 		
@@ -146,6 +153,8 @@ public final class DisplayController extends BorderPane {
 
 		Button btnShowSlide = new Button(Translations.get("display.controller.show"));
 		Button btnClearSlide = new Button(Translations.get("display.controller.hide"));
+		Button btnAddSlide = new Button(Translations.get("display.controller.addSlide"));
+		Button btnRemoveSlide = new Button(Translations.get("display.controller.removeSlide"));
 		
 		TextField txtNotification = new TextField();
 		txtNotification.setPromptText(Translations.get("display.controller.notification.text"));
@@ -172,7 +181,7 @@ public final class DisplayController extends BorderPane {
 		
 		layout.getChildren().add(new StackPane(screen, slideView, notificationView));
 		layout.getChildren().add(new HBox(chkPreviewTransition, chkWaitForTransition));
-		layout.getChildren().add(new HBox(chkAutoShow, btnShowSlide, btnClearSlide));
+		layout.getChildren().add(new HBox(chkAutoShow, btnShowSlide, btnClearSlide, btnAddSlide, btnRemoveSlide));
 		layout.getChildren().add(tabs);
 		layout.getChildren().add(cmbNotificationTemplate);
 		layout.getChildren().add(txtNotification);
@@ -181,8 +190,15 @@ public final class DisplayController extends BorderPane {
 		VBox.setVgrow(tabs, Priority.ALWAYS);
 //		layout.setBackground(new Background(new BackgroundFill(Color.RED, null, null)));
 		
+		// TODO listen for changes to slides and update them
+		// TODO When slide selected, set it as the template & update UI to match placeholder data & swap to the correct tab
+		// TODO move the remove button to above/below slide list
+		SlideList list = new SlideList(context, target.getDisplay().getWidth(), target.getDisplay().getHeight());
+		Bindings.bindContent(list.getSlides(), this.slides);
+		
 		this.setTop(new HBox(5, cbDisplayRole, btnIdentify));
 		this.setCenter(layout);
+		this.setLeft(list);
 		
 		layout.visibleProperty().bind(cbDisplayRole.valueProperty().isNotEqualTo(new Option<>(null, DisplayRole.NONE)));
 		layout.managedProperty().bind(layout.visibleProperty());
@@ -208,6 +224,51 @@ public final class DisplayController extends BorderPane {
 //			this.slidePreviewPane.stop();
 //			this.slidePreviewPane.setMode(SlideMode.PREVIEW);
 //		});
+		
+		btnAddSlide.setOnAction(e -> {
+			// get the current slide w/ placeholder data
+			Slide slide = null;
+			TextStore data = new StringTextStore("");
+			
+			int index = tabs.getSelectionModel().getSelectedIndex();
+			if (index == 0) {
+				slide = cmbBibleSlideTemplate.getValue();
+				data = bibleNavigationPane.getValue();
+			} else if (index == 1) {
+				slide = cmbSongSlideTemplate.getValue();
+				data = songNavigationPane.getValue();
+			} else if (index == 2) {
+				slide = slideNavigationPane.getValue();
+			} else {
+				LOGGER.warn("Tab index '" + index + "' is not supported.");
+			}
+			
+			if (slide != null) {
+				slide = slide.copy();
+				slide.fit(target.getDisplay().getWidth(), target.getDisplay().getHeight());
+				slide.setPlaceholderData(data);
+				this.slides.add(slide);
+			}
+		});
+		
+		btnRemoveSlide.setOnAction(e -> {
+			List<Slide> selected = new ArrayList<>(list.getSelected());
+			for (Slide s1 : selected) {
+				int index = -1;
+				for (int i = 0; i < this.slides.size(); i++) {
+					Slide s2 = this.slides.get(i);
+					if (s1 == s2) {
+						index = i;
+						break;
+					}
+				}
+				
+				if (index >= 0) {
+					LOGGER.debug("Found index {} to remove", index);
+					this.slides.remove(index);
+				}
+			}
+		});
 
 		btnShowSlide.setOnAction(e -> {
 			Slide slide = null;
@@ -429,8 +490,12 @@ public final class DisplayController extends BorderPane {
 	}
 	
 	private boolean isPlaceholderTransitionOnly(Slide oldSlide, Slide newSlide) {
-		// they must be the same object instance
-		if (Objects.equals(oldSlide, newSlide)) {
+		// they must be the same slide (by identity)
+		if (oldSlide == null && newSlide != null) return false;
+		if (oldSlide != null && newSlide == null) return false;
+		if (oldSlide == null && newSlide == null) return false;
+		
+		if (oldSlide.identityEquals(newSlide)) {
 			// they must both be non-null
 			if (oldSlide != null && newSlide != null) {
 				// they must have the same modified date
@@ -449,7 +514,7 @@ public final class DisplayController extends BorderPane {
 			// added (updated)
 			List<? extends Slide> as = c.getAddedSubList();
 			for (Slide add : as) {
-				if (add.equals(cv)) {
+				if (add.identityEquals(cv)) {
 					// then we need to update the value
 					return REPLACED;
 				}
@@ -459,7 +524,7 @@ public final class DisplayController extends BorderPane {
 			// removed (deleted)
 			List<? extends Slide> rs = c.getRemoved();
 			for (Slide rm : rs) {
-				if (rm.equals(cv)) {
+				if (rm.identityEquals(cv)) {
 					// then we need to clear the value
 					return REMOVED;
 				}

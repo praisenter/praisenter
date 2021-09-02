@@ -97,7 +97,7 @@ public final class BibleNavigationPane extends BorderPane {
 		
 		this.valid = new SimpleBooleanProperty(true);
 		
-		ObservableList<Bible> bl = context.getDataManager().getItemsUnmodifiable(Bible.class);
+		ObservableList<Bible> bl = context.getWorkspaceManager().getItemsUnmodifiable(Bible.class);
 		SortedList<Bible> bibles = bl.sorted(new PersistableComparator<Bible>());
 		Bindings.bindContent(this.bibles, bibles);
 		
@@ -146,7 +146,7 @@ public final class BibleNavigationPane extends BorderPane {
 		
 		Bible primaryBible = null;
 		if (primaryId != null) {
-			primaryBible = context.getDataManager().getItem(Bible.class, primaryId);
+			primaryBible = context.getWorkspaceManager().getItem(Bible.class, primaryId);
 		}
 		
 		if (primaryBible == null) {
@@ -155,7 +155,7 @@ public final class BibleNavigationPane extends BorderPane {
 		
 		Bible secondaryBible = null;
 		if (secondaryId != null) {
-			secondaryBible = context.getDataManager().getItem(Bible.class, secondaryId);
+			secondaryBible = context.getWorkspaceManager().getItem(Bible.class, secondaryId);
 		}
 		
 		if (secondaryBible == null) {

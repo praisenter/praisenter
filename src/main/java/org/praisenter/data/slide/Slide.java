@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -56,6 +57,7 @@ import org.praisenter.data.search.Indexable;
 import org.praisenter.data.slide.animation.SlideAnimation;
 import org.praisenter.data.slide.text.TextPlaceholderComponent;
 import org.praisenter.data.song.SongReferenceTextStore;
+import org.praisenter.utility.StringManipulator;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
@@ -165,24 +167,23 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 	public List<Document> index() {
 		List<Document> documents = new ArrayList<Document>();
 		
-		Document document = new Document();
-
-		// allow filtering by the bible id
-		document.add(new StringField(FIELD_ID, this.getId().toString(), Field.Store.YES));
-		
-		// allow filtering by type
-		document.add(new StringField(FIELD_TYPE, DATA_TYPE_SLIDE, Field.Store.YES));
-		
-		StringBuilder sb = new StringBuilder();
-		sb.append(this.name.get());
-		
-		for (Tag tag : this.tags) {
-			sb.append(" ").append(tag.getName());
+		String name = this.name.get();
+		if (!StringManipulator.isNullOrEmpty(name)) {
+			Document document = new Document();
+			document.add(new StringField(FIELD_ID, this.getId().toString(), Field.Store.YES));
+			document.add(new StringField(FIELD_TYPE, DATA_TYPE_SLIDE, Field.Store.YES));
+			document.add(new TextField(FIELD_TEXT, name, Field.Store.YES));
+			documents.add(document);
 		}
-		
-		document.add(new TextField(FIELD_TEXT, sb.toString(), Field.Store.YES));
-		
-		documents.add(document);
+
+		String tags = this.tags.stream().map(t -> t.getName()).collect(Collectors.joining(" "));
+		if (!StringManipulator.isNullOrEmpty(tags)) {
+			Document document = new Document();
+			document.add(new StringField(FIELD_ID, this.getId().toString(), Field.Store.YES));
+			document.add(new StringField(FIELD_TYPE, DATA_TYPE_SLIDE, Field.Store.YES));
+			document.add(new TextField(FIELD_TAGS, tags, Field.Store.YES));
+			documents.add(document);
+		}
 		
 		return documents;
 	}
@@ -615,22 +616,5 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 			media.addAll(component.getReferencedMedia());
 		}
 		return media;
-	}
-
-	public boolean isBackgroundTransitionRequired(Slide slide) {
-		if (slide == null) return true;
-		if (slide == this) return false;
-		
-		// we need a transition if the position, size, background
-		// or border are different
-		if (this.width.get() != slide.width.get() || 
-			this.height.get() != slide.height.get() ||
-			!Objects.equals(this.background.get(), slide.background.get()) ||
-			!Objects.equals(this.border.get(), slide.border.get()) ||
-			this.opacity.get() != slide.opacity.get()) {
-			return true;
-		}
-		
-		return false;
 	}
 }

@@ -66,6 +66,20 @@ public final class BibleReferenceTextStore implements TextStore {
 	}
 	
 	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		BibleReferenceSet brs = this.variants.get(TextVariant.PRIMARY);
+		if (brs != null) {
+			String title = brs.getText(TextType.TITLE);
+			String text = brs.getText(TextType.TEXT);
+			return String.join(": ", title, text);
+		}
+		return super.toString();
+	}
+	
+	/* (non-Javadoc)
 	 * @see org.praisenter.TextStore#get(org.praisenter.TextVariant)
 	 */
 	@Override

@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -46,6 +47,7 @@ import org.praisenter.data.Tag;
 import org.praisenter.data.json.InstantJsonDeserializer;
 import org.praisenter.data.json.InstantJsonSerializer;
 import org.praisenter.data.search.Indexable;
+import org.praisenter.utility.StringManipulator;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -143,14 +145,6 @@ public final class Media implements ReadOnlyMedia, Indexable, Persistable, Copya
 		this.mediaThumbnailPath = new SimpleObjectProperty<Path>();
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
-	@Override
-	public boolean equals(Object obj) {
-		return this.identityEquals(obj);
-	}
-	
 	@Override
 	public boolean identityEquals(Object other) {
 		if (other == null) return false;
@@ -212,24 +206,23 @@ public final class Media implements ReadOnlyMedia, Indexable, Persistable, Copya
 	public List<Document> index() {
 		List<Document> documents = new ArrayList<Document>();
 		
-		Document document = new Document();
-
-		// allow filtering by the bible id
-		document.add(new StringField(FIELD_ID, this.getId().toString(), Field.Store.YES));
-		
-		// allow filtering by type
-		document.add(new StringField(FIELD_TYPE, DATA_TYPE_MEDIA, Field.Store.YES));
-		
-		StringBuilder sb = new StringBuilder();
-		sb.append(this.name.get());
-		
-		for (Tag tag : this.tags) {
-			sb.append(" ").append(tag.getName());
+		String name = this.name.get();
+		if (!StringManipulator.isNullOrEmpty(name)) {
+			Document document = new Document();
+			document.add(new StringField(FIELD_ID, this.getId().toString(), Field.Store.YES));
+			document.add(new StringField(FIELD_TYPE, DATA_TYPE_MEDIA, Field.Store.YES));
+			document.add(new TextField(FIELD_TEXT, name, Field.Store.YES));
+			documents.add(document);
 		}
-		
-		document.add(new TextField(FIELD_TEXT, sb.toString(), Field.Store.YES));
-		
-		documents.add(document);
+
+		String tags = this.tags.stream().map(t -> t.getName()).collect(Collectors.joining(" "));
+		if (!StringManipulator.isNullOrEmpty(tags)) {
+			Document document = new Document();
+			document.add(new StringField(FIELD_ID, this.getId().toString(), Field.Store.YES));
+			document.add(new StringField(FIELD_TYPE, DATA_TYPE_MEDIA, Field.Store.YES));
+			document.add(new TextField(FIELD_TAGS, tags, Field.Store.YES));
+			documents.add(document);
+		}
 		
 		return documents;
 	}

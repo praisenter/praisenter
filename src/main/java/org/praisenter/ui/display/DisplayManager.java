@@ -7,15 +7,15 @@ import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.praisenter.data.configuration.Display;
-import org.praisenter.data.configuration.DisplayRole;
+import org.praisenter.data.workspace.Display;
+import org.praisenter.data.workspace.DisplayRole;
 import org.praisenter.ui.GlobalContext;
 
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
 import javafx.geometry.Rectangle2D;
-import javafx.scene.Scene;
 import javafx.stage.Screen;
 
 // TODO it would be nice if we could cache the screen changes (removes, adds) and then operate on them more gracefully
@@ -27,49 +27,31 @@ public final class DisplayManager {
 	
 	private final ObservableList<DisplayTarget> targets;
 	private final ObservableList<DisplayTarget> targetsUnmodifiable;
+	
+	private final ListChangeListener<? super Screen> screenListener;
 
 	public DisplayManager(GlobalContext context) {
 		this.context = context;
 		this.targets = FXCollections.observableArrayList();
 		this.targetsUnmodifiable = FXCollections.unmodifiableObservableList(this.targets);
+		this.screenListener = (Change<? extends Screen> c) -> {
+			this.onScreensChanged();
+		};
 	}
 	
 	public void initialize() {
 		// listen for screen changes
-		Screen.getScreens().addListener((Change<? extends Screen> c) -> {
-			this.onScreensChanged();
-		});
+		Screen.getScreens().addListener(this.screenListener);
 		
 		// seed the display targets
 		this.onScreensChanged();
 	}
 	
 	/**
-	 * Shows a non-blocking information dialog notifying the user that we detected a change in the
-	 * screens and made an automatic adjustment to the screen assignments and that they should review
-	 * by going to Preferences.
-	 * @param scene the scene for modality
-	 * @param state the state
-	 */
-	private void notifyOfScreenAssignmentChange(Scene scene, DesktopState state) {
-//		// close it if there's already one showing
-//		if (this.screenChangedWarning != null && this.screenChangedWarning.isShowing()) {
-//			this.screenChangedWarning.close();
-//		}
-//		// show the new one
-//		this.screenChangedWarning = Alerts.warn(
-//				scene.getWindow(),
-//				Modality.WINDOW_MODAL,
-//				state == DesktopState.NO_INITIAL_CONFIGURATION ? Translations.get("init.displaysSet.title") : Translations.get("init.displaysChanged.title"), 
-//				state == DesktopState.NO_INITIAL_CONFIGURATION ? Translations.get("init.displaysSet.header") : Translations.get("init.displaysChanged.header"),
-//				state == DesktopState.NO_INITIAL_CONFIGURATION ? Translations.get("init.displaysSet.content") : Translations.get("init.displaysChanged.content"));
-//		this.screenChangedWarning.show();
-	}
-	
-	/**
 	 * Releases any pre-allocated screens or any other resources.
 	 */
-	public void release() {
+	public void dispose() {
+		Screen.getScreens().removeListener(this.screenListener);
 		LOGGER.info("Releasing existing displays.");
 		for (DisplayTarget screen : this.targets) {
 			screen.dispose();
@@ -201,139 +183,6 @@ public final class DisplayManager {
 		return whatHappened;
 	}
 	
-	/**
-	 * Helper method to perform the automatic screen assignment and adjustment when the screens
-	 * change, move, added, etc.
-	 * <p>
-	 * Returns true if this process automatically assigns a screen.
-	 * @return DisplayCollectionState
-	 */
-	private DesktopState onScreensChanged2() {
-		DesktopState whatHappened = DesktopState.NO_CHANGE;
-		List<Screen> screens = new ArrayList<Screen>(Screen.getScreens());
-		int sSize = screens.size();
-		
-		// get the configured displays
-		ObservableList<Display> displays = this.context.getConfiguration().getDisplays();
-		int dSize = displays.size();
-		
-		LOGGER.info("Current Screen Assignment: ");
-		for (Display display : displays) {
-			LOGGER.info(display);
-		}
-		
-		// check if the screen count changed
-		if (dSize != sSize) {
-			whatHappened = sSize < dSize ? DesktopState.DISPLAY_COUNT_DECREASED : DesktopState.DISPLAY_COUNT_INCREASED;
-		}
-		
-		if (dSize == 0) {
-			// screens have never been assigned so auto-assign them
-			for (int i = 0; i < sSize; i++) {
-				DisplayRole role = this.getDisplayRoleForScreenNumber(i, sSize);
-
-				Display display = this.toDisplay(screens.get(i), i, role);
-				displays.add(display);
-				
-				if (role != DisplayRole.NONE) {
-					this.targets.add(new DisplayTarget(this.context, display));
-				}
-			}
-			whatHappened = DesktopState.NO_INITIAL_CONFIGURATION;
-		} else {
-			List<Display> toRemove = new ArrayList<>();
-			List<Display> toAdd = new ArrayList<>();
-			
-			// map the screens by index
-			Map<Integer, Screen> s = new HashMap<>();
-			for (int i = 0; i < sSize; i++) {
-				s.put(i, screens.get(i));
-			}
-			
-			// verify each display's state
-			int n = Math.max(sSize, dSize);
-			for (int i = 0; i < n; i++) {
-				Display display = null;
-				if (i < dSize) {
-					display = displays.get(i);
-				}
-				
-				int index = -1;
-				Screen screen = null;
-				if (display != null) {
-					index = display.getId();
-					screen = s.remove(index);
-				} else {
-					for (Integer j : s.keySet()) 
-					{
-						index = j;
-						screen = s.get(j);
-						break;
-					}
-					if (index >= 0) {
-						s.remove(index);
-					}
-				}
-				
-				DisplayState state = this.getDisplayState(display, screen);
-				
-				switch (state) {
-					case SCREEN_INDEX_DOESNT_EXIST:
-						toRemove.add(display);
-						
-						this.removeDisplayTargetForDisplay(display);
-						
-						whatHappened = DesktopState.DISPLAY_COUNT_DECREASED;
-						break;
-					case POSITION_CHANGED:
-					case RESOLUTION_CHANGED:
-					case POSITION_AND_RESOLUTION_CHANGED:
-						Display replacement = this.toDisplay(screen, index, display.getRole());
-						toRemove.add(display);
-						toAdd.add(replacement);
-						
-						this.removeDisplayTargetForDisplay(display);
-						this.targets.add(new DisplayTarget(this.context, replacement));
-						
-						whatHappened = DesktopState.DISPLAY_POSITION_OR_RESOLUTION_CHANGED;
-						break;
-					case VALID:
-						// do we have target for this display?
-						if (display.getRole() != DisplayRole.NONE) {
-							DisplayTarget target = this.getDisplayTargetForDisplay(display);
-							if (target == null) {
-								this.targets.add(new DisplayTarget(this.context, display));
-							}
-						}
-						break;
-					case SCREEN_NOT_ASSIGNED:
-						DisplayRole role = this.getDisplayRoleForScreenNumber(i, sSize);
-						Display newDisplay = this.toDisplay(screen, index, role);
-						toAdd.add(newDisplay);
-						
-						this.targets.add(new DisplayTarget(this.context, newDisplay));
-						
-						whatHappened = DesktopState.DISPLAY_COUNT_INCREASED;
-						break;
-					default:
-						// do nothing?
-						break;
-				}
-			}
-			
-			displays.removeAll(toRemove);
-			displays.addAll(toAdd);
-		}
-		
-		LOGGER.info("Screen update result: " + whatHappened);
-		LOGGER.info("New Screen Assignment: ");
-		for (Display display : displays) {
-			LOGGER.info(display);
-		}
-
-		return whatHappened;
-	}
-
 	private DisplayRole getDisplayRoleForScreenNumber(int index, int screenCount) {
 		DisplayRole role = DisplayRole.OTHER;
 		if (index == 0 && screenCount == 1) role = DisplayRole.MAIN;
@@ -347,7 +196,7 @@ public final class DisplayManager {
 		Display display = new Display();
 		display.setHeight((int)screen.getBounds().getHeight());
 		display.setId(index);
-		display.setName(screen.toString());
+		display.setName("SCREEN" + index);
 		display.setRole(role);
 		display.setWidth((int)screen.getBounds().getWidth());
 		display.setX((int)screen.getBounds().getMinX());
