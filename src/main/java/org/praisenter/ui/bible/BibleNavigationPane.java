@@ -1,5 +1,6 @@
 package org.praisenter.ui.bible;
 
+import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
@@ -8,6 +9,7 @@ import org.apache.logging.log4j.Logger;
 import org.praisenter.data.PersistableComparator;
 import org.praisenter.data.TextVariant;
 import org.praisenter.data.bible.Bible;
+import org.praisenter.data.bible.BibleReferenceSet;
 import org.praisenter.data.bible.BibleReferenceTextStore;
 import org.praisenter.data.bible.BibleReferenceVerse;
 import org.praisenter.data.bible.Chapter;
@@ -77,10 +79,10 @@ public final class BibleNavigationPane extends BorderPane {
 	
 	private final BooleanProperty valid;
 	
-	// nodes
-	
 	private Stage searchDialog;
 	private boolean searchDialogFirstItemSelected = false;
+	
+	private boolean mutating = false;
 	
 	public BibleNavigationPane(GlobalContext context) {
 		this.bibles = FXCollections.observableArrayList();
@@ -306,6 +308,69 @@ public final class BibleNavigationPane extends BorderPane {
 			WindowHelper.centerOnParent(this.getScene().getWindow(), this.searchDialog);
 		});
 		
+		this.value.addListener((obs, ov, nv) -> {
+			if (this.mutating) return;
+			
+			if (nv != null) {
+				UUID primaryBibleId = null;
+				UUID secondaryBibleId = null;
+				
+				int bookNumber = -1;
+				int chapterNumber = -1;
+				int verseNumber = -1;
+				
+				BibleReferenceSet brs = nv.getVariant(TextVariant.PRIMARY);
+				if (brs != null) {
+					Optional<BibleReferenceVerse> obrv = brs.getReferenceVerses().stream().findFirst();
+					if (obrv.isPresent()) {
+						BibleReferenceVerse brv = obrv.get();
+						primaryBibleId = brv.getBibleId();
+						bookNumber = brv.getBookNumber();
+						chapterNumber = brv.getChapterNumber();
+						verseNumber = brv.getVerseNumber();
+					}
+				}
+				
+				brs = nv.getVariant(TextVariant.SECONDARY);
+				if (brs != null) {
+					Optional<BibleReferenceVerse> obrv = brs.getReferenceVerses().stream().findFirst();
+					if (obrv.isPresent()) {
+						BibleReferenceVerse brv = obrv.get();
+						secondaryBibleId = brv.getBibleId();
+					}
+				}
+				
+				Bible pBible = null;
+				for (Bible b : bibles) {
+					if (b.getId().equals(primaryBibleId)) {
+						pBible = b;
+						break;
+					}
+				}
+				
+				if (pBible != null) {
+					this.primary.set(pBible);
+					
+					LocatedVerse lv = pBible.getVerse(bookNumber, chapterNumber, verseNumber);
+					this.book.set(lv.getBook());
+					this.chapter.set(chapterNumber);
+					this.verse.set(verseNumber);
+				}
+				
+				Bible sBible = null;
+				for (Bible b : bibles) {
+					if (b.getId().equals(secondaryBibleId)) {
+						sBible = b;
+						break;
+					}
+				}
+				
+				if (sBible != null) {
+					this.secondary.set(sBible);
+				}
+			}
+		});
+		
 		// LAYOUT
 		
 		HBox bibleRow = new HBox(5, cmbPrimary, cmbSecondary);
@@ -395,6 +460,8 @@ public final class BibleNavigationPane extends BorderPane {
 	}
 	
 	private void updateValue(LocatedVerseTriplet triplet, boolean append) {
+		this.mutating = true;
+		
 		if (triplet == null) {
 			this.value.get().clear();
 			this.previous.get().clear();
@@ -451,6 +518,8 @@ public final class BibleNavigationPane extends BorderPane {
 		this.value.set(value);
 		this.previous.set(previous);
 		this.next.set(next);
+		
+		this.mutating = false;
 	}
 	
 	private BibleReferenceVerse toReference(LocatedVerse verse) {

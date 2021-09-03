@@ -165,6 +165,16 @@ public final class Song implements ReadOnlySong, Indexable, Persistable, Copyabl
 	}
 	
 	@Override
+	public ReadOnlyLyrics getLyricsById(UUID id) {
+		for (Lyrics lyrics : this.lyrics) {
+			if (lyrics.getId().equals(id)) {
+				return lyrics;
+			}
+		}
+		return null;
+	}
+	
+	@Override
 	public Lyrics getDefaultLyrics() {
 		Locale locale = Locale.getDefault();
 		Lyrics lyrics = null;

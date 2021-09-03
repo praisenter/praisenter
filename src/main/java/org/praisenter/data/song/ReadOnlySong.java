@@ -42,6 +42,7 @@ public interface ReadOnlySong extends Indexable, Persistable, Copyable, Identifi
 	
 	public ReadOnlyLyrics getDefaultLyrics();
 	public ReadOnlyAuthor getDefaultAuthor();
+	public ReadOnlyLyrics getLyricsById(UUID id);
 	public String getDefaultTitle();
 	public ReadOnlyLyrics getLyrics(String language, String transliteration);
 }

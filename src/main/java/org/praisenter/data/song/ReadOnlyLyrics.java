@@ -28,5 +28,6 @@ public interface ReadOnlyLyrics extends Copyable, Localized {
 	public ObservableList<? extends ReadOnlySection> getSectionsUnmodifiable();
 	
 	public ReadOnlyAuthor getDefaultAuthor();
-	public Section getSectionByName(String name);
+	public ReadOnlySection getSectionByName(String name);
+	public ReadOnlySection getSectionById(UUID id);
 }

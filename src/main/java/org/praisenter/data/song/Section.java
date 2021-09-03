@@ -13,8 +13,6 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
 public final class Section implements ReadOnlySection, Copyable {
-	public static final int USE_TEMPLATE_FONT_SIZE = -1;
-	
 	private final ObjectProperty<UUID> id;
 	private final StringProperty name;
 	private final StringProperty text;

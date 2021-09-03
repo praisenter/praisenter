@@ -21,20 +21,20 @@ public final class WorkspacePathResolver {
 		return this.workspacePath;
 	}
 	
+	public Path getConfigurationPath() {
+		return this.workspacePath;
+	}
+
+	public Path getConfigurationFilePath() {
+		return this.workspacePath.resolve(WorkspacePathResolver.CONFIGURATION_FILE);
+	}
+
 	public Path getSearchIndexPath() {
 		return this.workspacePath.resolve(WorkspacePathResolver.SEARCH_INDEX_RELATIVE_PATH);
 	}
 	
-	public Path getConfigurationPath() {
-		return this.workspacePath;
-	}
-	
 	public Path getLogsPath() {
 		return this.workspacePath.resolve(WorkspacePathResolver.LOGS_RELATIVE_PATH);
-	}
-	
-	public Path getConfigurationFilePath() {
-		return this.workspacePath.resolve(WorkspacePathResolver.CONFIGURATION_FILE);
 	}
 	
 	public Path getMediaPath() {

@@ -184,7 +184,9 @@ https://stackoverflow.com/questions/50011276/javafx-treeview-expand-collapse-dis
 	-fx-fill: -fx-focused-text-base-color;
 }
 
-.workspace-selector {}
+.workspace-selector {
+	-fx-pref-width: 600;
+}
 .workspace-selector .workspace-title {
 	-fx-font-weight: bold;
 }
@@ -195,17 +197,20 @@ https://stackoverflow.com/questions/50011276/javafx-treeview-expand-collapse-dis
 	-fx-spacing: 5;
 }
 .workspace-selector .workspace-selection {
-	-fx-padding: 10 10 0 10;
+	-fx-padding: 10 10 5 10;
 	-fx-spacing: 5;
 }
 .workspace-selector .workspace-buttons {
-	-fx-padding: 30 10 10 10;
+	-fx-padding: 20 10 10 10;
 	-fx-spacing: 5;
 }
 .workspace-selector .workspace-launch-button {
 	-fx-font-weight: bold;
 }
-
+.workspace-selector .workspace-not-empty-warning {
+	-fx-padding: 5 30 0 30;
+	-fx-spacing: 5;
+}
 
 
 
