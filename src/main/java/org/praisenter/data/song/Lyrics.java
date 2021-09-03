@@ -111,6 +111,16 @@ public final class Lyrics implements ReadOnlyLyrics, Copyable {
 	}
 	
 	@Override
+	public ReadOnlySection getSectionById(UUID id) {
+		for (Section section : this.sections) {
+			if (section.getId().equals(id)) {
+				return section;
+			}
+		}
+		return null;
+	}
+	
+	@Override
 	public Section getSectionByName(String name) {
 		for (Section section : this.sections) {
 			if (name.equalsIgnoreCase(section.getName())) {

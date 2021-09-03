@@ -1,19 +1,23 @@
 package org.praisenter.ui.display;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
+import java.util.Map;
+import java.util.Optional;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.TriConsumer;
+import org.praisenter.data.Persistable;
 import org.praisenter.data.StringTextStore;
 import org.praisenter.data.TextStore;
+import org.praisenter.data.bible.BibleReferenceTextStore;
 import org.praisenter.data.slide.Slide;
+import org.praisenter.data.song.SongReferenceTextStore;
 import org.praisenter.data.workspace.DisplayRole;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.Option;
-import org.praisenter.ui.Praisenter;
 import org.praisenter.ui.bible.BibleNavigationPane;
 import org.praisenter.ui.bind.BindingHelper;
 import org.praisenter.ui.slide.SlideList;
@@ -26,50 +30,34 @@ import org.praisenter.ui.translations.Translations;
 
 import javafx.animation.PauseTransition;
 import javafx.animation.Transition;
-import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.DoubleBinding;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ListChangeListener.Change;
-import javafx.event.EventHandler;
 import javafx.collections.ObservableList;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ChoiceBox;
-import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TabPane.TabClosingPolicy;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.scene.robot.Robot;
-import javafx.scene.text.Font;
-import javafx.stage.Modality;
-import javafx.stage.Stage;
-import javafx.stage.StageStyle;
-import javafx.stage.WindowEvent;
 import javafx.util.Duration;
 
 public final class DisplayController extends BorderPane {
 	private static final Logger LOGGER = LogManager.getLogger();
-	
-	private static final String REMOVED = "REMOVED";
-	private static final String REPLACED = "REPLACED";
 	
 	private final GlobalContext context;
 	private final DisplayTarget target;
@@ -78,6 +66,8 @@ public final class DisplayController extends BorderPane {
 	private final DoubleBinding maxHeight;
 	
 	private final ObservableList<Slide> slides;
+	private final Slide WAS_REMOVED = new Slide();
+	
 	
 //	private final ObjectProperty<TextStore> placeholderData;
 	
@@ -148,9 +138,6 @@ public final class DisplayController extends BorderPane {
 		
 		VBox layout = new VBox();
 		
-//		Button btnPlay = new Button("Play");
-//		Button btnStop = new Button("Stop");
-
 		Button btnShowSlide = new Button(Translations.get("display.controller.show"));
 		Button btnClearSlide = new Button(Translations.get("display.controller.hide"));
 		Button btnAddSlide = new Button(Translations.get("display.controller.addSlide"));
@@ -190,11 +177,51 @@ public final class DisplayController extends BorderPane {
 		VBox.setVgrow(tabs, Priority.ALWAYS);
 //		layout.setBackground(new Background(new BackgroundFill(Color.RED, null, null)));
 		
-		// TODO listen for changes to slides and update them
-		// TODO When slide selected, set it as the template & update UI to match placeholder data & swap to the correct tab
 		// TODO move the remove button to above/below slide list
 		SlideList list = new SlideList(context, target.getDisplay().getWidth(), target.getDisplay().getHeight());
 		Bindings.bindContent(list.getSlides(), this.slides);
+		
+		// listen for changes to the slides (remove and update)
+		context.getWorkspaceManager().getItemsUnmodifiable().addListener((Change<? extends Persistable> c) -> {
+			Map<Integer, Slide> toReplace = new HashMap<>();
+			List<Slide> toRemove = new ArrayList<>();
+			
+			while (c.next()) {
+				if (c.wasAdded()) {
+					for (Persistable p : c.getAddedSubList()) {
+						int i = 0;
+						for (Slide s : this.slides) {
+							if (p.getId().equals(s.getId())) {
+								// then it was updated
+								Slide s1 = (Slide)p;
+								s1.setPlaceholderData(s.getPlaceholderData());
+								toReplace.put(i, s1);
+								break;
+							}
+							i++;
+						}
+					}
+				}
+				
+				if (c.wasRemoved()) {
+					for (Persistable p : c.getRemoved()) {
+						for (Slide s : this.slides) {
+							if (p.getId().equals(s.getId())) {
+								// then it was removed
+								toRemove.add(s);
+								break;
+							}
+						}
+					}
+				}
+			}
+			
+			for (int key : toReplace.keySet()) {
+				this.slides.set(key, toReplace.get(key));
+			}
+			
+			this.slides.removeAll(toRemove);
+		});
 		
 		this.setTop(new HBox(5, cbDisplayRole, btnIdentify));
 		this.setCenter(layout);
@@ -212,18 +239,6 @@ public final class DisplayController extends BorderPane {
 				target.clear();
 			}
 		});
-		
-//		btnPlay.setOnAction(e -> {
-//			//this.slidePreviewPane.stop();
-//			// FIXME pressing play in a row can mess things up because components get altered during the transition. we may need to just recreate the slide by changing the mode to make it work
-//			this.slidePreviewPane.setMode(SlideMode.PREVIEW_NO_AUDIO);
-//			this.slidePreviewPane.play();
-//		});
-//		
-//		btnStop.setOnAction(e -> {
-//			this.slidePreviewPane.stop();
-//			this.slidePreviewPane.setMode(SlideMode.PREVIEW);
-//		});
 		
 		btnAddSlide.setOnAction(e -> {
 			// get the current slide w/ placeholder data
@@ -342,34 +357,34 @@ public final class DisplayController extends BorderPane {
 		
 		cmbBibleSlideTemplate.getItems().addListener((Change<? extends Slide> c) -> {
 			Slide cv = cmbBibleSlideTemplate.getValue();
-			String action = this.getChangeAction(c, cv);
-			if (action == REMOVED) {
+			Slide replacement = this.getChangeAction(c, cv);
+			if (replacement == WAS_REMOVED) {
 				cmbBibleSlideTemplate.setValue(null);
-			} else if (action == REPLACED) {
+			} else if (replacement != null) {
 				cmbBibleSlideTemplate.setValue(null);
-				cmbBibleSlideTemplate.setValue(cv);
+				cmbBibleSlideTemplate.setValue(replacement);
 			}
         });
 		
 		cmbSongSlideTemplate.getItems().addListener((Change<? extends Slide> c) -> {
 			Slide cv = cmbSongSlideTemplate.getValue();
-			String action = this.getChangeAction(c, cv);
-			if (action == REMOVED) {
+			Slide replacement = this.getChangeAction(c, cv);
+			if (replacement == WAS_REMOVED) {
 				cmbSongSlideTemplate.setValue(null);
-			} else if (action == REPLACED) {
+			} else if (replacement != null) {
 				cmbSongSlideTemplate.setValue(null);
-				cmbSongSlideTemplate.setValue(cv);
+				cmbSongSlideTemplate.setValue(replacement);
 			}
         });
 		
 		cmbNotificationTemplate.getItems().addListener((Change<? extends Slide> c) -> {
 			Slide cv = cmbNotificationTemplate.getValue();
-			String action = this.getChangeAction(c, cv);
-			if (action == REMOVED) {
+			Slide replacement = this.getChangeAction(c, cv);
+			if (replacement == WAS_REMOVED) {
 				cmbNotificationTemplate.setValue(null);
-			} else if (action == REPLACED) {
+			} else if (replacement != null) {
 				cmbNotificationTemplate.setValue(null);
-				cmbNotificationTemplate.setValue(cv);
+				cmbNotificationTemplate.setValue(replacement);
 			}
         });
 		
@@ -487,6 +502,44 @@ public final class DisplayController extends BorderPane {
 			Slide slide = cmbSongSlideTemplate.getValue();
 			handleDisplayChange.accept(DisplayChange.DATA, slide, nv);
 		});
+		
+		list.selectionProperty().addListener((obs, ov, nv) -> {
+			if (nv != null) {
+				// check for slide first
+				if (!nv.hasPlaceholders()) {
+					// then it's a slide
+					tabs.getSelectionModel().select(2);
+					handleDisplayChange.accept(DisplayChange.STANDARD, nv.copy(), null);
+					return;
+				}
+				
+				// otherwise it has placeholder data
+				TextStore data = nv.getPlaceholderData();
+				if (data instanceof BibleReferenceTextStore) {
+					// set the tab index
+					tabs.getSelectionModel().select(0);
+					// set the template selector
+					Optional<Slide> template = cmbBibleSlideTemplate.getItems().stream().filter(t -> t.getId().equals(nv.getId())).findFirst();
+					if (template.isPresent()) {
+						cmbBibleSlideTemplate.setValue(template.get());
+					}
+					// set the bible fields
+					BibleReferenceTextStore brts = (BibleReferenceTextStore)data;
+					bibleNavigationPane.setValue(brts);
+				} else if (data instanceof SongReferenceTextStore) {
+					// set the tab index
+					tabs.getSelectionModel().select(1);
+					// set the template selector
+					Optional<Slide> template = cmbSongSlideTemplate.getItems().stream().filter(t -> t.getId().equals(nv.getId())).findFirst();
+					if (template.isPresent()) {
+						cmbSongSlideTemplate.setValue(template.get());
+					}
+					// set the bible fields
+					SongReferenceTextStore srts = (SongReferenceTextStore)data;
+					songNavigationPane.setValue(srts);
+				}
+			}
+		});
 	}
 	
 	private boolean isPlaceholderTransitionOnly(Slide oldSlide, Slide newSlide) {
@@ -507,7 +560,7 @@ public final class DisplayController extends BorderPane {
 		return false;
 	}
 	
-	private String getChangeAction(Change<? extends Slide> c, Slide cv) {
+	private Slide getChangeAction(Change<? extends Slide> c, Slide cv) {
 		// if the items change we need to examine if the change was the current slide we're on
 		while (c.next()) {
 			// first check if the slide we currently have selected was
@@ -516,7 +569,7 @@ public final class DisplayController extends BorderPane {
 			for (Slide add : as) {
 				if (add.identityEquals(cv)) {
 					// then we need to update the value
-					return REPLACED;
+					return add;
 				}
 			}
 			
@@ -526,7 +579,7 @@ public final class DisplayController extends BorderPane {
 			for (Slide rm : rs) {
 				if (rm.identityEquals(cv)) {
 					// then we need to clear the value
-					return REMOVED;
+					return WAS_REMOVED;
 				}
 			}
 		}

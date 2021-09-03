@@ -16,6 +16,9 @@ public final class SongReferenceVerse {
 	private final UUID lyricsId;
 	
 	@JsonProperty
+	private final UUID sectionId;
+	
+	@JsonProperty
 	private final String title;
 	
 	@JsonProperty
@@ -30,15 +33,17 @@ public final class SongReferenceVerse {
 	SongReferenceVerse() {
 		this.songId = null;
 		this.lyricsId = null;
+		this.sectionId = null;
 		this.title = null;
 		this.name = null;
 		this.text = null;
 //		this.fontSize = Verse.USE_TEMPLATE_FONT_SIZE;
 	}
 	
-	public SongReferenceVerse(UUID songId, UUID lyricsId, String title, String name, String text) {
+	public SongReferenceVerse(UUID songId, UUID lyricsId, UUID sectionId, String title, String name, String text) {
 		this.songId = songId;
 		this.lyricsId = lyricsId;
+		this.sectionId = sectionId;
 		this.title = title;
 		this.name = name;
 		this.text = text;
@@ -63,6 +68,10 @@ public final class SongReferenceVerse {
 
 	public UUID getLyricsId() {
 		return lyricsId;
+	}
+	
+	public UUID getSectionId() {
+		return sectionId;
 	}
 	
 	public String getTitle() {

@@ -4,11 +4,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.data.Persistable;
 import org.praisenter.data.TextVariant;
-import org.praisenter.data.song.Lyrics;
 import org.praisenter.data.song.ReadOnlyLyrics;
 import org.praisenter.data.song.ReadOnlySection;
 import org.praisenter.data.song.ReadOnlySong;
-import org.praisenter.data.song.Section;
 import org.praisenter.data.song.Song;
 import org.praisenter.data.song.SongReferenceTextStore;
 import org.praisenter.data.song.SongReferenceVerse;
@@ -47,11 +45,11 @@ public final class SongNavigationPane extends BorderPane {
 
 	private final ObjectProperty<SongReferenceTextStore> value;
 	
-	// nodes
-	
 	private final ObservableList<Node> sectionsToNodesMapping;
 	
 	private Stage searchDialog;
+	
+	private boolean mutating = false;
 	
 	public SongNavigationPane(GlobalContext context) {
 		this.song = new SimpleObjectProperty<>(null);
@@ -97,10 +95,12 @@ public final class SongNavigationPane extends BorderPane {
 			tooltip.setWrapText(true);
 			btnSection.setTooltip(tooltip);
 			btnSection.setOnMouseClicked((e) -> {
+				this.mutating = true;
 				SongReferenceTextStore text = new SongReferenceTextStore();
 				text.setVariant(TextVariant.PRIMARY, new SongReferenceVerse(
 						this.song.get().getId(), 
-						cmbPrimaryLyrics.getValue().getId(), 
+						cmbPrimaryLyrics.getValue().getId(),
+						section.getId(),
 						cmbPrimaryLyrics.getValue().getTitle(),
 						section.getName(),
 						section.getText()));
@@ -112,12 +112,14 @@ public final class SongNavigationPane extends BorderPane {
 						text.setVariant(TextVariant.SECONDARY, new SongReferenceVerse(
 								this.song.get().getId(), 
 								secondary.getId(), 
+								secondarySection.getId(),
 								secondary.getTitle(),
 								secondarySection.getName(),
 								secondarySection.getText()));
 					}
 				}
 				this.value.set(text);
+				this.mutating = false;
 			});
 			return btnSection;
 		});
@@ -175,6 +177,33 @@ public final class SongNavigationPane extends BorderPane {
 								// it was removed, so remove it here
 								this.song.set(null);
 								return;
+							}
+						}
+					}
+				}
+			}
+		});
+		
+		this.value.addListener((obs, ov, nv) -> {
+			if (this.mutating) return;
+			
+			if (nv != null) {
+				SongReferenceVerse srv = nv.getVariant(TextVariant.PRIMARY);
+				if (srv != null) {
+					Song song = context.getWorkspaceManager().getItem(Song.class, srv.getSongId());
+					if (song != null) {
+						this.song.set(song);
+						
+						ReadOnlyLyrics pLyrics = song.getLyricsById(srv.getLyricsId());
+						if (pLyrics != null) {
+							cmbPrimaryLyrics.setValue(pLyrics);
+						}
+						
+						srv = nv.getVariant(TextVariant.SECONDARY);
+						if (srv != null) {
+							ReadOnlyLyrics sLyrics = song.getLyricsById(srv.getLyricsId());
+							if (sLyrics != null) {
+								cmbSecondaryLyrics.setValue(sLyrics);
 							}
 						}
 					}
