@@ -38,7 +38,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 
 /**
@@ -56,10 +58,12 @@ import javafx.beans.property.SimpleObjectProperty;
 public final class TextPlaceholderComponent extends TextComponent implements ReadOnlyTextPlaceholderComponent, ReadOnlyTextComponent, ReadOnlySlideComponent, ReadOnlySlideRegion, Copyable, Identifiable {
 	private final ObjectProperty<TextType> placeholderType;
 	private final ObjectProperty<TextVariant> placeholderVariant;
+	private final BooleanProperty textLocked;
 
 	public TextPlaceholderComponent() {
 		this.placeholderType = new SimpleObjectProperty<>(TextType.TEXT);
 		this.placeholderVariant = new SimpleObjectProperty<>(TextVariant.PRIMARY);
+		this.textLocked = new SimpleBooleanProperty(false);
 	}
 	
 	@Override
@@ -68,6 +72,7 @@ public final class TextPlaceholderComponent extends TextComponent implements Rea
 		super.copyTo(tc);
 		tc.placeholderType.set(this.placeholderType.get());
 		tc.placeholderVariant.set(this.placeholderVariant.get());
+		// NOTE: text locking is not copied
 		return tc;
 	}
 	
@@ -112,5 +117,21 @@ public final class TextPlaceholderComponent extends TextComponent implements Rea
 	@Watchable(name = "placeholderVariant")
 	public ObjectProperty<TextVariant> placeholderVariantProperty() {
 		return this.placeholderVariant;
+	}
+	
+	// for operation/display only - no need to save
+	
+	@Override
+	public boolean isTextLocked() {
+		return this.textLocked.get();
+	}
+	
+	public void setTextLocked(boolean textLocked) {
+		this.textLocked.set(textLocked);
+	}
+	
+	@Override
+	public BooleanProperty textLockedProperty() {
+		return this.textLocked;
 	}
 }

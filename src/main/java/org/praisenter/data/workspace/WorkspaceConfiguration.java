@@ -1,6 +1,7 @@
 package org.praisenter.data.workspace;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.praisenter.Constants;
@@ -38,8 +39,6 @@ public final class WorkspaceConfiguration implements ReadOnlyWorkspaceConfigurat
 	private final StringProperty version;
 	private final ObjectProperty<UUID> id;
 	
-	private final ObjectProperty<UUID> primaryBibleId;
-	private final ObjectProperty<UUID> secondaryBibleId;
 	private final BooleanProperty renumberBibleWarningEnabled;
 	private final BooleanProperty reorderBibleWarningEnabled;
 	
@@ -55,8 +54,6 @@ public final class WorkspaceConfiguration implements ReadOnlyWorkspaceConfigurat
 	private final StringProperty videoFrameExtractCommand;
 	private final DoubleProperty targetMeanVolume;
 	
-	private final BooleanProperty waitForTransitionsToCompleteEnabled;
-	
 	private final StringProperty languageTag;
 	private final StringProperty themeName;
 	private final DoubleProperty applicationX;
@@ -65,19 +62,22 @@ public final class WorkspaceConfiguration implements ReadOnlyWorkspaceConfigurat
 	private final DoubleProperty applicationHeight;
 	private final BooleanProperty applicationMaximized;
 	private final BooleanProperty debugModeEnabled;
+
+	private final BooleanProperty waitForTransitionsToCompleteEnabled;
+	private final ObjectProperty<PlaceholderTransitionBehavior> placeholderTransitionBehavior;
 	
 	private final ObservableList<Display> displays;
 	private final ObservableList<Display> displaysReadOnly;
 	private final ObservableList<Resolution> resolutions;
 	private final ObservableList<Resolution> resolutionsReadOnly;
+	private final ObservableList<DisplayConfiguration> displayConfigurations;
+	private final ObservableList<DisplayConfiguration> displayConfigurationsReadOnly;
 	
 	public WorkspaceConfiguration() {
 		this.format = new SimpleStringProperty(Constants.FORMAT_NAME);
 		this.version = new SimpleStringProperty(Version.STRING);
 		this.id = new SimpleObjectProperty<UUID>(UUID.randomUUID());
 		
-		this.primaryBibleId = new SimpleObjectProperty<>();
-		this.secondaryBibleId = new SimpleObjectProperty<>();
 		this.renumberBibleWarningEnabled = new SimpleBooleanProperty(true);
 		this.reorderBibleWarningEnabled = new SimpleBooleanProperty(true);
 		
@@ -93,8 +93,6 @@ public final class WorkspaceConfiguration implements ReadOnlyWorkspaceConfigurat
 		this.videoFrameExtractCommand = new SimpleStringProperty(MediaConfiguration.DEFAULT_VIDEO_FRAME_EXTRACT_COMMAND);
 		this.targetMeanVolume = new SimpleDoubleProperty(MediaConfiguration.DEFAULT_TARGET_MEAN_VOLUME);
 		
-		this.waitForTransitionsToCompleteEnabled = new SimpleBooleanProperty(true);
-		
 		this.languageTag = new SimpleStringProperty(null);
 		this.themeName = new SimpleStringProperty("default");
 		this.applicationX = new SimpleDoubleProperty(POSITION_SIZE_UNSET);
@@ -103,11 +101,16 @@ public final class WorkspaceConfiguration implements ReadOnlyWorkspaceConfigurat
 		this.applicationHeight = new SimpleDoubleProperty(POSITION_SIZE_UNSET);
 		this.applicationMaximized = new SimpleBooleanProperty(false);
 		this.debugModeEnabled = new SimpleBooleanProperty(false);
+
+		this.waitForTransitionsToCompleteEnabled = new SimpleBooleanProperty();
+		this.placeholderTransitionBehavior = new SimpleObjectProperty<>(PlaceholderTransitionBehavior.PLACEHOLDERS);
 		
 		this.displays = FXCollections.observableArrayList();
 		this.displaysReadOnly = FXCollections.unmodifiableObservableList(this.displays);
 		this.resolutions = FXCollections.observableArrayList(Resolution.DEFAULT_RESOLUTIONS);
 		this.resolutionsReadOnly = FXCollections.unmodifiableObservableList(this.resolutions);
+		this.displayConfigurations = FXCollections.observableArrayList();
+		this.displayConfigurationsReadOnly = FXCollections.unmodifiableObservableList(this.displayConfigurations);
 	}
 
 	@Override
@@ -123,6 +126,18 @@ public final class WorkspaceConfiguration implements ReadOnlyWorkspaceConfigurat
 	@Override
 	public int hashCode() {
 		return this.id.get().hashCode();
+	}
+	
+	@Override
+	public DisplayConfiguration getDisplayConfigurationById(int id) {
+		Optional<DisplayConfiguration> result = this.displayConfigurations.stream().filter(dc -> dc.getId() == id).findFirst();
+		if (result.isPresent()) {
+			return result.get();
+		}
+		DisplayConfiguration dc = new DisplayConfiguration();
+		dc.setId(id);
+		this.displayConfigurations.add(dc);
+		return dc;
 	}
 
 	@Override
@@ -173,38 +188,6 @@ public final class WorkspaceConfiguration implements ReadOnlyWorkspaceConfigurat
 		return this.id;
 	}
 	
-	@Override
-	@JsonProperty
-	public UUID getPrimaryBibleId() {
-		return this.primaryBibleId.get();
-	}
-	
-	@JsonProperty
-	public void setPrimaryBibleId(UUID id) {
-		this.primaryBibleId.set(id);
-	}
-	
-	@Override
-	public ObjectProperty<UUID> primaryBibleIdProperty() {
-		return this.primaryBibleId;
-	}
-
-	@Override
-	@JsonProperty
-	public UUID getSecondaryBibleId() {
-		return this.secondaryBibleId.get();
-	}
-	
-	@JsonProperty
-	public void setSecondaryBibleId(UUID id) {
-		this.secondaryBibleId.set(id);
-	}
-	
-	@Override
-	public ObjectProperty<UUID> secondaryBibleIdProperty() {
-		return this.secondaryBibleId;
-	}
-
 	@Override
 	@JsonProperty
 	public boolean isRenumberBibleWarningEnabled() {
@@ -415,22 +398,6 @@ public final class WorkspaceConfiguration implements ReadOnlyWorkspaceConfigurat
 	
 	@Override
 	@JsonProperty
-	public boolean isWaitForTransitionsToCompleteEnabled() {
-		return this.waitForTransitionsToCompleteEnabled.get();
-	}
-	
-	@JsonProperty
-	public void setWaitForTransitionsToCompleteEnabled(boolean enabled) {
-		this.waitForTransitionsToCompleteEnabled.set(enabled);
-	}
-	
-	@Override
-	public BooleanProperty waitForTransitionsToCompleteEnabledProperty() {
-		return this.waitForTransitionsToCompleteEnabled;
-	}
-
-	@Override
-	@JsonProperty
 	public String getLanguageTag() {
 		return this.languageTag.get();
 	}
@@ -558,6 +525,38 @@ public final class WorkspaceConfiguration implements ReadOnlyWorkspaceConfigurat
 	}
 
 	@Override
+	@JsonProperty
+	public boolean isWaitForTransitionsToCompleteEnabled() {
+		return this.waitForTransitionsToCompleteEnabled.get();
+	}
+	
+	@JsonProperty
+	public void setWaitForTransitionsToCompleteEnabled(boolean enabled) {
+		this.waitForTransitionsToCompleteEnabled.set(enabled);
+	}
+	
+	@Override
+	public BooleanProperty waitForTransitionsToCompleteEnabledProperty() {
+		return this.waitForTransitionsToCompleteEnabled;
+	}
+	
+	@Override
+	@JsonProperty
+	public PlaceholderTransitionBehavior getPlaceholderTransitionBehavior() {
+		return this.placeholderTransitionBehavior.get();
+	}
+	
+	@JsonProperty
+	public void setPlaceholderTransitionBehavior(PlaceholderTransitionBehavior placeholderTransitionBehavior) {
+		this.placeholderTransitionBehavior.set(placeholderTransitionBehavior);
+	}
+	
+	@Override
+	public ObjectProperty<PlaceholderTransitionBehavior> placeholderTransitionBehaviorProperty() {
+		return this.placeholderTransitionBehavior;
+	}
+
+	@Override
 	public ObservableList<Display> getDisplaysUnmodifiable() {
 		return this.displaysReadOnly;
 	}
@@ -585,5 +584,20 @@ public final class WorkspaceConfiguration implements ReadOnlyWorkspaceConfigurat
 	@Override
 	public ObservableList<Resolution> getResolutionsUnmodifiable() {
 		return this.resolutionsReadOnly;
+	}
+	
+	@JsonProperty
+	public ObservableList<DisplayConfiguration> getDisplayConfigurations() {
+		return this.displayConfigurations;
+	}
+	
+	@JsonProperty
+	public void setDisplayConfigurations(List<DisplayConfiguration> displayConfigurations) {
+		this.displayConfigurations.setAll(displayConfigurations);
+	}
+	
+	@Override
+	public ObservableList<DisplayConfiguration> getDisplayConfigurationsUnmodifiable() {
+		return this.displayConfigurationsReadOnly;
 	}
 }

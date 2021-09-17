@@ -4,7 +4,6 @@ import org.praisenter.data.bible.Bible;
 import org.praisenter.data.media.Media;
 import org.praisenter.data.media.MediaType;
 import org.praisenter.data.slide.Slide;
-import org.praisenter.data.slide.SlideShow;
 import org.praisenter.data.song.Song;
 import org.praisenter.ui.translations.Translations;
 
@@ -12,7 +11,6 @@ public enum LibraryListType {
 	BIBLE(Translations.get("bible"), 100),
 	SONG(Translations.get("song"), 300),
 	SLIDE(Translations.get("slide"), 500),
-	SHOW(Translations.get("show"), 700),
 	IMAGE(Translations.get("image"), 1000),
 	VIDEO(Translations.get("video"), 1100),
 	AUDIO(Translations.get("audio"), 1200);
@@ -40,7 +38,6 @@ public enum LibraryListType {
 		if (obj instanceof Bible) return BIBLE;
 		if (obj instanceof Song) return SONG;
 		if (obj instanceof Slide) return SLIDE;
-		if (obj instanceof SlideShow) return SHOW;
 		if (obj instanceof Media) {
 			MediaType type = ((Media) obj).getMediaType();
 			if (type == MediaType.IMAGE) return IMAGE;

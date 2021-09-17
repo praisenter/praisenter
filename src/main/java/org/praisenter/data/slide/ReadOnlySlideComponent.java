@@ -6,7 +6,6 @@ import org.praisenter.data.Copyable;
 import org.praisenter.data.Identifiable;
 import org.praisenter.data.slide.animation.SlideAnimation;
 import org.praisenter.data.slide.effects.SlideShadow;
-import org.praisenter.data.slide.graphics.Rectangle;
 
 import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;

@@ -24,8 +24,6 @@
  */
 package org.praisenter.data.workspace;
 
-import java.util.Objects;
-
 import org.praisenter.data.Copyable;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -78,35 +76,6 @@ public final class Display implements ReadOnlyDisplay, Copyable, Comparable<Disp
 	}
 	
 	@Override
-	public boolean equals(Object obj) {
-		if (obj == null) return false;
-		if (obj == this) return true;
-		if (obj instanceof Display) {
-			Display o = (Display)obj;
-			return (this.id.get() == o.id.get() &&
-					Objects.equals(this.role.get(), o.role.get()) &&
-					Objects.equals(this.name.get(), o.name.get()) &&
-					this.x.get() == o.x.get() &&
-					this.y.get() == o.y.get() &&
-					this.width.get() == o.width.get() &&
-					this.height.get() == o.height.get());
-		}
-		return false;
-	}
-	
-	@Override
-	public int hashCode() {
-		return Objects.hash(
-				this.id.get(), 
-				this.role.get(), 
-				this.name.get(), 
-				this.x.get(), 
-				this.y.get(), 
-				this.width.get(),
-				this.height.get());
-	}
-	
-	@Override
 	public Display copy() {
 		Display display = new Display();
 		display.id.set(this.id.get());
@@ -121,7 +90,7 @@ public final class Display implements ReadOnlyDisplay, Copyable, Comparable<Disp
 	
 	@Override
 	public String toString() {
-		return "#" + (this.id.get() + 1) + " " + this.role.get() + " (" + this.x.get() + "," + this.y.get() + ") " + this.width.get() + "x" + this.height.get();
+		return "#" + (this.id.get() + 1) + " (" + this.x.get() + "," + this.y.get() + ") " + this.width.get() + "x" + this.height.get();
 	}
 	
 	@Override

@@ -190,7 +190,7 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 		this.tags = FXCollections.observableSet(new HashSet<>());
 		
 		ObservableList<Resolution> resolutions = FXCollections.observableArrayList();
-		resolutions.addAll(context.getConfiguration().getResolutions());
+		resolutions.addAll(context.getWorkspaceConfiguration().getResolutions());
 		this.updateScreenResolutions(resolutions);
 		this.updateSlideResolutions(resolutions);
 		

@@ -2,25 +2,32 @@ package org.praisenter.ui.slide;
 
 import org.praisenter.data.TextStore;
 import org.praisenter.data.slide.Slide;
+import org.praisenter.data.workspace.PlaceholderTransitionBehavior;
 
-public class TransitionRequest {
-	private final TransitionRequestType type;
+final class TransitionRequest {
+	private final PlaceholderTransitionBehavior type;
 	private final Slide slide;
 	private final TextStore placeholderData;
 	
-	public TransitionRequest(Slide slide) {
-		this.type = TransitionRequestType.SLIDE;
+	private TransitionRequest(PlaceholderTransitionBehavior type, Slide slide, TextStore placeholderData) {
+		this.type = type;
 		this.slide = slide;
-		this.placeholderData = null;
-	}
-	
-	public TransitionRequest(TextStore placeholderData) {
-		this.type = TransitionRequestType.PLACEHOLDERS;
-		this.slide = null;
 		this.placeholderData = placeholderData;
 	}
-
-	public TransitionRequestType getType() {
+	
+	public static final TransitionRequest transitionSlide(Slide slide) {
+		return new TransitionRequest(PlaceholderTransitionBehavior.SLIDE, slide, null);
+	}
+	
+	public static final TransitionRequest transitionPlaceholders(TextStore placeholderData) {
+		return new TransitionRequest(PlaceholderTransitionBehavior.PLACEHOLDERS, null, placeholderData);
+	}
+	
+	public static final TransitionRequest transitionContent(TextStore placeholderData) {
+		return new TransitionRequest(PlaceholderTransitionBehavior.CONTENT, null, placeholderData);
+	}
+	
+	public PlaceholderTransitionBehavior getType() {
 		return type;
 	}
 

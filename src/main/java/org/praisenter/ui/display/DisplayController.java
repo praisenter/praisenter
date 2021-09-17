@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -14,9 +15,13 @@ import org.praisenter.data.StringTextStore;
 import org.praisenter.data.TextStore;
 import org.praisenter.data.bible.BibleReferenceTextStore;
 import org.praisenter.data.slide.Slide;
+import org.praisenter.data.slide.SlideReference;
 import org.praisenter.data.song.SongReferenceTextStore;
+import org.praisenter.data.workspace.DisplayConfiguration;
 import org.praisenter.data.workspace.DisplayRole;
+import org.praisenter.data.workspace.PlaceholderTransitionBehavior;
 import org.praisenter.ui.GlobalContext;
+import org.praisenter.ui.MappedList;
 import org.praisenter.ui.Option;
 import org.praisenter.ui.bible.BibleNavigationPane;
 import org.praisenter.ui.bind.BindingHelper;
@@ -27,6 +32,7 @@ import org.praisenter.ui.slide.SlideTemplateComboBox;
 import org.praisenter.ui.slide.SlideView;
 import org.praisenter.ui.song.SongNavigationPane;
 import org.praisenter.ui.translations.Translations;
+import org.praisenter.utility.StringManipulator;
 
 import javafx.animation.PauseTransition;
 import javafx.animation.Transition;
@@ -35,7 +41,6 @@ import javafx.beans.binding.DoubleBinding;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
 import javafx.scene.control.Button;
@@ -45,7 +50,6 @@ import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TabPane.TabClosingPolicy;
 import javafx.scene.control.TextField;
-import javafx.scene.control.Tooltip;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
 import javafx.scene.layout.BorderPane;
@@ -68,6 +72,7 @@ public final class DisplayController extends BorderPane {
 	private final ObservableList<Slide> slides;
 	private final Slide WAS_REMOVED = new Slide();
 	
+	private final ObservableList<SlideReference> slideToSlideReferenceMapping;
 	
 //	private final ObjectProperty<TextStore> placeholderData;
 	
@@ -131,8 +136,9 @@ public final class DisplayController extends BorderPane {
 		notificationView.prefWidthProperty().bind(this.maxWidth);
 		notificationView.prefHeightProperty().bind(this.maxHeight);
 		
-		SlideTemplateComboBox cmbNotificationTemplate = new SlideTemplateComboBox(context);
-		BibleNavigationPane bibleNavigationPane = new BibleNavigationPane(context);
+		DisplayConfiguration dc = this.context.getWorkspaceConfiguration().getDisplayConfigurationById(target.getDisplay().getId());
+		
+		BibleNavigationPane bibleNavigationPane = new BibleNavigationPane(context, dc);
 		SongNavigationPane songNavigationPane = new SongNavigationPane(context);
 		SlideNavigationPane slideNavigationPane = new SlideNavigationPane(context);
 		
@@ -149,15 +155,26 @@ public final class DisplayController extends BorderPane {
 		Button btnShowNotification = new Button(Translations.get("display.controller.show"));
 		Button btnClearNotification = new Button(Translations.get("display.controller.hide"));
 		CheckBox chkAutoShow = new CheckBox(Translations.get("display.controller.autoshow"));
-		CheckBox chkWaitForTransition = new CheckBox(Translations.get("display.controller.waitForTransition"));
-		chkWaitForTransition.setTooltip(new Tooltip(Translations.get("display.controller.waitForTransition.tooltip")));
+		chkAutoShow.setSelected(dc.isAutoShowEnabled());
+//		CheckBox chkWaitForTransition = new CheckBox(Translations.get("display.controller.waitForTransition"));
+//		chkWaitForTransition.setTooltip(new Tooltip(Translations.get("display.controller.waitForTransition.tooltip")));
+//		chkWaitForTransition.setSelected(dc.isWaitForTransitionsToCompleteEnabled());
 		CheckBox chkPreviewTransition = new CheckBox(Translations.get("display.controller.previewTransition"));
+		chkPreviewTransition.setSelected(dc.isPreviewTransitionEnabled());
+		
+		chkAutoShow.selectedProperty().addListener((obs, ov, nv) -> {
+			dc.setAutoShowEnabled(nv);
+		});
+		chkPreviewTransition.selectedProperty().addListener((obs, ov, nv) -> {
+			dc.setPreviewTransitionEnabled(nv);
+		});
 		
 		TabPane tabs = new TabPane();
 		tabs.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
 		
 		SlideTemplateComboBox cmbBibleSlideTemplate = new SlideTemplateComboBox(context);
 		SlideTemplateComboBox cmbSongSlideTemplate = new SlideTemplateComboBox(context);
+		SlideTemplateComboBox cmbNotificationTemplate = new SlideTemplateComboBox(context);
 		
 		VBox bibleTab = new VBox(cmbBibleSlideTemplate, bibleNavigationPane);
 		VBox songTab = new VBox(cmbSongSlideTemplate, songNavigationPane);
@@ -167,7 +184,7 @@ public final class DisplayController extends BorderPane {
 		tabs.getTabs().add(new Tab(Translations.get("slide"), slideNavigationPane));
 		
 		layout.getChildren().add(new StackPane(screen, slideView, notificationView));
-		layout.getChildren().add(new HBox(chkPreviewTransition, chkWaitForTransition));
+		layout.getChildren().add(new HBox(chkPreviewTransition));
 		layout.getChildren().add(new HBox(chkAutoShow, btnShowSlide, btnClearSlide, btnAddSlide, btnRemoveSlide));
 		layout.getChildren().add(tabs);
 		layout.getChildren().add(cmbNotificationTemplate);
@@ -176,6 +193,27 @@ public final class DisplayController extends BorderPane {
 		
 		VBox.setVgrow(tabs, Priority.ALWAYS);
 //		layout.setBackground(new Background(new BackgroundFill(Color.RED, null, null)));
+		
+		for (SlideReference sr : dc.getQueuedSlidesUnmodifiable()) {
+			if (sr.getSlideId() != null) {
+				Persistable item = context.getWorkspaceManager().getPersistableById(sr.getSlideId());
+				if (item != null && item instanceof Slide) {
+					Slide slide = (Slide)item;
+					slide = slide.copy();
+					slide.setPlaceholderData(sr.getPlaceholderData());
+					slide.fit(target.getDisplay().getWidth(), target.getDisplay().getHeight());
+					this.slides.add(slide);
+				}
+			}
+		}
+		
+		this.slideToSlideReferenceMapping = new MappedList<>(this.slides, (s) -> {
+			SlideReference sr = new SlideReference();
+			sr.setSlideId(s.getId());
+			sr.setPlaceholderData(s.getPlaceholderData());
+			return sr;
+		});
+		Bindings.bindContent(dc.getQueuedSlides(), this.slideToSlideReferenceMapping);
 		
 		// TODO move the remove button to above/below slide list
 		SlideList list = new SlideList(context, target.getDisplay().getWidth(), target.getDisplay().getHeight());
@@ -302,13 +340,20 @@ public final class DisplayController extends BorderPane {
 				LOGGER.warn("Tab index '" + index + "' is not supported.");
 			}
 			
-			boolean waitForTransition = chkWaitForTransition.isSelected();
+			boolean waitForTransition = context.getWorkspaceConfiguration().isWaitForTransitionsToCompleteEnabled();
+			PlaceholderTransitionBehavior behavior = context.getWorkspaceConfiguration().getPlaceholderTransitionBehavior();
 			Slide oldSlide = target.getSlide();
 			// we need to do this additional check to make sure the slide
 			// hasn't changed since the last time it was displayed
 			if (this.isPlaceholderTransitionOnly(oldSlide, slide)) {
 				// do placeholders only
-				target.displaySlidePlaceholders(data, waitForTransition);
+				if (behavior == null || behavior == PlaceholderTransitionBehavior.PLACEHOLDERS) {
+					target.displaySlidePlaceholders(data, waitForTransition);
+				} else if (behavior == PlaceholderTransitionBehavior.CONTENT) {
+					target.displaySlideContent(data, waitForTransition);
+				} else {
+					target.displaySlide(slide, data, waitForTransition);
+				}
 			} else {
 				target.displaySlide(slide, data, waitForTransition);
 			}
@@ -320,6 +365,7 @@ public final class DisplayController extends BorderPane {
 		
 		btnPreviewNotification.setOnAction(e -> {
 			boolean transition = chkPreviewTransition.isSelected();
+			boolean waitForTransition = context.getWorkspaceConfiguration().isWaitForTransitionsToCompleteEnabled();
 			Slide nv = cmbNotificationTemplate.getValue();
 			if (nv != null) {
 				Slide slide = nv.copy();
@@ -335,7 +381,7 @@ public final class DisplayController extends BorderPane {
 				slide.setPlaceholderData(new StringTextStore(txtNotification.getText()));
 				slide.fit(target.getDisplay().getWidth(), target.getDisplay().getHeight());
 				if (transition) {
-					notificationView.transitionSlide(slide, chkWaitForTransition.isSelected());
+					notificationView.transitionSlide(slide, waitForTransition);
 				} else { 
 					notificationView.swapSlide(slide);
 				}
@@ -346,8 +392,10 @@ public final class DisplayController extends BorderPane {
 		
 		btnShowNotification.setOnAction(e -> {
 			Slide newSlide = cmbNotificationTemplate.getValue();
-			if (newSlide != null) {
-				target.displayNotification(newSlide, new StringTextStore(txtNotification.getText()), chkWaitForTransition.isSelected());
+			String message = txtNotification.getText();
+			if (newSlide != null && !StringManipulator.isNullOrEmpty(message)) {
+				boolean waitForTransition = context.getWorkspaceConfiguration().isWaitForTransitionsToCompleteEnabled();
+				target.displayNotification(newSlide, new StringTextStore(message), waitForTransition);
 			}
 		});
 		
@@ -390,11 +438,19 @@ public final class DisplayController extends BorderPane {
 		
 		final TriConsumer<DisplayChange, Slide, TextStore> handleDisplayChange = (change, slide, data) -> {
 			boolean transition = chkPreviewTransition.isSelected();
-			boolean waitForTransition = chkWaitForTransition.isSelected();
+			boolean waitForTransition = context.getWorkspaceConfiguration().isWaitForTransitionsToCompleteEnabled();
 			boolean autoShow = chkAutoShow.isSelected();
+			PlaceholderTransitionBehavior behavior = context.getWorkspaceConfiguration().getPlaceholderTransitionBehavior();
 			
 			double tw = target.getDisplay().getWidth();
 			double th = target.getDisplay().getHeight();
+			
+			Slide sld = null;
+			if (slide != null) {
+				sld = slide.copy();
+				sld.setPlaceholderData(data);
+				sld.fit(tw, th);
+			}
 			
 			if (data == null) {
 				data = new StringTextStore("");
@@ -409,15 +465,17 @@ public final class DisplayController extends BorderPane {
 				}
 			} else if (change == DisplayChange.DATA) {
 				if (transition) {
-					slideView.transitionPlaceholders(data.copy(), waitForTransition);
+					if (behavior == null || behavior == PlaceholderTransitionBehavior.PLACEHOLDERS) {
+						slideView.transitionPlaceholders(data.copy(), waitForTransition);
+					} else if (behavior == PlaceholderTransitionBehavior.CONTENT) {
+						slideView.transitionContent(data.copy(), waitForTransition);
+					} else {
+						slideView.transitionSlide(sld);
+					}
 				} else {
 					slideView.swapPlaceholders(data.copy());
 				}
 			} else {
-				Slide sld = slide.copy();
-				sld.setPlaceholderData(data);
-				sld.fit(tw, th);
-				
 				if (transition) {
 					slideView.transitionSlide(sld, waitForTransition);
 				} else {
@@ -431,8 +489,13 @@ public final class DisplayController extends BorderPane {
 				// we need to do this additional check to make sure the slide
 				// hasn't changed since the last time it was displayed
 				if (this.isPlaceholderTransitionOnly(oldSlide, slide)) {
-					// do placeholders only
-					target.displaySlidePlaceholders(data, waitForTransition);
+					if (behavior == null || behavior == PlaceholderTransitionBehavior.PLACEHOLDERS) {
+						target.displaySlidePlaceholders(data, waitForTransition);
+					} else if (behavior == PlaceholderTransitionBehavior.CONTENT) {
+						target.displaySlideContent(data, waitForTransition);
+					} else {
+						target.displaySlide(slide, data, waitForTransition);
+					}
 				} else {
 					target.displaySlide(slide, data, waitForTransition);
 				}
@@ -446,6 +509,9 @@ public final class DisplayController extends BorderPane {
 			
 			TextStore data = bibleNavigationPane.getValue();
 			handleDisplayChange.accept(DisplayChange.STANDARD, nv, data);
+			if (nv != null) {
+				dc.setBibleTemplateId(nv.getId());
+			}
 		});
 		
 		cmbSongSlideTemplate.valueProperty().addListener((obs, ov, nv) -> {
@@ -455,6 +521,15 @@ public final class DisplayController extends BorderPane {
 			
 			TextStore data = songNavigationPane.getValue();
 			handleDisplayChange.accept(DisplayChange.STANDARD, nv, data);
+			if (nv != null) {
+				dc.setSongTemplateId(nv.getId());
+			}
+		});
+		
+		cmbNotificationTemplate.valueProperty().addListener((obs, ov, nv) -> {
+			if (nv != null) {
+				dc.setNotificationTemplateId(nv.getId());
+			}
 		});
 		
 		slideNavigationPane.valueProperty().addListener((obs, ov, nv) -> {
@@ -516,6 +591,9 @@ public final class DisplayController extends BorderPane {
 				// otherwise it has placeholder data
 				TextStore data = nv.getPlaceholderData();
 				if (data instanceof BibleReferenceTextStore) {
+					// set the bible fields
+					BibleReferenceTextStore brts = (BibleReferenceTextStore)data;
+					bibleNavigationPane.setValue(brts);
 					// set the tab index
 					tabs.getSelectionModel().select(0);
 					// set the template selector
@@ -523,10 +601,10 @@ public final class DisplayController extends BorderPane {
 					if (template.isPresent()) {
 						cmbBibleSlideTemplate.setValue(template.get());
 					}
-					// set the bible fields
-					BibleReferenceTextStore brts = (BibleReferenceTextStore)data;
-					bibleNavigationPane.setValue(brts);
 				} else if (data instanceof SongReferenceTextStore) {
+					// set the bible fields
+					SongReferenceTextStore srts = (SongReferenceTextStore)data;
+					songNavigationPane.setValue(srts);
 					// set the tab index
 					tabs.getSelectionModel().select(1);
 					// set the template selector
@@ -534,12 +612,39 @@ public final class DisplayController extends BorderPane {
 					if (template.isPresent()) {
 						cmbSongSlideTemplate.setValue(template.get());
 					}
-					// set the bible fields
-					SongReferenceTextStore srts = (SongReferenceTextStore)data;
-					songNavigationPane.setValue(srts);
 				}
 			}
 		});
+		
+		UUID bibleTemplateId = dc.getBibleTemplateId();
+		if (bibleTemplateId != null) {
+			for (Slide slide : cmbBibleSlideTemplate.getItems()) {
+				if (slide.getId().equals(bibleTemplateId)) {
+					cmbBibleSlideTemplate.setValue(slide);
+					break;
+				}
+			}
+		}
+		
+		UUID songTemplateId = dc.getSongTemplateId();
+		if (songTemplateId != null) {
+			for (Slide slide : cmbSongSlideTemplate.getItems()) {
+				if (slide.getId().equals(songTemplateId)) {
+					cmbSongSlideTemplate.setValue(slide);
+					break;
+				}
+			}
+		}
+		
+		UUID notificationTemplateId = dc.getNotificationTemplateId();
+		if (notificationTemplateId != null) {
+			for (Slide slide : cmbNotificationTemplate.getItems()) {
+				if (slide.getId().equals(notificationTemplateId)) {
+					cmbNotificationTemplate.setValue(slide);
+					break;
+				}
+			}
+		}
 	}
 	
 	private boolean isPlaceholderTransitionOnly(Slide oldSlide, Slide newSlide) {

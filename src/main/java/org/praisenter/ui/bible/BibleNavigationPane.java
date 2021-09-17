@@ -9,6 +9,7 @@ import org.apache.logging.log4j.Logger;
 import org.praisenter.data.PersistableComparator;
 import org.praisenter.data.TextVariant;
 import org.praisenter.data.bible.Bible;
+import org.praisenter.data.bible.BibleConfiguration;
 import org.praisenter.data.bible.BibleReferenceSet;
 import org.praisenter.data.bible.BibleReferenceTextStore;
 import org.praisenter.data.bible.BibleReferenceVerse;
@@ -84,7 +85,7 @@ public final class BibleNavigationPane extends BorderPane {
 	
 	private boolean mutating = false;
 	
-	public BibleNavigationPane(GlobalContext context) {
+	public BibleNavigationPane(GlobalContext context, BibleConfiguration configuration) {
 		this.bibles = FXCollections.observableArrayList();
 		this.primary = new SimpleObjectProperty<ReadOnlyBible>();
 		this.secondary = new SimpleObjectProperty<ReadOnlyBible>();
@@ -117,13 +118,13 @@ public final class BibleNavigationPane extends BorderPane {
 				if (newBook != null) {
 					this.book.set(newBook);
 				}
-				context.getConfiguration().setPrimaryBibleId(nv.getId());
+				configuration.setPrimaryBibleId(nv.getId());
 			}
 		});
 		
 		this.secondary.addListener((obs, ov, nv) -> {
 			if (nv != null) {
-				context.getConfiguration().setSecondaryBibleId(nv.getId());
+				configuration.setSecondaryBibleId(nv.getId());
 			}
 		});
 		
@@ -143,8 +144,8 @@ public final class BibleNavigationPane extends BorderPane {
 			backupBible = bibles.get(0);
 		}
 		
-		UUID primaryId = context.getConfiguration().getPrimaryBibleId();
-		UUID secondaryId = context.getConfiguration().getSecondaryBibleId();
+		UUID primaryId = configuration.getPrimaryBibleId();
+		UUID secondaryId = configuration.getSecondaryBibleId();
 		
 		Bible primaryBible = null;
 		if (primaryId != null) {
@@ -262,7 +263,7 @@ public final class BibleNavigationPane extends BorderPane {
 		Button btnSearch = new Button(Translations.get("search"));
 		btnSearch.setOnAction(e -> {
 			if (this.searchDialog == null) {
-				BibleSearchPane pneSearch = new BibleSearchPane(context);
+				BibleSearchPane pneSearch = new BibleSearchPane(context, configuration);
 				pneSearch.valueProperty().addListener((obs, ov, nv) -> {
 					if (nv != null) {
 						LocatedVerseTriplet triplet = nv.getBible().getTriplet(

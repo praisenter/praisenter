@@ -5,7 +5,6 @@ import org.praisenter.data.bible.ReadOnlyBible;
 import org.praisenter.data.media.MediaType;
 import org.praisenter.data.media.ReadOnlyMedia;
 import org.praisenter.data.slide.ReadOnlySlide;
-import org.praisenter.data.slide.ReadOnlySlideShow;
 import org.praisenter.data.song.ReadOnlySong;
 import org.praisenter.ui.controls.FlowListCell;
 
@@ -51,10 +50,6 @@ final class LibraryListCell extends FlowListCell<Persistable> {
     			return new Image(slide.getThumbnailPath().toUri().toURL().toExternalForm());
     		}, slide.thumbnailPathProperty()));
     		label.textProperty().bind(slide.nameProperty());
-    	} else if (data instanceof ReadOnlySlideShow) {
-    		final ReadOnlySlideShow show = (ReadOnlySlideShow)data;
-    		// TODO we would need to load a stacked version of the first 3 slides in the show
-    		label.textProperty().bind(show.nameProperty());
     	} else if (data instanceof ReadOnlyBible) {
     		final ReadOnlyBible bible = (ReadOnlyBible)data;
     		underlay.getStyleClass().add("dropshadow-underlay");

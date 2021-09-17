@@ -94,7 +94,7 @@ public final class DisplayTarget {
 		display.roleProperty().addListener(this.displayRoleListener);
 		
 		// setup debug mode notification
-		if (context.getConfiguration().isDebugModeEnabled()) {
+		if (context.getWorkspaceConfiguration().isDebugModeEnabled()) {
 			this.container.setBorder(new Border(new BorderStroke(
 					Color.RED, 
 					new BorderStrokeStyle(StrokeType.INSIDE, StrokeLineJoin.MITER, StrokeLineCap.SQUARE, 10, 0, new ArrayList<Double>()), 
@@ -157,6 +157,12 @@ public final class DisplayTarget {
 
 	public void displaySlidePlaceholders(final TextStore data, boolean waitForTransition) {
 		this.slideView.transitionPlaceholders(data.copy(), waitForTransition);
+		
+		this.stage.toFront();
+	}
+	
+	public void displaySlideContent(final TextStore data, boolean waitForTransition) {
+		this.slideView.transitionContent(data.copy(), waitForTransition);
 		
 		this.stage.toFront();
 	}

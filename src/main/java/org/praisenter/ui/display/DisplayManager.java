@@ -52,7 +52,6 @@ public final class DisplayManager {
 	 */
 	public void dispose() {
 		Screen.getScreens().removeListener(this.screenListener);
-		LOGGER.info("Releasing existing displays.");
 		for (DisplayTarget screen : this.targets) {
 			screen.dispose();
 		}
@@ -65,7 +64,7 @@ public final class DisplayManager {
 		int sSize = screens.size();
 		
 		// get the configured displays
-		ObservableList<Display> displays = this.context.getConfiguration().getDisplays();
+		ObservableList<Display> displays = this.context.getWorkspaceConfiguration().getDisplays();
 		int dSize = displays.size();
 		
 		LOGGER.info("Current Screen Assignment: ");
@@ -196,11 +195,11 @@ public final class DisplayManager {
 		Display display = new Display();
 		display.setHeight((int)screen.getBounds().getHeight());
 		display.setId(index);
-		display.setName("SCREEN" + index);
 		display.setRole(role);
 		display.setWidth((int)screen.getBounds().getWidth());
 		display.setX((int)screen.getBounds().getMinX());
 		display.setY((int)screen.getBounds().getMinY());
+		display.setName(display.toString());
 		return display;
 	}
 	

@@ -5,7 +5,6 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -35,7 +34,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
 
-public final class WorkspaceSelectorPane extends VBox {
+final class WorkspaceSelectorPane extends VBox {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
 	private final ObservableList<Path> workspacePaths;

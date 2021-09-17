@@ -4,15 +4,13 @@ import java.util.function.Supplier;
 
 import org.praisenter.ui.translations.Translations;
 
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Labeled;
-import javafx.scene.control.Menu;
-import javafx.scene.control.MenuButton;
-import javafx.scene.control.MenuItem;
 import javafx.scene.control.Separator;
-import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.ToolBar;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.KeyCombination;
@@ -25,41 +23,51 @@ public final class ActionBar extends ToolBar {
 		
 		this.context = context;
 		
-		this.setOrientation(Orientation.VERTICAL);
+		this.setOrientation(Orientation.HORIZONTAL);
 		this.getItems().addAll(
-			this.createNode(Action.NEW),
-			this.createNode(Action.SAVE),
-			this.createNode(Action.SAVE_ALL),
-			this.createNode(Action.UNDO),
-			this.createNode(Action.REDO),
-			this.createNode(Action.COPY),
-			this.createNode(Action.CUT),
-			this.createNode(Action.PASTE),
-			this.createNode(Action.DELETE),
-			this.createNode(Action.SELECT_ALL),
-			this.createNode(Action.SELECT_INVERT),
-			this.createNode(Action.SELECT_NONE),
-			this.createNode(Action.RENAME),
-			this.createNode(Action.RENUMBER),
-			this.createNode(Action.REORDER),
-			this.createNode(Action.SLIDE_COMPONENT_MOVE_UP),
-			this.createNode(Action.SLIDE_COMPONENT_MOVE_DOWN),
-			this.createNode(Action.SLIDE_COMPONENT_MOVE_FRONT),
-			this.createNode(Action.SLIDE_COMPONENT_MOVE_BACK),
-			this.createNode(Action.IMPORT),
-			this.createNode(Action.EXPORT)
+			this.createButton(Action.NEW_BIBLE),
+			this.createButton(Action.NEW_SONG),
+			this.createButton(Action.NEW_SLIDE),
+			this.createSeparatorForGroup(Action.NEW_BOOK, Action.NEW_CHAPTER, Action.NEW_VERSE),
+			this.createButton(Action.NEW_BOOK),
+			this.createButton(Action.NEW_CHAPTER),
+			this.createButton(Action.NEW_VERSE),
+			this.createSeparatorForGroup(Action.NEW_LYRICS, Action.NEW_SECTION, Action.NEW_AUTHOR, Action.NEW_SONGBOOK),
+			this.createButton(Action.NEW_LYRICS),
+			this.createButton(Action.NEW_SECTION),
+			this.createButton(Action.NEW_AUTHOR),
+			this.createButton(Action.NEW_SONGBOOK),
+			this.createSeparatorForGroup(Action.NEW_SLIDE_TEXT_COMPONENT, Action.NEW_SLIDE_PLACEHOLDER_COMPONENT, Action.NEW_SLIDE_DATETIME_COMPONENT, Action.NEW_SLIDE_COUNTDOWN_COMPONENT, Action.NEW_SLIDE_MEDIA_COMPONENT),
+			this.createButton(Action.NEW_SLIDE_TEXT_COMPONENT),
+			this.createButton(Action.NEW_SLIDE_PLACEHOLDER_COMPONENT),
+			this.createButton(Action.NEW_SLIDE_DATETIME_COMPONENT),
+			this.createButton(Action.NEW_SLIDE_COUNTDOWN_COMPONENT),
+			this.createButton(Action.NEW_SLIDE_MEDIA_COMPONENT),
+			this.createSeparatorForGroup(Action.SAVE, Action.SAVE_ALL),
+			this.createButton(Action.SAVE),
+			this.createButton(Action.SAVE_ALL),
+			// TODO bulk edit button??
+			this.createSeparatorForGroup(Action.UNDO, Action.REDO),
+			this.createButton(Action.UNDO),
+			this.createButton(Action.REDO),
+			this.createSeparatorForGroup(Action.COPY, Action.CUT, Action.PASTE, Action.DELETE),
+			this.createButton(Action.COPY),
+			this.createButton(Action.CUT),
+			this.createButton(Action.PASTE),
+			this.createButton(Action.DELETE),
+			this.createSeparatorForGroup(Action.SELECT_ALL, Action.SELECT_INVERT, Action.SELECT_NONE),
+			this.createButton(Action.SELECT_ALL),
+			this.createButton(Action.SELECT_INVERT),
+			this.createButton(Action.SELECT_NONE),
+			this.createSeparatorForGroup(Action.RENUMBER, Action.REORDER),
+			this.createButton(Action.RENUMBER),
+			this.createButton(Action.REORDER),
+			this.createSeparatorForGroup(Action.SLIDE_COMPONENT_MOVE_UP, Action.SLIDE_COMPONENT_MOVE_DOWN, Action.SLIDE_COMPONENT_MOVE_FRONT, Action.SLIDE_COMPONENT_MOVE_BACK),
+			this.createButton(Action.SLIDE_COMPONENT_MOVE_UP),
+			this.createButton(Action.SLIDE_COMPONENT_MOVE_DOWN),
+			this.createButton(Action.SLIDE_COMPONENT_MOVE_FRONT),
+			this.createButton(Action.SLIDE_COMPONENT_MOVE_BACK)
 		);
-	}
-	
-	private Node createNode(Action action) {
-		if (action == Action.DIVIDER) {
-			return new Separator(Orientation.HORIZONTAL);
-		}
-		if (action.getActions().length == 0) {
-			return this.createButton(action);
-		} else {
-			return this.createMenuButton(action);
-		}
 	}
 	
 	private Button createButton(Action action) {
@@ -69,13 +77,6 @@ public final class ActionBar extends ToolBar {
 		return button;
 	}
 
-	private MenuButton createMenuButton(Action action) {
-		MenuItem[] items = this.createMenuItemTree(action);
-		MenuButton button = new MenuButton("", null, items);
-		this.setButtonProperties(button, action);
-		return button;
-	}
-	
 	private void setButtonProperties(Labeled button, Action action) {
 		button.setUserData(action);
 		button.disableProperty().bind(this.context.getActionEnabledProperty(action).not());
@@ -88,6 +89,8 @@ public final class ActionBar extends ToolBar {
 		if (graphicSupplier != null) {
 			Node graphic = graphicSupplier.get();
 			button.setGraphic(graphic);
+		} else {
+			button.setText(Translations.get(action.getMessageKey()));
 		}
 		
 		KeyCombination accelerator = action.getAccelerator();
@@ -106,56 +109,24 @@ public final class ActionBar extends ToolBar {
 		button.setMaxWidth(Double.MAX_VALUE);
 	}
 	
-	private MenuItem[] createMenuItemTree(Action action) {
-		MenuItem[] items = new MenuItem[action.getActions().length];
-		int i = 0;
-		for (Action sub : action.getActions()) {
-			items[i++] = this.createMenuItem(sub);
-		}
-		return items;
-	}
-	
-	private MenuItem createMenuItem(Action action) {
-		if (action == Action.DIVIDER) {
-			return new SeparatorMenuItem();
-		}
-		int n = action.getActions().length;
-		if (n > 0) {
-			MenuItem[] items = this.createMenuItemTree(action);
-			Menu menu = new Menu("", null, items);
-			this.setMenuItemProperties(menu, action);
-			return menu;
-		} else {
-			MenuItem item = new MenuItem();
-			item.setOnAction(e -> this.executeAction(action));
-			this.setMenuItemProperties(item, action);
-			return item;
-		}
-	}
-	
-	private void setMenuItemProperties(MenuItem item, Action action) {
-		item.setUserData(action);
-		item.disableProperty().bind(this.context.getActionEnabledProperty(action).not());
-		item.visibleProperty().bind(this.context.getActionVisibleProperty(action));
+	private Separator createSeparatorForGroup(Action... actions) {
+		Separator sep = new Separator();
 		
-		Supplier<Node> graphicSupplier = action.getGraphicSupplier();
-		if (graphicSupplier != null) {
-			Node graphic = graphicSupplier.get();
-			item.setGraphic(graphic);
+		ReadOnlyBooleanProperty[] dependents = new ReadOnlyBooleanProperty[actions.length];
+		for (int i = 0; i < actions.length; i++) {
+			dependents[i] = this.context.getActionVisibleProperty(actions[i]);
 		}
 		
-		KeyCombination accelerator = action.getAccelerator();
-		if (accelerator != null) {
-			this.context.getScene().getAccelerators().put(accelerator, () -> {
-				this.executeAction(action);
-			});
-		}
+		sep.visibleProperty().bind(Bindings.createBooleanBinding(() -> {
+			boolean visible = false;
+			for (ReadOnlyBooleanProperty prop : dependents) {
+				visible |= prop.get();
+			}
+			return visible;
+		}, dependents));
+		sep.managedProperty().bind(sep.visibleProperty());
 		
-		String messageKey = action.getMessageKey();
-		if (messageKey != null) {
-			String text = Translations.get(messageKey);
-			item.setText(text);
-		}
+		return sep;
 	}
 	
 	private void executeAction(Action action) {
