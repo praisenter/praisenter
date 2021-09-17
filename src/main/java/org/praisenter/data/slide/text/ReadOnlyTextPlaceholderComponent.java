@@ -7,14 +7,17 @@ import org.praisenter.data.TextVariant;
 import org.praisenter.data.slide.ReadOnlySlideComponent;
 import org.praisenter.data.slide.ReadOnlySlideRegion;
 
+import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 
 public interface ReadOnlyTextPlaceholderComponent extends ReadOnlyTextComponent, ReadOnlySlideComponent, ReadOnlySlideRegion, Copyable, Identifiable {
 	public TextType getPlaceholderType();
 	public TextVariant getPlaceholderVariant();
+	public boolean isTextLocked();
 	
 	public ReadOnlyObjectProperty<TextType> placeholderTypeProperty();
 	public ReadOnlyObjectProperty<TextVariant> placeholderVariantProperty();
+	public ReadOnlyBooleanProperty textLockedProperty();
 	
 	public ReadOnlyTextComponent toTextComponent();
 }

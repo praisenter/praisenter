@@ -12,13 +12,13 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.praisenter.Version;
 import org.praisenter.async.AsyncHelper;
 import org.praisenter.async.BackgroundTask;
 import org.praisenter.async.ReadOnlyBackgroundTask;
@@ -29,7 +29,6 @@ import org.praisenter.data.bible.Chapter;
 import org.praisenter.data.bible.Verse;
 import org.praisenter.data.media.Media;
 import org.praisenter.data.slide.Slide;
-import org.praisenter.data.slide.SlideShow;
 import org.praisenter.data.slide.graphics.SlideColor;
 import org.praisenter.data.song.Author;
 import org.praisenter.data.song.Lyrics;
@@ -39,7 +38,6 @@ import org.praisenter.data.workspace.DisplayRole;
 import org.praisenter.data.workspace.Resolution;
 import org.praisenter.data.workspace.WorkspaceConfiguration;
 import org.praisenter.data.workspace.WorkspaceManager;
-import org.praisenter.ui.controls.Alerts;
 import org.praisenter.ui.display.DisplayManager;
 import org.praisenter.ui.display.DisplayTarget;
 import org.praisenter.ui.document.DocumentContext;
@@ -47,7 +45,6 @@ import org.praisenter.ui.events.ActionStateChangedEvent;
 import org.praisenter.ui.translations.Translations;
 
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
@@ -69,12 +66,10 @@ import javafx.event.EventHandler;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
 import javafx.scene.control.IndexRange;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.DataFormat;
-import javafx.stage.FileChooser;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 
@@ -111,6 +106,10 @@ public final class GlobalContext {
 	private final BooleanProperty backgroundTaskExecuting;
 	private final BooleanProperty backgroundTaskFailed;
 	private final StringProperty backgroundTaskName;
+	
+	// other
+	
+	private final ObjectProperty<Version> latestVersion;
 
 	// listeners (tracking them here so we can clean up)
 	
@@ -163,6 +162,8 @@ public final class GlobalContext {
 		this.backgroundTaskExecuting = new SimpleBooleanProperty();
 		this.backgroundTaskFailed = new SimpleBooleanProperty();
 		this.backgroundTaskName = new SimpleStringProperty();
+		
+		this.latestVersion = new SimpleObjectProperty<Version>(Version.VERSION);
 		
 		// bindings
 		
@@ -358,12 +359,17 @@ public final class GlobalContext {
 	private boolean isEnabled(Action action) {
 		// always enabled actions
 		switch (action) {
-			case NEW:
 			case NEW_BIBLE:
 			case NEW_SLIDE:
-			case NEW_SLIDE_SHOW:
 			case NEW_SONG:
 			case IMPORT:
+			case REINDEX:
+			case RESTART:
+			case EXIT:
+			case APPLICATION_LOGS:
+			case WORKSPACE_LOGS:
+			case CHECK_FOR_UPDATE:
+			case ABOUT:
 				return true;
 			default:
 				break;
@@ -437,8 +443,6 @@ public final class GlobalContext {
 			case UNDO:
 			case REDO:
 				return this.openDocuments.size() > 0;
-			case CUT:
-				return ap != null && ap.isActionEnabled(action);
 			case BULK_EDIT:
 			case RENUMBER:
 			case REORDER:
@@ -472,15 +476,10 @@ public final class GlobalContext {
 	public CompletableFuture<Void> executeAction(Action action) {
 		// handle global actions (i.e. no context related to the action)
 		switch (action) {
-			case IMPORT:
-				return this.promptImport();
 			case NEW_BIBLE:
 				return this.createNewBibleAndOpen();
 			case NEW_SLIDE:
 				return this.createNewSlideAndOpen();
-			case NEW_SLIDE_SHOW:
-				// TODO implement
-				break;
 			case NEW_SONG:
 				return this.createNewSongAndOpen();
 			default:
@@ -493,6 +492,8 @@ public final class GlobalContext {
 				return this.save();
 			case SAVE_ALL:
 				return this.saveAll();
+			case REINDEX:
+				return this.reindex();
 			case REDO:
 				return this.redo();
 			case UNDO:
@@ -525,7 +526,7 @@ public final class GlobalContext {
 		// when we're done, always update the action states
 		return future.thenApply((o) -> {
 			AsyncHelper.onJavaFXThread(() -> {
-				this.onActionStateChanged("ACTION_EXECUTED");
+				this.onActionStateChanged("ACTION_EXECUTED=" + action);
 			});
 			return null;
 		});
@@ -606,48 +607,6 @@ public final class GlobalContext {
 		return CompletableFuture.completedFuture(null);
 	}
 	
-	// TODO i don't really like methods that show UI elements in this class
-	
-	private CompletableFuture<Void> save() {
-		DocumentContext<?> ctx = this.currentDocument.get();
-		if (ctx != null) {
-			return this.save(ctx).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
-				this.onActionStateChanged("SAVE_COMPLETE");
-			})).exceptionally(t -> {
-				Platform.runLater(() -> {
-					Alert alert = Alerts.exception(this.stage, t);
-					alert.show();
-				});
-				return null;
-			});
-		} else {
-			return CompletableFuture.completedFuture(null);
-		}
-	}
-	
-	private CompletableFuture<Void> saveAll() {
-		List<DocumentContext<?>> ctxs = new ArrayList<>(this.openDocuments);
-		
-		CompletableFuture<?>[] futures = ctxs.stream()
-			.map(ctx -> this.save(ctx))
-			.collect(Collectors.toList())
-			.toArray(new CompletableFuture[0]);
-		
-		return CompletableFuture.allOf(futures).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
-			this.onActionStateChanged("SAVE_COMPLETE");
-		})).exceptionally(t -> {
-			// get the root exceptions from the futures
-			List<Throwable> exceptions = AsyncHelper.getExceptions(futures);
-			
-			Platform.runLater(() -> {
-				Alert alert = Alerts.exception(this.stage, null, null, null, exceptions);
-				alert.show();
-			});
-			
-			return null;
-		});
-	}
-	
 	public CompletableFuture<Void> save(DocumentContext<?> context) {
 		// make sure there are changes to save first
 		if (!context.hasUnsavedChanges()) {
@@ -688,6 +647,8 @@ public final class GlobalContext {
 				})).handle((ob, t) -> {
 					return t;
 				}).thenCompose(AsyncHelper.onJavaFXThreadAndWait((t) -> {
+					this.onActionStateChanged("SAVE_COMPLETE");
+					
 					if (t != null) {
 						LOGGER.error("Failed to save '" + copy.getName() + "'", t);
 						context.getUndoManager().clearPosition(position);
@@ -703,16 +664,47 @@ public final class GlobalContext {
 		}
 		return CompletableFuture.completedFuture(null);
 	}
+
+	public CompletableFuture<Void> reindex() {
+		BackgroundTask task = new BackgroundTask();
+		task.setName(Translations.get("task.reindex"));
+		task.setMessage(Translations.get("task.reindex"));
+		this.addBackgroundTask(task);
+		
+		return this.workspaceManager.reindex().thenRun(() -> {
+			task.setProgress(1);
+		}).exceptionally((ex) -> {
+			LOGGER.error("Failed to reindex the lucene search index: " + ex.getMessage(), ex);
+			task.setException(ex);
+			if (ex instanceof CompletionException) throw (CompletionException)ex;
+			throw new CompletionException(ex);
+		});
+	}
 	
-	private CompletableFuture<Void> promptImport() {
-		FileChooser fc = new FileChooser();
-		fc.setTitle(Translations.get("action.import"));
-		List<File> files = fc.showOpenMultipleDialog(this.stage);
-		return this.importFiles(files);
+	public CompletableFuture<Void> save() {
+		DocumentContext<?> ctx = this.currentDocument.get();
+		if (ctx != null) {
+			return this.save(ctx);
+		}
+		
+		return CompletableFuture.completedFuture(null);
+	}
+	
+	public CompletableFuture<Void> saveAll() {
+		List<DocumentContext<?>> ctxs = new ArrayList<>(this.openDocuments);
+		
+		CompletableFuture<?>[] futures = ctxs.stream()
+			.map(ctx -> this.save(ctx))
+			.collect(Collectors.toList())
+			.toArray(new CompletableFuture[0]);
+		
+		return CompletableFuture.allOf(futures);
 	}
 	
 	public CompletableFuture<Void> importFiles(List<File> files) {
-		if (files == null || files.isEmpty()) return CompletableFuture.completedFuture(null);
+		if (files == null || files.isEmpty()) {
+			return CompletableFuture.completedFuture(null);
+		}
 		
 		int size = files.size();
 		String btName = Translations.get("action.import.task.multiple", size);
@@ -723,12 +715,13 @@ public final class GlobalContext {
 		final BackgroundTask bt = new BackgroundTask();
 		bt.setName(btName);
 		bt.setMessage(btName);
+		this.addBackgroundTask(bt);
 		
 		List<CompletableFuture<Void>> futures = new ArrayList<>();
 		
 		for (File file : files) {
 			LOGGER.info("Beginning import of '{}'", file.toPath().toAbsolutePath().toString());
-			CompletableFuture<Void> future = this.workspaceManager.importData(file.toPath(), Bible.class, Slide.class, SlideShow.class, Media.class, Song.class).exceptionally(t -> {
+			CompletableFuture<Void> future = this.workspaceManager.importData(file.toPath(), Bible.class, Slide.class, Media.class, Song.class).exceptionally(t -> {
 				LOGGER.error("Failed to import file '" + file.toPath().toAbsolutePath().toString() + "' due to: " + t.getMessage(), t);
 				if (t instanceof CompletionException) throw (CompletionException)t; 
 				throw new CompletionException(t);
@@ -736,22 +729,13 @@ public final class GlobalContext {
 			futures.add(future);
 		}
 		
-		this.addBackgroundTask(bt);
-		
 		CompletableFuture<?>[] farray = futures.toArray(new CompletableFuture[0]);
 		return CompletableFuture.allOf(farray).thenRun(() -> {
 			bt.setProgress(1.0);
-		}).exceptionally(t -> {
-			List<Throwable> exceptions = AsyncHelper.getExceptions(farray);
-			
-			Platform.runLater(() -> {
-				Alert alert = Alerts.exception(this.stage, null, null, null, exceptions);
-				alert.show();
-			});
-
-			bt.setException(exceptions.get(0));
-			
-			return null;
+		}).exceptionally((ex) -> {
+			bt.setException(ex);
+			if (ex instanceof CompletionException) throw (CompletionException)ex;
+			throw new CompletionException(ex);
 		});
 	}
 	
@@ -811,7 +795,7 @@ public final class GlobalContext {
 		return this.workspaceManager;
 	}
 	
-	public WorkspaceConfiguration getConfiguration() {
+	public WorkspaceConfiguration getWorkspaceConfiguration() {
 		return this.workspaceManager.getWorkspaceConfiguration();
 	}
 	
@@ -1019,5 +1003,17 @@ public final class GlobalContext {
 	 */
 	public void clearCompletedBackgroundTasks() {
 		this.backgroundTasks.removeIf(t -> t.isComplete());
+	}
+	
+	public Version getLatestVersion() {
+		return this.latestVersion.get();
+	}
+	
+	public void setLatestVersion(Version version) {
+		this.latestVersion.set(version);
+	}
+	
+	public ObjectProperty<Version> latestVersionProperty() {
+		return this.latestVersion;
 	}
 }

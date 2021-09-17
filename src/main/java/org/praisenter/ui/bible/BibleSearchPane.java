@@ -13,6 +13,7 @@ import org.apache.lucene.document.Document;
 import org.praisenter.async.AsyncHelper;
 import org.praisenter.data.PersistableComparator;
 import org.praisenter.data.bible.Bible;
+import org.praisenter.data.bible.BibleConfiguration;
 import org.praisenter.data.bible.BibleTextSearchCriteria;
 import org.praisenter.data.bible.BibleSearchResult;
 import org.praisenter.data.bible.LocatedVerse;
@@ -20,6 +21,7 @@ import org.praisenter.data.bible.ReadOnlyBook;
 import org.praisenter.data.search.SearchResult;
 import org.praisenter.data.search.SearchTextMatch;
 import org.praisenter.data.search.SearchType;
+import org.praisenter.data.song.Song;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.Option;
 import org.praisenter.ui.controls.Alerts;
@@ -41,6 +43,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.ListChangeListener.Change;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -86,7 +89,7 @@ public final class BibleSearchPane extends BorderPane {
 	private final ObjectProperty<BibleSearchResult> value;
 	private final BooleanProperty append;
 	
-	public BibleSearchPane(GlobalContext context) {
+	public BibleSearchPane(GlobalContext context, BibleConfiguration configuration) {
 		this.context = context;
 		
 		this.bibles = FXCollections.observableArrayList();
@@ -127,7 +130,7 @@ public final class BibleSearchPane extends BorderPane {
 			backupBible = bibles.get(0);
 		}
 		
-		UUID primaryId = context.getConfiguration().getPrimaryBibleId();
+		UUID primaryId = configuration.getPrimaryBibleId();
 		
 		Bible primaryBible = null;
 		if (primaryId != null) {
@@ -341,6 +344,11 @@ public final class BibleSearchPane extends BorderPane {
 				});
 			}
 		};
+		
+		// update the search results when things are changed, removed, added, etc.
+		context.getWorkspaceManager().getItemsUnmodifiable(Bible.class).addListener((Change<? extends Bible> c) -> {
+			handler.handle(null);
+		});
 		
 		txtSearch.setOnAction(handler);
 		btnSearch.setOnAction(handler);

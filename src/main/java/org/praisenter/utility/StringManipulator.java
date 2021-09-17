@@ -12,7 +12,7 @@ public final class StringManipulator {
 	 * @return boolean
 	 */
 	public static boolean isNullOrEmpty(String str) {
-		return str == null || str.trim().length() <= 0;
+		return str == null || str.isBlank();
 	}
 	
 	/**

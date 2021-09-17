@@ -93,6 +93,39 @@ public final class Translations {
 		return Collections.unmodifiableList(list);
 	}
 	
+	/**
+	 * Returns the Locale that matches as close to the given locale or returns the default.
+	 * @param locale the locale to find
+	 * @param locales the set of available locales
+	 * @return Locale
+	 */
+	public static Locale getClosestMatch(Locale locale, List<Locale> locales) {
+		// first see if there's an exact match
+		for (Locale l : locales) {
+			if (l.equals(locale)) {
+				return l;
+			}
+		}
+		
+		// next see if there's language/country match
+		for (Locale l : locales) {
+			if (l.getCountry().equals(locale.getCountry()) &&
+				l.getLanguage().equals(locale.getLanguage())) {
+				return l;
+			}
+		}
+		
+		// finally try to find one that just matches the language
+		for (Locale l : locales) {
+			if (l.getLanguage().equals(locale.getLanguage())) {
+				return l;
+			}
+		}
+		
+		// if we still haven't found a match then return the default
+		return Locale.ENGLISH;
+	}
+	
 	private Translations() {}
 	
 	/**

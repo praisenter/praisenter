@@ -51,6 +51,9 @@ public final class Glyphs {
 	public static final Glyph SELECT_INVERT = FONT_AWESOME.create(FontAwesome.Glyph.DOT_CIRCLE_ALT);
 	
 	public static final Glyph NEW = FONT_AWESOME.create(FontAwesome.Glyph.PLUS);
+	public static final Glyph NEW_SLIDE = FONT_AWESOME.create(FontAwesome.Glyph.DESKTOP);
+	public static final Glyph NEW_BIBLE = OPEN_ICONIC.create(OpenIconic.Glyph.BOOK);
+	public static final Glyph NEW_SONG = FONT_AWESOME.create(FontAwesome.Glyph.MUSIC);
 	public static final Glyph NEW_BOOK = FONT_AWESOME.create(FontAwesome.Glyph.BOOK);
 	public static final Glyph NEW_CHAPTER = FONT_AWESOME.create(FontAwesome.Glyph.BOOKMARK);
 	public static final Glyph NEW_VERSE = FONT_AWESOME.create(FontAwesome.Glyph.BARS);
@@ -58,8 +61,15 @@ public final class Glyphs {
 	public static final Glyph NEW_SONGBOOK = FONT_AWESOME.create(FontAwesome.Glyph.BOOKMARK);
 	public static final Glyph NEW_LYRICS = OPEN_ICONIC.create(OpenIconic.Glyph.MUSICAL_NOTE);
 	public static final Glyph NEW_SECTION = OPEN_ICONIC.create(OpenIconic.Glyph.TEXT);
+	public static final Glyph NEW_MEDIA_COMPONENT = FONT_AWESOME.create(FontAwesome.Glyph.IMAGE);
+	public static final Glyph NEW_COUNTDOWN_COMPONENT = FONT_AWESOME.create(FontAwesome.Glyph.HISTORY);
+	public static final Glyph NEW_DATETIME_COMPONENT = FONT_AWESOME.create(FontAwesome.Glyph.CALENDAR);
+	public static final Glyph NEW_PLACEHOLDER_COMPONENT = FONT_AWESOME.create(FontAwesome.Glyph.TERMINAL);
+	public static final Glyph NEW_TEXT_COMPONENT = OPEN_ICONIC.create(OpenIconic.Glyph.TEXT);
 	
 	public static final Glyph ASTERISK = FONT_AWESOME.create(FontAwesome.Glyph.ASTERISK);
+	
+	public static final Glyph CHECK_FOR_UPDATE = FONT_AWESOME.create(FontAwesome.Glyph.REFRESH);
 	
 	// menu
 	
@@ -99,7 +109,11 @@ public final class Glyphs {
 //	/** Menu redo icon */
 //	public static final Glyph MENU_REDO = OPEN_ICONIC.create(OpenIconic.Glyph.ACTION_REDO);
 	
-	public static final Glyph MENU_PREFERENCES = FONT_AWESOME.create(FontAwesome.Glyph.GEAR);
+//	public static final Glyph TAB_SETTINGS = FONT_AWESOME.create(FontAwesome.Glyph.GEAR);
+//	
+//	public static final Glyph TAB_PRESENT = OPEN_ICONIC.create(OpenIconic.Glyph.MONITOR);
+//	public static final Glyph TAB_LIBRARY = OPEN_ICONIC.create(OpenIconic.Glyph.GRID_THREE_UP);
+//	public static final Glyph TAB_TASKS = FONT_AWESOME.create(FontAwesome.Glyph.LIST);
 	
 //	/** Menu import icon (alias for {@link #IMPORT}) */
 //	public static final Glyph MENU_IMPORT = IMPORT;

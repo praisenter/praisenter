@@ -40,7 +40,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.data.media.tools.MediaTools;
 import org.praisenter.data.media.tools.TranscodeSettings;
-import org.praisenter.data.media.MediaImportException;
 import org.praisenter.utility.ImageManipulator;
 import org.praisenter.utility.StringManipulator;
 

@@ -60,6 +60,7 @@ public final class SongNavigationPane extends BorderPane {
 		this.song.addListener((obs, ov, nv) -> {
 			if (ov != null) {
 				Bindings.unbindContent(this.lyrics, ov.getLyricsUnmodifiable());
+				this.lyrics.clear();
 			}
 			if (nv != null) {
 				Bindings.bindContent(this.lyrics, nv.getLyricsUnmodifiable());
@@ -69,16 +70,17 @@ public final class SongNavigationPane extends BorderPane {
 		ComboBox<ReadOnlyLyrics> cmbPrimaryLyrics = new ComboBox<>();
 		Bindings.bindContent(cmbPrimaryLyrics.getItems(), this.lyrics);
 		
-		cmbPrimaryLyrics.getItems().addListener((Change<? extends ReadOnlyLyrics> c) -> {
-			if (c.next()) {
-				Platform.runLater(() -> {
+		this.lyrics.addListener((Change<? extends ReadOnlyLyrics> c) -> {
+			Platform.runLater(() -> {
+				if (cmbPrimaryLyrics.getItems().size() > 0) {
 					cmbPrimaryLyrics.setValue(cmbPrimaryLyrics.getItems().get(0));
-				});
-			}
+				}
+			});
 		});
 		cmbPrimaryLyrics.valueProperty().addListener((obs, ov, nv) -> {
 			if (ov != null) {
 				Bindings.unbindContent(this.sections, ov.getSectionsUnmodifiable());
+				this.sections.clear();
 			}
 			if (nv != null) {
 				Bindings.bindContent(this.sections, nv.getSectionsUnmodifiable());
@@ -148,7 +150,6 @@ public final class SongNavigationPane extends BorderPane {
 				this.searchDialog.setHeight(450);
 				this.searchDialog.setResizable(true);
 				this.searchDialog.setScene(WindowHelper.createSceneWithOwnerCss(pneSearch, owner));
-				this.searchDialog.setOnCloseRequest(evt -> pneSearch.clear());
 			}
 			
 			this.searchDialog.show();

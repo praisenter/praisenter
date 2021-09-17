@@ -267,6 +267,10 @@ public final class SongEditor extends BorderPane implements DocumentEditor<Song>
 				return ctx.isSingleTypeSelected() && selectedType != Song.class && containerType == null;
 			case PASTE:
 				return (selectedType == Song.class && Clipboard.getSystemClipboard().hasContent(LYRICS_CLIPBOARD_DATA)) ||
+					   (selectedType == Lyrics.class && Clipboard.getSystemClipboard().hasContent(LYRICS_CLIPBOARD_DATA)) ||
+					   (selectedType == Section.class && Clipboard.getSystemClipboard().hasContent(SECTION_CLIPBOARD_DATA)) ||
+					   (selectedType == Author.class && Clipboard.getSystemClipboard().hasContent(AUTHOR_CLIPBOARD_DATA)) ||
+					   (selectedType == SongBook.class && Clipboard.getSystemClipboard().hasContent(SONGBOOK_CLIPBOARD_DATA)) ||
 					   (selectedType == Lyrics.class && (
 							   Clipboard.getSystemClipboard().hasContent(SONGBOOK_CLIPBOARD_DATA) || 
 							   Clipboard.getSystemClipboard().hasContent(AUTHOR_CLIPBOARD_DATA) ||
@@ -277,13 +281,13 @@ public final class SongEditor extends BorderPane implements DocumentEditor<Song>
 			case DELETE:
 				return ctx.getSelectedCount() > 0 && selectedType != Song.class && containerType == null;
 			case NEW_LYRICS:
-				return ctx.getSelectedCount() == 1 && selectedType == Song.class;
+				return ctx.getSelectedCount() == 1 && (selectedType == Song.class || selectedType == Lyrics.class);
 			case NEW_AUTHOR:
-				return ctx.getSelectedCount() == 1 && (selectedType == Lyrics.class || (containerType == Author.class));
+				return ctx.getSelectedCount() == 1 && (selectedType == Lyrics.class || selectedType == Author.class || containerType == Author.class);
 			case NEW_SECTION:
-				return ctx.getSelectedCount() == 1 && (selectedType == Lyrics.class || (containerType == Section.class));
+				return ctx.getSelectedCount() == 1 && (selectedType == Lyrics.class || selectedType == Section.class || (containerType == Section.class));
 			case NEW_SONGBOOK:
-				return ctx.getSelectedCount() == 1 && (selectedType == Lyrics.class || (containerType == SongBook.class));
+				return ctx.getSelectedCount() == 1 && (selectedType == Lyrics.class || selectedType == SongBook.class || (containerType == SongBook.class));
 			case REDO:
 				return ctx.getUndoManager().isRedoAvailable();
 			case UNDO:
@@ -405,13 +409,8 @@ public final class SongEditor extends BorderPane implements DocumentEditor<Song>
 	}
 	
 	private CompletableFuture<Void> create(Action action) {
-		DocumentContext<Song> ctx = this.document;
-		final Object selected = ctx.getSelectedItem();
-		Class<?> selectedType = ctx.getSelectedType();
-		Class<?> containerType = null;
-		if (selected != null && selectedType == Container.class) {
-			containerType = ((Container) selected).getType();
-		}
+		TreeItem<Object> item = this.treeView.getSelectionModel().getSelectedItem();
+		Lyrics lyrics = this.findClosestLyrics(item);
 		
 		switch (action) {
 			case NEW_LYRICS:
@@ -424,36 +423,35 @@ public final class SongEditor extends BorderPane implements DocumentEditor<Song>
 				this.song.getLyrics().add(newLyrics);
 				break;
 			case NEW_AUTHOR:
-				if (this.document.getSelectedCount() == 1 && (selectedType == Lyrics.class || containerType == Author.class)) {
-					Object data = containerType == Author.class ? ((SongTreeItem) this.treeView.getSelectionModel().getSelectedItem().getParent()).getValue() : selected;
-					if (data != null && data instanceof Lyrics) {
-						Lyrics lyrics = (Lyrics)data;
-						lyrics.getAuthors().add(new Author(System.getProperty("user.name"), Author.TYPE_LYRICS));
-					}
+				if (this.document.getSelectedCount() == 1 && lyrics != null) {
+					lyrics.getAuthors().add(new Author(System.getProperty("user.name"), Author.TYPE_LYRICS));
 				}
 				break;
 			case NEW_SONGBOOK:
-				if (this.document.getSelectedCount() == 1 && (selectedType == Lyrics.class || containerType == SongBook.class)) {
-					Object data = containerType == SongBook.class ? ((SongTreeItem) this.treeView.getSelectionModel().getSelectedItem().getParent()).getValue() : selected;
-					if (data != null && data instanceof Lyrics) {
-						Lyrics lyrics = (Lyrics)data;
-						lyrics.getSongBooks().add(new SongBook());
-					}
+				if (this.document.getSelectedCount() == 1 && lyrics != null) {
+					lyrics.getSongBooks().add(new SongBook());
 				}
 				break;
 			case NEW_SECTION:
-				if (this.document.getSelectedCount() == 1 && (selectedType == Lyrics.class || containerType == Section.class)) {
-					Object data = containerType == Section.class ? ((SongTreeItem) this.treeView.getSelectionModel().getSelectedItem().getParent()).getValue() : selected;
-					if (data != null && data instanceof Lyrics) {
-						Lyrics lyrics = (Lyrics)data;
-						lyrics.getSections().add(new Section(Translations.get("song.lyrics.section.name.default"), Translations.get("song.lyrics.section.text.default")));
-					}
+				if (this.document.getSelectedCount() == 1 && lyrics != null) {
+					lyrics.getSections().add(new Section(Translations.get("song.lyrics.section.name.default"), Translations.get("song.lyrics.section.text.default")));
 				}
 				break;
 			default:
 				break;
 		}
 		return CompletableFuture.completedFuture(null);
+	}
+	
+	private Lyrics findClosestLyrics(TreeItem<Object> item) {
+		if (item == null) return null;
+		
+		Object value = item.getValue();
+		if (value != null && value instanceof Lyrics) {
+			return (Lyrics)value;
+		}
+		
+		return findClosestLyrics(item.getParent());
 	}
 	
 	private ClipboardContent getClipboardContentForSelection(boolean serializeData) throws Exception {
@@ -529,33 +527,23 @@ public final class SongEditor extends BorderPane implements DocumentEditor<Song>
 			TreeItem<Object> selected = this.treeView.getSelectionModel().getSelectedItem();
 			final Object value = selected.getValue();
 			Class<?> selectedType = value.getClass();
-			Class<?> containerType = null;
-			if (selectedType == Container.class) {
-				containerType = ((Container) value).getType();
-			}
+			
+			TreeItem<Object> item = this.treeView.getSelectionModel().getSelectedItem();
+			Lyrics lyrics = this.findClosestLyrics(item);
 			
 			try {
-				if (selectedType == Song.class && clipboard.hasContent(LYRICS_CLIPBOARD_DATA)) {
-					Lyrics[] lyrics = JsonIO.read((String)clipboard.getContent(LYRICS_CLIPBOARD_DATA), Lyrics[].class);
-					this.song.getLyrics().addAll(lyrics);
-				} else if ((selectedType == Lyrics.class || containerType == Author.class) && clipboard.hasContent(AUTHOR_CLIPBOARD_DATA)) {
+				if ((selectedType == Song.class || selectedType == Lyrics.class) && clipboard.hasContent(LYRICS_CLIPBOARD_DATA)) {
+					Lyrics[] newLyrics = JsonIO.read((String)clipboard.getContent(LYRICS_CLIPBOARD_DATA), Lyrics[].class);
+					this.song.getLyrics().addAll(newLyrics);
+				} else if (lyrics != null && clipboard.hasContent(AUTHOR_CLIPBOARD_DATA)) {
 					Author[] authors = JsonIO.read((String)clipboard.getContent(AUTHOR_CLIPBOARD_DATA), Author[].class);
-					Object data = containerType != null ? selected.getParent().getValue() : value;
-					if (data instanceof Lyrics) {
-						((Lyrics) data).getAuthors().addAll(authors);
-					}
-				} else if ((selectedType == Lyrics.class || containerType == SongBook.class) && clipboard.hasContent(SONGBOOK_CLIPBOARD_DATA)) {
+					lyrics.getAuthors().addAll(authors);
+				} else if (lyrics != null && clipboard.hasContent(SONGBOOK_CLIPBOARD_DATA)) {
 					SongBook[] songbooks = JsonIO.read((String)clipboard.getContent(SONGBOOK_CLIPBOARD_DATA), SongBook[].class);
-					Object data = containerType != null ? selected.getParent().getValue() : value;
-					if (data instanceof Lyrics) {
-						((Lyrics) data).getSongBooks().addAll(songbooks);
-					}
-				} else if ((selectedType == Lyrics.class || containerType == Section.class) && clipboard.hasContent(SECTION_CLIPBOARD_DATA)) {
+					lyrics.getSongBooks().addAll(songbooks);
+				} else if (lyrics != null && clipboard.hasContent(SECTION_CLIPBOARD_DATA)) {
 					Section[] sections = JsonIO.read((String)clipboard.getContent(SECTION_CLIPBOARD_DATA), Section[].class);
-					Object data = containerType != null ? selected.getParent().getValue() : value;
-					if (data instanceof Lyrics) {
-						((Lyrics) data).getSections().addAll(sections);
-					}
+					lyrics.getSections().addAll(sections);
 				}
 				// TODO select the pasted elements
 			} catch (Exception ex) {

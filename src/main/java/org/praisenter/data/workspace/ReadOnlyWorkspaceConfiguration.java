@@ -1,7 +1,5 @@
 package org.praisenter.data.workspace;           
 
-import java.util.UUID;
-
 import org.praisenter.data.Identifiable;
 import org.praisenter.data.media.MediaConfiguration;
 import org.praisenter.data.slide.SlideConfiguration;
@@ -17,13 +15,9 @@ public interface ReadOnlyWorkspaceConfiguration extends MediaConfiguration, Slid
 	public String getFormat();
 	public String getVersion();
 	
-	public UUID getPrimaryBibleId();
-	public UUID getSecondaryBibleId();
 	public boolean isRenumberBibleWarningEnabled();
 	public boolean isReorderBibleWarningEnabled();
 	
-	public boolean isWaitForTransitionsToCompleteEnabled();
-
 	public String getLanguageTag();
 	public String getThemeName();
 	public double getApplicationX();
@@ -32,12 +26,13 @@ public interface ReadOnlyWorkspaceConfiguration extends MediaConfiguration, Slid
 	public double getApplicationHeight();
 	public boolean isApplicationMaximized();
 	public boolean isDebugModeEnabled();
+
+	public boolean isWaitForTransitionsToCompleteEnabled();
+	public PlaceholderTransitionBehavior getPlaceholderTransitionBehavior();
 	
 	public ReadOnlyStringProperty formatProperty();
 	public ReadOnlyStringProperty versionProperty();
 	
-	public ReadOnlyObjectProperty<UUID> primaryBibleIdProperty();
-	public ReadOnlyObjectProperty<UUID> secondaryBibleIdProperty();
 	public ReadOnlyBooleanProperty renumberBibleWarningEnabledProperty();
 	public ReadOnlyBooleanProperty reorderBibleWarningEnabledProperty();
 	
@@ -53,8 +48,6 @@ public interface ReadOnlyWorkspaceConfiguration extends MediaConfiguration, Slid
 	public ReadOnlyStringProperty videoFrameExtractCommandProperty();
 	public ReadOnlyDoubleProperty targetMeanVolumeProperty();
 	
-	public ReadOnlyBooleanProperty waitForTransitionsToCompleteEnabledProperty();
-	
 	public ReadOnlyStringProperty languageTagProperty();
 	public ReadOnlyStringProperty themeNameProperty();
 	public ReadOnlyDoubleProperty applicationXProperty();
@@ -63,7 +56,13 @@ public interface ReadOnlyWorkspaceConfiguration extends MediaConfiguration, Slid
 	public ReadOnlyDoubleProperty applicationHeightProperty();
 	public ReadOnlyBooleanProperty applicationMaximizedProperty();
 	public ReadOnlyBooleanProperty debugModeEnabledProperty();
+
+	public ReadOnlyBooleanProperty waitForTransitionsToCompleteEnabledProperty();
+	public ReadOnlyObjectProperty<PlaceholderTransitionBehavior> placeholderTransitionBehaviorProperty();
 	
-	public ObservableList<Display> getDisplaysUnmodifiable();
-	public ObservableList<Resolution> getResolutionsUnmodifiable();
+	public ObservableList<? extends ReadOnlyDisplay> getDisplaysUnmodifiable();
+	public ObservableList<? extends ReadOnlyResolution> getResolutionsUnmodifiable();
+	public ObservableList<? extends ReadOnlyDisplayConfiguration> getDisplayConfigurationsUnmodifiable();
+	
+	public ReadOnlyDisplayConfiguration getDisplayConfigurationById(int id);
 }

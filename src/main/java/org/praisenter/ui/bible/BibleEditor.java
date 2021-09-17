@@ -265,17 +265,17 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 			case CUT:
 				return ctx.isSingleTypeSelected() && ctx.getSelectedType() != Bible.class;
 			case PASTE:
-				return (ctx.getSelectedType() == Bible.class && Clipboard.getSystemClipboard().hasContent(BOOK_CLIPBOARD_DATA)) ||
-					   (ctx.getSelectedType() == Book.class && Clipboard.getSystemClipboard().hasContent(CHAPTER_CLIPBOARD_DATA)) ||
-					   (ctx.getSelectedType() == Chapter.class && Clipboard.getSystemClipboard().hasContent(VERSE_CLIPBOARD_DATA));
+				return ((ctx.getSelectedType() == Bible.class || ctx.getSelectedType() == Book.class) && Clipboard.getSystemClipboard().hasContent(BOOK_CLIPBOARD_DATA)) ||
+					   ((ctx.getSelectedType() == Book.class || ctx.getSelectedType() == Chapter.class) && Clipboard.getSystemClipboard().hasContent(CHAPTER_CLIPBOARD_DATA)) ||
+					   ((ctx.getSelectedType() == Chapter.class || ctx.getSelectedType() == Verse.class) && Clipboard.getSystemClipboard().hasContent(VERSE_CLIPBOARD_DATA));
 			case DELETE:
 				return ctx.getSelectedCount() > 0 && ctx.getSelectedType() != Bible.class;
 			case NEW_BOOK:
-				return ctx.getSelectedCount() == 1 && ctx.getSelectedType() == Bible.class;
+				return ctx.getSelectedCount() == 1 && (ctx.getSelectedType() == Bible.class || ctx.getSelectedType() == Book.class);
 			case NEW_CHAPTER:
-				return ctx.getSelectedCount() == 1 && ctx.getSelectedType() == Book.class;
+				return ctx.getSelectedCount() == 1 && (ctx.getSelectedType() == Book.class || ctx.getSelectedType() == Chapter.class);
 			case NEW_VERSE:
-				return ctx.getSelectedCount() == 1 && ctx.getSelectedType() == Chapter.class;
+				return ctx.getSelectedCount() == 1 && (ctx.getSelectedType() == Chapter.class || ctx.getSelectedType() == Verse.class);
 			case REDO:
 				return ctx.getUndoManager().isRedoAvailable();
 			case UNDO:
@@ -383,30 +383,40 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 		return CompletableFuture.completedFuture(null);
 	}
 	
+	@SuppressWarnings("unchecked")
+	private <T> T getClosest(TreeItem<Object> item, Class<T> clazz) {
+		if (item == null) return null;
+		
+		Object value = item.getValue();
+		if (value != null && value.getClass() == clazz) {
+			return (T)value;
+		}
+		
+		return this.getClosest(item.getParent(), clazz);
+	}
+	
 	private CompletableFuture<Void> create(Action action) {
+		TreeItem<Object> item = this.treeView.getSelectionModel().getSelectedItem();
+		
+		Book book = this.getClosest(item, Book.class);
+		Chapter chapter = this.getClosest(item, Chapter.class);
+		
+		
 		switch (action) {
 			case NEW_BOOK:
 				int number = this.bible.getMaxBookNumber() + 1;
 				this.bible.getBooks().add(new Book(number, Translations.get("action.new.bible.book")));
 				break;
 			case NEW_CHAPTER:
-				if (this.document.getSelectedCount() == 1 && this.document.getSelectedType() == Book.class) {
-					final Object selected = this.document.getSelectedItem();
-					if (selected != null && selected instanceof Book) {
-						Book book = (Book)selected;
-						int n = book.getMaxChapterNumber();
-						book.getChapters().add(new Chapter(n));
-					}
+				if (book != null) {
+					int n = book.getMaxChapterNumber();
+					book.getChapters().add(new Chapter(n));
 				}
 				break;
 			case NEW_VERSE:
-				if (this.document.getSelectedCount() == 1 && this.document.getSelectedType() == Chapter.class) {
-					final Object selected = this.document.getSelectedItem();
-					if (selected != null && selected instanceof Chapter) {
-						Chapter chapter = (Chapter)selected;
-						int n = chapter.getMaxVerseNumber();
-						chapter.getVerses().add(new Verse(n, Translations.get("action.new.bible.verse")));
-					}
+				if (chapter != null) {
+					int n = chapter.getMaxVerseNumber();
+					chapter.getVerses().add(new Verse(n, Translations.get("action.new.bible.verse")));
 				}
 				break;
 			default:
@@ -421,7 +431,7 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 			final TreeItem<Object> selected = this.treeView.getSelectionModel().getSelectedItem();
 			if (selected != null) {
 				final Object value = selected.getValue();
-				if (this.context.getConfiguration().isRenumberBibleWarningEnabled()) {
+				if (this.context.getWorkspaceConfiguration().isRenumberBibleWarningEnabled()) {
 					Alert alert = Alerts.confirmWithOptOut(
 							this.context.getStage(), 
 							Modality.WINDOW_MODAL, 
@@ -432,7 +442,7 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 							Translations.get("action.confirm.optout"), 
 							(optOut) -> {
 								if (optOut) {
-									this.context.getConfiguration().setRenumberBibleWarningEnabled(false);
+									this.context.getWorkspaceConfiguration().setRenumberBibleWarningEnabled(false);
 								}
 							});
 					
@@ -477,7 +487,7 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 			final TreeItem<Object> selected = this.treeView.getSelectionModel().getSelectedItem();
 			if (selected != null) {
 				final Object value = selected.getValue();
-				if (this.context.getConfiguration().isReorderBibleWarningEnabled()) {
+				if (this.context.getWorkspaceConfiguration().isReorderBibleWarningEnabled()) {
 					Alert alert = Alerts.confirmWithOptOut(
 							this.context.getStage(), 
 							Modality.WINDOW_MODAL, 
@@ -488,7 +498,7 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 							Translations.get("action.confirm.optout"),
 							(optOut) -> {
 								if (optOut) {
-									this.context.getConfiguration().setReorderBibleWarningEnabled(false);
+									this.context.getWorkspaceConfiguration().setReorderBibleWarningEnabled(false);
 								}
 							});
 					
@@ -587,19 +597,24 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 	}
 	
 	private CompletableFuture<Void> paste() {
-		if (this.document.getSelectedCount() == 1) {
+		TreeItem<Object> item = this.treeView.getSelectionModel().getSelectedItem();
+		if (item != null) {
+			Object value = item.getValue();
+			
+			Book book = this.getClosest(item, Book.class);
+			Chapter chapter = this.getClosest(item, Chapter.class);
+			
 			Clipboard clipboard = Clipboard.getSystemClipboard();
-			TreeItem<Object> selected = this.treeView.getSelectionModel().getSelectedItem();
 			try {
-				if (selected.getValue() instanceof Bible && clipboard.hasContent(BOOK_CLIPBOARD_DATA)) {
+				if ((value instanceof Bible || value instanceof Book) && clipboard.hasContent(BOOK_CLIPBOARD_DATA)) {
 					Book[] books = JsonIO.read((String)clipboard.getContent(BOOK_CLIPBOARD_DATA), Book[].class);
 					this.bible.getBooks().addAll(books);
-				} else if (selected.getValue() instanceof Book && clipboard.hasContent(CHAPTER_CLIPBOARD_DATA)) {
+				} else if ((value instanceof Book || value instanceof Chapter) && clipboard.hasContent(CHAPTER_CLIPBOARD_DATA)) {
 					Chapter[] chapters = JsonIO.read((String)clipboard.getContent(CHAPTER_CLIPBOARD_DATA), Chapter[].class);
-					((Book)selected.getValue()).getChapters().addAll(chapters);
-				} else if (selected.getValue() instanceof Chapter && clipboard.hasContent(VERSE_CLIPBOARD_DATA)) {
+					book.getChapters().addAll(chapters);
+				} else if ((value instanceof Chapter || value instanceof Verse) && clipboard.hasContent(VERSE_CLIPBOARD_DATA)) {
 					Verse[] verses = JsonIO.read((String)clipboard.getContent(VERSE_CLIPBOARD_DATA), Verse[].class);
-					((Chapter)selected.getValue()).getVerses().addAll(verses);
+					chapter.getVerses().addAll(verses);
 				}
 				// TODO select the pasted elements
 			} catch (Exception ex) {

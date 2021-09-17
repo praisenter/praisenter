@@ -19,7 +19,6 @@ import org.praisenter.data.bible.Bible;
 import org.praisenter.data.media.Media;
 import org.praisenter.data.media.MediaType;
 import org.praisenter.data.slide.Slide;
-import org.praisenter.data.slide.SlideShow;
 import org.praisenter.data.song.Song;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.bind.BindingHelper;
@@ -91,10 +90,6 @@ final class LibraryItemDetails extends BorderPane {
 	
 	private final BooleanProperty mediaAudio;
 	
-	// TODO slide data
-	
-	private final IntegerProperty showSlideCount;
-	
 	// song data
 	
 	private final StringProperty songSource;
@@ -156,12 +151,6 @@ final class LibraryItemDetails extends BorderPane {
 		// hasAudio, preview
 		this.mediaAudio = new SimpleBooleanProperty();
 		
-		// slide data
-		
-		// slide show data
-		// slide count, preview
-		this.showSlideCount = new SimpleIntegerProperty();
-		
 		this.item.addListener((obs, ov, nv) -> {
 			this.name.unbind();
 			this.modified.unbind();
@@ -183,8 +172,6 @@ final class LibraryItemDetails extends BorderPane {
 			this.songSource.unbind();
 			
 			this.mediaAudio.unbind();
-			
-			this.showSlideCount.unbind();
 			
 			this.name.set(null);
 			
@@ -228,8 +215,6 @@ final class LibraryItemDetails extends BorderPane {
 					this.width.bind(slide.widthProperty());
 					this.height.bind(slide.heightProperty());
 					this.length.bind(slide.timeProperty());
-				} else if (nv instanceof SlideShow) {
-					SlideShow show = (SlideShow)nv;
 				}
 			}
 		});
@@ -257,8 +242,6 @@ final class LibraryItemDetails extends BorderPane {
 		Label lblBibleCopyrightValue = new Label();
 		
 		Label lblMediaAudioValue = new Label();
-		
-		Label lblShowSlideCountValue = new Label();
 		
 		Label lblSongSourceValue = new Label();
 		Label lblSongCopyrightValue = new Label();

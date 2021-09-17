@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Stack;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -18,11 +17,7 @@ import org.praisenter.data.media.Media;
 import org.praisenter.data.media.MediaType;
 import org.praisenter.data.slide.Slide;
 import org.praisenter.data.slide.SlideComponent;
-import org.praisenter.data.slide.SlideRegion;
 import org.praisenter.data.slide.animation.SlideAnimation;
-import org.praisenter.data.slide.graphics.SlidePaint;
-import org.praisenter.data.slide.media.MediaObject;
-import org.praisenter.data.slide.text.TextComponent;
 import org.praisenter.data.slide.text.TextPlaceholderComponent;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.Playable;
@@ -30,11 +25,11 @@ import org.praisenter.ui.slide.convert.TransitionConverter;
 import org.praisenter.utility.Scaling;
 
 import javafx.animation.Animation.Status;
-import javafx.application.Platform;
 import javafx.animation.ParallelTransition;
 import javafx.animation.PauseTransition;
 import javafx.animation.SequentialTransition;
 import javafx.animation.Transition;
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
@@ -46,7 +41,6 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.scene.Node;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundImage;
@@ -373,7 +367,7 @@ public class SlideView extends Region implements Playable {
 				// if we want to wait, build a transition request and add it to the
 				// request stack
 				LOGGER.debug("A transition is currently in progress, waiting...");
-				TransitionRequest tr = new TransitionRequest(slide);
+				TransitionRequest tr = TransitionRequest.transitionSlide(slide);
 				this.requests.push(tr);
 				return;
 			}
@@ -508,7 +502,7 @@ public class SlideView extends Region implements Playable {
 				// if we want to wait, build a transition request and add it to the
 				// request stack
 				LOGGER.debug("A transition is currently in progress, waiting...");
-				TransitionRequest tr = new TransitionRequest(data);
+				TransitionRequest tr = TransitionRequest.transitionPlaceholders(data);
 				this.requests.push(tr);
 				return;
 			}
@@ -520,31 +514,27 @@ public class SlideView extends Region implements Playable {
 		// copy the place holder components and convert them to static text components
 		// so that they don't change when we update the place holder data
 		int index = 0;
-		Map<Integer, SlideComponent> asis = new HashMap<Integer, SlideComponent>();
+		Map<Integer, SlideComponent> newComponents = new HashMap<Integer, SlideComponent>();
+		List<SlideComponent> oldComponents = new ArrayList<SlideComponent>();
 		for (SlideComponent sc : slide.getComponents()) {
 			if (sc instanceof TextPlaceholderComponent) {
-				// convert to text components
-				TextComponent tc = ((TextPlaceholderComponent) sc).toTextComponent();
-				// for performance, we don't want to create another video player
-				// for this temporary component. In addition, the video wouldn't
-				// be playing back from the same position anyway
-				if (this.isBackgroundVideo(tc)) {
-					tc.setBackground(null);
-					tc.setBorder(null);
-				}
-				asis.put(index, tc);
+				TextPlaceholderComponent tpc = (TextPlaceholderComponent)sc;
+				tpc.setTextLocked(true);
+				
+				newComponents.put(index, tpc.copy());
+				oldComponents.add(sc);
 			}
 			index++;
 		}
 		
 		// add them to the slide
 		// NOTE: we need to add them right after their source component to make sure
-		// then animations are correct.  To do that we need to track how many we've added
+		// the animations are correct.  To do that we need to track how many we've added
 		// so far and offset the index by that amount
 		int added = 0;
-		for (Integer key : asis.keySet()) {
-			SlideComponent sc = asis.get(key);
-			slide.getComponents().add(key + added + 1, sc);
+		for (Integer key : newComponents.keySet()) {
+			SlideComponent sc = newComponents.get(key);
+			slide.getComponents().add(key + added, sc);
 			added++;
 		}
 		
@@ -556,22 +546,25 @@ public class SlideView extends Region implements Playable {
 		
 		ParallelTransition tx = new ParallelTransition();
 		for (SlideRegionNode<?> node : slideNode.getSlideComponentNodesUnmodifiable()) {
-			// if the node is one of the copied ones
-			// then we need to transition it out
-			for (SlideComponent sc : asis.values()) {
+			boolean found = false;
+			
+			// transition out the old components
+			for (SlideComponent sc : oldComponents) {
 				if (node.region == sc) {
 					tx.getChildren().add(TransitionConverter.toJavaFX(source, slide, sc, node, false));
+					found = true;
+					break;
 				}
 			}
 			
-			// otherwise if it's a placehoder we need
-			// to transition it in
-			if (node.region instanceof TextPlaceholderComponent) {
-				Node nodeToAnimate = node;
-				if (this.isBackgroundVideo(node.region)) {
-					nodeToAnimate = node.content;
+			if (found) continue;
+			
+			// transition in the new components
+			for (SlideComponent sc : newComponents.values()) {
+				if (node.region == sc) {
+					tx.getChildren().add(TransitionConverter.toJavaFX(source, slide, sc, node, true));
+					break;
 				}
-				tx.getChildren().add(TransitionConverter.toJavaFX(source, slide, (TextPlaceholderComponent)node.region, nodeToAnimate, true));
 			}
 		}
 
@@ -580,7 +573,7 @@ public class SlideView extends Region implements Playable {
 		// or do clean up after the transition finishes
 		// when complete, remove all the asis components
 		tx.setOnFinished(e -> {
-			slide.getComponents().removeAll(asis.values());
+			slide.getComponents().removeAll(oldComponents);
 			// make sure to trigger any pending transitions
 			this.runLastPendingTransition(e);
 		});
@@ -591,18 +584,134 @@ public class SlideView extends Region implements Playable {
 		tx.play();
 	}
 
-	private boolean isBackgroundVideo(SlideRegion region) {
-		SlidePaint bg = region.getBackground();
-		if (bg instanceof MediaObject) {
-			MediaObject mo = (MediaObject) bg;
-			MediaType type = mo.getMediaType();
-			if (type == MediaType.VIDEO) {
-				return true;
-			}
-		}
-		return false;
+	/**
+	 * Updates the placeholder data for the currently rendered slide using the slide transition.
+	 * @param data the placeholder data
+	 */
+	public void transitionContent(TextStore data) {
+		this.transitionContent(data, true);
 	}
 	
+	/**
+	 * Updates the placeholder data for the currently rendered slide using the slide transition.
+	 * @param data the placeholder data
+	 */
+	public void transitionContent(TextStore data, boolean waitForTransition) {
+		Slide slide = this.slide.get();
+		if (slide == null) return;
+		
+		SlideNode slideNode = this.slideNode.get();
+		if (slideNode == null) return;
+		
+		// check if there's a transition currently executing
+		if (this.currentTransition != null && this.currentTransition.getStatus() != Status.STOPPED) {
+			// if there is one, should we stop it where it is and start the new
+			// transition or should we queue it up to play after the executing one
+			if (!waitForTransition) {
+				// if we don't want to wait
+				LOGGER.debug("A transition is currently in progress, stopping and doing new transition");
+				// clear any pending requests so we don't execute them after ending the current transition
+				this.requests.clear();
+				// jump to the end of the current transition
+				this.currentTransition.jumpTo(this.currentTransition.getCycleDuration());
+				// then stop it
+				this.currentTransition.stop();
+				// manually complete any finalization steps for the transition
+				EventHandler<ActionEvent> eh = this.currentTransition.getOnFinished();
+				if (eh != null) {
+					eh.handle(null);
+				}
+				// and set it to null
+				this.currentTransition = null;
+			} else {
+				// if we want to wait, build a transition request and add it to the
+				// request stack
+				LOGGER.debug("A transition is currently in progress, waiting...");
+				TransitionRequest tr = TransitionRequest.transitionContent(data);
+				this.requests.push(tr);
+				return;
+			}
+		}
+		
+		this.requests.clear();
+		LOGGER.debug("Transitioning placeholder data {}", data);
+		
+		// copy all components and converting any placeholders to static text components
+		// so that they don't change when we update the place holder data
+		int index = 0;
+		Map<Integer, SlideComponent> newComponents = new HashMap<Integer, SlideComponent>();
+		List<SlideComponent> oldComponents = new ArrayList<>();
+		
+		for (SlideComponent sc : slide.getComponents()) {
+			// lock the placeholder text so updates to the place holder data doesn't happen
+			if (sc instanceof TextPlaceholderComponent) {
+				TextPlaceholderComponent tpc = (TextPlaceholderComponent)sc;
+				tpc.setTextLocked(true);
+			}
+			
+			oldComponents.add(sc);
+			newComponents.put(index, sc.copy());
+			
+			index++;
+		}
+		
+		// add them to the slide
+		// NOTE: we need to add them right after their source component to make sure
+		// the animations are correct.  To do that we need to track how many we've added
+		// so far and offset the index by that amount
+		int added = 0;
+		for (Integer key : newComponents.keySet()) {
+			SlideComponent sc = newComponents.get(key);
+			slide.getComponents().add(key + added, sc);
+			added++;
+		}
+		
+		// update the placeholder data
+		slide.setPlaceholderData(data);
+
+		// setup transition
+		SlideAnimation source = slide.getTransition();
+		
+		ParallelTransition tx = new ParallelTransition();
+		for (SlideRegionNode<?> node : slideNode.getSlideComponentNodesUnmodifiable()) {
+			boolean found = false;
+			
+			// transition out the old components
+			for (SlideComponent sc : oldComponents) {
+				if (node.region == sc) {
+					tx.getChildren().add(TransitionConverter.toJavaFX(source, slide, sc, node, false));
+					found = true;
+					break;
+				}
+			}
+			
+			if (found) continue;
+			
+			// transition in the new components
+			for (SlideComponent sc : newComponents.values()) {
+				if (node.region == sc) {
+					tx.getChildren().add(TransitionConverter.toJavaFX(source, slide, sc, node, true));
+					break;
+				}
+			}
+		}
+
+		// no matter what, we always want to run something after the
+		// transition ends - this gives us the ability to queue transitions
+		// or do clean up after the transition finishes
+		// when complete, remove all the asis components
+		tx.setOnFinished(e -> {
+			slide.getComponents().removeAll(oldComponents);
+			// make sure to trigger any pending transitions
+			this.runLastPendingTransition(e);
+		});
+		
+		this.currentTransition = tx;
+		
+		// play the transition
+		tx.play();
+	}
+
 	private void runLastPendingTransition(ActionEvent e) {
 		LOGGER.debug("Transition complete, checking for pending transition requests");
 		
@@ -638,6 +747,9 @@ public class SlideView extends Region implements Playable {
 					break;
 				case PLACEHOLDERS:
 					transitionPlaceholders(request.getPlaceholderData());
+					break;
+				case CONTENT:
+					transitionContent(request.getPlaceholderData());
 					break;
 				default:
 					LOGGER.warn("Transition request type {} unknown", request.getType());

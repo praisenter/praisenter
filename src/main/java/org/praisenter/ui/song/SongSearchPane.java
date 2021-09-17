@@ -37,6 +37,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -251,6 +252,11 @@ public final class SongSearchPane extends BorderPane {
 				});
 			}
 		};
+		
+		// update the search results when things are changed, removed, added, etc.
+		context.getWorkspaceManager().getItemsUnmodifiable(Song.class).addListener((Change<? extends Song> c) -> {
+			handler.handle(null);
+		});
 		
 		txtSearch.setOnAction(handler);
 		btnSearch.setOnAction(handler);

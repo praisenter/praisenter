@@ -32,6 +32,7 @@ import org.praisenter.ui.fonts.OpenIconic;
 import org.praisenter.ui.themes.Theme;
 import org.praisenter.ui.translations.Translations;
 import org.praisenter.ui.upgrade.InstallUpgradeHandler;
+import org.praisenter.ui.upgrade.UpgradeChecker;
 import org.praisenter.utility.RuntimeProperties;
 
 import javafx.animation.Animation;
@@ -45,6 +46,9 @@ import javafx.beans.binding.Bindings;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonBar.ButtonData;
+import javafx.scene.control.ButtonType;
 import javafx.scene.image.Image;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Screen;
@@ -52,7 +56,7 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.util.Duration;
 
-public final class StartupHandler {
+public final class LifecycleHandler {
 	// FEATURE (L-H) We should look at making some of the Java FX features "optional" instead of required
 	/** The array of Java FX features that Praisenter uses */
 	private static final ConditionalFeature[] REQUIRED_JAVAFX_FEATURES = new ConditionalFeature[] {
@@ -67,58 +71,33 @@ public final class StartupHandler {
 	private static final int MIN_WIDTH = 1000;
 	private static final int MIN_HEIGHT = 700;
 	
-	public void restart(GlobalContext context) throws IOException {
+	public void restart(GlobalContext context) {
 		this.restart(context, null);
 	}
 	
-	public void restart(GlobalContext context, Path workspacePath) throws IOException {
+	public void restart(GlobalContext context, Path workspacePath) {
 		Stage stage = context.stage;
 		Application application = context.application;
 		
 		// we can use the current log configuration
 		final Logger LOGGER = LogManager.getLogger();
 
-		WorkspaceConfiguration workspaceConfiguration = context.getConfiguration();
-		
-		// remove window tracking bindings
-		workspaceConfiguration.applicationMaximizedProperty().unbind();
-		workspaceConfiguration.applicationXProperty().unbind();
-		workspaceConfiguration.applicationYProperty().unbind();
-		workspaceConfiguration.applicationWidthProperty().unbind();
-		workspaceConfiguration.applicationHeightProperty().unbind();
-		
-		// try to save the current configuration
-		LOGGER.info("Restarting the application.");
-		LOGGER.info("Saving the configuration.");
-		context.workspaceManager.saveWorkspaceConfiguration().exceptionally((e) -> {
-			// if it fails to save, just move on
-			LOGGER.warn("Failed to save configuration: " + e.getMessage() + ". Ignoring and continuing.", e);
-			return null;
-		}).thenRun(() -> {
-			// then wait for any in-process stuff to complete
-			LOGGER.info("Waiting for any unfinished jobs.");
-			if (!ForkJoinPool.commonPool().awaitQuiescence(60, TimeUnit.SECONDS)) {
-				LOGGER.warn("All jobs didn't complete in time. Ignoring and continuing.");
+		// go though all the context clean process
+		this.cleanUp(LOGGER, context).thenCompose(AsyncHelper.onJavaFXThreadAndWait((shouldContinue) -> {
+			if (shouldContinue) {
+				// clean up the stage
+				LOGGER.debug("Resetting stage.");
+				stage.setOnCloseRequest(null);
+				stage.setOnHidden(null);
+	        	stage.setMinWidth(0);
+	        	stage.setMinHeight(0);
+				stage.setTitle("");
+				stage.getIcons().clear();
+				
+				// start the app
+				LOGGER.info("Starting the application.");
+				this.start(application, stage, workspacePath);
 			}
-		}).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
-			LOGGER.debug("Cleaning up current context.");
-			
-			// dispose the context - this will do all sorts of things like
-			// removing resources, unbinding, listener removal, etc.
-			context.dispose();
-			
-			// clean up the stage
-			LOGGER.debug("Resetting stage.");
-			stage.setOnCloseRequest(null);
-			stage.setOnHidden(null);
-        	stage.setMinWidth(0);
-        	stage.setMinHeight(0);
-			stage.setTitle("");
-			stage.getIcons().clear();
-			
-			// start the app
-			LOGGER.info("Starting the application.");
-			this.start(application, stage, workspacePath);
 		})).exceptionally((e) -> {
 			// log it
 			LOGGER.error("Failed to restart the application: " + e.getMessage(), e);
@@ -259,6 +238,7 @@ public final class StartupHandler {
     			throw new CompletionException(ex);
     		}
     	}).thenCompose((workspaceManager) -> {
+    		LOGGER.info("Saving workspaces configuration file.");
     		// save the workspaces config file with the new
     		// last workspace opened and if there's a new workspace
     		String wsp = workspaceManager.getWorkspacePathResolver().getBasePath().toAbsolutePath().toString();
@@ -268,11 +248,25 @@ public final class StartupHandler {
     			return workspaceManager;
     		});
     	}).thenApply((workspaceManager) -> {
+    		LOGGER.info("Building the global context.");
     		// finally build the context
     		return new GlobalContext(
     				application, 
     				stage, 
     				workspaceManager);
+    	}).thenApply((context) -> {
+    		LOGGER.info("Asynchonously checking for latest Praisenter version.");
+    		// NOTE: don't wait on this - it can complete asynchronously
+    		UpgradeChecker checker = new UpgradeChecker();
+    		checker.getLatestReleaseVersion().thenCompose(AsyncHelper.onJavaFXThreadAndWait((nv) -> {
+    			LOGGER.info("Latest version of praisenter retrieved (trigged by startup): " + nv);
+    			context.setLatestVersion(nv);
+    		})).exceptionally((t) -> {
+    			LOGGER.warn("failed to check for the latest version: " + t.getMessage(), t);
+    			return null;
+    		});
+    		
+    		return context;
     	}).thenApply((context) -> {
     		// configure the log4j logger to go to the workspace logs folder
 			Path logsPath = context.getWorkspaceManager().getWorkspacePathResolver().getLogsPath();
@@ -282,9 +276,8 @@ public final class StartupHandler {
         	System.setProperty("praisenter.logs.dir", logsPath.toAbsolutePath().toString());
         	LoggerContext.getContext(false).reconfigure();
 			
-    		WorkspaceConfiguration configuration = context.getConfiguration();
+    		WorkspaceConfiguration configuration = context.getWorkspaceConfiguration();
     		
-    		// TODO this should work, but needs to be tested
     		// set the language if in the config
         	String languageTag = configuration.getLanguageTag();
         	if (languageTag != null) {
@@ -307,7 +300,7 @@ public final class StartupHandler {
     		
     		return context;
     	}).thenCompose(AsyncHelper.onJavaFXThreadAndWait((context) -> {
-    		WorkspaceConfiguration configuration = context.getConfiguration();
+    		WorkspaceConfiguration configuration = context.getWorkspaceConfiguration();
     		
     		stage.hide();
     		
@@ -358,12 +351,22 @@ public final class StartupHandler {
     		stage.setOnCloseRequest((e) -> {
     			LOGGER.debug("Request to close the stage received.");
     			e.consume();
-    			LOGGER.debug("Attempt to save configuration before exit.");
-    			this.onCloseRequest(LOGGER, context).thenRun(() -> {
-    				LOGGER.debug("Closing application");
+    			this.cleanUp(LOGGER, context).thenAccept((shouldContinue) -> {
+    				if (shouldContinue) {
+    					Platform.runLater(() -> {
+    						// the application should exit at this point since the
+    						// stage has an onhiding event to call Platform.exit()
+    						// that said, Java FX should shutdown anyway when the 
+    						// last stage has closed
+    						context.stage.close();
+    					});
+    				}
+    			}).exceptionally((t) -> {
     				Platform.runLater(() -> {
-    					stage.close();
+    					Alert alert = Alerts.exception(context.stage, t);
+    					alert.show();
     				});
+    				return null;
     			});
     		});
     		stage.setOnHidden((e) -> {
@@ -427,6 +430,30 @@ public final class StartupHandler {
     	});
 	}
 	
+	public void stop(GlobalContext context) {
+		// we can use the current log configuration
+		final Logger LOGGER = LogManager.getLogger();
+		
+		// go through the shutdown proceedure
+		this.cleanUp(LOGGER, context).thenAccept((shouldContinue) -> {
+			if (shouldContinue) {
+				Platform.runLater(() -> {
+					// the application should exit at this point since the
+					// stage has an onhiding event to call Platform.exit()
+					// that said, Java FX should shutdown anyway when the 
+					// last stage has closed
+					context.stage.close();
+				});
+			}
+		}).exceptionally((t) -> {
+			Platform.runLater(() -> {
+				Alert alert = Alerts.exception(context.stage, t);
+				alert.show();
+			});
+			return null;
+		});;
+	}
+	
     private void showExecptionAlertThenExit(Logger LOGGER, Throwable ex, Window owner) {
 		Platform.runLater(() -> {
 			// and show the error
@@ -452,10 +479,47 @@ public final class StartupHandler {
         return false;
     }
     
-    private CompletableFuture<Void> onCloseRequest(Logger LOGGER, GlobalContext context) {
-    	// close the presentation screens
-		context.getDisplayManager().dispose();
-		
+    private CompletableFuture<Boolean> promptUnsavedChanges(Logger LOGGER, GlobalContext context) {
+    	LOGGER.info("Checking for unsaved changes.");
+		Optional<Boolean> unsavedChanges = context.getOpenDocumentsUnmodifiable().stream().map(d -> d.hasUnsavedChanges()).reduce((a, b) -> a || b); 
+		if (unsavedChanges.isPresent() && unsavedChanges.get()) {
+			LOGGER.info("Unsaved documents are present. Prompting for next step.");
+			Alert alert = new Alert(AlertType.WARNING);
+            alert.setTitle(Translations.get("workspace.close.unsaved.title"));
+            alert.setHeaderText(Translations.get("workspace.close.unsaved.header"));
+            alert.setContentText(Translations.get("workspace.close.unsaved.content"));
+            ButtonType save = new ButtonType(Translations.get("workspace.close.unsaved.save"), ButtonData.YES);
+            ButtonType discard = new ButtonType(Translations.get("workspace.close.unsaved.discard"), ButtonData.NO);
+            ButtonType cancel = new ButtonType(Translations.get("cancel"), ButtonData.CANCEL_CLOSE);
+
+            alert.getButtonTypes().setAll(save, discard, cancel);
+            alert.initOwner(context.stage);
+
+            Optional<ButtonType> result = alert.showAndWait();
+            
+            if (result.isEmpty()) {
+            	// don't continue, they closed the window
+            	LOGGER.info("User closed prompt, cancelling the close request / workspace switch");
+            	return CompletableFuture.completedFuture(false);
+            } else if (result.get() == save){
+            	LOGGER.info("Saving unsaved documents");
+            	return context.saveAll().thenApply(v -> true);
+            } else if (result.get() == discard) {
+            	LOGGER.info("User chose to discard all changes");
+                return CompletableFuture.completedFuture(true);
+            } else {
+            	// they cancelled the window
+            	LOGGER.info("User cancelled the operation, cancelling the close request / workspace switch");
+            	return CompletableFuture.completedFuture(false);
+            }
+		}
+    	
+		LOGGER.info("No unsaved changes detected.");
+		return CompletableFuture.completedFuture(true);
+    }
+    
+    private CompletableFuture<Boolean> waitForAsyncTaskCompletion(Logger LOGGER) {
+    	LOGGER.info("Waiting for any pending async tasks to complete");
     	// wait for any pending async tasks
     	// NOTE: the assumption here is that all asynchronous processing is being performed on the ForkJoinPool commonPool
     	// (the default for CompletableFuture)
@@ -464,17 +528,56 @@ public final class StartupHandler {
     		// TODO need to prompt user to wait longer or just exit
     	}
     	
-		// save some application info
+    	return CompletableFuture.completedFuture(true);
+    }
+    
+    private CompletableFuture<Boolean> saveWorkspaceConfiguration(Logger LOGGER, GlobalContext context) {
+    	// save some application info
 		LOGGER.debug("Saving application location and size: ({}, {}) {}x{} isMaximized={}", 
-				context.getConfiguration().getApplicationX(), 
-				context.getConfiguration().getApplicationY(), 
-				context.getConfiguration().getApplicationWidth(), 
-				context.getConfiguration().getApplicationHeight(),
-				context.getConfiguration().isApplicationMaximized());
+				context.getWorkspaceConfiguration().getApplicationX(), 
+				context.getWorkspaceConfiguration().getApplicationY(), 
+				context.getWorkspaceConfiguration().getApplicationWidth(), 
+				context.getWorkspaceConfiguration().getApplicationHeight(),
+				context.getWorkspaceConfiguration().isApplicationMaximized());
 		
-		return context.saveConfiguration().exceptionally((ex) -> {
-			LOGGER.warn("Failed to save application x,y and width,height when the application closed.", ex);
-			return null;
+		return context.saveConfiguration().thenApply((v) -> true);
+    }
+    
+    private CompletableFuture<Boolean> disposeContext(Logger LOGGER, GlobalContext context) {
+    	return AsyncHelper.onJavaFXThreadAndWait((v) -> {
+    		LOGGER.info("Disposing of the context");
+    		context.dispose();
+    	}).apply(null).exceptionally((e) -> {
+    		LOGGER.warn("Failed to dispose of the context: " + e.getMessage(), e);
+    		return null;
+    	}).thenApply((v) -> true);
+    }
+    
+    private CompletableFuture<Boolean> cleanUp(Logger LOGGER, GlobalContext context) {
+    	// prompt for unsaved changes
+		return promptUnsavedChanges(LOGGER, context).exceptionally((t) -> {
+			// show an error and don't continue
+			Platform.runLater(() -> {
+				Alert alert = Alerts.exception(context.stage, t);
+				alert.show();
+			});
+			return false;
+		}).thenCompose((shouldContinue) -> {
+			// check if we should continue or not
+			if (shouldContinue) {
+				return this.waitForAsyncTaskCompletion(LOGGER);
+			}
+			return CompletableFuture.completedStage(false);
+		}).thenCompose((shouldContinue) -> {
+			if (shouldContinue) {
+				return this.saveWorkspaceConfiguration(LOGGER, context);
+			}
+			return CompletableFuture.completedStage(false);
+		}).thenCompose((shouldContinue) -> {
+			if (shouldContinue) {
+				return this.disposeContext(LOGGER, context);
+			}
+			return CompletableFuture.completedStage(false);
 		});
     }
 }

@@ -19,26 +19,6 @@ import javafx.stage.Stage;
 
 // JAVABUG (L) 05/31/17 Java FX just chooses the last image in the set of stage icons rather than choosing the best bugs.openjdk.java.net/browse/JDK-8091186, bugs.openjdk.java.net/browse/JDK-8087459
 
-
-// application folder
-// $(home)/.praisenter3
-//	log4j.xml
-//	workspaces.json
-//	/locales
-//  /themes
-//	/logs
-//	/upgrade
-
-// workspace folder(s)
-// $(user chosen folder)
-//	workspace.json
-//	/_index
-//	/bibles
-//	/media
-//	/slides
-//	/songs
-
-
 public final class Praisenter extends Application {
     static void main(String[] args) {
         launch(args);
@@ -60,7 +40,7 @@ public final class Praisenter extends Application {
     		}
     	}
     	
-    	StartupHandler startup = new StartupHandler();
-    	startup.start(this, stage, path);
+    	LifecycleHandler lifecycleHandler = new LifecycleHandler();
+    	lifecycleHandler.start(this, stage, path);
     }
 }

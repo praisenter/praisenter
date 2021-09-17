@@ -29,7 +29,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -388,6 +387,7 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 	private void updatePlaceholders() {
 		// iterate all the placeholders
 		for (TextPlaceholderComponent tpc : this.getComponents(TextPlaceholderComponent.class)) {
+			if (tpc.isTextLocked()) continue;
 			TextItem data = this.getPlaceholderText(tpc.getPlaceholderType(), tpc.getPlaceholderVariant());
 			if (data != null) {
 				// override the text
