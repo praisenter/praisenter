@@ -18,6 +18,7 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
@@ -60,6 +61,7 @@ public final class WorkspaceConfiguration implements ReadOnlyWorkspaceConfigurat
 	private final DoubleProperty applicationY;
 	private final DoubleProperty applicationWidth;
 	private final DoubleProperty applicationHeight;
+	private final DoubleProperty applicationFontSize;
 	private final BooleanProperty applicationMaximized;
 	private final BooleanProperty debugModeEnabled;
 
@@ -99,6 +101,7 @@ public final class WorkspaceConfiguration implements ReadOnlyWorkspaceConfigurat
 		this.applicationY = new SimpleDoubleProperty(POSITION_SIZE_UNSET);
 		this.applicationWidth = new SimpleDoubleProperty(POSITION_SIZE_UNSET);
 		this.applicationHeight = new SimpleDoubleProperty(POSITION_SIZE_UNSET);
+		this.applicationFontSize = new SimpleDoubleProperty(12);
 		this.applicationMaximized = new SimpleBooleanProperty(false);
 		this.debugModeEnabled = new SimpleBooleanProperty(false);
 
@@ -490,6 +493,22 @@ public final class WorkspaceConfiguration implements ReadOnlyWorkspaceConfigurat
 	@Override
 	public DoubleProperty applicationHeightProperty() {
 		return this.applicationHeight;
+	}
+	
+	@Override
+	@JsonProperty
+	public double getApplicationFontSize() {
+		return this.applicationFontSize.get();
+	}
+	
+	@JsonProperty
+	public void setApplicationFontSize(double size) {
+		this.applicationFontSize.set(size);
+	}
+	
+	@Override
+	public DoubleProperty applicationFontSizeProperty() {
+		return this.applicationFontSize;
 	}
 
 	@Override

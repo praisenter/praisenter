@@ -6,6 +6,7 @@ import java.util.Locale;
 import org.praisenter.data.workspace.PlaceholderTransitionBehavior;
 import org.praisenter.data.workspace.WorkspaceConfiguration;
 import org.praisenter.ui.controls.FormField;
+import org.praisenter.ui.controls.FormFieldSet;
 import org.praisenter.ui.themes.Theme;
 import org.praisenter.ui.translations.Translations;
 import org.praisenter.utility.StringManipulator;
@@ -26,6 +27,8 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 
 public class SettingsPane extends BorderPane {
+	private static final String SETTINGS_PANE_CLASS = "p-settings-pane";
+	
 	private final ObservableList<Theme> themes;
 	private final ObservableList<Locale> locales;
 	
@@ -47,6 +50,13 @@ public class SettingsPane extends BorderPane {
 			if (nv != null) {
 				configuration.setThemeName(nv.getName());
 			}
+		});
+		
+		Button btnReloadCss = new Button(Translations.get("css.reload"));
+		btnReloadCss.setOnAction(e -> {
+			String url = cmbTheme.getValue().getCss();
+			context.stage.getScene().getStylesheets().remove(url);
+			context.stage.getScene().getStylesheets().add(url);
 		});
 		
 		// language
@@ -182,39 +192,42 @@ public class SettingsPane extends BorderPane {
 		});
 		
 		VBox boxGeneral = new VBox(
-				new FormField(Translations.get("settings.theme"), Translations.get("settings.theme.description"), cmbTheme, btnRefreshThemes),
+				new FormField(Translations.get("settings.theme"), Translations.get("settings.theme.description"), cmbTheme, btnRefreshThemes, btnReloadCss),
 				new FormField(Translations.get("settings.locale"), Translations.get("settings.locale.description"), cmbLocales, btnRefreshLocales),
 				new FormField(Translations.get("settings.debug"), Translations.get("settings.debug.description"), chkDebugMode));
-		TitledPane pneGeneral = new TitledPane(Translations.get("settings.general"), boxGeneral);
+		FormFieldSet pneGeneral = new FormFieldSet(Translations.get("settings.general"), boxGeneral);
 		
 		VBox boxSlide = new VBox(
 				new FormField(Translations.get("settings.slide.waitForTransition"), Translations.get("settings.slide.waitForTransition.description"), chkWaitForTransition),
 				new FormField(Translations.get("settings.slide.placeholderTransitionBehavior"), Translations.get("settings.slide.placeholderTransitionBehavior.description"), cmbPlaceholderTransitionBehavior));
-		TitledPane pneSlide = new TitledPane(Translations.get("settings.slide"), boxSlide);
+		FormFieldSet pneSlide = new FormFieldSet(Translations.get("settings.slide"), boxSlide);
+		pneSlide.setExpanded(false);
 		
 		VBox boxMedia = new VBox(
-				new FormField(Translations.get("settings.media.audioTranscode"), chkTranscodeAudio),
-				new FormField(Translations.get("settings.media.audioTranscode.extension"), txtAudioTranscodeExtension),
-				new FormField(Translations.get("settings.media.audioTranscode.command"), txtAudioTranscodeCommand),
-				new FormField(Translations.get("settings.media.videoTranscode"), chkTranscodeVideo),
-				new FormField(Translations.get("settings.media.videoTranscode.extension"), txtVideoTranscodeExtension),
-				new FormField(Translations.get("settings.media.videoTranscode.command"), txtVideoTranscodeCommand),
-				new FormField(Translations.get("settings.media.videoFrameExtract.command"), txtVideoExtractCommand),
-				new FormField(Translations.get("settings.media.adjustVolume"), chkAdjustVolume),
-				new FormField(Translations.get("settings.media.targetVolume"), spnTargetVolume));
-		TitledPane pneAV = new TitledPane(Translations.get("settings.media"), boxMedia);
+				new FormField(Translations.get("settings.media.audioTranscode"), Translations.get("settings.media.audioTranscode.description"), chkTranscodeAudio),
+				new FormField(Translations.get("settings.media.audioTranscode.extension"), Translations.get("settings.media.audioTranscode.extension.description"), txtAudioTranscodeExtension),
+				new FormField(Translations.get("settings.media.audioTranscode.command"), Translations.get("settings.media.audioTranscode.command.description"), txtAudioTranscodeCommand),
+				new FormField(Translations.get("settings.media.videoTranscode"), Translations.get("settings.media.videoTranscode.description"), chkTranscodeVideo),
+				new FormField(Translations.get("settings.media.videoTranscode.extension"), Translations.get("settings.media.videoTranscode.extension.description"), txtVideoTranscodeExtension),
+				new FormField(Translations.get("settings.media.videoTranscode.command"), Translations.get("settings.media.videoTranscode.command.description"), txtVideoTranscodeCommand),
+				new FormField(Translations.get("settings.media.videoFrameExtract.command"), Translations.get("settings.media.videoFrameExtract.command.description"), txtVideoExtractCommand),
+				new FormField(Translations.get("settings.media.adjustVolume"), Translations.get("settings.media.adjustVolume.description"), chkAdjustVolume),
+				new FormField(Translations.get("settings.media.targetVolume"), Translations.get("settings.media.targetVolume.description"), spnTargetVolume));
+		FormFieldSet pneAV = new FormFieldSet(Translations.get("settings.media"), boxMedia);
+		pneAV.setExpanded(false);
 		
 		VBox boxBible = new VBox(
-				new FormField(Translations.get("settings.bible.renumberWarning"), chkBibleRenumberWarning),
-				new FormField(Translations.get("settings.bible.reorderWarning"), chkBibleReorderWarning));
-		TitledPane pneBible = new TitledPane(Translations.get("settings.bible"), boxBible);
+				new FormField(Translations.get("settings.bible.renumberWarning"), Translations.get("settings.bible.renumberWarning.description"), chkBibleRenumberWarning),
+				new FormField(Translations.get("settings.bible.reorderWarning"), Translations.get("settings.bible.reorderWarning.description"), chkBibleReorderWarning));
+		FormFieldSet pneBible = new FormFieldSet(Translations.get("settings.bible"), boxBible);
+		pneBible.setExpanded(false);
 		
 		VBox layout = new VBox(
 				pneGeneral,
 				pneSlide,
 				pneBible,
 				pneAV);
-		layout.getStyleClass().add("settings");
+		layout.getStyleClass().add(SETTINGS_PANE_CLASS);
 		
 		ScrollPane scrLayout = new ScrollPane(layout);
 		scrLayout.setFitToWidth(true);

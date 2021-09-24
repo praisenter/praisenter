@@ -81,8 +81,9 @@ public final class LibraryList extends BorderPane implements ActionPane {
 	private static final Logger LOGGER = LogManager.getLogger();
 	private static final Collator COLLATOR = Collator.getInstance();
 	private static final DataFormat COPY_DATA_FORMAT = new DataFormat("application/x-praisenter-library-copy");
-	private static final Glyph SORT_ASC = Glyphs.SORT_ASC.duplicate();
-	private static final Glyph SORT_DESC = Glyphs.SORT_DESC.duplicate();
+	
+	private final Glyph SORT_ASC = Glyphs.SORT_ASC.duplicate();
+	private final Glyph SORT_DESC = Glyphs.SORT_DESC.duplicate();
 	
 	private final GlobalContext context;
 	

@@ -39,10 +39,20 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.stage.PopupWindow.AnchorLocation;
 import javafx.util.Callback;
+import javafx.util.Duration;
 
 final class PraisenterPane extends BorderPane {
 	private static final Logger LOGGER = LogManager.getLogger();
+	
+	private static final String TAB_NAVIGATION_CLASS = "p-tab-navigation";
+	private static final String TAB_NAVIGATION_ICON_CLASS = "p-tab-navigation-icon";
+	private static final String TAB_NAVIGATION_ICON_PRESENT_CLASS = "p-tab-navigation-present-icon";
+	private static final String TAB_NAVIGATION_ICON_LIBRARY_CLASS = "p-tab-navigation-library-icon";
+	private static final String TAB_NAVIGATION_ICON_SETTINGS_CLASS = "p-tab-navigation-settings-icon";
+	private static final String TAB_NAVIGATION_ICON_TASKS_CLASS = "p-tab-navigation-tasks-icon";
+
 	
 	private final GlobalContext context;
 	private final ObservableList<Persistable> items;
@@ -88,30 +98,30 @@ final class PraisenterPane extends BorderPane {
 		tasks.setCenter(taskList);
 		
 		TabPane tabs = new TabPane();
-		tabs.getStyleClass().add("p-tab-navigation");
+		tabs.getStyleClass().add(TAB_NAVIGATION_CLASS);
 		tabs.setSide(Side.LEFT);
 		tabs.setTabMaxHeight(Double.MAX_VALUE);
 		tabs.setTabMaxWidth(Double.MAX_VALUE);
 		
 		Tab presentTab = new Tab(null, displayControllers);
-		presentTab.setGraphic(this.createTabGraphic("p-icon-present"));
-		presentTab.setTooltip(new Tooltip(Translations.get("area.present")));
+		presentTab.setGraphic(this.createTabGraphic(TAB_NAVIGATION_ICON_PRESENT_CLASS));
+		presentTab.setTooltip(this.createTabTooltip(Translations.get("area.present")));
 		presentTab.setClosable(false);
 		
 		Tab libraryTab = new Tab(null, libraryManager);
-		libraryTab.setGraphic(this.createTabGraphic("p-icon-library"));
-		libraryTab.setTooltip(new Tooltip(Translations.get("area.manage")));
+		libraryTab.setGraphic(this.createTabGraphic(TAB_NAVIGATION_ICON_LIBRARY_CLASS));
+		libraryTab.setTooltip(this.createTabTooltip(Translations.get("area.manage")));
 		libraryTab.setClosable(false);
+
+		Tab settingsTab = new Tab(null, new SettingsPane(context));
+		settingsTab.setGraphic(this.createTabGraphic(TAB_NAVIGATION_ICON_SETTINGS_CLASS));
+		settingsTab.setTooltip(this.createTabTooltip(Translations.get("area.settings")));
+		settingsTab.setClosable(false);
 		
 		Tab taskHistoryTab = new Tab(null, tasks);
-		taskHistoryTab.setGraphic(this.createTabGraphic("p-icon-tasks"));
-		taskHistoryTab.setTooltip(new Tooltip(Translations.get("area.tasks")));
+		taskHistoryTab.setGraphic(this.createTabGraphic(TAB_NAVIGATION_ICON_TASKS_CLASS));
+		taskHistoryTab.setTooltip(this.createTabTooltip(Translations.get("area.tasks")));
 		taskHistoryTab.setClosable(false);
-		
-		Tab settingsTab = new Tab(null, new SettingsPane(context));
-		settingsTab.setGraphic(this.createTabGraphic("p-icon-settings"));
-		settingsTab.setTooltip(new Tooltip(Translations.get("area.settings")));
-		settingsTab.setClosable(false);
 		
 		tabs.getTabs().addAll(presentTab, libraryTab, settingsTab, taskHistoryTab);
 		
@@ -214,9 +224,16 @@ final class PraisenterPane extends BorderPane {
 		// nothing to do
 	}
 	
+	private Tooltip createTabTooltip(String text) {
+		Tooltip tooltip = new Tooltip(text);
+		tooltip.setShowDelay(new Duration(300));
+		tooltip.setForceIntegerRenderScale(true);
+		return tooltip;
+	}
+	
 	private Node createTabGraphic(String iconCssClass) {
 		Region icon = new Region();
-		icon.getStyleClass().addAll("p-area-icon", iconCssClass);
+		icon.getStyleClass().addAll(TAB_NAVIGATION_ICON_CLASS, iconCssClass);
 		return icon;
 	}
 }

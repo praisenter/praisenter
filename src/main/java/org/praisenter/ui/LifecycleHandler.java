@@ -186,7 +186,7 @@ public final class LifecycleHandler {
 		CompletableFuture<Optional<Path>> workspacePathFuture = null;
 		if (workspacePath == null) {
 			LOGGER.info("Prompting for workspace selection.");
-			WorkspaceSelectorPane wss = new WorkspaceSelectorPane(fm);
+			WorkspaceSelectionPane wss = new WorkspaceSelectionPane(fm);
 			
 			// NOTE: we're using the main stage here for workspace selection because
 			// using anything else doesn't block the application from closing
@@ -217,7 +217,7 @@ public final class LifecycleHandler {
 			}
 			
 	    	final Path wsp = owp.get();
-	    	LOGGER.info("Workspace '" + wsp.toAbsolutePath()+ "' was selected.  Opening...");
+	    	LOGGER.info("Workspace '" + wsp.toAbsolutePath() + "' was selected.  Opening...");
 	    	return wsp;
 		}).thenApplyAsync((wsp) -> {
 			// open the workspace

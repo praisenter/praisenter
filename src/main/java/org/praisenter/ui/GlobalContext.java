@@ -86,6 +86,7 @@ public final class GlobalContext {
 	
 	private final BooleanProperty windowFocused;
 	private final ObjectProperty<Scene> scene;
+	private final ObjectProperty<Node> sceneRoot;
 	private final ObjectProperty<Node> focusOwner;
 	private final ObjectProperty<ActionPane> closestActionPane;
 	private final StringProperty selectedText;
@@ -132,6 +133,7 @@ public final class GlobalContext {
 		this.displayManager = new DisplayManager(this);
 		
 		this.scene = new SimpleObjectProperty<>();
+		this.sceneRoot = new SimpleObjectProperty<>();
 		
 		this.focusOwner = new SimpleObjectProperty<>();
 		this.closestActionPane = new SimpleObjectProperty<>();
@@ -172,12 +174,33 @@ public final class GlobalContext {
 		
 		// bind/unbind the focusOwner property when the scene changes
 		this.sceneListener = (obs, ov, nv) -> {
+			this.sceneRoot.unbind();
 			this.focusOwner.unbind();
 			if (nv != null) {
+				this.sceneRoot.bind(nv.rootProperty());
 				this.focusOwner.bind(nv.focusOwnerProperty());
 			}
 		};
 		this.scene.addListener(this.sceneListener);
+		
+		this.sceneRoot.addListener((obs, ov, nv) -> {
+			if (ov != null) {
+				ov.getStyleClass().removeIf(s -> s.startsWith("p-fs"));
+			}
+		});
+		
+		this.workspaceManager.getWorkspaceConfiguration().applicationFontSizeProperty().addListener((obs, ov, nv) -> {
+			Node node = this.sceneRoot.get();
+			if (node == null) return;
+			
+			if (ov != null) {
+				node.getStyleClass().remove("p-fs" + ov.intValue());
+			}
+			
+			if (nv != null) {
+				node.getStyleClass().add("p-fs" + nv.intValue());
+			}
+		});
 		
 		// keep track of the focus owner (what node owns focus)
 		this.focusListener = (obs, ov, nv) -> {
@@ -309,8 +332,10 @@ public final class GlobalContext {
 		this.windowFocused.unbind();
 		
 		// clean up resources / memory
-		this.imageCache.clear();
 		this.displayManager.dispose();
+		// NOTE: dispose of images AFTER we've disposed of the display targets
+		// otherwise, the images will get loaded again before cleanup
+		this.imageCache.clear();
 	}
 	
 	/**
@@ -370,7 +395,15 @@ public final class GlobalContext {
 			case WORKSPACE_LOGS:
 			case CHECK_FOR_UPDATE:
 			case ABOUT:
+			case RESET_FONT_SIZE:
 				return true;
+			case INCREASE_FONT_SIZE:
+				return this.workspaceManager.getWorkspaceConfiguration().getApplicationFontSize() < 22;
+			case DECREASE_FONT_SIZE:
+				// JAVABUG (M) 09/21/2021 Font size reduction doesn't make the controls smaller https://bugs.openjdk.java.net/browse/JDK-8205473
+				// JAVABUG (M) 09/21/2021 Font size changes recalculate size https://bugs.openjdk.java.net/browse/JDK-8204568
+				// TODO I think this was fixed in Java FX 17 - we should try to upgrade
+				return this.workspaceManager.getWorkspaceConfiguration().getApplicationFontSize() > 8;
 			default:
 				break;
 		}
@@ -476,6 +509,12 @@ public final class GlobalContext {
 	public CompletableFuture<Void> executeAction(Action action) {
 		// handle global actions (i.e. no context related to the action)
 		switch (action) {
+			case RESET_FONT_SIZE:
+				return this.resetApplicationFontSize();
+			case INCREASE_FONT_SIZE:
+				return this.incrementApplicationFontSize(2);
+			case DECREASE_FONT_SIZE:
+				return this.incrementApplicationFontSize(-2);
 			case NEW_BIBLE:
 				return this.createNewBibleAndOpen();
 			case NEW_SLIDE:
@@ -530,6 +569,20 @@ public final class GlobalContext {
 			});
 			return null;
 		});
+	}
+
+	private CompletableFuture<Void> resetApplicationFontSize() {
+		this.workspaceManager.getWorkspaceConfiguration().setApplicationFontSize(12);
+		this.onActionStateChanged("FONT_SIZE_CHANGED=12");
+		return CompletableFuture.completedFuture(null);
+	}
+	
+	private CompletableFuture<Void> incrementApplicationFontSize(double increment) {
+		double fs = this.workspaceManager.getWorkspaceConfiguration().getApplicationFontSize();
+		fs += increment;
+		this.workspaceManager.getWorkspaceConfiguration().setApplicationFontSize(fs);
+		this.onActionStateChanged("FONT_SIZE_CHANGED=" + fs);
+		return CompletableFuture.completedFuture(null);
 	}
 	
 	/**

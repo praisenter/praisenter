@@ -24,6 +24,7 @@ public interface ReadOnlyWorkspaceConfiguration extends MediaConfiguration, Slid
 	public double getApplicationY();
 	public double getApplicationWidth();
 	public double getApplicationHeight();
+	public double getApplicationFontSize();
 	public boolean isApplicationMaximized();
 	public boolean isDebugModeEnabled();
 
@@ -54,6 +55,7 @@ public interface ReadOnlyWorkspaceConfiguration extends MediaConfiguration, Slid
 	public ReadOnlyDoubleProperty applicationYProperty();
 	public ReadOnlyDoubleProperty applicationWidthProperty();
 	public ReadOnlyDoubleProperty applicationHeightProperty();
+	public ReadOnlyDoubleProperty applicationFontSizeProperty();
 	public ReadOnlyBooleanProperty applicationMaximizedProperty();
 	public ReadOnlyBooleanProperty debugModeEnabledProperty();
 

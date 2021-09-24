@@ -34,10 +34,13 @@ import javafx.stage.Modality;
 final class MainMenu extends MenuBar {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
+	private static final String MAIN_MENU_CLASS = "p-main-menu";
+	
 	private final GlobalContext context;
 
 	public MainMenu(GlobalContext context) {
 		super();
+		this.getStyleClass().add(MAIN_MENU_CLASS);
 		
 		this.context = context;
 		
@@ -61,9 +64,9 @@ final class MainMenu extends MenuBar {
 		Menu mnuFile = new Menu(
 				Translations.get("menu.file"), 
 				null, 
-				new Menu(
-						Translations.get("menu.new"), 
-						null,
+//				new Menu(
+//						Translations.get("menu.new"), 
+//						null,
 						this.createMenuItem(Action.NEW_SLIDE),
 						this.createMenuItem(Action.NEW_BIBLE),
 						this.createMenuItem(Action.NEW_SONG),
@@ -88,7 +91,8 @@ final class MainMenu extends MenuBar {
 								this.createMenuItem(Action.NEW_SLIDE_PLACEHOLDER_COMPONENT),
 								this.createMenuItem(Action.NEW_SLIDE_DATETIME_COMPONENT),
 								this.createMenuItem(Action.NEW_SLIDE_COUNTDOWN_COMPONENT),
-								this.createMenuItem(Action.NEW_SLIDE_MEDIA_COMPONENT))),
+								this.createMenuItem(Action.NEW_SLIDE_MEDIA_COMPONENT)),
+//						),
 				new SeparatorMenuItem(),
 				this.createMenuItem(Action.SAVE),
 				this.createMenuItem(Action.SAVE_ALL),
@@ -105,8 +109,6 @@ final class MainMenu extends MenuBar {
 		Menu mnuEdit = new Menu(
 				Translations.get("menu.edit"), 
 				null, 
-				this.createMenuItem(Action.BULK_EDIT),
-				new SeparatorMenuItem(),
 				this.createMenuItem(Action.UNDO),
 				this.createMenuItem(Action.REDO),
 				new SeparatorMenuItem(),
@@ -118,6 +120,7 @@ final class MainMenu extends MenuBar {
 				this.createMenuItem(Action.SELECT_INVERT),
 				this.createMenuItem(Action.SELECT_NONE),
 				new SeparatorMenuItem(),
+				this.createMenuItem(Action.BULK_EDIT),
 				this.createMenuItem(Action.RENAME),
 				this.createMenuItem(Action.DELETE),
 				new SeparatorMenuItem(),
@@ -128,6 +131,14 @@ final class MainMenu extends MenuBar {
 				this.createMenuItem(Action.SLIDE_COMPONENT_MOVE_DOWN),
 				this.createMenuItem(Action.SLIDE_COMPONENT_MOVE_UP),
 				this.createMenuItem(Action.SLIDE_COMPONENT_MOVE_FRONT));
+		
+		// Window
+		Menu mnuWindow = new Menu(
+				Translations.get("menu.window"),
+				null,
+				this.createMenuItem(Action.INCREASE_FONT_SIZE),
+				this.createMenuItem(Action.DECREASE_FONT_SIZE),
+				this.createMenuItem(Action.RESET_FONT_SIZE));
 		
 		// Help
 		//	App logs
@@ -147,7 +158,7 @@ final class MainMenu extends MenuBar {
 				this.createMenuItem(Action.CHECK_FOR_UPDATE),
 				this.createMenuItem(Action.ABOUT));
 		
-		this.getMenus().addAll(mnuFile, mnuEdit, mnuHelp);
+		this.getMenus().addAll(mnuFile, mnuEdit, mnuWindow, mnuHelp);
 	}
 
 	private MenuItem createMenuItem(Action action) {

@@ -13,6 +13,8 @@ import javafx.scene.control.ListView;
 import javafx.scene.layout.BorderPane;
 
 public final class SlideList extends BorderPane {
+	private static final String SLIDE_LIST_CLASS = "p-slide-list";
+	
 	private final ObservableList<Slide> slides;
 	private final ObservableList<Slide> selected;
 	private final ObservableList<Slide> selectedUnmodifiable;
@@ -31,7 +33,7 @@ public final class SlideList extends BorderPane {
 		this.selection.bind(Bindings.valueAt(this.selected, 0));
 		
 		view.setCellFactory(s -> new SlideListCell(context, w, h));
-		view.setPrefWidth(300);
+		view.getStyleClass().add(SLIDE_LIST_CLASS);
 		
 		this.setCenter(view);
 	}

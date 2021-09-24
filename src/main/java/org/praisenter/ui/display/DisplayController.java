@@ -43,9 +43,11 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
+import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TabPane.TabClosingPolicy;
@@ -93,25 +95,25 @@ public final class DisplayController extends BorderPane {
 		
 		this.maxHeight = this.maxWidth.divide(target.getDisplay().widthProperty()).multiply(target.getDisplay().heightProperty());
 		
-		ObservableList<Option<DisplayRole>> displayRoleOptions = FXCollections.observableArrayList();
-		displayRoleOptions.add(new Option<>(Translations.get("display.role." + DisplayRole.NONE), DisplayRole.NONE));
-		displayRoleOptions.add(new Option<>(Translations.get("display.role." + DisplayRole.MAIN), DisplayRole.MAIN));
-		displayRoleOptions.add(new Option<>(Translations.get("display.role." + DisplayRole.TELEPROMPT), DisplayRole.TELEPROMPT));
-		displayRoleOptions.add(new Option<>(Translations.get("display.role." + DisplayRole.OTHER), DisplayRole.OTHER));
-		ChoiceBox<Option<DisplayRole>> cbDisplayRole = new ChoiceBox<>(displayRoleOptions);
-		
-		final DisplayIdentifier identify = new DisplayIdentifier(target.getDisplay());
-		Button btnIdentify = new Button(Translations.get("display.identify"));
-		btnIdentify.setOnAction(e -> {
-			identify.show();
-			
-			Transition tx = new PauseTransition(new Duration(5000));
-			tx.setOnFinished(ev -> {
-				identify.hide();
-			});
-			
-			tx.play();
-		});
+//		ObservableList<Option<DisplayRole>> displayRoleOptions = FXCollections.observableArrayList();
+//		displayRoleOptions.add(new Option<>(Translations.get("display.role." + DisplayRole.NONE), DisplayRole.NONE));
+//		displayRoleOptions.add(new Option<>(Translations.get("display.role." + DisplayRole.MAIN), DisplayRole.MAIN));
+//		displayRoleOptions.add(new Option<>(Translations.get("display.role." + DisplayRole.TELEPROMPT), DisplayRole.TELEPROMPT));
+//		displayRoleOptions.add(new Option<>(Translations.get("display.role." + DisplayRole.OTHER), DisplayRole.OTHER));
+//		ChoiceBox<Option<DisplayRole>> cbDisplayRole = new ChoiceBox<>(displayRoleOptions);
+//		
+//		final DisplayIdentifier identify = new DisplayIdentifier(target.getDisplay());
+//		Button btnIdentify = new Button(Translations.get("display.identify"));
+//		btnIdentify.setOnAction(e -> {
+//			identify.show();
+//			
+//			Transition tx = new PauseTransition(new Duration(5000));
+//			tx.setOnFinished(ev -> {
+//				identify.hide();
+//			});
+//			
+//			tx.play();
+//		});
 		
 		ImageView screen = new ImageView(image);
 		screen.fitWidthProperty().bind(this.maxWidth);
@@ -176,8 +178,18 @@ public final class DisplayController extends BorderPane {
 		SlideTemplateComboBox cmbSongSlideTemplate = new SlideTemplateComboBox(context);
 		SlideTemplateComboBox cmbNotificationTemplate = new SlideTemplateComboBox(context);
 		
-		VBox bibleTab = new VBox(cmbBibleSlideTemplate, bibleNavigationPane);
-		VBox songTab = new VBox(cmbSongSlideTemplate, songNavigationPane);
+		cmbBibleSlideTemplate.setMaxWidth(Double.MAX_VALUE);
+		cmbSongSlideTemplate.setMaxWidth(Double.MAX_VALUE);
+		cmbNotificationTemplate.setMaxWidth(Double.MAX_VALUE);
+		
+		VBox bibleTab = new VBox(3, new Label(Translations.get("display.controller.template")), cmbBibleSlideTemplate, bibleNavigationPane);
+		VBox songTab = new VBox(3, new Label(Translations.get("display.controller.template")), cmbSongSlideTemplate, songNavigationPane);
+		
+		VBox.setVgrow(bibleNavigationPane, Priority.ALWAYS);
+		VBox.setVgrow(songNavigationPane, Priority.ALWAYS);
+		
+		bibleTab.setPadding(new Insets(5));
+		songTab.setPadding(new Insets(5));
 		
 		tabs.getTabs().add(new Tab(Translations.get("bible"), bibleTab));
 		tabs.getTabs().add(new Tab(Translations.get("song"), songTab));
@@ -190,6 +202,7 @@ public final class DisplayController extends BorderPane {
 		layout.getChildren().add(cmbNotificationTemplate);
 		layout.getChildren().add(txtNotification);
 		layout.getChildren().add(new HBox(btnPreviewNotification, btnShowNotification, btnClearNotification));
+		layout.setMaxHeight(Double.MAX_VALUE);
 		
 		VBox.setVgrow(tabs, Priority.ALWAYS);
 //		layout.setBackground(new Background(new BackgroundFill(Color.RED, null, null)));
@@ -261,18 +274,20 @@ public final class DisplayController extends BorderPane {
 			this.slides.removeAll(toRemove);
 		});
 		
-		this.setTop(new HBox(5, cbDisplayRole, btnIdentify));
+//		this.setTop(new HBox(5, cbDisplayRole, btnIdentify));
 		this.setCenter(layout);
 		this.setLeft(list);
 		
-		layout.visibleProperty().bind(cbDisplayRole.valueProperty().isNotEqualTo(new Option<>(null, DisplayRole.NONE)));
+		layout.visibleProperty().bind(target.getDisplay().roleProperty().isNotEqualTo(DisplayRole.NONE));
 		layout.managedProperty().bind(layout.visibleProperty());
+		list.visibleProperty().bind(target.getDisplay().roleProperty().isNotEqualTo(DisplayRole.NONE));
+		list.managedProperty().bind(layout.visibleProperty());
 		
-		cbDisplayRole.setValue(new Option<>(null, target.getDisplay().getRole()));
-		BindingHelper.bindBidirectional(cbDisplayRole.valueProperty(), target.getDisplay().roleProperty());
+//		cbDisplayRole.setValue(new Option<>(null, target.getDisplay().getRole()));
+//		BindingHelper.bindBidirectional(cbDisplayRole.valueProperty(), target.getDisplay().roleProperty());
 		
-		cbDisplayRole.valueProperty().addListener((obs, ov, nv) -> {
-			if (nv.getValue() == DisplayRole.NONE) {
+		target.getDisplay().roleProperty().addListener((obs, ov, nv) -> {
+			if (nv == DisplayRole.NONE) {
 				// clear the screen
 				target.clear();
 			}
