@@ -10,6 +10,8 @@ import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.ListCell;
 
 final class SlideListCell extends ListCell<Slide> {
+	private static final String SLIDE_LIST_CELL_CLASS = "p-slide-list-cell";
+	
 	private final SlideView view;
 	
 	public SlideListCell(GlobalContext context, double w, double h) {
@@ -18,11 +20,9 @@ final class SlideListCell extends ListCell<Slide> {
 		this.view.setCheckeredBackgroundEnabled(true);
 		this.view.setFitToWidthEnabled(true);
 		this.view.setFitToHeightEnabled(true);
-		// TODO i don't really like this as now it's not auto-sizing based on css
-		this.view.setPrefHeight(150);
-		this.view.setPrefWidth(270);
 		this.view.setViewMode(SlideMode.VIEW);
 		this.view.setViewScaleAlignCenter(true);
+		this.view.getStyleClass().add(SLIDE_LIST_CELL_CLASS);
 		
 		this.setText(null);
 		this.setGraphic(null);

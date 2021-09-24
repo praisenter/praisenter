@@ -96,7 +96,7 @@ public final class SongNavigationPane extends BorderPane {
 			tooltip.setMaxWidth(200);
 			tooltip.setWrapText(true);
 			btnSection.setTooltip(tooltip);
-			btnSection.setOnMouseClicked((e) -> {
+			btnSection.setOnAction((e) -> {
 				this.mutating = true;
 				SongReferenceTextStore text = new SongReferenceTextStore();
 				text.setVariant(TextVariant.PRIMARY, new SongReferenceVerse(

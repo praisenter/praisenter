@@ -45,6 +45,9 @@ public final class DisplayManager {
 		
 		// seed the display targets
 		this.onScreensChanged();
+		
+		// reset the focus on the primary stage
+		this.context.getStage().requestFocus();
 	}
 	
 	/**

@@ -69,6 +69,9 @@ public enum Action {
 	
 	REINDEX("action.workspace.reindex"),
 	ABOUT("action.about", () -> Glyphs.MENU_ABOUT.duplicate()),
+	INCREASE_FONT_SIZE("action.font.increase", new KeyCodeCombination(KeyCode.EQUALS, KeyCombination.SHORTCUT_DOWN)),
+	DECREASE_FONT_SIZE("action.font.decrease", new KeyCodeCombination(KeyCode.MINUS, KeyCombination.SHORTCUT_DOWN)),
+	RESET_FONT_SIZE("action.font.reset", new KeyCodeCombination(KeyCode.NUMPAD0, KeyCombination.SHORTCUT_DOWN)),
 	APPLICATION_LOGS("action.application.logs"),
 	WORKSPACE_LOGS("action.workspace.logs"),
 	EXIT("action.exit"),
@@ -77,7 +80,7 @@ public enum Action {
 	
 	// bible
 	
-	NEW_BIBLE("action.new.bible", getGraphicSupplierForNew(Glyphs.NEW_BIBLE)),
+	NEW_BIBLE("action.new.bible", new KeyCodeCombination(KeyCode.B, KeyCombination.SHORTCUT_DOWN, KeyCombination.ALT_DOWN), getGraphicSupplierForNew(Glyphs.NEW_BIBLE)),
 	NEW_BOOK("action.new.bible.book", getGraphicSupplierForNew(Glyphs.NEW_BOOK)),
 	NEW_CHAPTER("action.new.bible.chapter", getGraphicSupplierForNew(Glyphs.NEW_CHAPTER)),
 	NEW_VERSE("action.new.bible.verse", getGraphicSupplierForNew(Glyphs.NEW_VERSE)),
@@ -86,7 +89,7 @@ public enum Action {
 	
 	// slide
 	
-	NEW_SLIDE("action.new.slide", getGraphicSupplierForNew(Glyphs.NEW_SLIDE)),
+	NEW_SLIDE("action.new.slide", new KeyCodeCombination(KeyCode.S, KeyCombination.SHORTCUT_DOWN, KeyCombination.ALT_DOWN), getGraphicSupplierForNew(Glyphs.NEW_SLIDE)),
 	NEW_SLIDE_TEXT_COMPONENT("action.new.slide.component.text", getGraphicSupplierForNew(Glyphs.NEW_TEXT_COMPONENT)),
 	NEW_SLIDE_MEDIA_COMPONENT("action.new.slide.component.media", getGraphicSupplierForNew(Glyphs.NEW_MEDIA_COMPONENT)),
 	NEW_SLIDE_DATETIME_COMPONENT("action.new.slide.component.datetime", getGraphicSupplierForNew(Glyphs.NEW_DATETIME_COMPONENT)),
@@ -135,7 +138,7 @@ public enum Action {
 	
 	// song
 	
-	NEW_SONG("action.new.song", getGraphicSupplierForNew(Glyphs.NEW_SONG)),
+	NEW_SONG("action.new.song", new KeyCodeCombination(KeyCode.L, KeyCombination.SHORTCUT_DOWN, KeyCombination.ALT_DOWN), getGraphicSupplierForNew(Glyphs.NEW_SONG)),
 	NEW_LYRICS("action.new.song.lyrics", getGraphicSupplierForNew(Glyphs.NEW_LYRICS)),
 	NEW_AUTHOR("action.new.song.author", getGraphicSupplierForNew(Glyphs.NEW_AUTHOR)),
 	NEW_SONGBOOK("action.new.song.songbook", getGraphicSupplierForNew(Glyphs.NEW_SONGBOOK)),

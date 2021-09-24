@@ -9,10 +9,10 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 public final class FormField extends VBox {
-	private static final String FORM_FIELD_CSS = "form-field";
-	private static final String FORM_FIELD_LABEL_CSS = "form-field-label";
-	private static final String FORM_FIELD_VALUE_CSS = "form-field-value";
-	private static final String FORM_FIELD_HELP_CSS = "form-field-help";
+	private static final String FORM_FIELD_CSS = "p-form-field";
+	private static final String FORM_FIELD_LABEL_CSS = "p-form-field-label";
+	private static final String FORM_FIELD_VALUE_CSS = "p-form-field-value";
+	private static final String FORM_FIELD_HELP_CSS = "p-form-field-help";
 
 	public FormField(
 			String label, 

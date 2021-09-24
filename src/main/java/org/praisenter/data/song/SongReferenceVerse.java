@@ -55,7 +55,8 @@ public final class SongReferenceVerse {
 			case TEXT:
 				return this.text;
 			case TITLE:
-				return this.title;
+				// TODO change this pattern to use translations
+				return this.title + " (" + this.name + ")";
 			default:
 				break;
 		}

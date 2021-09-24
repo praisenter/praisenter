@@ -10,15 +10,23 @@ import javafx.scene.input.KeyEvent;
 import javafx.util.StringConverter;
 
 public final class AutoCompleteComboBox<T> extends ComboBox<T> {
+	private boolean updating = false;
+	
 	public AutoCompleteComboBox(ObservableList<T> items, BiFunction<String, T, Boolean> matcher) {
 		super(items);
 		
 		this.setEditable(true);
 		
 		this.addEventHandler(KeyEvent.KEY_RELEASED, (e) -> {
+			
 			TextField editor = getEditor();
 			String text = editor.getText();
 			int start = editor.getCaretPosition();
+			
+			// get the true start position
+			String txt = text.replace(editor.getSelectedText(), "");
+			start = txt.length();
+			
 			if (text == null || text.length() == 0) {
 				return;
 			}
