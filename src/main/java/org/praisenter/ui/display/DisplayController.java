@@ -22,9 +22,8 @@ import org.praisenter.data.workspace.DisplayRole;
 import org.praisenter.data.workspace.PlaceholderTransitionBehavior;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.MappedList;
-import org.praisenter.ui.Option;
 import org.praisenter.ui.bible.BibleNavigationPane;
-import org.praisenter.ui.bind.BindingHelper;
+import org.praisenter.ui.controls.Alerts;
 import org.praisenter.ui.slide.SlideList;
 import org.praisenter.ui.slide.SlideMode;
 import org.praisenter.ui.slide.SlideNavigationPane;
@@ -39,15 +38,18 @@ import javafx.animation.Transition;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.DoubleBinding;
 import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
-import javafx.geometry.Insets;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
-import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuButton;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TabPane.TabClosingPolicy;
@@ -55,36 +57,103 @@ import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.robot.Robot;
+import javafx.stage.Modality;
 import javafx.util.Duration;
 
 public final class DisplayController extends BorderPane {
+	private static final String DISPLAY_CONTROLLER_CSS = "p-display-controller";
+	private static final String DISPLAY_CONTROLLER_HEADER_CSS = "p-display-controller-header";
+	private static final String DISPLAY_CONTROLLER_NAME_CSS = "p-display-controller-name";
+	private static final String DISPLAY_CONTROLLER_LEFT_CSS = "p-display-controller-left";
+	private static final String DISPLAY_CONTROLLER_RIGHT_CSS = "p-display-controller-right";
+	private static final String DISPLAY_CONTROLLER_CHK_ROW_CSS = "p-display-controller-chk-row";
+	private static final String DISPLAY_CONTROLLER_BTN_GRID_CSS = "p-display-controller-btn-grid";
+	private static final String DISPLAY_CONTROLLER_TABS_CSS = "p-display-controller-tabs";
+	private static final String DISPLAY_CONTROLLER_TAB_CSS = "p-display-controller-tab";
+	
 	private static final Logger LOGGER = LogManager.getLogger();
 	
 	private final GlobalContext context;
 	private final DisplayTarget target;
 	
-	private final DoubleProperty maxWidth = new SimpleDoubleProperty(400);
-	private final DoubleBinding maxHeight;
+	private final DoubleProperty leftMaxWidth;
+	private final DoubleBinding slidePreviewMaxHeight;
 	
 	private final ObservableList<Slide> slides;
 	private final Slide WAS_REMOVED = new Slide();
 	
 	private final ObservableList<SlideReference> slideToSlideReferenceMapping;
 	
-//	private final ObjectProperty<TextStore> placeholderData;
+	private final IntegerProperty lastTabIndex;
 	
 	public DisplayController(GlobalContext context, DisplayTarget target) {
+		this.getStyleClass().add(DISPLAY_CONTROLLER_CSS);
+		
 		this.context = context;
 		this.target = target;
 		
 		this.slides = FXCollections.observableArrayList();
+		this.lastTabIndex = new SimpleIntegerProperty(0);
 		
-//		this.placeholderData = new SimpleObjectProperty<TextStore>();
+		MenuButton mnuDisplayRole = new MenuButton();
+		mnuDisplayRole.textProperty().bind(Bindings.createStringBinding(() -> {
+			return Translations.get("display.role." + target.getDisplay().getRole());
+		}, target.getDisplay().roleProperty()));
+		
+		for (DisplayRole role : DisplayRole.values()) {
+			MenuItem item = new MenuItem(Translations.get("display.role." + role));
+			item.setUserData(role);
+			item.setOnAction(e -> {
+				// are we going from something to NONE?
+				DisplayRole current = target.getDisplay().getRole();
+				if (role == DisplayRole.NONE && current != DisplayRole.NONE) {
+					// if so, we need to confirm with the user before we do it
+					Alert alert = Alerts.yesNoCancel(
+							context.getStage(), 
+							Modality.WINDOW_MODAL, 
+							Translations.get("display.role.change.none.title"), 
+							Translations.get("display.role.change.none.header"), 
+							Translations.get("display.role.change.none.text"));
+					Optional<ButtonType> result = alert.showAndWait();
+					if (result.isPresent() && result.get() == ButtonType.YES) {
+						target.getDisplay().setRole(role);
+					}
+				} else {
+					target.getDisplay().setRole(role);
+				}
+			});
+			mnuDisplayRole.getItems().add(item);	
+		}
+		
+		final DisplayIdentifier identify = new DisplayIdentifier(target.getDisplay());
+		Button btnIdentify = new Button(Translations.get("display.identify"));
+		btnIdentify.setOnAction(e -> {
+			// if so, we need to confirm with the user before we do it
+			Alert alert = Alerts.yesNoCancel(
+					context.getStage(), 
+					Modality.WINDOW_MODAL, 
+					Translations.get("display.identify.title"), 
+					Translations.get("display.identify.header"), 
+					Translations.get("display.identify.text"));
+			Optional<ButtonType> result = alert.showAndWait();
+			if (result.isPresent() && result.get() == ButtonType.YES) {
+				identify.show();
+				
+				Transition tx = new PauseTransition(new Duration(5000));
+				tx.setOnFinished(ev -> {
+					identify.hide();
+				});
+				
+				tx.play();
+			}
+		});
 		
 		Robot robot = new Robot();
 		WritableImage image = robot.getScreenCapture(null, 
@@ -93,30 +162,14 @@ public final class DisplayController extends BorderPane {
 				target.getDisplay().getWidth(), 
 				target.getDisplay().getHeight());
 		
-		this.maxHeight = this.maxWidth.divide(target.getDisplay().widthProperty()).multiply(target.getDisplay().heightProperty());
+		VBox right = new VBox();
+		right.getStyleClass().add(DISPLAY_CONTROLLER_RIGHT_CSS);
 		
-//		ObservableList<Option<DisplayRole>> displayRoleOptions = FXCollections.observableArrayList();
-//		displayRoleOptions.add(new Option<>(Translations.get("display.role." + DisplayRole.NONE), DisplayRole.NONE));
-//		displayRoleOptions.add(new Option<>(Translations.get("display.role." + DisplayRole.MAIN), DisplayRole.MAIN));
-//		displayRoleOptions.add(new Option<>(Translations.get("display.role." + DisplayRole.TELEPROMPT), DisplayRole.TELEPROMPT));
-//		displayRoleOptions.add(new Option<>(Translations.get("display.role." + DisplayRole.OTHER), DisplayRole.OTHER));
-//		ChoiceBox<Option<DisplayRole>> cbDisplayRole = new ChoiceBox<>(displayRoleOptions);
-//		
-//		final DisplayIdentifier identify = new DisplayIdentifier(target.getDisplay());
-//		Button btnIdentify = new Button(Translations.get("display.identify"));
-//		btnIdentify.setOnAction(e -> {
-//			identify.show();
-//			
-//			Transition tx = new PauseTransition(new Duration(5000));
-//			tx.setOnFinished(ev -> {
-//				identify.hide();
-//			});
-//			
-//			tx.play();
-//		});
+		this.leftMaxWidth = right.maxWidthProperty();
+		this.slidePreviewMaxHeight = this.leftMaxWidth.divide(target.getDisplay().widthProperty()).multiply(target.getDisplay().heightProperty());
 		
 		ImageView screen = new ImageView(image);
-		screen.fitWidthProperty().bind(this.maxWidth);
+		screen.fitWidthProperty().bind(this.leftMaxWidth);
 		screen.setPreserveRatio(true);
 		
 		SlideView slideView = new SlideView(context);
@@ -124,10 +177,10 @@ public final class DisplayController extends BorderPane {
 		slideView.setClipEnabled(true);
 		slideView.setFitToWidthEnabled(true);
 		slideView.setCheckeredBackgroundEnabled(false);
-		slideView.prefWidthProperty().bind(this.maxWidth);
-		slideView.prefHeightProperty().bind(this.maxHeight);
-		slideView.maxWidthProperty().bind(this.maxWidth);
-		slideView.maxHeightProperty().bind(this.maxHeight);
+		slideView.prefWidthProperty().bind(this.leftMaxWidth);
+		slideView.prefHeightProperty().bind(this.slidePreviewMaxHeight);
+		slideView.maxWidthProperty().bind(this.leftMaxWidth);
+		slideView.maxHeightProperty().bind(this.slidePreviewMaxHeight);
 	
 		SlideView notificationView = new SlideView(context);
 		notificationView.setViewMode(SlideMode.PREVIEW);
@@ -135,8 +188,8 @@ public final class DisplayController extends BorderPane {
 		notificationView.setFitToWidthEnabled(true);
 		notificationView.setCheckeredBackgroundEnabled(false);
 		notificationView.setAutoHideEnabled(true);
-		notificationView.prefWidthProperty().bind(this.maxWidth);
-		notificationView.prefHeightProperty().bind(this.maxHeight);
+		notificationView.prefWidthProperty().bind(this.leftMaxWidth);
+		notificationView.prefHeightProperty().bind(this.slidePreviewMaxHeight);
 		
 		DisplayConfiguration dc = this.context.getWorkspaceConfiguration().getDisplayConfigurationById(target.getDisplay().getId());
 		
@@ -144,23 +197,19 @@ public final class DisplayController extends BorderPane {
 		SongNavigationPane songNavigationPane = new SongNavigationPane(context);
 		SlideNavigationPane slideNavigationPane = new SlideNavigationPane(context);
 		
-		VBox layout = new VBox();
+		Button btnShow = new Button(Translations.get("display.controller.show"));
+		Button btnClear = new Button(Translations.get("display.controller.hide"));
+		Button btnQueueAdd = new Button(Translations.get("display.controller.queue.add"));
+		Button btnQueueRemoveSelected = new Button(Translations.get("display.controller.queue.removeSelected"));
+		Button btnQueueRemoveAll = new Button(Translations.get("display.controller.queue.removeAll"));
 		
-		Button btnShowSlide = new Button(Translations.get("display.controller.show"));
-		Button btnClearSlide = new Button(Translations.get("display.controller.hide"));
-		Button btnAddSlide = new Button(Translations.get("display.controller.addSlide"));
-		Button btnRemoveSlide = new Button(Translations.get("display.controller.removeSlide"));
+		btnShow.setMaxWidth(Double.MAX_VALUE);
+		btnShow.setMaxHeight(Double.MAX_VALUE);
+		btnClear.setMaxWidth(Double.MAX_VALUE);
+		btnClear.setMaxHeight(Double.MAX_VALUE);
 		
-		TextField txtNotification = new TextField();
-		txtNotification.setPromptText(Translations.get("display.controller.notification.text"));
-		Button btnPreviewNotification = new Button(Translations.get("display.controller.preview"));
-		Button btnShowNotification = new Button(Translations.get("display.controller.show"));
-		Button btnClearNotification = new Button(Translations.get("display.controller.hide"));
 		CheckBox chkAutoShow = new CheckBox(Translations.get("display.controller.autoshow"));
 		chkAutoShow.setSelected(dc.isAutoShowEnabled());
-//		CheckBox chkWaitForTransition = new CheckBox(Translations.get("display.controller.waitForTransition"));
-//		chkWaitForTransition.setTooltip(new Tooltip(Translations.get("display.controller.waitForTransition.tooltip")));
-//		chkWaitForTransition.setSelected(dc.isWaitForTransitionsToCompleteEnabled());
 		CheckBox chkPreviewTransition = new CheckBox(Translations.get("display.controller.previewTransition"));
 		chkPreviewTransition.setSelected(dc.isPreviewTransitionEnabled());
 		
@@ -171,8 +220,11 @@ public final class DisplayController extends BorderPane {
 			dc.setPreviewTransitionEnabled(nv);
 		});
 		
-		TabPane tabs = new TabPane();
-		tabs.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
+		TextField txtNotification = new TextField();
+		txtNotification.setPromptText(Translations.get("display.controller.notification.text"));
+		Button btnPreviewNotification = new Button(Translations.get("display.controller.preview"));
+		Button btnShowNotification = new Button(Translations.get("display.controller.show"));
+		Button btnClearNotification = new Button(Translations.get("display.controller.hide"));
 		
 		SlideTemplateComboBox cmbBibleSlideTemplate = new SlideTemplateComboBox(context);
 		SlideTemplateComboBox cmbSongSlideTemplate = new SlideTemplateComboBox(context);
@@ -182,30 +234,29 @@ public final class DisplayController extends BorderPane {
 		cmbSongSlideTemplate.setMaxWidth(Double.MAX_VALUE);
 		cmbNotificationTemplate.setMaxWidth(Double.MAX_VALUE);
 		
-		VBox bibleTab = new VBox(3, new Label(Translations.get("display.controller.template")), cmbBibleSlideTemplate, bibleNavigationPane);
-		VBox songTab = new VBox(3, new Label(Translations.get("display.controller.template")), cmbSongSlideTemplate, songNavigationPane);
+		cmbBibleSlideTemplate.setPromptText(Translations.get("display.controller.template"));
+		cmbSongSlideTemplate.setPromptText(Translations.get("display.controller.template"));
+		cmbNotificationTemplate.setPromptText(Translations.get("display.controller.template"));
+		
+		VBox bibleTab = new VBox(cmbBibleSlideTemplate, bibleNavigationPane);
+		VBox songTab = new VBox(cmbSongSlideTemplate, songNavigationPane);
+		VBox notificationTab = new VBox(cmbNotificationTemplate, txtNotification, new HBox(5, btnPreviewNotification, btnShowNotification, btnClearNotification));
 		
 		VBox.setVgrow(bibleNavigationPane, Priority.ALWAYS);
 		VBox.setVgrow(songNavigationPane, Priority.ALWAYS);
 		
-		bibleTab.setPadding(new Insets(5));
-		songTab.setPadding(new Insets(5));
+		bibleTab.getStyleClass().add(DISPLAY_CONTROLLER_TAB_CSS);
+		songTab.getStyleClass().add(DISPLAY_CONTROLLER_TAB_CSS);
+		notificationTab.getStyleClass().add(DISPLAY_CONTROLLER_TAB_CSS);
+
+		TabPane tabs = new TabPane();
+		tabs.getStyleClass().add(DISPLAY_CONTROLLER_TABS_CSS);
+		tabs.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
 		
 		tabs.getTabs().add(new Tab(Translations.get("bible"), bibleTab));
 		tabs.getTabs().add(new Tab(Translations.get("song"), songTab));
 		tabs.getTabs().add(new Tab(Translations.get("slide"), slideNavigationPane));
-		
-		layout.getChildren().add(new StackPane(screen, slideView, notificationView));
-		layout.getChildren().add(new HBox(chkPreviewTransition));
-		layout.getChildren().add(new HBox(chkAutoShow, btnShowSlide, btnClearSlide, btnAddSlide, btnRemoveSlide));
-		layout.getChildren().add(tabs);
-		layout.getChildren().add(cmbNotificationTemplate);
-		layout.getChildren().add(txtNotification);
-		layout.getChildren().add(new HBox(btnPreviewNotification, btnShowNotification, btnClearNotification));
-		layout.setMaxHeight(Double.MAX_VALUE);
-		
-		VBox.setVgrow(tabs, Priority.ALWAYS);
-//		layout.setBackground(new Background(new BackgroundFill(Color.RED, null, null)));
+		tabs.getTabs().add(new Tab(Translations.get("notification"), notificationTab));
 		
 		for (SlideReference sr : dc.getQueuedSlidesUnmodifiable()) {
 			if (sr.getSlideId() != null) {
@@ -228,9 +279,8 @@ public final class DisplayController extends BorderPane {
 		});
 		Bindings.bindContent(dc.getQueuedSlides(), this.slideToSlideReferenceMapping);
 		
-		// TODO move the remove button to above/below slide list
-		SlideList list = new SlideList(context, target.getDisplay().getWidth(), target.getDisplay().getHeight());
-		Bindings.bindContent(list.getSlides(), this.slides);
+		SlideList lstSlideQueue = new SlideList(context);
+		Bindings.bindContent(lstSlideQueue.getItems(), this.slides);
 		
 		// listen for changes to the slides (remove and update)
 		context.getWorkspaceManager().getItemsUnmodifiable().addListener((Change<? extends Persistable> c) -> {
@@ -273,19 +323,65 @@ public final class DisplayController extends BorderPane {
 			
 			this.slides.removeAll(toRemove);
 		});
+
+		StackPane stkSlideView = new StackPane(screen, slideView, notificationView);
 		
-//		this.setTop(new HBox(5, cbDisplayRole, btnIdentify));
-		this.setCenter(layout);
-		this.setLeft(list);
+		GridPane layout = new GridPane();
+		layout.getStyleClass().add(DISPLAY_CONTROLLER_BTN_GRID_CSS);
 		
-		layout.visibleProperty().bind(target.getDisplay().roleProperty().isNotEqualTo(DisplayRole.NONE));
-		layout.managedProperty().bind(layout.visibleProperty());
-		list.visibleProperty().bind(target.getDisplay().roleProperty().isNotEqualTo(DisplayRole.NONE));
-		list.managedProperty().bind(layout.visibleProperty());
+		btnQueueAdd.setMaxWidth(Double.MAX_VALUE);
+		btnQueueRemoveSelected.setMaxWidth(Double.MAX_VALUE);
+		btnQueueRemoveAll.setMaxWidth(Double.MAX_VALUE);
+		GridPane.setFillWidth(btnQueueAdd, true);
 		
-//		cbDisplayRole.setValue(new Option<>(null, target.getDisplay().getRole()));
-//		BindingHelper.bindBidirectional(cbDisplayRole.valueProperty(), target.getDisplay().roleProperty());
+		int row = 0;
+		HBox checkRow = new HBox(chkPreviewTransition, chkAutoShow);
+		checkRow.getStyleClass().add(DISPLAY_CONTROLLER_CHK_ROW_CSS);
 		
+		layout.add(checkRow, 0, row, 3, 1);
+		layout.add(btnShow, 3, row, 1, 2);
+		layout.add(btnClear, 4, row, 1, 2);
+		
+		row++;
+		layout.add(btnQueueAdd, 0, row, 2, 1);
+		
+		for (int i = 0; i < 5; i++) {
+			ColumnConstraints c1 = new ColumnConstraints(); c1.setPercentWidth(20);
+			layout.getColumnConstraints().add(c1);
+		}
+		
+		right.getChildren().addAll(stkSlideView, layout, tabs);
+		
+		VBox left = new VBox(lstSlideQueue, btnQueueRemoveSelected, btnQueueRemoveAll);
+		left.getStyleClass().add(DISPLAY_CONTROLLER_LEFT_CSS);
+		
+		BorderPane body = new BorderPane();
+		body.setCenter(right);
+		body.setLeft(left);
+		
+		VBox.setVgrow(lstSlideQueue, Priority.ALWAYS);
+		VBox.setVgrow(tabs, Priority.ALWAYS);
+		
+		right.visibleProperty().bind(target.getDisplay().roleProperty().isNotEqualTo(DisplayRole.NONE));
+		right.managedProperty().bind(right.visibleProperty());
+		left.visibleProperty().bind(target.getDisplay().roleProperty().isNotEqualTo(DisplayRole.NONE));
+		left.managedProperty().bind(lstSlideQueue.visibleProperty());
+		
+		// HEADER layout
+		
+		Label lblHeader = new Label(target.toString());
+		lblHeader.getStyleClass().add(DISPLAY_CONTROLLER_NAME_CSS);
+		
+		HBox spacer = new HBox();
+		spacer.setMaxWidth(Double.MAX_VALUE);
+		HBox headerBtns = new HBox(lblHeader, spacer, mnuDisplayRole, btnIdentify);
+		headerBtns.getStyleClass().add(DISPLAY_CONTROLLER_HEADER_CSS);
+		HBox.setHgrow(spacer, Priority.ALWAYS);
+		HBox.setHgrow(mnuDisplayRole, Priority.NEVER);
+		
+		this.setTop(headerBtns);
+		this.setCenter(body);
+
 		target.getDisplay().roleProperty().addListener((obs, ov, nv) -> {
 			if (nv == DisplayRole.NONE) {
 				// clear the screen
@@ -293,7 +389,7 @@ public final class DisplayController extends BorderPane {
 			}
 		});
 		
-		btnAddSlide.setOnAction(e -> {
+		btnQueueAdd.setOnAction(e -> {
 			// get the current slide w/ placeholder data
 			Slide slide = null;
 			TextStore data = new StringTextStore("");
@@ -307,6 +403,9 @@ public final class DisplayController extends BorderPane {
 				data = songNavigationPane.getValue();
 			} else if (index == 2) {
 				slide = slideNavigationPane.getValue();
+			} else if (index == 3) {
+				// just ignore template tab
+				return;
 			} else {
 				LOGGER.warn("Tab index '" + index + "' is not supported.");
 			}
@@ -319,8 +418,8 @@ public final class DisplayController extends BorderPane {
 			}
 		});
 		
-		btnRemoveSlide.setOnAction(e -> {
-			List<Slide> selected = new ArrayList<>(list.getSelected());
+		btnQueueRemoveSelected.setOnAction(e -> {
+			List<Slide> selected = new ArrayList<>(lstSlideQueue.getSelected());
 			for (Slide s1 : selected) {
 				int index = -1;
 				for (int i = 0; i < this.slides.size(); i++) {
@@ -337,8 +436,12 @@ public final class DisplayController extends BorderPane {
 				}
 			}
 		});
+		
+		btnQueueRemoveAll.setOnAction(e -> {
+			this.slides.clear();
+		});
 
-		btnShowSlide.setOnAction(e -> {
+		btnShow.setOnAction(e -> {
 			Slide slide = null;
 			TextStore data = null;
 			
@@ -351,6 +454,8 @@ public final class DisplayController extends BorderPane {
 				data = songNavigationPane.getValue();
 			} else if (index == 2) {
 				slide = slideNavigationPane.getValue();
+			} else if (index == 3) {
+				return;
 			} else {
 				LOGGER.warn("Tab index '" + index + "' is not supported.");
 			}
@@ -374,7 +479,7 @@ public final class DisplayController extends BorderPane {
 			}
 		});
 		
-		btnClearSlide.setOnAction(e -> {
+		btnClear.setOnAction(e -> {
 			target.displaySlide(null, null, false);
 		});
 		
@@ -568,9 +673,30 @@ public final class DisplayController extends BorderPane {
 				slide = cmbSongSlideTemplate.getValue();
 			} else if (index == 2) {
 				slide = slideNavigationPane.getValue();
+			} else if (index == 3) {
+				// ignore notification
+				// don't record we went here so that
+				// we don't do a superfluous transition
+				// when preview transition is enabled
+				return;
 			} else {
 				LOGGER.warn("Tab index '" + index + "' is not supported.");
 			}
+
+			int lastTabIndex = this.lastTabIndex.get();
+			this.lastTabIndex.set(index);
+
+			// if we're coming from the notification tab, check what the
+			// last "real" tab we were on was and compare it to where we're
+			// going.  If they are the same, then there's no need to do a
+			// display change because there's nothing the user can do to 
+			// change what's there from the notification tab.  The user could
+			// modify the slide template in the editor, but that should be
+			// handled already
+			if (ov.intValue() == 3 && lastTabIndex == nv.intValue()) {
+				return;
+			}
+			
 			
 			handleDisplayChange.accept(DisplayChange.TAB, slide, data);
 		});
@@ -593,7 +719,9 @@ public final class DisplayController extends BorderPane {
 			handleDisplayChange.accept(DisplayChange.DATA, slide, nv);
 		});
 		
-		list.selectionProperty().addListener((obs, ov, nv) -> {
+		lstSlideQueue.selectionProperty().addListener((obs, ov, nv) -> {
+			LOGGER.debug("{} was selected", nv);
+			
 			if (nv != null) {
 				// check for slide first
 				if (!nv.hasPlaceholders()) {

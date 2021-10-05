@@ -11,10 +11,13 @@ import javafx.scene.control.ListCell;
 
 final class SlideListCell extends ListCell<Slide> {
 	private static final String SLIDE_LIST_CELL_CLASS = "p-slide-list-cell";
+	private static final String SLIDE_LIST_CELL_SLIDE_VIEW_CLASS = "p-slide-list-cell-slide-view";
 	
 	private final SlideView view;
 	
-	public SlideListCell(GlobalContext context, double w, double h) {
+	public SlideListCell(GlobalContext context) {
+		this.getStyleClass().add(SLIDE_LIST_CELL_CLASS);
+		
 		this.view = new SlideView(context);
 		this.view.setAutoHideEnabled(false);
 		this.view.setCheckeredBackgroundEnabled(true);
@@ -22,7 +25,7 @@ final class SlideListCell extends ListCell<Slide> {
 		this.view.setFitToHeightEnabled(true);
 		this.view.setViewMode(SlideMode.VIEW);
 		this.view.setViewScaleAlignCenter(true);
-		this.view.getStyleClass().add(SLIDE_LIST_CELL_CLASS);
+		this.view.getStyleClass().add(SLIDE_LIST_CELL_SLIDE_VIEW_CLASS);
 		
 		this.setText(null);
 		this.setGraphic(null);

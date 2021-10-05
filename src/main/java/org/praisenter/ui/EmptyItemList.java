@@ -38,7 +38,7 @@ public final class EmptyItemList<E> extends TransformationList<E, E> {
 
 	@Override
 	public int size() {
-		return getSource().size();
+		return getSource().size() + 1;
 	}
 	
 	@Override
@@ -72,8 +72,8 @@ public final class EmptyItemList<E> extends TransformationList<E, E> {
 
 			@Override
 			public int getPermutation(int i) {
-				if (i == 0) return 0;
-				return c.getPermutation(i - 1);
+//				if (i == 0) return 0;
+				return c.getPermutation(i);
 			}
 
 			@Override
@@ -87,15 +87,7 @@ public final class EmptyItemList<E> extends TransformationList<E, E> {
 
 			@Override
 			public List<E> getRemoved() {
-//				return c.getRemoved();
 				return new ArrayList<>(c.getRemoved());
-//				return null;
-//				ArrayList<E> res = new ArrayList<>(c.getRemovedSize());
-//				for (F e : c.getRemoved()) {
-//					//res.add(mapper.apply(e));
-//					res.add(map.getOrDefault(e, mapper.apply(e)));
-//				}
-//				return res;
 			}
 
 			@Override
@@ -118,14 +110,5 @@ public final class EmptyItemList<E> extends TransformationList<E, E> {
 				c.reset();
 			}
 		});
-		
-//		c.reset();
-//        while (c.next()) {
-////            c.getRemoved().forEach(this.map::remove);
-////        	c.getRemoved().forEach((item) -> {
-////        		this.map.remove(item);
-////        		System.out.println("Remove: " + item);        		
-////        	});
-//        }
 	}
 }

@@ -245,15 +245,16 @@ public class SlideView extends Region implements Playable {
 
 	@Override
 	public void dispose() {
+		Transition tx = this.currentTransition;
+		if (tx != null) {
+			tx.stop();
+		}
+		
 		SlideNode slideNode = this.slideNode.get();
 		if (slideNode != null) {
 			slideNode.dispose();
 		}
 		this.requests.clear();
-		Transition tx = this.currentTransition;
-		if (tx != null) {
-			tx.stop();
-		}
 	}
 	
 	// TODO would be nice if there was a mechanism to wait for the SlideNode to load as well (when media players are ready for example) for better PRESENT interaction
@@ -293,6 +294,10 @@ public class SlideView extends Region implements Playable {
 			this.currentTransition.jumpTo(this.currentTransition.getCycleDuration());
 		}
 
+		if (oldSlide == null && slide == null) {
+			return;
+		}
+		
 		LOGGER.debug("Swapping slide: {} with {}", oldSlide, slide);
 		
 		// clean up
@@ -306,7 +311,9 @@ public class SlideView extends Region implements Playable {
 		
 		// set new slide (always set null to ensure that
 		// it registers the change of value)
-		this.slide.set(null);
+		if (oldSlide == slide) {
+			this.slide.set(null);
+		}
 		this.slide.set(slide);
 		
 		if (slide != null) {
