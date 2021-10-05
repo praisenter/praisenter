@@ -661,6 +661,11 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 		if (this.treeView.getSelectionModel().getSelectedItems().contains(item)) {
 			return;
 		}
+
+		// handle null item (happens when you drag onto blank area)
+		if (item == null) {
+			return;
+		}
 		
 		// check for null data
 		Object data = item.getValue();

@@ -349,23 +349,75 @@ https://stackoverflow.com/questions/50011276/javafx-treeview-expand-collapse-dis
 
 /* SLIDE LIST */
 .p-slide-list {
-	-fx-pref-width: 200;
+	-fx-pref-width: 17em; /* ~200px */
 }
 .p-slide-list-cell {
-	-fx-pref-width: 170;
-	-fx-pref-height: 90;
+	-fx-alignment: CENTER;
+	-fx-padding: 0.5em 0 0.8em 0;
+	-fx-pref-width: 14em;
+}
+.p-slide-list-cell-slide-view {
+	-fx-pref-width: 14.45em; /* ~170px */
+	-fx-pref-height: 7.65em; /* ~90px */
 }
 
-/* DISPLAYS / DISPLAY */
-.p-displays {
+/* DISPLAY CONTROLLER */
+.p-display-controllers {
 	-fx-spacing: 0.8em;
 	-fx-padding: 0.8em 0.8em 0 0.8em;
 }
-.p-display-header {
+
+.p-display-controller {
+	-fx-min-width: 51em;
+	-fx-padding: 0 0 0.8em 0;
+}
+.p-display-controller-header {
 	-fx-background-color: -fx-base;
-	-fx-spacing: 5;
+	-fx-spacing: 0.5em;
 	-fx-padding: 0.5em;
 }
-.p-display-header-text {
+.p-display-controller-name {
 	-fx-font-size: 1.5em;
+}
+.p-display-controller-left,
+.p-display-controller-right {
+	-fx-spacing: 0.5em;
+}
+.p-display-controller-right {
+	-fx-max-width: 34em;
+}
+.p-display-controller-chk-row {
+	-fx-spacing: 0.5em;
+	/* -fx-alignment: CENTER; */
+}
+.p-display-controller-btn-grid {
+	-fx-vgap: 0.5em;
+	-fx-hgap: 0.5em;
+	-fx-padding: 0 0 0 0.5em;
+}
+.p-display-controller-tabs > .tab-header-area > .headers-region > .tab {
+	-fx-padding: 0.25em 1.5em;
+}
+.p-display-controller-tab {
+	-fx-padding: 0.5em 0 0 0.5em;
+	-fx-spacing: 0.5em;
+}
+
+/* BIBLE NAVIGATION (CONTROLLER) */
+.p-bible-nav {
+	-fx-hgap: 0.5em;
+	-fx-vgap: 0.5em;
+}
+
+/* BIBLE NAVIGATION (CONTROLLER) */
+.p-song-nav {
+	-fx-spacing: 2em;
+}
+.p-song-nav-lyric-selection {
+	-fx-hgap: 0.5em;
+	-fx-vgap: 0.5em;
+}
+.p-song-nav-sections {
+	-fx-hgap: 0.5em;
+	-fx-vgap: 0.5em;
 }

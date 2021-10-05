@@ -6,20 +6,33 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.TransformationList;
 
 // see https://gist.github.com/TomasMikula/8883719
 public final class MappedList<E, F> extends TransformationList<E, F> {
+	private static final Logger LOGGER = LogManager.getLogger();
 
 	private final Function<F, E> mapper;
 	private final Map<F, E> map;
+//	private final boolean lazy;
 
 	public MappedList(ObservableList<? extends F> source, Function<F, E> mapper) {
 		super(source);
 		this.mapper = mapper;
 		this.map = new IdentityHashMap<>();
+//		this.lazy = lazy;
+		
+//		if (!lazy) {
+//			// convert any existing items in the source to 
+//			for (F item : source) {
+//				this.map.put(item, this.mapper.apply(item));
+//			}
+//		}
 	}
 
 	@Override
@@ -34,10 +47,25 @@ public final class MappedList<E, F> extends TransformationList<E, F> {
 
 	@Override
 	public E get(int index) {
-		//return this.mapper.apply(getSource().get(index));
+		// get the source value
 		F f = getSource().get(index);
-//		System.out.println("Contains1: " + f + " " + this.map.containsKey(getSource().get(index)));
-		return this.map.computeIfAbsent(f, this.mapper::apply);
+		
+		E e = null;
+//		if (this.lazy) {
+			// get the mapped value
+			e = this.map.computeIfAbsent(f, this.mapper);			
+//		} else {
+//			e = this.map.get(f);
+//		}
+//
+//		// check for null
+//		if (e == null) {
+//			
+//			// this should never happen - but let's log something just in case
+//			LOGGER.fatal("MappedList map didn't contain a value for " + f + " at index: " + index);
+//		}
+		
+		return e;
 	}
 
 	@Override
@@ -47,6 +75,21 @@ public final class MappedList<E, F> extends TransformationList<E, F> {
 	
 	@Override
 	protected void sourceChanged(Change<? extends F> c) {
+//		if (!this.lazy) {
+//			// map the items if something was added
+//	        while (c.next()) {
+//	        	if (c.wasAdded()) {
+//	        		for (F value : c.getAddedSubList()) {
+//	        			this.map.putIfAbsent(value, this.mapper.apply(value));
+//	        		}
+//	        	}
+//	        }
+//			
+//	        // reset the changes
+//	        c.reset();
+//		}
+		
+		// fire to watchers of this list
 		fireChange(new Change<E>(this) {
 
 			@Override
@@ -91,9 +134,18 @@ public final class MappedList<E, F> extends TransformationList<E, F> {
 			@Override
 			public List<E> getRemoved() {
 				ArrayList<E> res = new ArrayList<>(c.getRemovedSize());
-				for (F e : c.getRemoved()) {
-					//res.add(mapper.apply(e));
-					res.add(map.getOrDefault(e, mapper.apply(e)));
+				for (F f : c.getRemoved()) {
+					E e = map.get(f);
+					
+					if (e == null) {
+						// this should only happen if we're lazily mapping the source
+						// to the target and the target hasn't been enumerated
+						// in which case the removes shouldn't matter?
+						LOGGER.warn("MappedList map didn't contain a value that was reported as removed.");
+						continue;
+					}
+					
+					res.add(e);
 				}
 				return res;
 			}
@@ -119,13 +171,13 @@ public final class MappedList<E, F> extends TransformationList<E, F> {
 			}
 		});
 		
+		// finally, reset and remove any map items 
+		// for those items that were removed
 		c.reset();
         while (c.next()) {
-            c.getRemoved().forEach(this.map::remove);
-//        	c.getRemoved().forEach((item) -> {
-//        		this.map.remove(item);
-//        		System.out.println("Remove: " + item);        		
-//        	});
-        }
+        	if (c.wasRemoved()) {
+	            c.getRemoved().forEach(this.map::remove);
+	        }
+		}
 	}
 }

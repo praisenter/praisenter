@@ -38,36 +38,28 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.SortedList;
 import javafx.geometry.Pos;
-import javafx.geometry.VPos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.ScrollBar;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.Window;
 
-public final class BibleNavigationPane extends BorderPane {
+public final class BibleNavigationPane extends GridPane {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
-	private static final Node INVALID_CHAPTER = Glyphs.BIBLE_NAV_INVALID.duplicate();
-	private static final Node INVALID_VERSE = Glyphs.BIBLE_NAV_INVALID.duplicate();
+	private static final String BIBLE_NAV_CSS = "p-bible-nav";
+	
+	private final Node INVALID_CHAPTER = Glyphs.BIBLE_NAV_INVALID.duplicate();
+	private final Node INVALID_VERSE = Glyphs.BIBLE_NAV_INVALID.duplicate();
 	
 	private static final ReadOnlyBible EMPTY_BIBLE = new Bible();
 	
@@ -80,6 +72,7 @@ public final class BibleNavigationPane extends BorderPane {
 	// data
 	
 	private final ObservableList<ReadOnlyBible> bibles;
+	private final ObservableList<ReadOnlyBible> biblesWithEmptyOption;
 	private final ObjectProperty<ReadOnlyBible> primary;
 	private final ObjectProperty<ReadOnlyBible> secondary;
 	private final ObservableList<ReadOnlyBook> books;
@@ -102,10 +95,9 @@ public final class BibleNavigationPane extends BorderPane {
 	
 	private boolean mutating = false;
 	
-	// used to avoid the setOnAction being called so that we don't run the find/next/prev actions twice
-	private boolean mouseClicked = false;
-	
 	public BibleNavigationPane(GlobalContext context, BibleConfiguration configuration) {
+		this.getStyleClass().add(BIBLE_NAV_CSS);
+		
 		this.primary = new SimpleObjectProperty<ReadOnlyBible>();
 		this.secondary = new SimpleObjectProperty<ReadOnlyBible>();
 		this.books = FXCollections.observableArrayList();
@@ -123,7 +115,9 @@ public final class BibleNavigationPane extends BorderPane {
 		SortedList<Bible> bibles = bl.sorted(new PersistableComparator<Bible>());
 //		Bindings.bindContent(this.bibles, bibles);
 		
-		this.bibles = new EmptyItemList<ReadOnlyBible>(bibles, EMPTY_BIBLE);
+		this.bibles = FXCollections.observableArrayList();
+		Bindings.bindContent(this.bibles, bibles);
+		this.biblesWithEmptyOption = new EmptyItemList<ReadOnlyBible>(bibles, EMPTY_BIBLE);
 		
 		this.primary.addListener((obs, ov, nv) -> {
 			ReadOnlyBook book = this.book.get();
@@ -182,10 +176,6 @@ public final class BibleNavigationPane extends BorderPane {
 			secondaryBible = context.getWorkspaceManager().getItem(Bible.class, secondaryId);
 		}
 		
-		if (secondaryBible == null) {
-			secondaryBible = backupBible;
-		}
-		
 		this.primary.set(primaryBible);
 		this.secondary.set(secondaryBible);
 		this.value.set(new BibleReferenceTextStore());
@@ -193,9 +183,11 @@ public final class BibleNavigationPane extends BorderPane {
 		this.next.set(new BibleReferenceTextStore());
 		
 		ComboBox<ReadOnlyBible> cmbPrimary = new ComboBox<ReadOnlyBible>(this.bibles);
+		cmbPrimary.setPromptText(Translations.get("bible.nav.primary"));
 		cmbPrimary.valueProperty().bindBidirectional(this.primary);
 		
-		ComboBox<ReadOnlyBible> cmbSecondary = new ComboBox<ReadOnlyBible>(this.bibles);
+		ComboBox<ReadOnlyBible> cmbSecondary = new ComboBox<ReadOnlyBible>(this.biblesWithEmptyOption);
+		cmbSecondary.setPromptText(Translations.get("bible.nav.secondary"));
 		cmbSecondary.valueProperty().bindBidirectional(this.secondary);
 		
 		ComboBox<ReadOnlyBook> cmbBook = new AutoCompleteComboBox<ReadOnlyBook>(this.books, (typedText, book) -> {
@@ -213,7 +205,7 @@ public final class BibleNavigationPane extends BorderPane {
 		
 		Spinner<Integer> spnChapter = new Spinner<Integer>(1, Short.MAX_VALUE, 1, 1);
 		spnChapter.setEditable(true);
-		spnChapter.setMaxWidth(65);
+//		spnChapter.setMaxWidth(65);
 		spnChapter.getValueFactory().valueProperty().bindBidirectional(this.chapter);
 		spnChapter.focusedProperty().addListener((obs) -> {
 			Platform.runLater(spnChapter.getEditor()::selectAll);
@@ -221,7 +213,7 @@ public final class BibleNavigationPane extends BorderPane {
 		
 		Spinner<Integer> spnVerse = new Spinner<Integer>(1, Short.MAX_VALUE, 1, 1);
 		spnVerse.setEditable(true);
-		spnVerse.setMaxWidth(65);
+//		spnVerse.setMaxWidth(65);
 		spnVerse.getValueFactory().valueProperty().bindBidirectional(this.verse);
 		spnVerse.focusedProperty().addListener((obs) -> {
 			Platform.runLater(spnVerse.getEditor()::selectAll);
@@ -411,33 +403,16 @@ public final class BibleNavigationPane extends BorderPane {
 				}
 			}
 		});
-		
-		Label lblPrimary = new Label(Translations.get("bible.nav.primary"));
-		Label lblSecondary = new Label(Translations.get("bible.nav.secondary"));
-		
+
 		// LAYOUT
 		
-		VBox primaryColumn = new VBox(5, lblPrimary, cmbPrimary);
-		VBox secondaryColumn = new VBox(5, lblSecondary, cmbSecondary);
-		
-		cmbPrimary.setMaxWidth(Double.MAX_VALUE);
-		cmbSecondary.setMaxWidth(Double.MAX_VALUE);
-		
-		GridPane gpTop = new GridPane();
-		gpTop.setHgap(5);
-		gpTop.add(primaryColumn, 0, 0);
-		gpTop.add(secondaryColumn, 1, 0);
-		GridPane.setHgrow(primaryColumn, Priority.SOMETIMES);
-		GridPane.setHgrow(secondaryColumn, Priority.SOMETIMES);
-		
-		GridPane.setFillWidth(primaryColumn, true);
-		GridPane.setFillWidth(secondaryColumn, true);
-		
-		GridPane layout = new GridPane();
-		layout.setVgap(5);
-		layout.setHgap(5);
+		GridPane layout = this;
 		
 		int row = 0;
+		layout.add(cmbPrimary, 0, row, 1, 1);
+		layout.add(cmbSecondary, 1, row, 3, 1);
+		
+		row++;
 		layout.add(cmbBook, 0, row);
 		layout.add(spnChapter, 1, row);
 		layout.add(spnVerse, 2, row);
@@ -452,10 +427,23 @@ public final class BibleNavigationPane extends BorderPane {
 		layout.add(lblChapters, 1, row);
 		layout.add(lblVerses, 2, row);
 		
+		ColumnConstraints c1 = new ColumnConstraints();
+		c1.setPercentWidth(50);
+		ColumnConstraints c2 = new ColumnConstraints();
+		c2.setPercentWidth(17);
+		ColumnConstraints c3 = new ColumnConstraints();
+		c3.setPercentWidth(17);
+		ColumnConstraints c4 = new ColumnConstraints();
+		c4.setPercentWidth(16);
+		
+		layout.getColumnConstraints().addAll(c1, c2, c3, c4);
+		
 		cmbBook.setMaxWidth(Double.MAX_VALUE);
 		lblChapters.setAlignment(Pos.BASELINE_CENTER);
 		lblVerses.setAlignment(Pos.BASELINE_CENTER);
-		
+
+		cmbPrimary.setMaxWidth(Double.MAX_VALUE);
+		cmbSecondary.setMaxWidth(Double.MAX_VALUE);
 		lblChapters.setMaxWidth(Double.MAX_VALUE);
 		lblVerses.setMaxWidth(Double.MAX_VALUE);
 		btnFind.setMaxWidth(Double.MAX_VALUE);
@@ -463,67 +451,36 @@ public final class BibleNavigationPane extends BorderPane {
 		next.setMaxWidth(Double.MAX_VALUE);
 		btnSearch.setMaxWidth(Double.MAX_VALUE);
 		
-		GridPane.setHgrow(cmbBook, Priority.SOMETIMES);
-		GridPane.setHgrow(btnFind, Priority.SOMETIMES);
-		GridPane.setHgrow(btnSearch, Priority.SOMETIMES);
-		GridPane.setFillWidth(lblChapters, true);
-		GridPane.setFillWidth(lblVerses, true);
-		GridPane.setFillWidth(spnChapter, true);
-		GridPane.setFillWidth(spnVerse, true);
-		GridPane.setFillWidth(btnFind, true);
-		GridPane.setFillWidth(prev, true);
-		GridPane.setFillWidth(next, true);
-		GridPane.setFillWidth(btnSearch, true);
+		Label lblPreviousTitle = new Label(Translations.get("bible.nav.prevVerse"));
+		Label lblNextTitle = new Label(Translations.get("bible.nav.nextVerse"));
 		
-		
-		Label lblPreviousTitle = new Label();
-		Label lblCurrentTitle = new Label();
-		Label lblNextTitle = new Label();
+		TextField txtPreviousTitle = new TextField();
+		TextField txtNextTitle = new TextField();
 		TextArea lblPreviousText = new TextArea();
-		TextArea lblCurrentText = new TextArea();
 		TextArea lblNextText = new TextArea();
 		
-		lblPreviousTitle.setAlignment(Pos.BASELINE_CENTER);
-		lblCurrentTitle.setAlignment(Pos.BASELINE_CENTER);
-		lblNextTitle.setAlignment(Pos.BASELINE_CENTER);
-		
+		txtPreviousTitle.setEditable(false);
+		txtPreviousTitle.setMaxWidth(Double.MAX_VALUE);
 		lblPreviousText.setWrapText(true);
-		lblCurrentText.setWrapText(true);
-		lblNextText.setWrapText(true);
-		
 		lblPreviousText.setEditable(false);
-		lblCurrentText.setEditable(false);
-		lblNextText.setEditable(false);
-		
-		double padding = 15;
-		lblPreviousTitle.prefWidthProperty().bind(this.widthProperty().subtract(2*padding).divide(3));
-		lblCurrentTitle.prefWidthProperty().bind(this.widthProperty().subtract(2*padding).divide(3));
-		lblNextTitle.prefWidthProperty().bind(this.widthProperty().subtract(2*padding).divide(3));
-		lblPreviousText.prefWidthProperty().bind(this.widthProperty().subtract(2*padding).divide(3));
-		lblCurrentText.prefWidthProperty().bind(this.widthProperty().subtract(2*padding).divide(3));
-		lblNextText.prefWidthProperty().bind(this.widthProperty().subtract(2*padding).divide(3));
-		
-		lblPreviousText.setMaxHeight(Double.MAX_VALUE);
-		lblCurrentText.setMaxHeight(Double.MAX_VALUE);
-		lblNextText.setMaxHeight(Double.MAX_VALUE);
 		lblPreviousText.setMinHeight(0);
-		lblCurrentText.setMinHeight(0);
+		lblPreviousText.setMaxHeight(Double.MAX_VALUE);
+		
+		txtNextTitle.setEditable(false);
+		txtNextTitle.setMaxWidth(Double.MAX_VALUE);
+		lblNextText.setWrapText(true);
+		lblNextText.setEditable(false);
 		lblNextText.setMinHeight(0);
-		lblPreviousTitle.textProperty().bind(Bindings.createStringBinding(() -> {
+		lblNextText.setMaxHeight(Double.MAX_VALUE);
+		
+		txtPreviousTitle.textProperty().bind(Bindings.createStringBinding(() -> {
 			BibleReferenceTextStore brts = this.previous.get();
 			if (brts == null) return null;
 			TextItem item = brts.get(TextVariant.PRIMARY, TextType.TITLE);
 			if (item == null) return null;
 			return item.getText();
 		}, this.previous));
-		lblCurrentTitle.textProperty().bind(Bindings.createStringBinding(() -> {
-			BibleReferenceTextStore brts = this.value.get();
-			if (brts == null) return null;
-			TextItem item = brts.get(TextVariant.PRIMARY, TextType.TITLE);
-			if (item == null) return null;
-			return item.getText();
-		}, this.value));
-		lblNextTitle.textProperty().bind(Bindings.createStringBinding(() -> {
+		txtNextTitle.textProperty().bind(Bindings.createStringBinding(() -> {
 			BibleReferenceTextStore brts = this.next.get();
 			if (brts == null) return null;
 			TextItem item = brts.get(TextVariant.PRIMARY, TextType.TITLE);
@@ -537,13 +494,6 @@ public final class BibleNavigationPane extends BorderPane {
 			if (item == null) return null;
 			return item.getText();
 		}, this.previous));
-		lblCurrentText.textProperty().bind(Bindings.createStringBinding(() -> {
-			BibleReferenceTextStore brts = this.value.get();
-			if (brts == null) return null;
-			TextItem item = brts.get(TextVariant.PRIMARY, TextType.TEXT);
-			if (item == null) return null;
-			return item.getText();
-		}, this.value));
 		lblNextText.textProperty().bind(Bindings.createStringBinding(() -> {
 			BibleReferenceTextStore brts = this.next.get();
 			if (brts == null) return null;
@@ -552,20 +502,17 @@ public final class BibleNavigationPane extends BorderPane {
 			return item.getText();
 		}, this.next));
 		
-		GridPane gp = new GridPane();
-		gp.setHgap(15);
+		row++;
+		layout.add(lblPreviousTitle, 0, row);
+		layout.add(lblNextTitle, 1, row, 3, 1);
 		
-		gp.add(lblPreviousTitle, 0, 0);
-		gp.add(lblCurrentTitle, 1, 0);
-		gp.add(lblNextTitle, 2, 0);
+		row++;
+		layout.add(txtPreviousTitle, 0, row);
+		layout.add(txtNextTitle, 1, row, 3, 1);
 		
-		gp.add(lblPreviousText, 0, 1);
-		gp.add(lblCurrentText, 1, 1);
-		gp.add(lblNextText, 2, 1);
-
-		VBox overall = new VBox(5, gpTop, layout, gp);
-		
-		setCenter(overall);
+		row++;
+		layout.add(lblPreviousText, 0, row);
+		layout.add(lblNextText, 1, row, 3, 1);
 		
 		// set the initial value
 		LocatedVerseTriplet triplet = getTripletForInput(FIND);

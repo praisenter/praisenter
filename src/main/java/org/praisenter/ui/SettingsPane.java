@@ -3,6 +3,8 @@ package org.praisenter.ui;
 import java.util.List;
 import java.util.Locale;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.praisenter.data.workspace.PlaceholderTransitionBehavior;
 import org.praisenter.data.workspace.WorkspaceConfiguration;
 import org.praisenter.ui.controls.FormField;
@@ -27,6 +29,8 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 
 public class SettingsPane extends BorderPane {
+	private static final Logger LOGGER = LogManager.getLogger();
+	
 	private static final String SETTINGS_PANE_CLASS = "p-settings-pane";
 	
 	private final ObservableList<Theme> themes;
@@ -52,7 +56,7 @@ public class SettingsPane extends BorderPane {
 			}
 		});
 		
-		Button btnReloadCss = new Button(Translations.get("css.reload"));
+		Button btnReloadCss = new Button(Translations.get("settings.theme.reload"));
 		btnReloadCss.setOnAction(e -> {
 			String url = cmbTheme.getValue().getCss();
 			context.stage.getScene().getStylesheets().remove(url);
@@ -67,7 +71,7 @@ public class SettingsPane extends BorderPane {
 			try {
 				locale = Locale.forLanguageTag(languageTag);
 			} catch (Exception ex) {
-				// TODO log this
+				LOGGER.warn("Failed to find locale for language tag {}", languageTag);
 			}
 		}
 		locale = Translations.getClosestMatch(locale, locales);

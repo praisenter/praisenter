@@ -591,6 +591,11 @@ public final class SongEditor extends BorderPane implements DocumentEditor<Song>
 			return;
 		}
 		
+		// handle null item (happens when you drag onto blank area)
+		if (item == null) {
+			return;
+		}
+		
 		// check for null data
 		Object data = item.getValue();
 		if (data == null) {
