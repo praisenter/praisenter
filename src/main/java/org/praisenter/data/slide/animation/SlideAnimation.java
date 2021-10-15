@@ -113,6 +113,12 @@ public class SlideAnimation implements ReadOnlySlideAnimation, Copyable {
 		return this.duration.get();
 	}
 	
+	public long getValidDuration() {
+		long duration = this.duration.get();
+		if (duration > 0) return duration;
+		return 300;
+	}
+	
 	@JsonProperty
 	public void setDuration(long duration) {
 		this.duration.set(duration);

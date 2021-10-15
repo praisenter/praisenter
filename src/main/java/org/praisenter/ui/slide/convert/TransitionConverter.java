@@ -7,7 +7,6 @@ import org.praisenter.data.slide.SlideComponent;
 import org.praisenter.data.slide.animation.AnimationEasingFunction;
 import org.praisenter.data.slide.animation.AnimationEasingType;
 import org.praisenter.data.slide.animation.SlideAnimation;
-import org.praisenter.data.slide.graphics.Rectangle;
 import org.praisenter.ui.slide.animation.BlindsTransition;
 import org.praisenter.ui.slide.animation.CustomInterpolator;
 import org.praisenter.ui.slide.animation.PushTransition;
@@ -21,11 +20,7 @@ import javafx.animation.ScaleTransition;
 import javafx.animation.Transition;
 import javafx.geometry.BoundingBox;
 import javafx.geometry.Bounds;
-import javafx.geometry.Point2D;
-import javafx.geometry.Point3D;
 import javafx.scene.Node;
-import javafx.scene.Parent;
-import javafx.scene.transform.Transform;
 import javafx.util.Duration;
 
 public class TransitionConverter {
@@ -75,7 +70,7 @@ public class TransitionConverter {
 	
 	private static final FadeTransition toFade(SlideAnimation source, Slide slide, SlideComponent component, Node node, boolean isIn) {
 		FadeTransition tx  = new FadeTransition();
-		tx.setDuration(new Duration(source.getDuration()));
+		tx.setDuration(new Duration(source.getValidDuration()));
 		tx.setFromValue(isIn ? 0.0 : 1.0);
 		tx.setInterpolator(new CustomInterpolator(source.getEasingFunction(), source.getEasingType()));
 		tx.setNode(node);
@@ -85,7 +80,7 @@ public class TransitionConverter {
 	
 	private static final ScaleTransition toZoom(SlideAnimation source, Slide slide, SlideComponent component, Node node, boolean isIn) {
 		ScaleTransition tx  = new ScaleTransition();
-		tx.setDuration(new Duration(source.getDuration()));
+		tx.setDuration(new Duration(source.getValidDuration()));
 		tx.setFromX(isIn ? 0.0 : 1.0);
 		tx.setFromY(isIn ? 0.0 : 1.0);
 		tx.setInterpolator(new CustomInterpolator(source.getEasingFunction(), source.getEasingType()));
@@ -97,7 +92,7 @@ public class TransitionConverter {
 	
 	private static final SwipeTransition toSwipe(SlideAnimation source, Slide slide, SlideComponent component, Node node, boolean isIn) {
 		SwipeTransition tx = new SwipeTransition();
-		tx.setDuration(new Duration(source.getDuration()));
+		tx.setDuration(new Duration(source.getValidDuration()));
 		tx.setDirection(source.getDirection());
 		tx.setInterpolator(new CustomInterpolator(source.getEasingFunction(), source.getEasingType()));
 		tx.setNode(node);
@@ -108,7 +103,7 @@ public class TransitionConverter {
 	
 	private static final SplitTransition toSplit(SlideAnimation source, Slide slide, SlideComponent component, Node node, boolean isIn) {
 		SplitTransition tx = new SplitTransition();
-		tx.setDuration(new Duration(source.getDuration()));
+		tx.setDuration(new Duration(source.getValidDuration()));
 		tx.setOperation(source.getOperation());
 		tx.setOrientation(source.getOrientation());
 		tx.setInterpolator(new CustomInterpolator(source.getEasingFunction(), source.getEasingType()));
@@ -120,7 +115,7 @@ public class TransitionConverter {
 	
 	private static final ShapedTransition toShaped(SlideAnimation source, Slide slide, SlideComponent component, Node node, boolean isIn) {
 		ShapedTransition tx = new ShapedTransition();
-		tx.setDuration(new Duration(source.getDuration()));
+		tx.setDuration(new Duration(source.getValidDuration()));
 		tx.setOperation(source.getOperation());
 		tx.setShapeType(source.getShapeType());
 		tx.setInterpolator(new CustomInterpolator(source.getEasingFunction(), source.getEasingType()));
@@ -132,7 +127,7 @@ public class TransitionConverter {
 	
 	private static final BlindsTransition toBlinds(SlideAnimation source, Slide slide, SlideComponent component, Node node, boolean isIn) {
 		BlindsTransition tx = new BlindsTransition();
-		tx.setDuration(new Duration(source.getDuration()));
+		tx.setDuration(new Duration(source.getValidDuration()));
 		tx.setOrientation(source.getOrientation());
 		tx.setBlindsCount(source.getBlindCount());
 		tx.setInterpolator(new CustomInterpolator(source.getEasingFunction(), source.getEasingType()));
@@ -144,7 +139,7 @@ public class TransitionConverter {
 
 	private static final PushTransition toPush(SlideAnimation source, Slide slide, SlideComponent component, Node node, boolean isIn) {
 		PushTransition tx = new PushTransition();
-		tx.setDuration(new Duration(source.getDuration()));
+		tx.setDuration(new Duration(source.getValidDuration()));
 		tx.setDirection(source.getDirection());
 		tx.setHeight(slide.getHeight());
 		tx.setInterpolator(new CustomInterpolator(source.getEasingFunction(), source.getEasingType()));

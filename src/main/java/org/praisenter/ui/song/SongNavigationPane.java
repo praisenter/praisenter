@@ -219,6 +219,7 @@ public final class SongNavigationPane extends VBox {
 				this.searchDialog.setHeight(450);
 				this.searchDialog.setResizable(true);
 				this.searchDialog.setScene(WindowHelper.createSceneWithOwnerCss(pneSearch, owner));
+				context.attachZoomHandler(this.searchDialog.getScene());
 			}
 			
 			this.searchDialog.show();
@@ -303,6 +304,11 @@ public final class SongNavigationPane extends VBox {
 		lblSongTitle.setMaxWidth(Double.MAX_VALUE);
 		cmbPrimaryLyrics.setMaxWidth(Double.MAX_VALUE);
 		cmbSecondaryLyrics.setMaxWidth(Double.MAX_VALUE);
+		
+		cmbPrimaryLyrics.visibleProperty().bind(this.song.isNotNull());
+		cmbSecondaryLyrics.visibleProperty().bind(this.song.isNotNull());
+		sectionButtons.visibleProperty().bind(this.song.isNotNull());
+		txtDescription.visibleProperty().bind(this.song.isNotNull());
 		
 		this.getChildren().addAll(pneLyrics, sectionButtons, txtDescription);
 		

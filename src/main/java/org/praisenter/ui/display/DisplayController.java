@@ -18,12 +18,11 @@ import org.praisenter.data.slide.Slide;
 import org.praisenter.data.slide.SlideReference;
 import org.praisenter.data.song.SongReferenceTextStore;
 import org.praisenter.data.workspace.DisplayConfiguration;
-import org.praisenter.data.workspace.DisplayRole;
 import org.praisenter.data.workspace.PlaceholderTransitionBehavior;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.MappedList;
 import org.praisenter.ui.bible.BibleNavigationPane;
-import org.praisenter.ui.controls.Alerts;
+import org.praisenter.ui.controls.Dialogs;
 import org.praisenter.ui.slide.SlideList;
 import org.praisenter.ui.slide.SlideMode;
 import org.praisenter.ui.slide.SlideNavigationPane;
@@ -47,6 +46,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
@@ -54,6 +54,7 @@ import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TabPane.TabClosingPolicy;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
 import javafx.scene.layout.BorderPane;
@@ -101,42 +102,37 @@ public final class DisplayController extends BorderPane {
 		
 		this.slides = FXCollections.observableArrayList();
 		this.lastTabIndex = new SimpleIntegerProperty(0);
+
+		DisplayConfiguration configuration = target.getDisplayConfiguration();
+
+		// Action menu
+		// set name
+		// set role
+		// identify
+		// hide
 		
-		MenuButton mnuDisplayRole = new MenuButton();
-		mnuDisplayRole.textProperty().bind(Bindings.createStringBinding(() -> {
-			return Translations.get("display.role." + target.getDisplay().getRole());
-		}, target.getDisplay().roleProperty()));
+		MenuItem mnuSetName = new MenuItem(Translations.get("display.rename"));
+		mnuSetName.setOnAction(e -> {
+			String oldName = configuration.getName();
+	    	TextInputDialog prompt = Dialogs.textInput(
+	    			this.context.getStage(), 
+	    			Modality.WINDOW_MODAL, 
+	    			oldName, 
+	    			Translations.get("action.rename"), 
+	    			Translations.get("action.rename.newname"), 
+	    			Translations.get("action.rename.name"));
+	    	Optional<String> result = prompt.showAndWait();
+	    	if (result.isPresent()) {
+	    		String newName = result.get();
+	    		configuration.setName(newName);
+	    	}
+		});
 		
-		for (DisplayRole role : DisplayRole.values()) {
-			MenuItem item = new MenuItem(Translations.get("display.role." + role));
-			item.setUserData(role);
-			item.setOnAction(e -> {
-				// are we going from something to NONE?
-				DisplayRole current = target.getDisplay().getRole();
-				if (role == DisplayRole.NONE && current != DisplayRole.NONE) {
-					// if so, we need to confirm with the user before we do it
-					Alert alert = Alerts.yesNoCancel(
-							context.getStage(), 
-							Modality.WINDOW_MODAL, 
-							Translations.get("display.role.change.none.title"), 
-							Translations.get("display.role.change.none.header"), 
-							Translations.get("display.role.change.none.text"));
-					Optional<ButtonType> result = alert.showAndWait();
-					if (result.isPresent() && result.get() == ButtonType.YES) {
-						target.getDisplay().setRole(role);
-					}
-				} else {
-					target.getDisplay().setRole(role);
-				}
-			});
-			mnuDisplayRole.getItems().add(item);	
-		}
-		
-		final DisplayIdentifier identify = new DisplayIdentifier(target.getDisplay());
-		Button btnIdentify = new Button(Translations.get("display.identify"));
-		btnIdentify.setOnAction(e -> {
+		final DisplayIdentifier identify = new DisplayIdentifier(configuration);
+		MenuItem mnuIdentify = new MenuItem(Translations.get("display.identify"));
+		mnuIdentify.setOnAction(e -> {
 			// if so, we need to confirm with the user before we do it
-			Alert alert = Alerts.yesNoCancel(
+			Alert alert = Dialogs.yesNoCancel(
 					context.getStage(), 
 					Modality.WINDOW_MODAL, 
 					Translations.get("display.identify.title"), 
@@ -155,18 +151,49 @@ public final class DisplayController extends BorderPane {
 			}
 		});
 		
+		CheckMenuItem mnuPrimary = new CheckMenuItem(Translations.get("display.primary"));
+		mnuPrimary.selectedProperty().bindBidirectional(configuration.primaryProperty());
+		mnuPrimary.setOnAction(e -> {
+			// clear the primary flag for all other configurations
+			for (DisplayConfiguration conf : context.getWorkspaceConfiguration().getDisplayConfigurations()) {
+				if (conf != configuration) conf.setPrimary(false);
+			}
+		});
+		
+		MenuItem mnuHide = new MenuItem(Translations.get("display.remove"));
+		mnuHide.setOnAction(e -> {
+			// if so, we need to confirm with the user before we do it
+			Alert alert = Dialogs.yesNoCancel(
+					context.getStage(), 
+					Modality.WINDOW_MODAL, 
+					Translations.get("display.remove.title"), 
+					Translations.get("display.remove.header"), 
+					Translations.get("display.remove.text"));
+			Optional<ButtonType> result = alert.showAndWait();
+			if (result.isPresent() && result.get() == ButtonType.YES) {
+				configuration.setActive(false);
+			}
+		});
+
+		MenuButton mnuActions = new MenuButton(Translations.get("display.actions"));
+		mnuActions.getItems().addAll(
+			mnuSetName,
+			mnuPrimary,
+			mnuIdentify,
+			mnuHide);
+		
 		Robot robot = new Robot();
 		WritableImage image = robot.getScreenCapture(null, 
-				target.getDisplay().getX(), 
-				target.getDisplay().getY(), 
-				target.getDisplay().getWidth(), 
-				target.getDisplay().getHeight());
+				configuration.getX(), 
+				configuration.getY(), 
+				configuration.getWidth(), 
+				configuration.getHeight());
 		
 		VBox right = new VBox();
 		right.getStyleClass().add(DISPLAY_CONTROLLER_RIGHT_CSS);
 		
 		this.leftMaxWidth = right.maxWidthProperty();
-		this.slidePreviewMaxHeight = this.leftMaxWidth.divide(target.getDisplay().widthProperty()).multiply(target.getDisplay().heightProperty());
+		this.slidePreviewMaxHeight = this.leftMaxWidth.divide(configuration.widthProperty()).multiply(configuration.heightProperty());
 		
 		ImageView screen = new ImageView(image);
 		screen.fitWidthProperty().bind(this.leftMaxWidth);
@@ -191,9 +218,7 @@ public final class DisplayController extends BorderPane {
 		notificationView.prefWidthProperty().bind(this.leftMaxWidth);
 		notificationView.prefHeightProperty().bind(this.slidePreviewMaxHeight);
 		
-		DisplayConfiguration dc = this.context.getWorkspaceConfiguration().getDisplayConfigurationById(target.getDisplay().getId());
-		
-		BibleNavigationPane bibleNavigationPane = new BibleNavigationPane(context, dc);
+		BibleNavigationPane bibleNavigationPane = new BibleNavigationPane(context, configuration);
 		SongNavigationPane songNavigationPane = new SongNavigationPane(context);
 		SlideNavigationPane slideNavigationPane = new SlideNavigationPane(context);
 		
@@ -209,16 +234,12 @@ public final class DisplayController extends BorderPane {
 		btnClear.setMaxHeight(Double.MAX_VALUE);
 		
 		CheckBox chkAutoShow = new CheckBox(Translations.get("display.controller.autoshow"));
-		chkAutoShow.setSelected(dc.isAutoShowEnabled());
+		chkAutoShow.setSelected(configuration.isAutoShowEnabled());
 		CheckBox chkPreviewTransition = new CheckBox(Translations.get("display.controller.previewTransition"));
-		chkPreviewTransition.setSelected(dc.isPreviewTransitionEnabled());
+		chkPreviewTransition.setSelected(configuration.isPreviewTransitionEnabled());
 		
-		chkAutoShow.selectedProperty().addListener((obs, ov, nv) -> {
-			dc.setAutoShowEnabled(nv);
-		});
-		chkPreviewTransition.selectedProperty().addListener((obs, ov, nv) -> {
-			dc.setPreviewTransitionEnabled(nv);
-		});
+		chkAutoShow.selectedProperty().bindBidirectional(configuration.autoShowEnabledProperty());
+		chkPreviewTransition.selectedProperty().bindBidirectional(configuration.previewTransitionEnabledProperty());
 		
 		TextField txtNotification = new TextField();
 		txtNotification.setPromptText(Translations.get("display.controller.notification.text"));
@@ -258,14 +279,14 @@ public final class DisplayController extends BorderPane {
 		tabs.getTabs().add(new Tab(Translations.get("slide"), slideNavigationPane));
 		tabs.getTabs().add(new Tab(Translations.get("notification"), notificationTab));
 		
-		for (SlideReference sr : dc.getQueuedSlidesUnmodifiable()) {
+		for (SlideReference sr : configuration.getQueuedSlidesUnmodifiable()) {
 			if (sr.getSlideId() != null) {
 				Persistable item = context.getWorkspaceManager().getPersistableById(sr.getSlideId());
 				if (item != null && item instanceof Slide) {
 					Slide slide = (Slide)item;
 					slide = slide.copy();
 					slide.setPlaceholderData(sr.getPlaceholderData());
-					slide.fit(target.getDisplay().getWidth(), target.getDisplay().getHeight());
+					slide.fit(configuration.getWidth(), configuration.getHeight());
 					this.slides.add(slide);
 				}
 			}
@@ -277,10 +298,12 @@ public final class DisplayController extends BorderPane {
 			sr.setPlaceholderData(s.getPlaceholderData());
 			return sr;
 		});
-		Bindings.bindContent(dc.getQueuedSlides(), this.slideToSlideReferenceMapping);
+		Bindings.bindContent(configuration.getQueuedSlides(), this.slideToSlideReferenceMapping);
 		
+		// NOTE: we have to do a bidirectional binding here because the SlideList itself
+		// allows delete, copy, paste, and dnd
 		SlideList lstSlideQueue = new SlideList(context);
-		Bindings.bindContent(lstSlideQueue.getItems(), this.slides);
+		Bindings.bindContentBidirectional(lstSlideQueue.getItems(), this.slides);
 		
 		// listen for changes to the slides (remove and update)
 		context.getWorkspaceManager().getItemsUnmodifiable().addListener((Change<? extends Persistable> c) -> {
@@ -362,28 +385,35 @@ public final class DisplayController extends BorderPane {
 		VBox.setVgrow(lstSlideQueue, Priority.ALWAYS);
 		VBox.setVgrow(tabs, Priority.ALWAYS);
 		
-		right.visibleProperty().bind(target.getDisplay().roleProperty().isNotEqualTo(DisplayRole.NONE));
-		right.managedProperty().bind(right.visibleProperty());
-		left.visibleProperty().bind(target.getDisplay().roleProperty().isNotEqualTo(DisplayRole.NONE));
-		left.managedProperty().bind(lstSlideQueue.visibleProperty());
+//		right.visibleProperty().bind(target.getDisplay().activeProperty());
+//		right.managedProperty().bind(right.visibleProperty());
+//		left.visibleProperty().bind(target.getDisplay().activeProperty());
+//		left.managedProperty().bind(lstSlideQueue.visibleProperty());
 		
 		// HEADER layout
 		
-		Label lblHeader = new Label(target.toString());
+		Label lblHeader = new Label();
+		lblHeader.textProperty().bind(Bindings.createStringBinding(() -> {
+			String name = configuration.getName();
+			String defaultName = configuration.getDefaultName();
+			if (name == null || name.isBlank()) return defaultName;
+			return name;
+		}, configuration.nameProperty(), configuration.defaultNameProperty()));
+		
 		lblHeader.getStyleClass().add(DISPLAY_CONTROLLER_NAME_CSS);
 		
 		HBox spacer = new HBox();
 		spacer.setMaxWidth(Double.MAX_VALUE);
-		HBox headerBtns = new HBox(lblHeader, spacer, mnuDisplayRole, btnIdentify);
+		HBox headerBtns = new HBox(lblHeader, spacer, mnuActions);
 		headerBtns.getStyleClass().add(DISPLAY_CONTROLLER_HEADER_CSS);
 		HBox.setHgrow(spacer, Priority.ALWAYS);
-		HBox.setHgrow(mnuDisplayRole, Priority.NEVER);
+//		HBox.setHgrow(mnuDisplayRole, Priority.NEVER);
 		
 		this.setTop(headerBtns);
 		this.setCenter(body);
 
-		target.getDisplay().roleProperty().addListener((obs, ov, nv) -> {
-			if (nv == DisplayRole.NONE) {
+		configuration.activeProperty().addListener((obs, ov, nv) -> {
+			if (!nv) {
 				// clear the screen
 				target.clear();
 			}
@@ -412,28 +442,26 @@ public final class DisplayController extends BorderPane {
 			
 			if (slide != null) {
 				slide = slide.copy();
-				slide.fit(target.getDisplay().getWidth(), target.getDisplay().getHeight());
+				slide.fit(configuration.getWidth(), configuration.getHeight());
 				slide.setPlaceholderData(data);
 				this.slides.add(slide);
 			}
 		});
 		
 		btnQueueRemoveSelected.setOnAction(e -> {
-			List<Slide> selected = new ArrayList<>(lstSlideQueue.getSelected());
-			for (Slide s1 : selected) {
-				int index = -1;
-				for (int i = 0; i < this.slides.size(); i++) {
-					Slide s2 = this.slides.get(i);
-					if (s1 == s2) {
-						index = i;
-						break;
-					}
+			Slide selected = lstSlideQueue.getSelectionModel().getSelectedItem();
+			int index = -1;
+			for (int i = 0; i < this.slides.size(); i++) {
+				Slide s2 = this.slides.get(i);
+				if (selected == s2) {
+					index = i;
+					break;
 				}
-				
-				if (index >= 0) {
-					LOGGER.debug("Found index {} to remove", index);
-					this.slides.remove(index);
-				}
+			}
+			
+			if (index >= 0) {
+				LOGGER.debug("Found index {} to remove", index);
+				this.slides.remove(index);
 			}
 		});
 		
@@ -499,7 +527,7 @@ public final class DisplayController extends BorderPane {
 					slide.setTime(3);
 				}
 				slide.setPlaceholderData(new StringTextStore(txtNotification.getText()));
-				slide.fit(target.getDisplay().getWidth(), target.getDisplay().getHeight());
+				slide.fit(configuration.getWidth(), configuration.getHeight());
 				if (transition) {
 					notificationView.transitionSlide(slide, waitForTransition);
 				} else { 
@@ -562,8 +590,8 @@ public final class DisplayController extends BorderPane {
 			boolean autoShow = chkAutoShow.isSelected();
 			PlaceholderTransitionBehavior behavior = context.getWorkspaceConfiguration().getPlaceholderTransitionBehavior();
 			
-			double tw = target.getDisplay().getWidth();
-			double th = target.getDisplay().getHeight();
+			double tw = configuration.getWidth();
+			double th = configuration.getHeight();
 			
 			Slide sld = null;
 			if (slide != null) {
@@ -630,7 +658,7 @@ public final class DisplayController extends BorderPane {
 			TextStore data = bibleNavigationPane.getValue();
 			handleDisplayChange.accept(DisplayChange.STANDARD, nv, data);
 			if (nv != null) {
-				dc.setBibleTemplateId(nv.getId());
+				configuration.setBibleTemplateId(nv.getId());
 			}
 		});
 		
@@ -642,13 +670,13 @@ public final class DisplayController extends BorderPane {
 			TextStore data = songNavigationPane.getValue();
 			handleDisplayChange.accept(DisplayChange.STANDARD, nv, data);
 			if (nv != null) {
-				dc.setSongTemplateId(nv.getId());
+				configuration.setSongTemplateId(nv.getId());
 			}
 		});
 		
 		cmbNotificationTemplate.valueProperty().addListener((obs, ov, nv) -> {
 			if (nv != null) {
-				dc.setNotificationTemplateId(nv.getId());
+				configuration.setNotificationTemplateId(nv.getId());
 			}
 		});
 		
@@ -719,7 +747,7 @@ public final class DisplayController extends BorderPane {
 			handleDisplayChange.accept(DisplayChange.DATA, slide, nv);
 		});
 		
-		lstSlideQueue.selectionProperty().addListener((obs, ov, nv) -> {
+		lstSlideQueue.getSelectionModel().selectedItemProperty().addListener((obs, ov, nv) -> {
 			LOGGER.debug("{} was selected", nv);
 			
 			if (nv != null) {
@@ -759,7 +787,7 @@ public final class DisplayController extends BorderPane {
 			}
 		});
 		
-		UUID bibleTemplateId = dc.getBibleTemplateId();
+		UUID bibleTemplateId = configuration.getBibleTemplateId();
 		if (bibleTemplateId != null) {
 			for (Slide slide : cmbBibleSlideTemplate.getItems()) {
 				if (slide.getId().equals(bibleTemplateId)) {
@@ -769,7 +797,7 @@ public final class DisplayController extends BorderPane {
 			}
 		}
 		
-		UUID songTemplateId = dc.getSongTemplateId();
+		UUID songTemplateId = configuration.getSongTemplateId();
 		if (songTemplateId != null) {
 			for (Slide slide : cmbSongSlideTemplate.getItems()) {
 				if (slide.getId().equals(songTemplateId)) {
@@ -779,7 +807,7 @@ public final class DisplayController extends BorderPane {
 			}
 		}
 		
-		UUID notificationTemplateId = dc.getNotificationTemplateId();
+		UUID notificationTemplateId = configuration.getNotificationTemplateId();
 		if (notificationTemplateId != null) {
 			for (Slide slide : cmbNotificationTemplate.getItems()) {
 				if (slide.getId().equals(notificationTemplateId)) {

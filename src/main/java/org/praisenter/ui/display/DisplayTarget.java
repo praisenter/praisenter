@@ -2,17 +2,15 @@ package org.praisenter.ui.display;
 
 import java.util.ArrayList;
 
-import org.praisenter.Constants;
 import org.praisenter.data.TextStore;
 import org.praisenter.data.slide.Slide;
-import org.praisenter.data.workspace.Display;
-import org.praisenter.data.workspace.DisplayRole;
+import org.praisenter.data.workspace.DisplayConfiguration;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.Praisenter;
 import org.praisenter.ui.slide.SlideMode;
 import org.praisenter.ui.slide.SlideView;
-import org.praisenter.ui.translations.Translations;
 
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.event.EventHandler;
@@ -33,36 +31,36 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
 
-public final class DisplayTarget {
+public final class DisplayTarget extends Stage {
 	private final GlobalContext context;
-	private final Display display;
+	private final DisplayConfiguration configuration;
 	
-	private final Stage stage;
+//	private final Stage stage;
 	private final Pane container;
 	
 	private final SlideView slideView;
 	private final SlideView notificationView;
 	
-	private final ChangeListener<? super DisplayRole> displayRoleListener;
+	private final ChangeListener<? super Boolean> activeListener;
 	
-	public DisplayTarget(GlobalContext context, Display display) {
-		this.context = context;
-		this.display = display;
+	public DisplayTarget(GlobalContext context, DisplayConfiguration configuration) {
+		super(StageStyle.TRANSPARENT);
 		
-		this.stage = new Stage(StageStyle.TRANSPARENT);
+		this.context = context;
+		this.configuration = configuration;
 
     	// icons
-		this.stage.getIcons().add(new Image(Praisenter.class.getResourceAsStream("/org/praisenter/logo/icon16x16alt.png"), 16, 16, true, true));
-		this.stage.getIcons().add(new Image(Praisenter.class.getResourceAsStream("/org/praisenter/logo/icon32x32.png")));
-		this.stage.getIcons().add(new Image(Praisenter.class.getResourceAsStream("/org/praisenter/logo/icon48x48.png")));
-		this.stage.getIcons().add(new Image(Praisenter.class.getResourceAsStream("/org/praisenter/logo/icon64x64.png")));
-		this.stage.getIcons().add(new Image(Praisenter.class.getResourceAsStream("/org/praisenter/logo/icon96x96.png")));
-		this.stage.getIcons().add(new Image(Praisenter.class.getResourceAsStream("/org/praisenter/logo/icon128x128.png")));
-		this.stage.getIcons().add(new Image(Praisenter.class.getResourceAsStream("/org/praisenter/logo/icon256x256.png")));
-		this.stage.getIcons().add(new Image(Praisenter.class.getResourceAsStream("/org/praisenter/logo/icon512x512.png")));
+		this.getIcons().add(new Image(Praisenter.class.getResourceAsStream("/org/praisenter/logo/icon16x16alt.png"), 16, 16, true, true));
+		this.getIcons().add(new Image(Praisenter.class.getResourceAsStream("/org/praisenter/logo/icon32x32.png")));
+		this.getIcons().add(new Image(Praisenter.class.getResourceAsStream("/org/praisenter/logo/icon48x48.png")));
+		this.getIcons().add(new Image(Praisenter.class.getResourceAsStream("/org/praisenter/logo/icon64x64.png")));
+		this.getIcons().add(new Image(Praisenter.class.getResourceAsStream("/org/praisenter/logo/icon96x96.png")));
+		this.getIcons().add(new Image(Praisenter.class.getResourceAsStream("/org/praisenter/logo/icon128x128.png")));
+		this.getIcons().add(new Image(Praisenter.class.getResourceAsStream("/org/praisenter/logo/icon256x256.png")));
+		this.getIcons().add(new Image(Praisenter.class.getResourceAsStream("/org/praisenter/logo/icon512x512.png")));
     	
-		this.stage.initModality(Modality.NONE);
-		this.stage.setResizable(false);
+		this.initModality(Modality.NONE);
+		this.setResizable(false);
 		
 		// prevent the user from closing or hiding the window
 		// JAVABUG (M) 06/30/16 [workaround] At some point we need to come up with a way for the sub windows to not be seen; JavaFX does not have a facility for this at this time https://bugs.openjdk.java.net/browse/JDK-8091566
@@ -72,26 +70,26 @@ public final class DisplayTarget {
 		EventHandler<WindowEvent> block = (WindowEvent e) -> {
 			e.consume();
 		};
-		this.stage.setOnCloseRequest(block);
-		this.stage.setOnHiding(block);
-
+		this.setOnCloseRequest(block);
+		this.setOnHiding(block);
+		
 		this.container = new StackPane();
 		this.container.setBackground(null);
 		
-		this.stage.setScene(new Scene(this.container, Color.TRANSPARENT));
+		this.setScene(new Scene(this.container, Color.TRANSPARENT));
 		
-		if (display.getRole() != DisplayRole.NONE) {
-			this.stage.show();
+		if (configuration.isActive()) {
+			this.show();
 		}
 		
-		this.displayRoleListener = (obs, ov, nv) -> {
-			if (nv == DisplayRole.NONE) {
-				this.stage.hide();
-			} else if (!this.stage.isShowing()) {
-				this.stage.show();
+		this.activeListener = (obs, ov, nv) -> {
+			if (!nv) {
+				this.hide();
+			} else if (!this.isShowing()) {
+				this.show();
 			}
 		};
-		display.roleProperty().addListener(this.displayRoleListener);
+		configuration.activeProperty().addListener(this.activeListener);
 		
 		// setup debug mode notification
 		if (context.getWorkspaceConfiguration().isDebugModeEnabled()) {
@@ -121,50 +119,50 @@ public final class DisplayTarget {
 		
 		// events
 		
-		this.stage.setX(display.getX());
-		this.stage.setY(display.getY());
-		this.stage.setWidth(display.getWidth());
-		this.stage.setHeight(display.getHeight());
-		this.stage.setMinWidth(display.getWidth());
-		this.stage.setMinHeight(display.getHeight());
-		this.stage.setMaxWidth(display.getWidth());
-		this.stage.setMaxHeight(display.getHeight());
+		this.setX(configuration.getX());
+		this.setY(configuration.getY());
+		this.setWidth(configuration.getWidth());
+		this.setHeight(configuration.getHeight());
+		this.setMinWidth(configuration.getWidth());
+		this.setMinHeight(configuration.getHeight());
+		this.setMaxWidth(configuration.getWidth());
+		this.setMaxHeight(configuration.getHeight());
 		
-		this.stage.setTitle(Constants.NAME + " " + this.toString());
+		this.titleProperty().bind(Bindings.createStringBinding(() -> {
+			String name = configuration.getName();
+			String defaultName = configuration.getDefaultName();
+			if (name == null || name.isBlank()) return defaultName;
+			return name + " " + defaultName;
+		}, configuration.nameProperty(), configuration.defaultNameProperty()));
 	}
 	
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append("#").append(this.display.getId() + 1)
-		  .append(" ").append(Translations.get("display.role." + this.display.getRole()))
-		  .append(" ").append(this.display.getWidth())
-		  .append("x").append(this.display.getHeight());
-		return sb.toString();
+		return this.configuration.getDefaultName();
 	}
 	
 	public void dispose() {
-		this.display.roleProperty().removeListener(this.displayRoleListener);
+		this.configuration.activeProperty().removeListener(this.activeListener);
 		
 		this.slideView.dispose();
 		
 		this.container.getChildren().clear();
 		
-		this.stage.setOnHiding(null);
-		this.stage.setOnCloseRequest(null);
-		this.stage.close();
+		this.setOnHiding(null);
+		this.setOnCloseRequest(null);
+		this.close();
 	}
 
 	public void displaySlidePlaceholders(final TextStore data, boolean waitForTransition) {
 		this.slideView.transitionPlaceholders(data.copy(), waitForTransition);
 		
-		this.stage.toFront();
+		this.toFront();
 	}
 	
 	public void displaySlideContent(final TextStore data, boolean waitForTransition) {
 		this.slideView.transitionContent(data.copy(), waitForTransition);
 		
-		this.stage.toFront();
+		this.toFront();
 	}
 	
 	public void displaySlide(final Slide slide, final TextStore data, boolean waitForTransition) {
@@ -179,14 +177,14 @@ public final class DisplayTarget {
 			copy.setPlaceholderData(data.copy());
 		}
 		
-		double w = this.display.getWidth();
-		double h = this.display.getHeight();
+		double w = this.configuration.getWidth();
+		double h = this.configuration.getHeight();
 		
 		copy.fit(w, h);
 		
 		this.slideView.transitionSlide(copy, waitForTransition);
 		
-		this.stage.toFront();
+		this.toFront();
 	}
 
 	public void displayNotification(final Slide slide, final TextStore data, boolean waitForTransition) {
@@ -201,14 +199,14 @@ public final class DisplayTarget {
 			copy.setPlaceholderData(data.copy());
 		}
 		
-		double w = this.display.getWidth();
-		double h = this.display.getHeight();
+		double w = this.configuration.getWidth();
+		double h = this.configuration.getHeight();
 		
 		copy.fit(w, h);
 		
 		this.notificationView.transitionSlide(copy, waitForTransition);
 		
-		this.stage.toFront();
+		this.toFront();
 	}
 	
 	public void clear() {
@@ -216,8 +214,8 @@ public final class DisplayTarget {
 		this.notificationView.swapSlide(null);
 	}
 	
-	public Display getDisplay() {
-		return this.display;
+	public DisplayConfiguration getDisplayConfiguration() {
+		return this.configuration;
 	}
 	
 	public Slide getSlide() {

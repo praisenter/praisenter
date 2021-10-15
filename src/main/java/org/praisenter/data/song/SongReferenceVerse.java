@@ -1,10 +1,8 @@
 package org.praisenter.data.song;
 
-import java.util.Objects;
 import java.util.UUID;
 
 import org.praisenter.data.TextType;
-import org.praisenter.data.bible.BibleReferenceVerse;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -27,9 +25,6 @@ public final class SongReferenceVerse {
 	@JsonProperty
 	private final String text;
 	
-//	@JsonProperty
-//	private final int fontSize;
-
 	SongReferenceVerse() {
 		this.songId = null;
 		this.lyricsId = null;
@@ -37,7 +32,6 @@ public final class SongReferenceVerse {
 		this.title = null;
 		this.name = null;
 		this.text = null;
-//		this.fontSize = Verse.USE_TEMPLATE_FONT_SIZE;
 	}
 	
 	public SongReferenceVerse(UUID songId, UUID lyricsId, UUID sectionId, String title, String name, String text) {
@@ -47,7 +41,6 @@ public final class SongReferenceVerse {
 		this.title = title;
 		this.name = name;
 		this.text = text;
-//		this.fontSize = verse.fontSize;
 	}
 	
 	public String getText(TextType type) {
@@ -55,7 +48,6 @@ public final class SongReferenceVerse {
 			case TEXT:
 				return this.text;
 			case TITLE:
-				// TODO change this pattern to use translations
 				return this.title + " (" + this.name + ")";
 			default:
 				break;
@@ -86,9 +78,4 @@ public final class SongReferenceVerse {
 	public String getText() {
 		return text;
 	}
-
-//	public int getFontSize() {
-//		return fontSize;
-//	}
-
 }

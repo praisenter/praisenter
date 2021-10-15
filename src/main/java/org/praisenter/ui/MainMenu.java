@@ -16,7 +16,7 @@ import org.apache.logging.log4j.Logger;
 import org.praisenter.Constants;
 import org.praisenter.Version;
 import org.praisenter.async.AsyncHelper;
-import org.praisenter.ui.controls.Alerts;
+import org.praisenter.ui.controls.Dialogs;
 import org.praisenter.ui.translations.Translations;
 import org.praisenter.ui.upgrade.UpgradeChecker;
 
@@ -120,7 +120,7 @@ final class MainMenu extends MenuBar {
 				this.createMenuItem(Action.SELECT_INVERT),
 				this.createMenuItem(Action.SELECT_NONE),
 				new SeparatorMenuItem(),
-				this.createMenuItem(Action.BULK_EDIT),
+				this.createMenuItem(Action.BULK_EDIT_BEGIN),
 				this.createMenuItem(Action.RENAME),
 				this.createMenuItem(Action.DELETE),
 				new SeparatorMenuItem(),
@@ -221,7 +221,7 @@ final class MainMenu extends MenuBar {
 		
 		this.context.executeAction(action).exceptionallyCompose(AsyncHelper.onJavaFXThreadAndWait((t) -> {
 			Platform.runLater(() -> {
-				Alert alert = Alerts.exception(this.context.stage, t);
+				Alert alert = Dialogs.exception(this.context.stage, t);
 				alert.show();
 			});
 		}));
@@ -233,7 +233,7 @@ final class MainMenu extends MenuBar {
 		List<File> files = fc.showOpenMultipleDialog(this.context.stage);
 		this.context.importFiles(files).exceptionallyCompose(AsyncHelper.onJavaFXThreadAndWait((t) -> {
 			Platform.runLater(() -> {
-				Alert alert = Alerts.exception(this.context.stage, t);
+				Alert alert = Dialogs.exception(this.context.stage, t);
 				alert.show();
 			});
 		}));
@@ -301,7 +301,7 @@ final class MainMenu extends MenuBar {
 			final String msg = message;
 			Platform.runLater(() -> {
 				DateTimeFormatter formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG, FormatStyle.SHORT);
-				Alert alert = Alerts.info(
+				Alert alert = Dialogs.info(
 						this.context.stage,
 						Modality.WINDOW_MODAL, 
 						Translations.get("menu.help.update.check.title"), 
@@ -312,7 +312,7 @@ final class MainMenu extends MenuBar {
 		}).exceptionally(t -> {
 			LOGGER.error("Failed to check for new version: " + t.getMessage(), t);
 			Platform.runLater(() -> {
-				Alert alert = Alerts.exception(this.context.stage, t);
+				Alert alert = Dialogs.exception(this.context.stage, t);
 				alert.show();
 			});
 			return null;

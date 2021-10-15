@@ -6,7 +6,7 @@ import org.praisenter.Version;
 import org.praisenter.async.AsyncHelper;
 import org.praisenter.async.ReadOnlyBackgroundTask;
 import org.praisenter.data.Persistable;
-import org.praisenter.ui.controls.Alerts;
+import org.praisenter.ui.controls.Dialogs;
 import org.praisenter.ui.display.DisplaysController;
 import org.praisenter.ui.document.DocumentsPane;
 import org.praisenter.ui.library.LibraryList;
@@ -202,17 +202,18 @@ final class PraisenterPane extends BorderPane {
 	}
 
 	private void dragOver(DragEvent e) {
-		if (e.getDragboard().hasFiles()) {
+		// only accept drag n drop from outside of the application
+		if (e.getGestureSource() == null && e.getDragboard().hasFiles()) {
 			e.acceptTransferModes(TransferMode.COPY);
 		}
 	}
 	
 	private void dragDropped(DragEvent e) {
 		Dragboard db = e.getDragboard();
-		if (db.hasFiles()) {
+		if (e.getGestureSource() == null && db.hasFiles()) {
 			this.context.importFiles(db.getFiles()).exceptionallyCompose(AsyncHelper.onJavaFXThreadAndWait((t) -> {
 				Platform.runLater(() -> {
-					Alert alert = Alerts.exception(this.context.stage, t);
+					Alert alert = Dialogs.exception(this.context.stage, t);
 					alert.show();
 				});
 			}));

@@ -1,7 +1,5 @@
 package org.praisenter.ui.document;
 
-import java.util.Objects;
-
 import org.praisenter.async.InOrderExecutionManager;
 import org.praisenter.data.Persistable;
 import org.praisenter.ui.undo.UndoManager;
@@ -33,6 +31,7 @@ public final class DocumentContext<T extends Persistable> {
 	protected final IntegerProperty selectedCount;
 
 	protected final BooleanProperty isNew;
+	protected final BooleanProperty bulkEdit;
 	protected final BooleanProperty hasUnsavedChanges;
 	protected final StringProperty documentName;
 	
@@ -52,6 +51,7 @@ public final class DocumentContext<T extends Persistable> {
 		this.selectedCount = new SimpleIntegerProperty();
 		
 		this.isNew = new SimpleBooleanProperty();
+		this.bulkEdit = new SimpleBooleanProperty(false);
 		this.hasUnsavedChanges = new SimpleBooleanProperty();
 		this.documentName = new SimpleStringProperty();
 		
@@ -170,8 +170,20 @@ public final class DocumentContext<T extends Persistable> {
 		this.isNew.set(isNew);
 	}
 	
-	public BooleanProperty isNewProperty() {
+	public BooleanProperty newProperty() {
 		return this.hasUnsavedChanges;
+	}
+	
+	public boolean isBulkEdit() {
+		return this.bulkEdit.get();
+	}
+	
+	public void setBulkEdit(boolean flag) {
+		this.bulkEdit.set(flag);
+	}
+	
+	public BooleanProperty bulkEditProperty() {
+		return this.bulkEdit;
 	}
 	
 	public boolean hasUnsavedChanges() {

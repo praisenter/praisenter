@@ -27,7 +27,7 @@ import org.praisenter.data.SingleFileManager;
 import org.praisenter.data.workspace.WorkspaceConfiguration;
 import org.praisenter.data.workspace.WorkspaceManager;
 import org.praisenter.data.workspace.Workspaces;
-import org.praisenter.ui.controls.Alerts;
+import org.praisenter.ui.controls.Dialogs;
 import org.praisenter.ui.fonts.OpenIconic;
 import org.praisenter.ui.themes.Theme;
 import org.praisenter.ui.translations.Translations;
@@ -148,7 +148,7 @@ public final class LifecycleHandler {
     	for (ConditionalFeature feature : REQUIRED_JAVAFX_FEATURES) {
     		if (!Platform.isSupported(feature)) {
     			// not supported, attempt to show the user an error message
-    			Alert a = Alerts.exception(
+    			Alert a = Dialogs.exception(
     					stage.getOwner(),
     					Translations.get("init.feature.missing.title"), 
     					Translations.get("init.feature.missing.header"), 
@@ -363,7 +363,7 @@ public final class LifecycleHandler {
     				}
     			}).exceptionally((t) -> {
     				Platform.runLater(() -> {
-    					Alert alert = Alerts.exception(context.stage, t);
+    					Alert alert = Dialogs.exception(context.stage, t);
     					alert.show();
     				});
     				return null;
@@ -447,7 +447,7 @@ public final class LifecycleHandler {
 			}
 		}).exceptionally((t) -> {
 			Platform.runLater(() -> {
-				Alert alert = Alerts.exception(context.stage, t);
+				Alert alert = Dialogs.exception(context.stage, t);
 				alert.show();
 			});
 			return null;
@@ -457,7 +457,7 @@ public final class LifecycleHandler {
     private void showExecptionAlertThenExit(Logger LOGGER, Throwable ex, Window owner) {
 		Platform.runLater(() -> {
 			// and show the error
-			Alert a = Alerts.exception(owner, ex);
+			Alert a = Dialogs.exception(owner, ex);
 			a.showAndWait();
 			
 			LOGGER.info("User closed exception dialog. Exiting application.");
@@ -558,7 +558,7 @@ public final class LifecycleHandler {
 		return promptUnsavedChanges(LOGGER, context).exceptionally((t) -> {
 			// show an error and don't continue
 			Platform.runLater(() -> {
-				Alert alert = Alerts.exception(context.stage, t);
+				Alert alert = Dialogs.exception(context.stage, t);
 				alert.show();
 			});
 			return false;

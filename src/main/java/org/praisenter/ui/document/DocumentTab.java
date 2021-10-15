@@ -11,7 +11,7 @@ import org.praisenter.data.slide.Slide;
 import org.praisenter.data.song.Song;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.bible.BibleEditor;
-import org.praisenter.ui.controls.Alerts;
+import org.praisenter.ui.controls.Dialogs;
 import org.praisenter.ui.slide.SlideEditor;
 import org.praisenter.ui.song.SongEditor;
 import org.praisenter.ui.translations.Translations;
@@ -41,7 +41,7 @@ public final class DocumentTab extends Tab {
 		// check for unsaved changes on close of a tab
 		this.setOnCloseRequest(e -> {
 			if (document.hasUnsavedChanges()) {
-				Alert alert = Alerts.yesNoCancel(
+				Alert alert = Dialogs.yesNoCancel(
 						this.context.getStage(), 
 						Modality.WINDOW_MODAL, 
 						Translations.get("action.confirm"), 
@@ -56,7 +56,7 @@ public final class DocumentTab extends Tab {
 						})).exceptionally(t -> {
 							// don't close to the document and show the error
 							Platform.runLater(() -> {
-								Alert errorAlert = Alerts.exception(this.context.getStage(), t);
+								Alert errorAlert = Dialogs.exception(this.context.getStage(), t);
 								errorAlert.show();
 							});
 							return null;

@@ -34,7 +34,6 @@ import org.praisenter.data.song.Author;
 import org.praisenter.data.song.Lyrics;
 import org.praisenter.data.song.Section;
 import org.praisenter.data.song.Song;
-import org.praisenter.data.workspace.DisplayRole;
 import org.praisenter.data.workspace.Resolution;
 import org.praisenter.data.workspace.WorkspaceConfiguration;
 import org.praisenter.data.workspace.WorkspaceManager;
@@ -115,12 +114,14 @@ public final class GlobalContext {
 	// listeners (tracking them here so we can clean up)
 	
 	private final ChangeListener<? super Scene> sceneListener;
+	private final ChangeListener<? super Node> sceneRootListener;
 	private final ChangeListener<? super Node> focusListener;
 	private final ChangeListener<? super ActionPane> closestActionPaneListener;
 	private final ChangeListener<? super DocumentContext<? extends Persistable>> currentDocumentListener;
 	private final ChangeListener<? super Boolean> windowFocusedListener;
 	private final ChangeListener<? super Boolean> textSelectedListener;
 	private final InvalidationListener screensListener;
+	private final List<ChangeListener<Number>> fontSizeListeners;
 	
 	public GlobalContext(
 			Application application, 
@@ -167,10 +168,24 @@ public final class GlobalContext {
 		
 		this.latestVersion = new SimpleObjectProperty<Version>(Version.VERSION);
 		
+		this.fontSizeListeners = new ArrayList<>();
+		
 		// bindings
 		
-		this.scene.bind(this.stage.sceneProperty());
-		this.windowFocused.bind(this.stage.focusedProperty());
+		this.sceneRootListener = (obs, ov, nv) -> {
+			if (nv != null) {
+				// skip the WS selection pane
+				if (nv.getStyleClass().contains("p-workspace-selection-pane")) 
+					return;
+				
+				nv.getStyleClass().add("p-fs" + (int)this.workspaceManager.getWorkspaceConfiguration().getApplicationFontSize());
+			}
+			if (ov != null) {
+				ov.getStyleClass().removeIf(s -> s.startsWith("p-fs"));
+			}
+		};
+		
+		this.sceneRoot.addListener(this.sceneRootListener);
 		
 		// bind/unbind the focusOwner property when the scene changes
 		this.sceneListener = (obs, ov, nv) -> {
@@ -182,16 +197,18 @@ public final class GlobalContext {
 			}
 		};
 		this.scene.addListener(this.sceneListener);
-		
-		this.sceneRoot.addListener((obs, ov, nv) -> {
-			if (ov != null) {
-				ov.getStyleClass().removeIf(s -> s.startsWith("p-fs"));
-			}
-		});
-		
-		this.workspaceManager.getWorkspaceConfiguration().applicationFontSizeProperty().addListener((obs, ov, nv) -> {
+
+		this.scene.bind(this.stage.sceneProperty());
+		this.windowFocused.bind(this.stage.focusedProperty());
+
+		ChangeListener<Number> fontSizeListener = (obs, ov, nv) -> {
 			Node node = this.sceneRoot.get();
-			if (node == null) return;
+			if (node == null) 
+				return;
+			
+			// skip the WS selection pane
+			if (node.getStyleClass().contains("p-workspace-selection-pane")) 
+				return;
 			
 			if (ov != null) {
 				node.getStyleClass().remove("p-fs" + ov.intValue());
@@ -200,7 +217,10 @@ public final class GlobalContext {
 			if (nv != null) {
 				node.getStyleClass().add("p-fs" + nv.intValue());
 			}
-		});
+		};
+		
+		this.fontSizeListeners.add(fontSizeListener);
+		this.workspaceManager.getWorkspaceConfiguration().applicationFontSizeProperty().addListener(fontSizeListener);
 		
 		// keep track of the focus owner (what node owns focus)
 		this.focusListener = (obs, ov, nv) -> {
@@ -313,11 +333,16 @@ public final class GlobalContext {
 		// remove listeners
 		Screen.getScreens().removeListener(this.screensListener);
 		this.scene.removeListener(this.sceneListener);
+		this.sceneRoot.removeListener(this.sceneRootListener);
 		this.focusOwner.removeListener(this.focusListener);
 		this.closestActionPane.removeListener(this.closestActionPaneListener);
 		this.currentDocument.removeListener(this.currentDocumentListener);
 		this.windowFocused.removeListener(this.windowFocusedListener);
 		this.textSelected.removeListener(this.textSelectedListener);
+		
+		for (ChangeListener<Number> listener : this.fontSizeListeners) {
+			this.workspaceManager.getWorkspaceConfiguration().applicationFontSizeProperty().removeListener(listener);
+		}
 		
 		// remove bindings
 		this.backgroundTaskExecuting.unbind();
@@ -476,7 +501,7 @@ public final class GlobalContext {
 			case UNDO:
 			case REDO:
 				return this.openDocuments.size() > 0;
-			case BULK_EDIT:
+			case BULK_EDIT_BEGIN:
 			case RENUMBER:
 			case REORDER:
 			case NEW_BOOK:
@@ -512,9 +537,9 @@ public final class GlobalContext {
 			case RESET_FONT_SIZE:
 				return this.resetApplicationFontSize();
 			case INCREASE_FONT_SIZE:
-				return this.incrementApplicationFontSize(2);
+				return this.incrementApplicationFontSize(1);
 			case DECREASE_FONT_SIZE:
-				return this.incrementApplicationFontSize(-2);
+				return this.incrementApplicationFontSize(-1);
 			case NEW_BIBLE:
 				return this.createNewBibleAndOpen();
 			case NEW_SLIDE:
@@ -573,7 +598,7 @@ public final class GlobalContext {
 
 	private CompletableFuture<Void> resetApplicationFontSize() {
 		this.workspaceManager.getWorkspaceConfiguration().setApplicationFontSize(12);
-		this.onActionStateChanged("FONT_SIZE_CHANGED=12");
+		this.onActionStateChanged("FONT_SIZE_CHANGED=12.0");
 		return CompletableFuture.completedFuture(null);
 	}
 	
@@ -807,14 +832,27 @@ public final class GlobalContext {
 	
 	private CompletableFuture<Void> createNewSlideAndOpen() {
 		Slide slide = new Slide(Translations.get("action.new.untitled", LocalDateTime.now().format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT, FormatStyle.SHORT))));
+		
+		// default the background to white
 		slide.setBackground(new SlideColor(1, 1, 1, 1));
 		
+		// default the size of the slide to the primary display target
+		boolean foundPrimary = false;
 		List<DisplayTarget> targets = new ArrayList<>(this.displayManager.getDisplayTargets());
 		for (DisplayTarget target : targets) {
-			if (target.getDisplay().getRole() == DisplayRole.MAIN) {
-				slide.setHeight(target.getDisplay().getHeight());
-				slide.setWidth(target.getDisplay().getWidth());
+			if (target.getDisplayConfiguration().isPrimary()) {
+				foundPrimary = true;
+				slide.setHeight(target.getDisplayConfiguration().getHeight());
+				slide.setWidth(target.getDisplayConfiguration().getWidth());
+				break;
 			}
+		}
+		
+		if (!foundPrimary) {
+			// then just use the first
+			DisplayTarget target = targets.get(0);
+			slide.setHeight(target.getDisplayConfiguration().getHeight());
+			slide.setWidth(target.getDisplayConfiguration().getWidth());
 		}
 		
 		this.openDocument(slide, true);
@@ -834,6 +872,17 @@ public final class GlobalContext {
 		
 		this.openDocument(song, true);
 		return CompletableFuture.completedFuture(null);
+	}
+	
+	public void attachZoomHandler(Scene scene) {
+		Node root = scene.getRoot();
+		root.getStyleClass().add("p-fs" + (int)this.getWorkspaceConfiguration().getApplicationFontSize());
+		ChangeListener<Number> listener = (obs, ov, nv) -> {
+			root.getStyleClass().removeIf(s -> s.startsWith("p-fs"));
+			root.getStyleClass().add("p-fs" + nv.intValue());
+		};
+		this.fontSizeListeners.add(listener);
+		this.workspaceManager.getWorkspaceConfiguration().applicationFontSizeProperty().addListener(listener);
 	}
 	
 	public Application getApplication() {

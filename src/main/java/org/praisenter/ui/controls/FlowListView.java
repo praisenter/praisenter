@@ -26,7 +26,6 @@ package org.praisenter.ui.controls;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.praisenter.ui.MappedList;
@@ -44,20 +43,14 @@ import javafx.geometry.Bounds;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.input.ClipboardContent;
-import javafx.scene.input.DataFormat;
-import javafx.scene.input.Dragboard;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.input.TransferMode;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.TilePane;
 import javafx.scene.shape.Rectangle;
 import javafx.util.Callback;
-
-// FEATURE (L-M) Allow reorder of multiple items instead of just one at a time
 
 /**
  * Represents a list view whose items are laid out vertically or horizontally
@@ -87,8 +80,6 @@ public class FlowListView<T> extends ScrollPane {
 	private final TilePane layout;
 	
 	/** The item nodes */
-//	private final ListProperty<FlowListCell<T>> nodes;
-	
 	private final MappedList<FlowListCell<T>, T> mapping;
 	
 	/** The drag selection node */
@@ -102,14 +93,6 @@ public class FlowListView<T> extends ScrollPane {
 	/** The y coordinate of the start of the drag selection */
 	private double dragSelectionStartY;
 	
-	// drag reorder
-
-	/** A special data format for this instance of flow list only */
-	private final DataFormat REORDER = new DataFormat("application/x-praisenter-" + UUID.randomUUID().toString().replaceAll("-", ""));
-	
-	/** The cell being dragged */
-	private FlowListCell<T> dragReorderCell = null;
-
 	// focus
 	
 	/** Keyboard shift-select */
@@ -126,9 +109,6 @@ public class FlowListView<T> extends ScrollPane {
 	/** True if drag selection is enabled */
 	private final BooleanProperty dragSelectionEnabled = new SimpleBooleanProperty(true);
 	
-	/** True if drag reordering is enabled */
-	private final BooleanProperty dragReorderEnabled = new SimpleBooleanProperty(false);
-	
 	/**
 	 * Full constructor.
 	 * @param orientation the orientation of the items
@@ -140,7 +120,6 @@ public class FlowListView<T> extends ScrollPane {
 		this.cellFactory = cellFactory;
 
 		this.layout = new TilePane();
-//		this.nodes = new SimpleListProperty<FlowListCell<T>>(FXCollections.observableArrayList());
 		
 		this.dragRect = new Rectangle();
 		this.dragRect.getStyleClass().add("flow-list-view-drag-selection-area");
@@ -176,47 +155,6 @@ public class FlowListView<T> extends ScrollPane {
         // bind the children of this view to the tagNode list
  		Bindings.bindContent(this.layout.getChildren(), this.mapping);
         
- 		
- 		
-// 		// add a change listener for the items property
-// 		this.items.addListener(new ListChangeListener<T>() {
-//			@Override
-//			public void onChanged(ListChangeListener.Change<? extends T> changes) {
-//				// iterate the changes
-//				while (changes.next()) {
-//		             if (changes.wasPermutated()) {
-//                    	 // reorder
-//		            	 int from = changes.getFrom();
-//		            	 int to = changes.getTo();
-//		            	 // re-order a sub list so we don't have duplicate nodes in the scene graph
-//		            	 List<FlowListCell<T>> range = new ArrayList<FlowListCell<T>>(nodes.subList(from, to));
-//	                     for (int i = from; i < to; ++i) {
-//	                    	 int j = changes.getPermutation(i);
-//	                    	 range.set(j - from, nodes.get(i));
-//	                     }
-//	                     // now replace this in the real list
-//	                     nodes.subList(from, to).clear();
-//	                     nodes.addAll(from, range);
-//	                 } else if (changes.wasUpdated()) {
-//	                	 // not sure what to do here
-//	                 } else {
-//	                     for (T remitem : changes.getRemoved()) {
-//	                         nodes.removeIf(v -> v.getData().equals(remitem));
-//	                     }
-//                         // clear from selections
-//	                     int i = changes.getFrom();
-//	                     for (T additem : changes.getAddedSubList()) {
-//	                    	 if (i >= 0) {
-//	                    		 nodes.add(i++, createCell(additem));
-//	                    	 } else {
-//	                    		 nodes.add(createCell(additem));
-//	                    	 }
-//	                     }
-//	                 }
-//		         }
-//			}
-// 		});
- 		
  		this.layout.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> {
  			if (!e.isConsumed() && (e.getButton() == MouseButton.PRIMARY || e.getButton() == MouseButton.SECONDARY) && e.isStillSincePress()) {
  				this.selection.clear();
@@ -363,52 +301,6 @@ public class FlowListView<T> extends ScrollPane {
 					cell.pseudoClassStateChanged(HOVER, false);
 				}
 			}
-    	});
-    	
-    	cell.setOnDragDetected(e -> {
-    		if (this.dragReorderEnabled.get()) {
-	    		Dragboard db = startDragAndDrop(TransferMode.MOVE);
-	    		ClipboardContent content = new ClipboardContent();
-	    		content.put(REORDER, "");
-	    		db.setContent(content);
-	    		db.setDragView(cell.snapshot(null, null));
-	    		e.consume();
-	    		this.dragReorderCell = cell;
-    		}
-    	});
-    	cell.setOnDragEntered(e -> {
-    		if (this.dragReorderEnabled.get() && e.getGestureSource() != cell && e.getDragboard().hasContent(REORDER)) {
-    			cell.setOpacity(0.8);
-    		}
-    	});
-    	cell.setOnDragExited(e -> {
-    		if (this.dragReorderEnabled.get() && e.getGestureSource() != cell && e.getDragboard().hasContent(REORDER)) {
-    			cell.setOpacity(1);
-    		}
-    	});
-    	cell.setOnDragOver(e -> {
-    		if (this.dragReorderEnabled.get() && e.getGestureSource() != cell && e.getDragboard().hasContent(REORDER)) {
-    			e.acceptTransferModes(TransferMode.MOVE);
-    			e.consume();
-    		}
-    	});
-    	cell.setOnDragDropped(e -> {
-    		if (this.dragReorderEnabled.get() && e.getDragboard().hasContent(REORDER)) {
-    			// NOTE: "cell" is where we dropped it
-				FlowListCell<T> source = this.dragReorderCell;
-    			T data = source.getData();
-    			
-    			int toIndex = this.items.indexOf(cell.getData());
-    			this.items.remove(data);
-    			this.items.add(toIndex, data);
-	    		e.setDropCompleted(true);
-	    		e.consume();
-    		}
-    	});
-    	cell.setOnDragDone(e -> {
-    		if (this.dragReorderEnabled.get()) {
-    			this.dragReorderCell = null;
-    		}
     	});
     	
     	return cell;
@@ -699,32 +591,6 @@ public class FlowListView<T> extends ScrollPane {
 	 */
 	public BooleanProperty dragSelectionEnabledProperty() {
 		return this.dragSelectionEnabled;
-	}
-	
-	// drag reorder
-	
-	/**
-	 * Returns true if click-drag reordering is enabled.
-	 * @return boolean
-	 */
-	public boolean isDragReorderEnabled() {
-		return this.dragReorderEnabled.get();
-	}
-	
-	/**
-	 * Toggles click-drag redordering.
-	 * @param flag true to enable
-	 */
-	public void setDragReorderEnabled(boolean flag) {
-		this.dragReorderEnabled.set(flag);
-	}
-	
-	/**
-	 * Returns the click-drag reorder enabled property.
-	 * @return BooleanProperty
-	 */
-	public BooleanProperty dragReorderEnabledProperty() {
-		return this.dragReorderEnabled;
 	}
 	
 	// multi select

@@ -62,7 +62,7 @@ public interface ReadOnlyWorkspaceConfiguration extends MediaConfiguration, Slid
 	public ReadOnlyBooleanProperty waitForTransitionsToCompleteEnabledProperty();
 	public ReadOnlyObjectProperty<PlaceholderTransitionBehavior> placeholderTransitionBehaviorProperty();
 	
-	public ObservableList<? extends ReadOnlyDisplay> getDisplaysUnmodifiable();
+//	public ObservableList<? extends ReadOnlyDisplay> getDisplaysUnmodifiable();
 	public ObservableList<? extends ReadOnlyResolution> getResolutionsUnmodifiable();
 	public ObservableList<? extends ReadOnlyDisplayConfiguration> getDisplayConfigurationsUnmodifiable();
 	

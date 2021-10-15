@@ -116,6 +116,18 @@ public class RowVisGridPane extends GridPane {
 		this.reLayout();
 	}
 	
+	public void showAllRows() {
+		boolean layout = false;
+		for (RowDefinition row : this.rows.values()) {
+			if (row != null && !row.visible) {
+				row.visible = true;
+				layout = true;
+			}
+			
+		}
+		if (layout) reLayout();
+	}
+	
 	protected int reLayout() {
 		int i = 0;
 		

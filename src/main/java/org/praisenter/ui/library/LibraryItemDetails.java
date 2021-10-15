@@ -22,7 +22,7 @@ import org.praisenter.data.slide.Slide;
 import org.praisenter.data.song.Song;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.bind.BindingHelper;
-import org.praisenter.ui.controls.Alerts;
+import org.praisenter.ui.controls.Dialogs;
 import org.praisenter.ui.controls.MediaPreview;
 import org.praisenter.ui.controls.RowVisGridPane;
 import org.praisenter.ui.controls.TagListView;
@@ -525,7 +525,7 @@ final class LibraryItemDetails extends BorderPane {
 			
 			// present them to the user
 			Platform.runLater(() -> {
-				Alert errorAlert = Alerts.exception(
+				Alert errorAlert = Dialogs.exception(
 						this.context.getStage(), 
 						t);
 				errorAlert.show();

@@ -11,7 +11,8 @@ import org.praisenter.data.bible.Chapter;
 import org.praisenter.data.bible.Verse;
 import org.praisenter.ui.Action;
 import org.praisenter.ui.GlobalContext;
-import org.praisenter.ui.controls.EditGridPane;
+import org.praisenter.ui.controls.FormField;
+import org.praisenter.ui.controls.FormFieldSet;
 import org.praisenter.ui.controls.TagListView;
 import org.praisenter.ui.controls.TextInputFieldEventFilter;
 import org.praisenter.ui.document.DocumentContext;
@@ -20,30 +21,35 @@ import org.praisenter.ui.translations.Translations;
 
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
+import javafx.beans.binding.ObjectBinding;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
-import javafx.geometry.Insets;
 import javafx.scene.control.Button;
-import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.scene.control.TitledPane;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
 public final class BibleSelectionEditor extends VBox implements DocumentSelectionEditor<Bible> {
+	private static final String BIBLE_SELECTION_EDITOR_CSS = "p-bible-selection-editor";
+	private static final String BIBLE_SELECTION_EDITOR_SECTIONS_CSS = "p-bible-selection-editor-sections";
+	
 	private static final Logger LOGGER = LogManager.getLogger();
 	
 	private final GlobalContext context;
 	private final ObjectProperty<DocumentContext<Bible>> documentContext;
+	private final BooleanProperty bulkEdit;
 	
 	private final ObjectProperty<Bible> bible;
 	private final ObjectProperty<Object> selectedItem;
@@ -70,8 +76,11 @@ public final class BibleSelectionEditor extends VBox implements DocumentSelectio
 	private final ObjectProperty<Integer> verseNumber2;
 	
 	public BibleSelectionEditor(GlobalContext context) {
+		this.getStyleClass().add(BIBLE_SELECTION_EDITOR_CSS);
+		
 		this.context = context;
 		this.documentContext = new SimpleObjectProperty<>();
+		this.bulkEdit = new SimpleBooleanProperty();
 		
 		this.bible = new SimpleObjectProperty<>();
 		this.selectedItem = new SimpleObjectProperty<>();
@@ -86,12 +95,15 @@ public final class BibleSelectionEditor extends VBox implements DocumentSelectio
 		this.documentContext.addListener((obs, ov, nv) -> {
 			this.bible.unbind();
 			this.selectedItem.unbind();
+			this.bulkEdit.unbind();
 			if (nv != null) {
 				this.bible.bind(nv.documentProperty());
 				this.selectedItem.bind(nv.selectedItemProperty());
+				this.bulkEdit.bind(nv.bulkEditProperty());
 			} else {
 				this.bible.set(null);
 				this.selectedItem.set(null);
+				this.bulkEdit.set(false);
 			}
 		});
 		
@@ -195,23 +207,18 @@ public final class BibleSelectionEditor extends VBox implements DocumentSelectio
 		
 		// UI
 		
-		Label lblBibleName = new Label(Translations.get("item.name"));
 		TextField txtBibleName = new TextField();
 		txtBibleName.textProperty().bindBidirectional(this.name);
 
-		Label lblBibleLanguage = new Label(Translations.get("item.language"));
 		TextField txtBibleLanguage = new TextField();
 		txtBibleLanguage.textProperty().bindBidirectional(this.language);
 		
-		Label lblBibleSource = new Label(Translations.get("item.source"));
 		TextField txtBibleSource = new TextField();
 		txtBibleSource.textProperty().bindBidirectional(this.source);
 		
-		Label lblBibleCopyright = new Label(Translations.get("item.copyright"));
 		TextField txtBibleCopyright = new TextField();
 		txtBibleCopyright.textProperty().bindBidirectional(this.copyright);
 
-		Label lblBibleNotes = new Label(Translations.get("item.notes"));
 		TextArea txtBibleNotes = new TextArea();
 		txtBibleNotes.textProperty().bindBidirectional(this.notes);
 		txtBibleNotes.setWrapText(true);
@@ -219,28 +226,23 @@ public final class BibleSelectionEditor extends VBox implements DocumentSelectio
 		TagListView viewTags = new TagListView(this.context.getWorkspaceManager().getTagsUmodifiable());
 		Bindings.bindContentBidirectional(viewTags.getTags(), this.tags);
 		
-		Label lblBookName = new Label(Translations.get("item.name"));
 		TextField txtBookName = new TextField();
 		txtBookName.textProperty().bindBidirectional(this.bookName);
 		
-		Label lblBookNumber = new Label(Translations.get("bible.number"));
 		Spinner<Integer> spnBookNumber = new Spinner<>(1, Integer.MAX_VALUE, 1);
 		spnBookNumber.setEditable(true);
 		spnBookNumber.getValueFactory().valueProperty().bindBidirectional(this.bookNumber2);
 		spnBookNumber.setMaxWidth(Double.MAX_VALUE);
 		
-		Label lblChapterNumber = new Label(Translations.get("bible.number"));
 		Spinner<Integer> spnChapterNumber = new Spinner<>(1, Integer.MAX_VALUE, 1);
 		spnChapterNumber.setEditable(true);
 		spnChapterNumber.getValueFactory().valueProperty().bindBidirectional(this.chapterNumber2);
 		spnChapterNumber.setMaxWidth(Double.MAX_VALUE);
 		
-		Label lblVerseText = new Label(Translations.get("bible.text"));
 		TextArea txtVerseText = new TextArea();
 		txtVerseText.textProperty().bindBidirectional(this.verseText);
 		txtVerseText.setWrapText(true);
 		
-		Label lblVerseNumber = new Label(Translations.get("bible.number"));
 		Spinner<Integer> spnVerseNumber = new Spinner<>(1, Integer.MAX_VALUE, 1);
 		spnVerseNumber.setEditable(true);
 		spnVerseNumber.getValueFactory().valueProperty().bindBidirectional(this.verseNumber2);
@@ -250,11 +252,11 @@ public final class BibleSelectionEditor extends VBox implements DocumentSelectio
 		Button btnChapterQuickEdit = new Button(Translations.get("action.edit.bulk"));
 		
 		btnBookQuickEdit.setOnAction(e -> {
-			this.context.executeAction(Action.BULK_EDIT);
+			this.context.executeAction(Action.BULK_EDIT_BEGIN);
 		});
 		
 		btnChapterQuickEdit.setOnAction(e -> {
-			this.context.executeAction(Action.BULK_EDIT);
+			this.context.executeAction(Action.BULK_EDIT_BEGIN);
 		});
 		
 		TextInputFieldEventFilter.applyTextInputFieldEventFilter(
@@ -269,91 +271,82 @@ public final class BibleSelectionEditor extends VBox implements DocumentSelectio
 				txtVerseText,
 				spnVerseNumber.getEditor());
 		
-		int row = 0;
-		EditGridPane bibleGrid = new EditGridPane();
-		bibleGrid.add(lblBibleName, 0, row); bibleGrid.add(txtBibleName, 1, row++);
-		bibleGrid.add(lblBibleLanguage, 0, row); bibleGrid.add(txtBibleLanguage, 1, row++);
-		bibleGrid.add(lblBibleSource, 0, row); bibleGrid.add(txtBibleSource, 1, row++);
-		bibleGrid.add(lblBibleCopyright, 0, row); bibleGrid.add(txtBibleCopyright, 1, row++);
-		bibleGrid.add(lblBibleNotes, 0, row++, 2);
-		bibleGrid.add(txtBibleNotes, 0, row++, 2);
-		bibleGrid.add(viewTags, 0, row++, 2);
-		bibleGrid.setPadding(new Insets(5));
-		TitledPane ttlBible = new TitledPane(Translations.get("bible"), bibleGrid);
-		ttlBible.setAnimated(false);
-//		ttlBible.setCollapsible(false);
+		VBox boxGeneral = new VBox(
+				new FormField(Translations.get("bible.name"), Translations.get("bible.name.description"), txtBibleName),
+				new FormField(Translations.get("bible.language"), Translations.get("bible.language.description"), txtBibleLanguage),
+				new FormField(Translations.get("bible.source"), Translations.get("bible.source.description"), txtBibleSource),
+				new FormField(Translations.get("bible.copyright"), Translations.get("bible.copyright.description"), txtBibleCopyright),
+				new FormField(Translations.get("bible.notes"), Translations.get("bible.notes.description"), txtBibleNotes),
+				new FormField(Translations.get("bible.tags"), Translations.get("bible.tags.description"), viewTags));
+		FormFieldSet pneGeneral = new FormFieldSet(Translations.get("bible"), boxGeneral);
 		
-		row = 0;
-		EditGridPane selectionGrid = new EditGridPane();
-		selectionGrid.add(lblBookNumber, 0, row); selectionGrid.add(spnBookNumber, 1, row++);
-		selectionGrid.add(lblBookName, 0, row); selectionGrid.add(txtBookName, 1, row++);
-		selectionGrid.add(btnBookQuickEdit, 0, row++, 2);
-		selectionGrid.add(lblChapterNumber, 0, row); selectionGrid.add(spnChapterNumber, 1, row++);
-		selectionGrid.add(btnChapterQuickEdit, 0, row++, 2);
-		selectionGrid.add(lblVerseNumber, 0, row); selectionGrid.add(spnVerseNumber, 1, row++);
-		selectionGrid.add(lblVerseText, 0, row++, 2);
-		selectionGrid.add(txtVerseText, 0, row++, 2);
-		selectionGrid.setPadding(new Insets(5));
-		TitledPane ttlSelection = new TitledPane("", selectionGrid);
-		ttlSelection.setAnimated(false);
-//		ttlSelection.setCollapsible(false);
-		ttlSelection.textProperty().bind(Bindings.createStringBinding(() -> {
-			Object item = this.selectedItem.get();
-			if (item == null || item instanceof Bible) {
-				return "";
-			} else if (item instanceof Book) {
-				return Translations.get("bible.book");
-			} else if (item instanceof Chapter) {
-				return Translations.get("bible.chapter");
-			} else if (item instanceof Verse) {
-				return Translations.get("bible.verse");
-			}
-			return "";
-		}, this.selectedItem));
-		this.selectedItem.addListener((obs, ov, nv) -> {
-//			selectionGrid.hideRows(0,1,2,3,4,5);
-			if (nv == null || nv instanceof Bible) {
-			} else if (nv instanceof Book) {
-				selectionGrid.showRowsOnly(0,1,2);
-			} else if (nv instanceof Chapter) {
-				selectionGrid.showRowsOnly(3,4);
-			} else if (nv instanceof Verse) {
-				selectionGrid.showRowsOnly(5,6,7);
-			}
-		});
+		VBox boxBook = new VBox(
+				new FormField(Translations.get("bible.book.name"), Translations.get("bible.book.name.description"), txtBookName),
+				new FormField(Translations.get("bible.book.number"), Translations.get("bible.book.number.description"), spnBookNumber),
+				new FormField(Translations.get("action.edit.bulk"), Translations.get("bible.book.edit.bulk.description"), btnBookQuickEdit));
+		FormFieldSet pneBook = new FormFieldSet(Translations.get("bible.book"), boxBook);
 		
-//		TitledPane ttlBook = new TitledPane(Translations.get("bible.book"), new VBox(
-//				lblBookNumber, spnBookNumber,
-//				lblBookName, txtBookName));
-//
-//		TitledPane ttlChapter = new TitledPane(Translations.get("bible.chapter"), new VBox(
-//				lblChapterNumber, spnChapterNumber));
-//		
-//		TitledPane ttlVerse = new TitledPane(Translations.get("bible.verse"), new VBox(
-//				lblVerseNumber, spnVerseNumber,
-//				lblVerseText, txtVerseText));
+		VBox boxChapter = new VBox(
+				new FormField(Translations.get("bible.chapter.number"), Translations.get("bible.chapter.number.description"), spnChapterNumber),
+				new FormField(Translations.get("action.edit.bulk"), Translations.get("bible.chapter.edit.bulk.description"), btnChapterQuickEdit));
+		FormFieldSet pneChapter = new FormFieldSet(Translations.get("bible.chapter"), boxChapter);
 		
-		ScrollPane scroller = new ScrollPane(new VBox(
-				ttlBible,
-				ttlSelection));
+		VBox boxVerse = new VBox(
+				new FormField(Translations.get("bible.verse.number"), Translations.get("bible.verse.number.description"), spnVerseNumber),
+				new FormField(Translations.get("bible.verse.text"), Translations.get("bible.verse.text.description"), txtVerseText));
+		FormFieldSet pneVerse = new FormFieldSet(Translations.get("bible.verse"), boxVerse);
+
+		VBox boxLayout = new VBox(
+				pneGeneral,
+				pneBook,
+				pneChapter,
+				pneVerse);
+		boxLayout.getStyleClass().add(BIBLE_SELECTION_EDITOR_SECTIONS_CSS);
+		
+		ScrollPane scroller = new ScrollPane(boxLayout);
 		scroller.setHbarPolicy(ScrollBarPolicy.NEVER);
 		scroller.setFitToWidth(true);
 		
 		this.getChildren().addAll(scroller);
 		
+		VBox.setVgrow(scroller, Priority.ALWAYS);
+		
 		// hide/show
 		
 		BooleanBinding hasBible = this.documentContext.isNotNull();
-		ttlBible.visibleProperty().bind(hasBible);
-		ttlBible.managedProperty().bind(hasBible);
+		pneGeneral.visibleProperty().bind(hasBible);
+		pneGeneral.managedProperty().bind(hasBible);
 		
-		BooleanBinding selectionEditingEnabled = Bindings.createBooleanBinding(() -> {
+		this.selectedItem.addListener((obs, ov, nv) -> {
+			if (nv == null || nv instanceof Bible) {
+				pneGeneral.setExpanded(true);
+			} else {
+				pneGeneral.setExpanded(false);
+			}
+			
+			if (nv != null && !(nv instanceof Bible)) {
+				pneBook.setExpanded(true);
+				pneChapter.setExpanded(true);
+				pneVerse.setExpanded(true);
+			}
+		});
+		
+		ObjectBinding<Class<?>> selectedType = Bindings.createObjectBinding(() -> {
 			Object item = this.selectedItem.get();
-			if (item == null || item instanceof Bible) return false;
-			return true;
+			if (item == null) return null;
+			return item.getClass();
 		}, this.selectedItem);
-		ttlSelection.visibleProperty().bind(selectionEditingEnabled);
-		ttlSelection.managedProperty().bind(selectionEditingEnabled);
+		
+		pneBook.visibleProperty().bind(selectedType.isEqualTo(Book.class));
+		pneBook.managedProperty().bind(pneBook.visibleProperty());
+		pneBook.disableProperty().bind(this.bulkEdit);
+		
+		pneChapter.visibleProperty().bind(selectedType.isEqualTo(Chapter.class));
+		pneChapter.managedProperty().bind(pneChapter.visibleProperty());
+		pneChapter.disableProperty().bind(this.bulkEdit);
+		
+		pneVerse.visibleProperty().bind(selectedType.isEqualTo(Verse.class));
+		pneVerse.managedProperty().bind(pneVerse.visibleProperty());
 	}
 	
 	public DocumentContext<Bible> getDocumentContext() {

@@ -20,6 +20,7 @@ import javafx.beans.property.ObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
 public final class CurrentDocumentSelectionEditor extends VBox {
@@ -56,7 +57,9 @@ public final class CurrentDocumentSelectionEditor extends VBox {
 		});
 		
 		this.mapping = new MappedList<Node, DocumentSelectionEditor<?>>(this.selectionEditors, (dse) -> {
-			return (Node)dse;
+			Node node = (Node)dse;
+			VBox.setVgrow(node, Priority.ALWAYS);
+			return node;
 		});
 		
 		Bindings.bindContent(this.getChildren(), this.mapping);
