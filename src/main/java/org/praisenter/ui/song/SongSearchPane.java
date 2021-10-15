@@ -9,20 +9,16 @@ import java.util.UUID;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.lucene.document.Document;
-import org.apache.lucene.index.IndexableField;
 import org.praisenter.async.AsyncHelper;
 import org.praisenter.data.search.SearchResult;
 import org.praisenter.data.search.SearchTextMatch;
 import org.praisenter.data.search.SearchType;
-import org.praisenter.data.song.Lyrics;
-import org.praisenter.data.song.ReadOnlyLyrics;
-import org.praisenter.data.song.ReadOnlySection;
 import org.praisenter.data.song.Song;
-import org.praisenter.data.song.SongTextSearchCriteria;
 import org.praisenter.data.song.SongSearchResult;
+import org.praisenter.data.song.SongTextSearchCriteria;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.Option;
-import org.praisenter.ui.controls.Alerts;
+import org.praisenter.ui.controls.Dialogs;
 import org.praisenter.ui.controls.ProgressOverlay;
 import org.praisenter.ui.translations.Translations;
 
@@ -41,7 +37,6 @@ import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
@@ -52,15 +47,20 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 
 // FEATURE (M-M) add searching to the song editor for finding and editing easily
 
-public final class SongSearchPane extends BorderPane {
+public final class SongSearchPane extends VBox {
+	private static final String SONG_SEARCH_CSS = "p-song-search";
+	private static final String SONG_SEARCH_CRITERIA_CSS = "p-song-search-criteria";
+	
 	private static final Logger LOGGER = LogManager.getLogger();
 
 	private static final DecimalFormat SCORE_FORMAT = new DecimalFormat(Translations.get("search.score.format"));
@@ -78,6 +78,8 @@ public final class SongSearchPane extends BorderPane {
 	private final ObjectProperty<SongSearchResult> value;
 	
 	public SongSearchPane(GlobalContext context) {
+		this.getStyleClass().add(SONG_SEARCH_CSS);
+		
 		this.context = context;
 		
 		this.searchType = new SimpleObjectProperty<Option<SearchType>>();
@@ -102,16 +104,27 @@ public final class SongSearchPane extends BorderPane {
 		
 		Button btnSearch = new Button(Translations.get("search.button"));
 		
-		HBox top = new HBox(5, txtSearch, cmbSearchType, btnSearch);
-		HBox.setHgrow(txtSearch, Priority.ALWAYS);
-		top.setPadding(new Insets(0, 0, 5, 0));
+		GridPane top = new GridPane();
 		
-		this.setTop(top);
+		top.add(txtSearch, 0, 0);
+		top.add(cmbSearchType, 1, 0);
+		top.add(btnSearch, 2, 0);
+		
+		txtSearch.setMaxWidth(Double.MAX_VALUE);
+		cmbSearchType.setMaxWidth(Double.MAX_VALUE);
+		btnSearch.setMaxWidth(Double.MAX_VALUE);
+		
+		final int[] widths = new int[] { 70, 20, 10 };
+		for (int i = 0; i < widths.length; i++) {
+			ColumnConstraints cc = new ColumnConstraints();
+			cc.setPercentWidth(widths[i]);
+			top.getColumnConstraints().add(cc);
+		}
+		
+		top.getStyleClass().add(SONG_SEARCH_CRITERIA_CSS);
 		
 		///////////////////////////
 
-		this.setPadding(new Insets(5));
-		
 		TableView<SongSearchResult> table = new TableView<SongSearchResult>();
 		
 		// columns
@@ -222,8 +235,9 @@ public final class SongSearchPane extends BorderPane {
 		
 		Label lblResults = new Label();
 		
-		this.setCenter(stack);
-		this.setBottom(lblResults);
+		VBox.setVgrow(stack, Priority.ALWAYS);
+		
+		this.getChildren().addAll(top, stack, lblResults);
 		
 		EventHandler<ActionEvent> handler = e -> {
 			String text = this.terms.get();
@@ -245,7 +259,7 @@ public final class SongSearchPane extends BorderPane {
 				})).exceptionally(t -> {
 					LOGGER.error("Failed to search songs using terms '" + text + "' due to: " + t.getMessage(), t);
 					Platform.runLater(() -> {
-						Alert alert = Alerts.exception(this.context.getStage(), t);
+						Alert alert = Dialogs.exception(this.context.getStage(), t);
 						alert.show();
 					});
 					return null;

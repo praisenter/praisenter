@@ -8,11 +8,15 @@ import java.util.concurrent.CompletableFuture;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.async.AsyncHelper;
+import org.praisenter.data.Persistable;
 import org.praisenter.data.json.JsonIO;
+import org.praisenter.data.media.Media;
 import org.praisenter.data.slide.Slide;
 import org.praisenter.data.slide.SlideComponent;
+import org.praisenter.data.slide.graphics.ScaleType;
 import org.praisenter.data.slide.graphics.SlideColor;
 import org.praisenter.data.slide.media.MediaComponent;
+import org.praisenter.data.slide.media.MediaObject;
 import org.praisenter.data.slide.text.CountdownComponent;
 import org.praisenter.data.slide.text.DateTimeComponent;
 import org.praisenter.data.slide.text.SlideFont;
@@ -21,6 +25,7 @@ import org.praisenter.data.slide.text.SlideFontWeight;
 import org.praisenter.data.slide.text.TextComponent;
 import org.praisenter.data.slide.text.TextPlaceholderComponent;
 import org.praisenter.ui.Action;
+import org.praisenter.ui.DataFormats;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.MappedList;
 import org.praisenter.ui.document.DocumentContext;
@@ -36,7 +41,6 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.EventHandler;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
 import javafx.geometry.Pos;
@@ -46,8 +50,9 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
-import javafx.scene.input.DataFormat;
+import javafx.scene.input.Dragboard;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
@@ -58,8 +63,6 @@ import javafx.scene.layout.StackPane;
 // FEATURE (L-M) Add grid snaping to sizing/moving of components
 public final class SlideEditor extends BorderPane implements DocumentEditor<Slide> {
 	private static final Logger LOGGER = LogManager.getLogger();
-	
-	private static final DataFormat SLIDE_COMPONENT_DATA = new DataFormat("application/x-praisenter-json-list;class=" + SlideComponent.class.getName());
 
 	private final GlobalContext context;
 	private final DocumentContext<Slide> document;
@@ -212,6 +215,75 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 		this.setOnContextMenuRequested(e -> {
 			menu.show(this, e.getScreenX(), e.getScreenY());
 		});
+		
+		// allow drag-n-drop of library items onto the editor
+		this.setOnDragOver(e -> {
+			if (e.getDragboard().hasContent(DataFormats.PRAISENTER_ID_LIST)) {
+				if (this.getMediaFromDragBoard(e.getDragboard()).size() > 0) {
+					e.acceptTransferModes(TransferMode.ANY);
+				}
+			}
+			e.consume();
+		});
+		
+		this.setOnDragDropped(e -> {
+			Dragboard db = e.getDragboard();
+			Slide slide = this.slide.get();
+			
+			if (slide != null && db.hasContent(DataFormats.PRAISENTER_ID_LIST)) {
+				List<Media> media = this.getMediaFromDragBoard(db);
+				if (media.size() > 0) {
+					for (Media m : media) {
+						MediaObject mo = new MediaObject();
+						mo.setMediaId(m.getId());
+						mo.setMediaName(m.getName());
+						mo.setMediaType(m.getMediaType());
+						mo.setScaleType(ScaleType.UNIFORM);
+						
+						// then create a new media component with this media
+						MediaComponent mc = new MediaComponent();
+						mc.setMedia(mo);
+						
+						// set the width/height as a function of the slide and media size
+						double mw = slide.getWidth() * 0.75;
+						double mh = slide.getHeight() * 0.75;
+						double w = m.getWidth();
+						double h = m.getHeight();
+						if (w > mw || h > mh) {
+							w = mw;
+							h = mh;
+						}
+						
+						mc.setX(50);
+						mc.setY(50);
+						mc.setWidth(mw);
+						mc.setHeight(mh);
+						
+						this.slide.get().getComponents().add(mc);
+						
+						e.setDropCompleted(true);
+					}
+				}
+				e.consume();
+			}
+		});
+	}
+	
+	private List<Media> getMediaFromDragBoard(Dragboard db) {
+		List<Media> media = new ArrayList<Media>();
+		Object object = db.getContent(DataFormats.PRAISENTER_ID_LIST);
+		if (object instanceof List<?>) {
+			List<?> ids = (List<?>)object;
+			for (Object id : ids) {
+				if (id instanceof UUID) {
+					Persistable p = context.getWorkspaceManager().getPersistableById((UUID)id);
+					if (p != null && p instanceof Media) {
+						media.add((Media)p);
+					}
+				}
+			}
+		}
+		return media;
 	}
 	
 	private MenuItem createMenuItem(Action action) {
@@ -315,7 +387,7 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 			case CUT:
 				return ctx.getSelectedCount() > 0;
 			case PASTE:
-				return Clipboard.getSystemClipboard().hasContent(SLIDE_COMPONENT_DATA);
+				return Clipboard.getSystemClipboard().hasContent(DataFormats.PRAISENTER_SLIDE_COMPONENT_ARRAY);
 			case DELETE:
 				return ctx.getSelectedCount() > 0;
 			case NEW_SLIDE_TEXT_COMPONENT:
@@ -373,7 +445,7 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 					String data = JsonIO.write(items.toArray(new SlideComponent[0]));
 					ClipboardContent content = new ClipboardContent();
 					// FEATURE (L-L) Output in powerpoint format
-					content.put(SLIDE_COMPONENT_DATA, data);
+					content.put(DataFormats.PRAISENTER_SLIDE_COMPONENT_ARRAY, data);
 					
 					Clipboard clipboard = Clipboard.getSystemClipboard();
 					clipboard.setContent(content);
@@ -395,9 +467,9 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 	
 	private CompletableFuture<Void> paste() {
 		Clipboard clipboard = Clipboard.getSystemClipboard();
-		if (clipboard.hasContent(SLIDE_COMPONENT_DATA)) {
+		if (clipboard.hasContent(DataFormats.PRAISENTER_SLIDE_COMPONENT_ARRAY)) {
 			try {
-				SlideComponent[] components = JsonIO.read((String)clipboard.getContent(SLIDE_COMPONENT_DATA), SlideComponent[].class);
+				SlideComponent[] components = JsonIO.read((String)clipboard.getContent(DataFormats.PRAISENTER_SLIDE_COMPONENT_ARRAY), SlideComponent[].class);
 				// offset them slightly
 				for (SlideComponent sc : components) {
 					sc.setId(UUID.randomUUID());

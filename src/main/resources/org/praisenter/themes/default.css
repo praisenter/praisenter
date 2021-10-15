@@ -38,6 +38,10 @@ https://stackoverflow.com/questions/50011276/javafx-treeview-expand-collapse-dis
     -fx-rotate: 90;
 }
 
+.split-pane {
+	-fx-padding: 0;
+}
+
 /* ============== Reusable Components ================= */
 
 /* FlowListView */
@@ -74,8 +78,9 @@ https://stackoverflow.com/questions/50011276/javafx-treeview-expand-collapse-dis
 /** TagListView */
 .tag-list-view {}
 .tag-list-view-tags {
-	-fx-vgap: 2;
-	-fx-hgap: 2;
+	-fx-padding: 0.3em 0 0 0;
+	-fx-vgap: 0.2em;
+	-fx-hgap: 0.2em;
 }
 .tag-list-view .tag-list-view-tags .tag {}
 
@@ -96,20 +101,7 @@ https://stackoverflow.com/questions/50011276/javafx-treeview-expand-collapse-dis
 /* ============== Praisenter Components ================= */
 
 /* the action bar (vertical button bar) */
-.action-bar {}
-.action-bar .button {}
-.action-bar .menu-button {}
-/** don't show the caret for menu buttons on the action bar */
-.action-bar .menu-button > .label {
-	-fx-alignment: CENTER;
-}
-.action-bar .menu-button > .arrow-button,
-.action-bar .menu-button > .arrow-button > .arrow {
-    -fx-background-insets: 0;
-    -fx-background-radius: 0;
-	-fx-padding: 0;
-	-fx-shape: null;
-}
+.p-action-bar {}
 
 /* styles for the item in the library listing */
 .library-list-cell {
@@ -196,13 +188,20 @@ https://stackoverflow.com/questions/50011276/javafx-treeview-expand-collapse-dis
 }
 
 /* SUPPORTED APPLICATION FONT SIZES */
-.p-fs8 { -fx-font-size: 8px; }
+.p-fs8  { -fx-font-size: 8px; }
+.p-fs9  { -fx-font-size: 9px; }
 .p-fs10 { -fx-font-size: 10px; }
+.p-fs11 { -fx-font-size: 11px; }
 .p-fs12 { -fx-font-size: 12px; }
+.p-fs13 { -fx-font-size: 13px; }
 .p-fs14 { -fx-font-size: 14px; }
+.p-fs15 { -fx-font-size: 15px; }
 .p-fs16 { -fx-font-size: 16px; }
+.p-fs17 { -fx-font-size: 17px; }
 .p-fs18 { -fx-font-size: 18px; }
+.p-fs19 { -fx-font-size: 19px; }
 .p-fs20 { -fx-font-size: 20px; }
+.p-fs21 { -fx-font-size: 21px; }
 .p-fs22 { -fx-font-size: 22px; }
 
 /* WORKSPACE SELECTION PANE */
@@ -262,7 +261,7 @@ https://stackoverflow.com/questions/50011276/javafx-treeview-expand-collapse-dis
     -fx-background-insets: 0;
     -fx-effect: null;
 }
-.p-form-field-set *.content {
+.p-form-field-set > *.content {
 	-fx-border-width: 0;
     -fx-border-insets: 0;
     -fx-background-color: null;
@@ -366,6 +365,9 @@ https://stackoverflow.com/questions/50011276/javafx-treeview-expand-collapse-dis
 	-fx-spacing: 0.8em;
 	-fx-padding: 0.8em 0.8em 0 0.8em;
 }
+.p-display-controllers-add-container {
+	-fx-padding: 1.3em 0.5em;
+}
 
 .p-display-controller {
 	-fx-min-width: 51em;
@@ -409,7 +411,7 @@ https://stackoverflow.com/questions/50011276/javafx-treeview-expand-collapse-dis
 	-fx-vgap: 0.5em;
 }
 
-/* BIBLE NAVIGATION (CONTROLLER) */
+/* SONG NAVIGATION (CONTROLLER) */
 .p-song-nav {
 	-fx-spacing: 2em;
 }
@@ -421,3 +423,48 @@ https://stackoverflow.com/questions/50011276/javafx-treeview-expand-collapse-dis
 	-fx-hgap: 0.5em;
 	-fx-vgap: 0.5em;
 }
+
+/* SEARCH MODALS */
+.p-bible-search,
+.p-song-search {
+	-fx-spacing: 0.5em;
+	-fx-padding: 0.5em;
+}
+.p-bible-search-criteria,
+.p-song-search-criteria {
+	-fx-spacing: 0.5em;
+	-fx-hgap: 0.5em;
+	-fx-vgap: 0.5em;
+}
+
+/* BIBLE/SONG EDITOR */
+.p-bible-editor,
+.p-song-editor {}
+.p-bible-editor-bulk,
+.p-song-editor-bulk {
+	-fx-spacing: 0.5em;
+	-fx-padding: 0.5em;
+}
+.p-bible-editor-bulk-buttons,
+.p-song-editor-bulk-buttons {
+	-fx-spacing: 0.5em;
+}
+.p-bible-editor-bulk-buttons > .button,
+.p-song-editor-bulk-buttons > .button {
+	-fx-pref-width: 5em;
+}
+.p-bible-selection-editor,
+.p-song-selection-editor {}
+.p-bible-selection-editor > .scroll-pane,
+.p-song-selection-editor > .scroll-pane {
+	-fx-background-insets: 0;
+}
+.p-bible-selection-editor-sections,
+.p-song-selection-editor-sections {
+	-fx-spacing: 0.3em;
+}
+.p-bible-selection-editor-sections > .p-form-field-set > .title,
+.p-song-selection-editor-sections > .p-form-field-set > .title {
+	-fx-font-size: 1.3em;
+}
+

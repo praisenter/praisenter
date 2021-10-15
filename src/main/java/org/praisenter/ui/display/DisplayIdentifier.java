@@ -1,6 +1,6 @@
 package org.praisenter.ui.display;
 
-import org.praisenter.data.workspace.Display;
+import org.praisenter.data.workspace.DisplayConfiguration;
 import org.praisenter.ui.Praisenter;
 
 import javafx.event.EventHandler;
@@ -19,7 +19,7 @@ import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
 
 public class DisplayIdentifier extends Stage {
-	public DisplayIdentifier(Display display) {
+	public DisplayIdentifier(DisplayConfiguration configuration) {
 		super(StageStyle.TRANSPARENT);
 
     	// icons
@@ -35,14 +35,14 @@ public class DisplayIdentifier extends Stage {
 		this.initModality(Modality.NONE);
 		this.setResizable(false);
 		
-		this.setX(display.getX());
-		this.setY(display.getY());
-		this.setWidth(display.getWidth());
-		this.setHeight(display.getHeight());
-		this.setMinWidth(display.getWidth());
-		this.setMinHeight(display.getHeight());
-		this.setMaxWidth(display.getWidth());
-		this.setMaxHeight(display.getHeight());
+		this.setX(configuration.getX());
+		this.setY(configuration.getY());
+		this.setWidth(configuration.getWidth());
+		this.setHeight(configuration.getHeight());
+		this.setMinWidth(configuration.getWidth());
+		this.setMinHeight(configuration.getHeight());
+		this.setMaxWidth(configuration.getWidth());
+		this.setMaxHeight(configuration.getHeight());
 		
 		EventHandler<WindowEvent> block = (WindowEvent ev) -> {
 			ev.consume();
@@ -50,7 +50,7 @@ public class DisplayIdentifier extends Stage {
 		this.setOnCloseRequest(block);
 		this.setOnHiding(block);
 
-		Label lblNumber = new Label(String.valueOf(display.getId() + 1));
+		Label lblNumber = new Label(String.valueOf(configuration.getId() + 1));
 		lblNumber.setFont(Font.font(150));
 		lblNumber.setTextFill(Color.WHITE);
 		

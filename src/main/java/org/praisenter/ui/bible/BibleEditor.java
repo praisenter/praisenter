@@ -15,23 +15,21 @@ import org.praisenter.data.bible.Chapter;
 import org.praisenter.data.bible.Verse;
 import org.praisenter.data.json.JsonIO;
 import org.praisenter.ui.Action;
-import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.BulkEditConverter;
 import org.praisenter.ui.BulkEditParseException;
-import org.praisenter.ui.controls.Alerts;
+import org.praisenter.ui.DataFormats;
+import org.praisenter.ui.GlobalContext;
+import org.praisenter.ui.controls.Dialogs;
 import org.praisenter.ui.document.DocumentContext;
 import org.praisenter.ui.document.DocumentEditor;
 import org.praisenter.ui.events.ActionStateChangedEvent;
 import org.praisenter.ui.translations.Translations;
 import org.praisenter.ui.undo.UndoManager;
 
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.ListChangeListener;
 import javafx.css.PseudoClass;
-import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
@@ -54,7 +52,9 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 
 //JAVABUG (L) 11/03/16 Dragging to the edge of a scrollable window doesn't scroll it and there's no good way to scroll it manually
@@ -62,9 +62,9 @@ import javafx.stage.Modality;
 public final class BibleEditor extends BorderPane implements DocumentEditor<Bible> {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
-	private static final DataFormat BOOK_CLIPBOARD_DATA = new DataFormat("application/x-praisenter-json-list;class=" + Book.class.getName());
-	private static final DataFormat CHAPTER_CLIPBOARD_DATA = new DataFormat("application/x-praisenter-json-list;class=" + Chapter.class.getName());
-	private static final DataFormat VERSE_CLIPBOARD_DATA = new DataFormat("application/x-praisenter-json-list;class=" + Verse.class.getName());
+	private static final String BIBLE_EDITOR_CSS = "p-bible-editor";
+	private static final String BIBLE_EDITOR_BULK_CSS = "p-bible-editor-bulk";
+	private static final String BIBLE_EDITOR_BULK_BUTTONS_CSS = "p-bible-editor-bulk-buttons";
 	
 	private static final PseudoClass DRAG_OVER_PARENT = PseudoClass.getPseudoClass("drag-over-parent");
 	private static final PseudoClass DRAG_OVER_SIBLING_TOP = PseudoClass.getPseudoClass("drag-over-sibling-top");
@@ -84,13 +84,14 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 	
 	private final TreeView<Object> treeView;
 	
-	private final BooleanProperty bulkEditModeEnabled;
 	private final StringProperty bulkEditModeValue;
 	private final StringProperty bulkEditModeError;
 	
 	public BibleEditor(
 			GlobalContext context, 
 			DocumentContext<Bible> document) {
+		this.getStyleClass().add(BIBLE_EDITOR_CSS);
+		
 		this.context = context;
 		this.document = document;
 		
@@ -99,7 +100,6 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 		this.bible = document.getDocument();
 		this.undoManager = document.getUndoManager();
 		
-		this.bulkEditModeEnabled = new SimpleBooleanProperty(false);
 		this.bulkEditModeValue = new SimpleStringProperty();
 		this.bulkEditModeError = new SimpleStringProperty();
 		
@@ -133,7 +133,7 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 
 		ContextMenu menu = new ContextMenu();
 		menu.getItems().addAll(
-				this.createMenuItem(Action.BULK_EDIT),
+				this.createMenuItem(Action.BULK_EDIT_BEGIN),
 				new SeparatorMenuItem(),
 				this.createMenuItem(Action.NEW_BOOK),
 				this.createMenuItem(Action.NEW_CHAPTER),
@@ -169,29 +169,35 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 		textArea.setWrapText(false);
 		textArea.textProperty().bindBidirectional(this.bulkEditModeValue);
 		Button btnOk = new Button(Translations.get("ok"));
+		btnOk.minWidthProperty().bind(btnOk.prefWidthProperty());
 		Button btnCancel = new Button(Translations.get("cancel"));
+		btnCancel.minWidthProperty().bind(btnCancel.prefWidthProperty());
 		Label lblError = new Label();
 		lblError.getStyleClass().add("error-label");
+		lblError.setMaxWidth(Double.MAX_VALUE);
 		lblError.textProperty().bind(this.bulkEditModeError);
 		lblError.visibleProperty().bind(this.bulkEditModeError.length().greaterThan(0));
-		lblError.managedProperty().bind(lblError.visibleProperty());
 		
-		BorderPane wrapper = new BorderPane();
-		wrapper.setTop(lblError);
-		wrapper.setCenter(textArea);
-		wrapper.setBottom(new HBox(btnOk, btnCancel));
-		wrapper.setPadding(new Insets(5));
-		wrapper.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
-		wrapper.visibleProperty().bind(this.bulkEditModeEnabled);
+		HBox bulkEditorButtons = new HBox(lblError, btnOk, btnCancel);
+		bulkEditorButtons.getStyleClass().add(BIBLE_EDITOR_BULK_BUTTONS_CSS);
+		HBox.setHgrow(lblError, Priority.ALWAYS);
 		
-		this.treeView.visibleProperty().bind(this.bulkEditModeEnabled.not());
+		VBox bulkEditor = new VBox(
+				textArea,
+				bulkEditorButtons);
+		bulkEditor.getStyleClass().add(BIBLE_EDITOR_BULK_CSS);
 		
-		StackPane editorStack = new StackPane(this.treeView, wrapper);
+		VBox.setVgrow(textArea, Priority.ALWAYS);
+		
+		bulkEditor.visibleProperty().bind(document.bulkEditProperty());
+		this.treeView.visibleProperty().bind(document.bulkEditProperty().not());
+		
+		StackPane editorStack = new StackPane(this.treeView, bulkEditor);
 		
 		btnOk.setOnAction(e -> {
 			try {
 				this.processBulkEdit();
-				this.bulkEditModeEnabled.set(false);
+				document.setBulkEdit(false);
 				this.bulkEditModeValue.set(null);
 				this.bulkEditModeError.set(null);
 			} catch (Exception ex) {
@@ -200,7 +206,7 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 		});
 		
 		btnCancel.setOnAction(e -> {
-			this.bulkEditModeEnabled.set(false);
+			document.setBulkEdit(false);
 			this.bulkEditModeValue.set(null);
 			this.bulkEditModeError.set(null);
 		});
@@ -249,7 +255,7 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 				return this.renumber();
 			case REORDER:
 				return this.reorder();
-			case BULK_EDIT:
+			case BULK_EDIT_BEGIN:
 				return this.beginBulkEdit();
 			default:
 				return CompletableFuture.completedFuture(null);
@@ -265,9 +271,9 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 			case CUT:
 				return ctx.isSingleTypeSelected() && ctx.getSelectedType() != Bible.class;
 			case PASTE:
-				return ((ctx.getSelectedType() == Bible.class || ctx.getSelectedType() == Book.class) && Clipboard.getSystemClipboard().hasContent(BOOK_CLIPBOARD_DATA)) ||
-					   ((ctx.getSelectedType() == Book.class || ctx.getSelectedType() == Chapter.class) && Clipboard.getSystemClipboard().hasContent(CHAPTER_CLIPBOARD_DATA)) ||
-					   ((ctx.getSelectedType() == Chapter.class || ctx.getSelectedType() == Verse.class) && Clipboard.getSystemClipboard().hasContent(VERSE_CLIPBOARD_DATA));
+				return ((ctx.getSelectedType() == Bible.class || ctx.getSelectedType() == Book.class) && Clipboard.getSystemClipboard().hasContent(DataFormats.PRAISENTER_BOOK_ARRAY)) ||
+					   ((ctx.getSelectedType() == Book.class || ctx.getSelectedType() == Chapter.class) && Clipboard.getSystemClipboard().hasContent(DataFormats.PRAISENTER_CHAPTER_ARRAY)) ||
+					   ((ctx.getSelectedType() == Chapter.class || ctx.getSelectedType() == Verse.class) && Clipboard.getSystemClipboard().hasContent(DataFormats.PRAISENTER_VERSE_ARRAY));
 			case DELETE:
 				return ctx.getSelectedCount() > 0 && ctx.getSelectedType() != Bible.class;
 			case NEW_BOOK:
@@ -284,7 +290,7 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 				return ctx.getSelectedCount() == 1 && ctx.getSelectedType() != Verse.class;
 			case REORDER:
 				return ctx.getSelectedCount() == 1 && ctx.getSelectedType() != Verse.class;
-			case BULK_EDIT:
+			case BULK_EDIT_BEGIN:
 				return ctx.getSelectedCount() == 1 && (ctx.getSelectedType() == Book.class || ctx.getSelectedType() == Chapter.class);
 			default:
 				return false;
@@ -300,7 +306,7 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 			case NEW_VERSE:
 			case RENUMBER:
 			case REORDER:
-			case BULK_EDIT:
+			case BULK_EDIT_BEGIN:
 				return true;
 			default:
 				return false;
@@ -316,11 +322,11 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 		if (clazz == Book.class) {
 			BulkEditConverter<Book> tx = new BookBulkEditConverter();
 			this.bulkEditModeValue.set(tx.toString((Book)selection));
-			this.bulkEditModeEnabled.set(true);
+			this.document.setBulkEdit(true);
 		} else if (clazz == Chapter.class) {
 			BulkEditConverter<Chapter> tx = new ChapterBulkEditConverter();
 			this.bulkEditModeValue.set(tx.toString((Chapter)selection));
-			this.bulkEditModeEnabled.set(true);
+			this.document.setBulkEdit(true);
 		}
 		
 		return CompletableFuture.completedFuture(null);
@@ -432,7 +438,7 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 			if (selected != null) {
 				final Object value = selected.getValue();
 				if (this.context.getWorkspaceConfiguration().isRenumberBibleWarningEnabled()) {
-					Alert alert = Alerts.confirmWithOptOut(
+					Alert alert = Dialogs.confirmWithOptOut(
 							this.context.getStage(), 
 							Modality.WINDOW_MODAL, 
 							AlertType.CONFIRMATION, 
@@ -488,7 +494,7 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 			if (selected != null) {
 				final Object value = selected.getValue();
 				if (this.context.getWorkspaceConfiguration().isReorderBibleWarningEnabled()) {
-					Alert alert = Alerts.confirmWithOptOut(
+					Alert alert = Dialogs.confirmWithOptOut(
 							this.context.getStage(), 
 							Modality.WINDOW_MODAL, 
 							AlertType.CONFIRMATION, 
@@ -548,13 +554,13 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 		
 		Class<?> clazz = this.document.getSelectedType();
 		if (clazz == Book.class) {
-			format = BOOK_CLIPBOARD_DATA;
+			format = DataFormats.PRAISENTER_BOOK_ARRAY;
 			textData = items.stream().map(b -> ((Book)b.getValue()).getName()).collect(Collectors.toList());
 		} else if (clazz == Chapter.class) {
-			format = CHAPTER_CLIPBOARD_DATA;
+			format = DataFormats.PRAISENTER_CHAPTER_ARRAY;
 			textData = items.stream().map(c -> ((Chapter)c.getValue()).toString()).collect(Collectors.toList());
 		} else if (clazz == Verse.class) {
-			format = VERSE_CLIPBOARD_DATA;
+			format = DataFormats.PRAISENTER_VERSE_ARRAY;
 			textData = items.stream().map(v -> ((Verse)v.getValue()).getText()).collect(Collectors.toList());
 		}
 		
@@ -606,14 +612,14 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 			
 			Clipboard clipboard = Clipboard.getSystemClipboard();
 			try {
-				if ((value instanceof Bible || value instanceof Book) && clipboard.hasContent(BOOK_CLIPBOARD_DATA)) {
-					Book[] books = JsonIO.read((String)clipboard.getContent(BOOK_CLIPBOARD_DATA), Book[].class);
+				if ((value instanceof Bible || value instanceof Book) && clipboard.hasContent(DataFormats.PRAISENTER_BOOK_ARRAY)) {
+					Book[] books = JsonIO.read((String)clipboard.getContent(DataFormats.PRAISENTER_BOOK_ARRAY), Book[].class);
 					this.bible.getBooks().addAll(books);
-				} else if ((value instanceof Book || value instanceof Chapter) && clipboard.hasContent(CHAPTER_CLIPBOARD_DATA)) {
-					Chapter[] chapters = JsonIO.read((String)clipboard.getContent(CHAPTER_CLIPBOARD_DATA), Chapter[].class);
+				} else if ((value instanceof Book || value instanceof Chapter) && clipboard.hasContent(DataFormats.PRAISENTER_CHAPTER_ARRAY)) {
+					Chapter[] chapters = JsonIO.read((String)clipboard.getContent(DataFormats.PRAISENTER_CHAPTER_ARRAY), Chapter[].class);
 					book.getChapters().addAll(chapters);
-				} else if ((value instanceof Chapter || value instanceof Verse) && clipboard.hasContent(VERSE_CLIPBOARD_DATA)) {
-					Verse[] verses = JsonIO.read((String)clipboard.getContent(VERSE_CLIPBOARD_DATA), Verse[].class);
+				} else if ((value instanceof Chapter || value instanceof Verse) && clipboard.hasContent(DataFormats.PRAISENTER_VERSE_ARRAY)) {
+					Verse[] verses = JsonIO.read((String)clipboard.getContent(DataFormats.PRAISENTER_VERSE_ARRAY), Verse[].class);
 					chapter.getVerses().addAll(verses);
 				}
 				// TODO select the pasted elements
@@ -674,9 +680,9 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 		}
 		
 		// don't allow drop onto incorrect locations
-		boolean dragBooks = e.getDragboard().hasContent(BOOK_CLIPBOARD_DATA);
-		boolean dragChapters = e.getDragboard().hasContent(CHAPTER_CLIPBOARD_DATA);
-		boolean dragVerses = e.getDragboard().hasContent(VERSE_CLIPBOARD_DATA);
+		boolean dragBooks = e.getDragboard().hasContent(DataFormats.PRAISENTER_BOOK_ARRAY);
+		boolean dragChapters = e.getDragboard().hasContent(DataFormats.PRAISENTER_CHAPTER_ARRAY);
+		boolean dragVerses = e.getDragboard().hasContent(DataFormats.PRAISENTER_VERSE_ARRAY);
 		
 		boolean targetIsBible = data instanceof Bible;
 		boolean targetIsBook = data instanceof Book;
@@ -731,9 +737,9 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 		Object targetValue = targetItem.getValue();
 		
 		// are we dragging to a parent node?
-		boolean dragBooks = e.getDragboard().hasContent(BOOK_CLIPBOARD_DATA);
-		boolean dragChapters = e.getDragboard().hasContent(CHAPTER_CLIPBOARD_DATA);
-		boolean dragVerses = e.getDragboard().hasContent(VERSE_CLIPBOARD_DATA);
+		boolean dragBooks = e.getDragboard().hasContent(DataFormats.PRAISENTER_BOOK_ARRAY);
+		boolean dragChapters = e.getDragboard().hasContent(DataFormats.PRAISENTER_CHAPTER_ARRAY);
+		boolean dragVerses = e.getDragboard().hasContent(DataFormats.PRAISENTER_VERSE_ARRAY);
 		
 		boolean targetIsBible = targetValue instanceof Bible;
 		boolean targetIsBook = targetValue instanceof Book;

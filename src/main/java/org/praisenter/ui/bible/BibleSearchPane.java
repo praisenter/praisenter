@@ -14,17 +14,16 @@ import org.praisenter.async.AsyncHelper;
 import org.praisenter.data.PersistableComparator;
 import org.praisenter.data.bible.Bible;
 import org.praisenter.data.bible.BibleConfiguration;
-import org.praisenter.data.bible.BibleTextSearchCriteria;
 import org.praisenter.data.bible.BibleSearchResult;
+import org.praisenter.data.bible.BibleTextSearchCriteria;
 import org.praisenter.data.bible.LocatedVerse;
 import org.praisenter.data.bible.ReadOnlyBook;
 import org.praisenter.data.search.SearchResult;
 import org.praisenter.data.search.SearchTextMatch;
 import org.praisenter.data.search.SearchType;
-import org.praisenter.data.song.Song;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.Option;
-import org.praisenter.ui.controls.Alerts;
+import org.praisenter.ui.controls.Dialogs;
 import org.praisenter.ui.controls.AutoCompleteComboBox;
 import org.praisenter.ui.controls.ProgressOverlay;
 import org.praisenter.ui.translations.Translations;
@@ -42,11 +41,10 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.collections.ListChangeListener.Change;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
@@ -60,15 +58,20 @@ import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 
 // FEATURE (M-M) add searching to the bible editor for finding and editing easily
 
-public final class BibleSearchPane extends BorderPane {
+public final class BibleSearchPane extends VBox {
+	private static final String BIBLE_SEARCH_CSS = "p-bible-search";
+	private static final String BIBLE_SEARCH_CRITERIA_CSS = "p-bible-search-criteria";
+	
 	private static final Logger LOGGER = LogManager.getLogger();
 
 	private static final DecimalFormat SCORE_FORMAT = new DecimalFormat(Translations.get("search.score.format"));
@@ -90,6 +93,8 @@ public final class BibleSearchPane extends BorderPane {
 	private final BooleanProperty append;
 	
 	public BibleSearchPane(GlobalContext context, BibleConfiguration configuration) {
+		this.getStyleClass().add(BIBLE_SEARCH_CSS);
+		
 		this.context = context;
 		
 		this.bibles = FXCollections.observableArrayList();
@@ -166,22 +171,36 @@ public final class BibleSearchPane extends BorderPane {
 		
 		Button btnSearch = new Button(Translations.get("search.button"));
 		
-		HBox top = new HBox(5, txtSearch, cmbBible, cmbBook, cmbSearchType, btnSearch);
-		HBox.setHgrow(txtSearch, Priority.ALWAYS);
-		top.setPadding(new Insets(0, 0, 5, 0));
+		GridPane top = new GridPane();
 		
-		this.setTop(top);
+		top.add(txtSearch, 0, 0);
+		top.add(cmbBible, 1, 0);
+		top.add(cmbBook, 2, 0);
+		top.add(cmbSearchType, 3, 0);
+		top.add(btnSearch, 4, 0);
+		
+		txtSearch.setMaxWidth(Double.MAX_VALUE);
+		cmbBible.setMaxWidth(Double.MAX_VALUE);
+		cmbBook.setMaxWidth(Double.MAX_VALUE);
+		cmbSearchType.setMaxWidth(Double.MAX_VALUE);
+		btnSearch.setMaxWidth(Double.MAX_VALUE);
+		
+		final int[] widths = new int[] { 30, 25, 20, 15, 10 };
+		for (int i = 0; i < widths.length; i++) {
+			ColumnConstraints cc = new ColumnConstraints();
+			cc.setPercentWidth(widths[i]);
+			top.getColumnConstraints().add(cc);
+		}
+		
+		top.getStyleClass().add(BIBLE_SEARCH_CRITERIA_CSS);
 		
 		///////////////////////////
 		
 		TextArea txtVerse = new TextArea();
 		txtVerse.setWrapText(true);
-		txtVerse.setPrefHeight(50);
 		txtVerse.setEditable(false);
 		txtVerse.setPromptText(Translations.get("bible.search.results.placeholder"));
 
-		this.setPadding(new Insets(5));
-		
 		TableView<BibleSearchResult> table = new TableView<BibleSearchResult>();
 		
 		// columns
@@ -310,8 +329,9 @@ public final class BibleSearchPane extends BorderPane {
 		splt.setDividerPosition(0, 0.8);
 		SplitPane.setResizableWithParent(txtVerse, false);
 		
-		this.setCenter(splt);
-		this.setBottom(lblResults);
+		VBox.setVgrow(splt, Priority.ALWAYS);
+		
+		this.getChildren().addAll(top, splt, lblResults);
 		
 		EventHandler<ActionEvent> handler = e -> {
 			Bible bible = this.bible.get();
@@ -337,7 +357,7 @@ public final class BibleSearchPane extends BorderPane {
 				})).exceptionally(t -> {
 					LOGGER.error("Failed to search bibles using terms '" + text + "' due to: " + t.getMessage(), t);
 					Platform.runLater(() -> {
-						Alert alert = Alerts.exception(this.context.getStage(), t);
+						Alert alert = Dialogs.exception(this.context.getStage(), t);
 						alert.show();
 					});
 					return null;

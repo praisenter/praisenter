@@ -7,8 +7,7 @@ import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.praisenter.data.workspace.Display;
-import org.praisenter.data.workspace.DisplayRole;
+import org.praisenter.data.workspace.DisplayConfiguration;
 import org.praisenter.ui.GlobalContext;
 
 import javafx.collections.FXCollections;
@@ -67,12 +66,12 @@ public final class DisplayManager {
 		int sSize = screens.size();
 		
 		// get the configured displays
-		ObservableList<Display> displays = this.context.getWorkspaceConfiguration().getDisplays();
-		int dSize = displays.size();
+		ObservableList<DisplayConfiguration> configurations = this.context.getWorkspaceConfiguration().getDisplayConfigurations();
+		int dSize = configurations.size();
 		
-		LOGGER.info("Current Screen Assignment: ");
-		for (Display display : displays) {
-			LOGGER.info(display);
+		LOGGER.info("Last screen state: ");
+		for (DisplayConfiguration configuration : configurations) {
+			LOGGER.info(configuration);
 		}
 		
 		// check if the screen count changed
@@ -83,18 +82,15 @@ public final class DisplayManager {
 		if (dSize == 0) {
 			// screens have never been assigned so auto-assign them
 			for (int i = 0; i < sSize; i++) {
-				DisplayRole role = this.getDisplayRoleForScreenNumber(i, sSize);
+				boolean isPrimary = this.isPrimaryScreen(i, sSize);
 
-				Display display = this.toDisplay(screens.get(i), i, role);
-				displays.add(display);
+				DisplayConfiguration newConfiguration = this.createDisplayConfiguration(screens.get(i), i, isPrimary);
+				configurations.add(newConfiguration);
 
-				this.targets.add(new DisplayTarget(this.context, display));
+				this.targets.add(new DisplayTarget(this.context, newConfiguration));
 			}
 			whatHappened = DesktopState.NO_INITIAL_CONFIGURATION;
 		} else {
-			List<Display> toRemove = new ArrayList<>();
-			List<Display> toAdd = new ArrayList<>();
-			
 			// map the screens by index
 			Map<Integer, Screen> s = new HashMap<>();
 			for (int i = 0; i < sSize; i++) {
@@ -104,15 +100,15 @@ public final class DisplayManager {
 			// verify each display's state
 			int n = Math.max(sSize, dSize);
 			for (int i = 0; i < n; i++) {
-				Display display = null;
+				DisplayConfiguration configuration = null;
 				if (i < dSize) {
-					display = displays.get(i);
+					configuration = configurations.get(i);
 				}
 				
 				int index = -1;
 				Screen screen = null;
-				if (display != null) {
-					index = display.getId();
+				if (configuration != null) {
+					index = configuration.getId();
 					screen = s.remove(index);
 				} else {
 					for (Integer j : s.keySet()) 
@@ -126,43 +122,55 @@ public final class DisplayManager {
 					}
 				}
 				
-				DisplayState state = this.getDisplayState(display, screen);
+				boolean isPrimary = this.isPrimaryScreen(i, sSize);
+				DisplayState state = this.getDisplayState(configuration, screen);
 				
 				switch (state) {
 					case SCREEN_INDEX_DOESNT_EXIST:
-						toRemove.add(display);
-						
-						this.removeDisplayTargetForDisplay(display);
+						// remove the display target, but keep the configuration
+						this.removeDisplayTargetForDisplayConfiguration(configuration);
 						
 						whatHappened = DesktopState.DISPLAY_COUNT_DECREASED;
 						break;
-					case POSITION_CHANGED:
 					case RESOLUTION_CHANGED:
 					case POSITION_AND_RESOLUTION_CHANGED:
-						Display replacement = this.toDisplay(screen, index, display.getRole());
-						toRemove.add(display);
-						toAdd.add(replacement);
+						// if the resolutino changes, we have to scale the slide or do
+						// something to readjust - it's better to just destroy the target
+						// and re-create it
 						
-						this.removeDisplayTargetForDisplay(display);
-						this.targets.add(new DisplayTarget(this.context, replacement));
+						// remove the target (if it exists)
+						this.removeDisplayTargetForDisplayConfiguration(configuration);
+						
+						// update the configuration
+						this.updateConfiguration(screen, configuration);
+						
+						// add a new target for the updated configuration
+						this.targets.add(new DisplayTarget(this.context, configuration));
 						
 						whatHappened = DesktopState.DISPLAY_POSITION_OR_RESOLUTION_CHANGED;
 						break;
 					case VALID:
-						// do we have target for this display?
-//						if (display.getRole() != DisplayRole.NONE) {
-							DisplayTarget target = this.getDisplayTargetForDisplay(display);
-							if (target == null) {
-								this.targets.add(new DisplayTarget(this.context, display));
-							}
-//						}
+					case POSITION_CHANGED:
+						// update the configuration
+						this.updateConfiguration(screen, configuration);
+						
+						// check to make sure a target exists
+						DisplayTarget target = this.getDisplayTargetForDisplayConfiguration(configuration);
+						if (target == null) {
+							target = new DisplayTarget(this.context, configuration);
+							this.targets.add(target);
+						}
+						
+						// check if the target is at the correct position
+						this.updateLocation(target);
 						break;
 					case SCREEN_NOT_ASSIGNED:
-						DisplayRole role = this.getDisplayRoleForScreenNumber(i, sSize);
-						Display newDisplay = this.toDisplay(screen, index, role);
-						toAdd.add(newDisplay);
+						// create a new configuration for the new target
+						DisplayConfiguration newConfiguration = this.createDisplayConfiguration(screen, index, isPrimary);
+						configurations.add(newConfiguration);
 						
-						this.targets.add(new DisplayTarget(this.context, newDisplay));
+						// add the new target
+						this.targets.add(new DisplayTarget(this.context, newConfiguration));
 						
 						whatHappened = DesktopState.DISPLAY_COUNT_INCREASED;
 						break;
@@ -171,68 +179,80 @@ public final class DisplayManager {
 						break;
 				}
 			}
-			
-			displays.removeAll(toRemove);
-			displays.addAll(toAdd);
 		}
 		
 		LOGGER.info("Screen update result: " + whatHappened);
-		LOGGER.info("New Screen Assignment: ");
-		for (Display display : displays) {
-			LOGGER.info(display);
+		LOGGER.info("New screen state: ");
+		for (DisplayConfiguration configuration : configurations) {
+			LOGGER.info(configuration);
 		}
 
 		return whatHappened;
 	}
 	
-	private DisplayRole getDisplayRoleForScreenNumber(int index, int screenCount) {
-		DisplayRole role = DisplayRole.OTHER;
-		if (index == 0 && screenCount == 1) role = DisplayRole.MAIN;
-		if (index == 0 && screenCount == 2) role = DisplayRole.NONE;
-		if (index == 1 && screenCount == 2) role = DisplayRole.MAIN;
-		if (index == 2 && screenCount >= 3) role = DisplayRole.TELEPROMPT;
-		return role;
+	private boolean isPrimaryScreen(int index, int screenCount) {
+		if (index == 0 && screenCount == 1) return true;
+		if (index == 1 && screenCount == 2) return true;
+		return false;
 	}
 	
-	private Display toDisplay(Screen screen, int index, DisplayRole role) {
-		Display display = new Display();
+	private DisplayConfiguration createDisplayConfiguration(Screen screen, int index, boolean isPrimary) {
+		DisplayConfiguration display = new DisplayConfiguration();
 		display.setHeight((int)screen.getBounds().getHeight());
 		display.setId(index);
-		display.setRole(role);
+		display.setPrimary(isPrimary);
 		display.setWidth((int)screen.getBounds().getWidth());
 		display.setX((int)screen.getBounds().getMinX());
 		display.setY((int)screen.getBounds().getMinY());
-		display.setName(display.toString());
 		return display;
 	}
 	
-	private DisplayTarget getDisplayTargetForDisplay(Display display) {
+	private void updateConfiguration(Screen screen, DisplayConfiguration configuration) {
+		configuration.setHeight((int)screen.getBounds().getHeight());
+		configuration.setWidth((int)screen.getBounds().getWidth());
+		configuration.setX((int)screen.getBounds().getMinX());
+		configuration.setY((int)screen.getBounds().getMinY());
+	}
+	
+	private DisplayTarget getDisplayTargetForDisplayConfiguration(DisplayConfiguration configuration) {
 		for (DisplayTarget target : this.targets) {
-			if (target.getDisplay() == display) {
+			if (target.getDisplayConfiguration() == configuration) {
 				return target;
 			}
 		}
 		return null;
 	}
 	
-	private void removeDisplayTargetForDisplay(Display display) {
-		DisplayTarget toRemove = this.getDisplayTargetForDisplay(display);
+	private void removeDisplayTargetForDisplayConfiguration(DisplayConfiguration configuration) {
+		DisplayTarget toRemove = this.getDisplayTargetForDisplayConfiguration(configuration);
 		if (toRemove != null) {
 			toRemove.dispose();
 			this.targets.remove(toRemove);
 		}
 	}
 	
-	private DisplayState getDisplayState(Display display, Screen screen) {
+	private void updateLocation(DisplayTarget target) {
+		int tx = target.getDisplayConfiguration().getX();
+		int ty = target.getDisplayConfiguration().getY();
+		int cx = (int)target.getX();
+		int cy = (int)target.getY();
+		if (cx != tx || cy != ty) {
+			// then move the target
+			target.setX(tx);
+			target.setY(ty);
+		}
+	}
+	
+	private DisplayState getDisplayState(DisplayConfiguration configuration, Screen screen) {
 		// if it's not assigned
-		if (display == null || display.getId() < 0) {
-			LOGGER.info("Display has not been assigned.");
+		if (configuration == null || configuration.getId() < 0) {
+			LOGGER.info("Display has not been initialized.");
 			return DisplayState.SCREEN_NOT_ASSIGNED;
 		}
 		
 		// check if the screen index still exists
 		if (screen == null) {
-			LOGGER.info("Display {} no longer exists.", display);
+			LOGGER.info("Display {} no longer exists.", configuration.getId());
 			return DisplayState.SCREEN_INDEX_DOESNT_EXIST;
 		}
 		
@@ -240,16 +260,16 @@ public final class DisplayManager {
 		// same index and must have the same dimensions and position
 		Rectangle2D bounds = screen.getBounds();
 		boolean positionChanged = false;
-		if ((int)bounds.getMinX() != display.getX() ||
-			(int)bounds.getMinY() != display.getY()) {
-			LOGGER.info("Display {} position has changed.", display);
+		if ((int)bounds.getMinX() != configuration.getX() ||
+			(int)bounds.getMinY() != configuration.getY()) {
+			LOGGER.info("Display {} position has changed.", configuration.getId());
 			positionChanged = true;
 		}
 		
 		boolean resolutionChanged = false;
-		if ((int)bounds.getWidth() != display.getWidth() ||
-			(int)bounds.getHeight() != display.getHeight()) {
-			LOGGER.info("Display {} resolution has changed.", display);
+		if ((int)bounds.getWidth() != configuration.getWidth() ||
+			(int)bounds.getHeight() != configuration.getHeight()) {
+			LOGGER.info("Display {} resolution has changed.", configuration.getId());
 			resolutionChanged = true;
 		}
 		
@@ -257,7 +277,7 @@ public final class DisplayManager {
 			return DisplayState.POSITION_AND_RESOLUTION_CHANGED;
 		} else if (positionChanged) {
 			return DisplayState.POSITION_CHANGED;
-		} else if (positionChanged) {
+		} else if (resolutionChanged) {
 			return DisplayState.RESOLUTION_CHANGED;
 		}
 		

@@ -18,6 +18,7 @@ import org.praisenter.data.song.SongBook;
 import org.praisenter.ui.Action;
 import org.praisenter.ui.BulkEditConverter;
 import org.praisenter.ui.BulkEditParseException;
+import org.praisenter.ui.DataFormats;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.document.DocumentContext;
 import org.praisenter.ui.document.DocumentEditor;
@@ -25,13 +26,10 @@ import org.praisenter.ui.events.ActionStateChangedEvent;
 import org.praisenter.ui.translations.Translations;
 import org.praisenter.ui.undo.UndoManager;
 
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.ListChangeListener;
 import javafx.css.PseudoClass;
-import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
@@ -51,7 +49,9 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 
 //FEATURE (L-L) Implement import from PDF for song lyrics
 //FEATURE (L-L) Implement upload of chord sheet for display on a teleprompter
@@ -60,10 +60,9 @@ import javafx.scene.layout.StackPane;
 public final class SongEditor extends BorderPane implements DocumentEditor<Song> {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
-	private static final DataFormat LYRICS_CLIPBOARD_DATA = new DataFormat("application/x-praisenter-json-list;class=" + Lyrics.class.getName());
-	private static final DataFormat AUTHOR_CLIPBOARD_DATA = new DataFormat("application/x-praisenter-json-list;class=" + Author.class.getName());
-	private static final DataFormat SECTION_CLIPBOARD_DATA = new DataFormat("application/x-praisenter-json-list;class=" + Section.class.getName());
-	private static final DataFormat SONGBOOK_CLIPBOARD_DATA = new DataFormat("application/x-praisenter-json-list;class=" + SongBook.class.getName());
+	private static final String SONG_EDITOR_CSS = "p-song-editor";
+	private static final String SONG_EDITOR_BULK_CSS = "p-song-editor-bulk";
+	private static final String SONG_EDITOR_BULK_BUTTONS_CSS = "p-song-editor-bulk-buttons";
 	
 	private static final PseudoClass DRAG_OVER_PARENT = PseudoClass.getPseudoClass("drag-over-parent");
 	private static final PseudoClass DRAG_OVER_SIBLING_TOP = PseudoClass.getPseudoClass("drag-over-sibling-top");
@@ -83,13 +82,14 @@ public final class SongEditor extends BorderPane implements DocumentEditor<Song>
 	
 	private final TreeView<Object> treeView;
 	
-	private final BooleanProperty bulkEditModeEnabled;
 	private final StringProperty bulkEditModeValue;
 	private final StringProperty bulkEditModeError;
 	
 	public SongEditor(
 			GlobalContext context, 
 			DocumentContext<Song> document) {
+		this.getStyleClass().add(SONG_EDITOR_CSS);
+		
 		this.context = context;
 		this.document = document;
 		
@@ -98,7 +98,6 @@ public final class SongEditor extends BorderPane implements DocumentEditor<Song>
 		this.song = document.getDocument();
 		this.undoManager = document.getUndoManager();
 		
-		this.bulkEditModeEnabled = new SimpleBooleanProperty(false);
 		this.bulkEditModeValue = new SimpleStringProperty();
 		this.bulkEditModeError = new SimpleStringProperty();
 		
@@ -132,7 +131,7 @@ public final class SongEditor extends BorderPane implements DocumentEditor<Song>
 
 		ContextMenu menu = new ContextMenu();
 		menu.getItems().addAll(
-				this.createMenuItem(Action.BULK_EDIT),
+				this.createMenuItem(Action.BULK_EDIT_BEGIN),
 				new SeparatorMenuItem(),
 				this.createMenuItem(Action.NEW_LYRICS),
 				this.createMenuItem(Action.NEW_AUTHOR),
@@ -166,29 +165,35 @@ public final class SongEditor extends BorderPane implements DocumentEditor<Song>
 		textArea.setWrapText(false);
 		textArea.textProperty().bindBidirectional(this.bulkEditModeValue);
 		Button btnOk = new Button(Translations.get("ok"));
+		btnOk.minWidthProperty().bind(btnOk.prefWidthProperty());
 		Button btnCancel = new Button(Translations.get("cancel"));
+		btnCancel.minWidthProperty().bind(btnCancel.prefWidthProperty());
 		Label lblError = new Label();
 		lblError.getStyleClass().add("error-label");
+		lblError.setMaxWidth(Double.MAX_VALUE);
 		lblError.textProperty().bind(this.bulkEditModeError);
 		lblError.visibleProperty().bind(this.bulkEditModeError.length().greaterThan(0));
-		lblError.managedProperty().bind(lblError.visibleProperty());
 		
-		BorderPane wrapper = new BorderPane();
-		wrapper.setTop(lblError);
-		wrapper.setCenter(textArea);
-		wrapper.setBottom(new HBox(btnOk, btnCancel));
-		wrapper.setPadding(new Insets(5));
-		wrapper.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
-		wrapper.visibleProperty().bind(this.bulkEditModeEnabled);
+		HBox bulkEditorButtons = new HBox(lblError, btnOk, btnCancel);
+		bulkEditorButtons.getStyleClass().add(SONG_EDITOR_BULK_BUTTONS_CSS);
+		HBox.setHgrow(lblError, Priority.ALWAYS);
 		
-		this.treeView.visibleProperty().bind(this.bulkEditModeEnabled.not());
+		VBox bulkEditor = new VBox(
+				textArea,
+				bulkEditorButtons);
+		bulkEditor.getStyleClass().add(SONG_EDITOR_BULK_CSS);
 		
-		StackPane editorStack = new StackPane(this.treeView, wrapper);
+		VBox.setVgrow(textArea, Priority.ALWAYS);
+		
+		bulkEditor.visibleProperty().bind(document.bulkEditProperty());
+		this.treeView.visibleProperty().bind(document.bulkEditProperty().not());
+		
+		StackPane editorStack = new StackPane(this.treeView, bulkEditor);
 		
 		btnOk.setOnAction(e -> {
 			try {
 				this.processBulkEdit();
-				this.bulkEditModeEnabled.set(false);
+				document.setBulkEdit(false);
 				this.bulkEditModeValue.set(null);
 				this.bulkEditModeError.set(null);
 			} catch (Exception ex) {
@@ -197,7 +202,7 @@ public final class SongEditor extends BorderPane implements DocumentEditor<Song>
 		});
 		
 		btnCancel.setOnAction(e -> {
-			this.bulkEditModeEnabled.set(false);
+			document.setBulkEdit(false);
 			this.bulkEditModeValue.set(null);
 			this.bulkEditModeError.set(null);
 		});
@@ -243,7 +248,7 @@ public final class SongEditor extends BorderPane implements DocumentEditor<Song>
 			case NEW_SECTION:
 			case NEW_SONGBOOK:
 				return this.create(action);
-			case BULK_EDIT:
+			case BULK_EDIT_BEGIN:
 				return this.beginBulkEdit();
 			default:
 				return CompletableFuture.completedFuture(null);
@@ -266,18 +271,18 @@ public final class SongEditor extends BorderPane implements DocumentEditor<Song>
 			case CUT:
 				return ctx.isSingleTypeSelected() && selectedType != Song.class && containerType == null;
 			case PASTE:
-				return (selectedType == Song.class && Clipboard.getSystemClipboard().hasContent(LYRICS_CLIPBOARD_DATA)) ||
-					   (selectedType == Lyrics.class && Clipboard.getSystemClipboard().hasContent(LYRICS_CLIPBOARD_DATA)) ||
-					   (selectedType == Section.class && Clipboard.getSystemClipboard().hasContent(SECTION_CLIPBOARD_DATA)) ||
-					   (selectedType == Author.class && Clipboard.getSystemClipboard().hasContent(AUTHOR_CLIPBOARD_DATA)) ||
-					   (selectedType == SongBook.class && Clipboard.getSystemClipboard().hasContent(SONGBOOK_CLIPBOARD_DATA)) ||
+				return (selectedType == Song.class && Clipboard.getSystemClipboard().hasContent(DataFormats.PRAISENTER_LYRICS_ARRAY)) ||
+					   (selectedType == Lyrics.class && Clipboard.getSystemClipboard().hasContent(DataFormats.PRAISENTER_LYRICS_ARRAY)) ||
+					   (selectedType == Section.class && Clipboard.getSystemClipboard().hasContent(DataFormats.PRAISENTER_SECTION_ARRAY)) ||
+					   (selectedType == Author.class && Clipboard.getSystemClipboard().hasContent(DataFormats.PRAISENTER_AUTHOR_ARRAY)) ||
+					   (selectedType == SongBook.class && Clipboard.getSystemClipboard().hasContent(DataFormats.PRAISENTER_SONGBOOK_ARRAY)) ||
 					   (selectedType == Lyrics.class && (
-							   Clipboard.getSystemClipboard().hasContent(SONGBOOK_CLIPBOARD_DATA) || 
-							   Clipboard.getSystemClipboard().hasContent(AUTHOR_CLIPBOARD_DATA) ||
-							   Clipboard.getSystemClipboard().hasContent(SECTION_CLIPBOARD_DATA))) ||
-					   ((containerType == Author.class && Clipboard.getSystemClipboard().hasContent(AUTHOR_CLIPBOARD_DATA)) ||
-						(containerType == Section.class && Clipboard.getSystemClipboard().hasContent(SECTION_CLIPBOARD_DATA)) ||
-						(containerType == SongBook.class && Clipboard.getSystemClipboard().hasContent(SONGBOOK_CLIPBOARD_DATA)));
+							   Clipboard.getSystemClipboard().hasContent(DataFormats.PRAISENTER_SONGBOOK_ARRAY) || 
+							   Clipboard.getSystemClipboard().hasContent(DataFormats.PRAISENTER_AUTHOR_ARRAY) ||
+							   Clipboard.getSystemClipboard().hasContent(DataFormats.PRAISENTER_SECTION_ARRAY))) ||
+					   ((containerType == Author.class && Clipboard.getSystemClipboard().hasContent(DataFormats.PRAISENTER_AUTHOR_ARRAY)) ||
+						(containerType == Section.class && Clipboard.getSystemClipboard().hasContent(DataFormats.PRAISENTER_SECTION_ARRAY)) ||
+						(containerType == SongBook.class && Clipboard.getSystemClipboard().hasContent(DataFormats.PRAISENTER_SONGBOOK_ARRAY)));
 			case DELETE:
 				return ctx.getSelectedCount() > 0 && selectedType != Song.class && containerType == null;
 			case NEW_LYRICS:
@@ -292,7 +297,7 @@ public final class SongEditor extends BorderPane implements DocumentEditor<Song>
 				return ctx.getUndoManager().isRedoAvailable();
 			case UNDO:
 				return ctx.getUndoManager().isUndoAvailable();
-			case BULK_EDIT:
+			case BULK_EDIT_BEGIN:
 				return ctx.getSelectedCount() == 1 && (selectedType == Lyrics.class || (containerType == Section.class));
 			default:
 				return false;
@@ -307,7 +312,7 @@ public final class SongEditor extends BorderPane implements DocumentEditor<Song>
 			case NEW_SECTION:
 			case NEW_SONGBOOK:
 			case NEW_AUTHOR:
-			case BULK_EDIT:
+			case BULK_EDIT_BEGIN:
 				return true;
 			default:
 				return false;
@@ -328,12 +333,12 @@ public final class SongEditor extends BorderPane implements DocumentEditor<Song>
 		if (selectedType == Lyrics.class) {
 			BulkEditConverter<Lyrics> tx = new LyricsBulkEditConverter();
 			this.bulkEditModeValue.set(tx.toString((Lyrics)selected));
-			this.bulkEditModeEnabled.set(true);
+			this.document.setBulkEdit(true);
 		} else if (containerType == Section.class) {
 			Object lyrics = this.treeView.getSelectionModel().getSelectedItem().getParent().getValue();
 			BulkEditConverter<Lyrics> tx = new LyricsBulkEditConverter();
 			this.bulkEditModeValue.set(tx.toString((Lyrics)lyrics));
-			this.bulkEditModeEnabled.set(true);
+			this.document.setBulkEdit(true);
 		}
 		
 		return CompletableFuture.completedFuture(null);
@@ -465,16 +470,16 @@ public final class SongEditor extends BorderPane implements DocumentEditor<Song>
 		
 		Class<?> clazz = this.document.getSelectedType();
 		if (clazz == Author.class) {
-			format = AUTHOR_CLIPBOARD_DATA;
+			format = DataFormats.PRAISENTER_AUTHOR_ARRAY;
 			textData = items.stream().map(b -> ((Author)b.getValue()).getName()).collect(Collectors.toList());
 		} else if (clazz == SongBook.class) {
-			format = SONGBOOK_CLIPBOARD_DATA;
+			format = DataFormats.PRAISENTER_SONGBOOK_ARRAY;
 			textData = items.stream().map(c -> ((SongBook)c.getValue()).toString()).collect(Collectors.toList());
 		} else if (clazz == Section.class) {
-			format = SECTION_CLIPBOARD_DATA;
+			format = DataFormats.PRAISENTER_SECTION_ARRAY;
 			textData = items.stream().map(v -> ((Section)v.getValue()).getText()).collect(Collectors.toList());
 		} else if (clazz == Lyrics.class) {
-			format = LYRICS_CLIPBOARD_DATA;
+			format = DataFormats.PRAISENTER_LYRICS_ARRAY;
 			textData = items.stream().map(v -> ((Lyrics)v.getValue()).getTitle()).collect(Collectors.toList());
 		}
 		
@@ -532,17 +537,17 @@ public final class SongEditor extends BorderPane implements DocumentEditor<Song>
 			Lyrics lyrics = this.findClosestLyrics(item);
 			
 			try {
-				if ((selectedType == Song.class || selectedType == Lyrics.class) && clipboard.hasContent(LYRICS_CLIPBOARD_DATA)) {
-					Lyrics[] newLyrics = JsonIO.read((String)clipboard.getContent(LYRICS_CLIPBOARD_DATA), Lyrics[].class);
+				if ((selectedType == Song.class || selectedType == Lyrics.class) && clipboard.hasContent(DataFormats.PRAISENTER_LYRICS_ARRAY)) {
+					Lyrics[] newLyrics = JsonIO.read((String)clipboard.getContent(DataFormats.PRAISENTER_LYRICS_ARRAY), Lyrics[].class);
 					this.song.getLyrics().addAll(newLyrics);
-				} else if (lyrics != null && clipboard.hasContent(AUTHOR_CLIPBOARD_DATA)) {
-					Author[] authors = JsonIO.read((String)clipboard.getContent(AUTHOR_CLIPBOARD_DATA), Author[].class);
+				} else if (lyrics != null && clipboard.hasContent(DataFormats.PRAISENTER_AUTHOR_ARRAY)) {
+					Author[] authors = JsonIO.read((String)clipboard.getContent(DataFormats.PRAISENTER_AUTHOR_ARRAY), Author[].class);
 					lyrics.getAuthors().addAll(authors);
-				} else if (lyrics != null && clipboard.hasContent(SONGBOOK_CLIPBOARD_DATA)) {
-					SongBook[] songbooks = JsonIO.read((String)clipboard.getContent(SONGBOOK_CLIPBOARD_DATA), SongBook[].class);
+				} else if (lyrics != null && clipboard.hasContent(DataFormats.PRAISENTER_SONGBOOK_ARRAY)) {
+					SongBook[] songbooks = JsonIO.read((String)clipboard.getContent(DataFormats.PRAISENTER_SONGBOOK_ARRAY), SongBook[].class);
 					lyrics.getSongBooks().addAll(songbooks);
-				} else if (lyrics != null && clipboard.hasContent(SECTION_CLIPBOARD_DATA)) {
-					Section[] sections = JsonIO.read((String)clipboard.getContent(SECTION_CLIPBOARD_DATA), Section[].class);
+				} else if (lyrics != null && clipboard.hasContent(DataFormats.PRAISENTER_SECTION_ARRAY)) {
+					Section[] sections = JsonIO.read((String)clipboard.getContent(DataFormats.PRAISENTER_SECTION_ARRAY), Section[].class);
 					lyrics.getSections().addAll(sections);
 				}
 				// TODO select the pasted elements
@@ -603,10 +608,10 @@ public final class SongEditor extends BorderPane implements DocumentEditor<Song>
 		}
 		
 		// don't allow drop onto incorrect locations
-		boolean dragAuthors = e.getDragboard().hasContent(AUTHOR_CLIPBOARD_DATA);
-		boolean dragLyrics = e.getDragboard().hasContent(LYRICS_CLIPBOARD_DATA);
-		boolean dragSections = e.getDragboard().hasContent(SECTION_CLIPBOARD_DATA);
-		boolean dragSongBooks = e.getDragboard().hasContent(SONGBOOK_CLIPBOARD_DATA);
+		boolean dragAuthors = e.getDragboard().hasContent(DataFormats.PRAISENTER_AUTHOR_ARRAY);
+		boolean dragLyrics = e.getDragboard().hasContent(DataFormats.PRAISENTER_LYRICS_ARRAY);
+		boolean dragSections = e.getDragboard().hasContent(DataFormats.PRAISENTER_SECTION_ARRAY);
+		boolean dragSongBooks = e.getDragboard().hasContent(DataFormats.PRAISENTER_SONGBOOK_ARRAY);
 		
 		boolean targetIsSong = data instanceof Song;
 		boolean targetIsLyrics = data instanceof Lyrics;
@@ -675,10 +680,10 @@ public final class SongEditor extends BorderPane implements DocumentEditor<Song>
 		Object targetValue = targetItem.getValue();
 		
 		// are we dragging to a parent node?
-		boolean dragAuthors = e.getDragboard().hasContent(AUTHOR_CLIPBOARD_DATA);
-		boolean dragLyrics = e.getDragboard().hasContent(LYRICS_CLIPBOARD_DATA);
-		boolean dragSections = e.getDragboard().hasContent(SECTION_CLIPBOARD_DATA);
-		boolean dragSongBooks = e.getDragboard().hasContent(SONGBOOK_CLIPBOARD_DATA);
+		boolean dragAuthors = e.getDragboard().hasContent(DataFormats.PRAISENTER_AUTHOR_ARRAY);
+		boolean dragLyrics = e.getDragboard().hasContent(DataFormats.PRAISENTER_LYRICS_ARRAY);
+		boolean dragSections = e.getDragboard().hasContent(DataFormats.PRAISENTER_SECTION_ARRAY);
+		boolean dragSongBooks = e.getDragboard().hasContent(DataFormats.PRAISENTER_SONGBOOK_ARRAY);
 		
 		boolean targetIsSong = targetValue instanceof Song;
 		boolean targetIsLyrics = targetValue instanceof Lyrics;

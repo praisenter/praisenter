@@ -63,7 +63,7 @@ public enum Action {
 	IMPORT("action.import", () -> Glyphs.IMPORT.duplicate()),
 	EXPORT("action.export", () -> Glyphs.EXPORT.duplicate()),
 	
-	BULK_EDIT("action.edit.bulk"),
+	BULK_EDIT_BEGIN("action.edit.bulk"),
 	
 	// application
 	

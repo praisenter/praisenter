@@ -10,8 +10,6 @@ import javafx.scene.input.KeyEvent;
 import javafx.util.StringConverter;
 
 public final class AutoCompleteComboBox<T> extends ComboBox<T> {
-	private boolean updating = false;
-	
 	public AutoCompleteComboBox(ObservableList<T> items, BiFunction<String, T, Boolean> matcher) {
 		super(items);
 		

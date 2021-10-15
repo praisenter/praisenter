@@ -17,18 +17,19 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.stage.Modality;
 import javafx.stage.Window;
 
-public final class Alerts {
-	private Alerts() {}
+public final class Dialogs {
+	private Dialogs() {}
 
 	public static final Alert exception(
 			Window owner,
 			Throwable... exceptions) {
-		return Alerts.exception(owner, null, null, null, Arrays.asList(exceptions));
+		return Dialogs.exception(owner, null, null, null, Arrays.asList(exceptions));
 	}
 	
 	public static final Alert exception(
@@ -37,7 +38,7 @@ public final class Alerts {
 			String header,
 			String content,
 			Throwable... exceptions) {
-		return Alerts.exception(owner, title, header, content, Arrays.asList(exceptions));
+		return Dialogs.exception(owner, title, header, content, Arrays.asList(exceptions));
 	}
 	
 	public static final Alert exception(
@@ -50,12 +51,14 @@ public final class Alerts {
 		Alert alert = new Alert(AlertType.ERROR);
 		if (owner != null) {
 			alert.initOwner(owner);
+			alert.getDialogPane().getScene().getStylesheets().addAll(owner.getScene().getStylesheets());
+			alert.getDialogPane().getScene().getRoot().getStyleClass().addAll(owner.getScene().getRoot().getStyleClass());
 		}
 		alert.initModality(Modality.APPLICATION_MODAL);
 		alert.setTitle(title == null ? Translations.get("error.title") : title);
 		alert.setHeaderText(header == null ? Translations.get("error.message") : header);
 		alert.setContentText(content == null ? Translations.get("error.message") : content);
-
+		
 		// create expandable section with the exceptions in it
 		StringWriter sw = new StringWriter();
 		PrintWriter pw = new PrintWriter(sw);
@@ -116,6 +119,8 @@ public final class Alerts {
 		
 		if (owner != null) {
 			alert.initOwner(owner);
+			alert.getDialogPane().getScene().getStylesheets().addAll(owner.getScene().getStylesheets());
+			alert.getDialogPane().getScene().getRoot().getStyleClass().addAll(owner.getScene().getRoot().getStyleClass());
 		}
 		if (modality != null) {
 			alert.initModality(modality);
@@ -157,6 +162,9 @@ public final class Alerts {
 		
 		if (owner != null) {
 			alert.initOwner(owner);
+			alert.getDialogPane().getScene().getStylesheets().addAll(owner.getScene().getStylesheets());
+			alert.getDialogPane().getScene().getRoot().getStyleClass().addAll(owner.getScene().getRoot().getStyleClass());
+
 		}
 		if (modality != null) {
 			alert.initModality(modality);
@@ -179,6 +187,8 @@ public final class Alerts {
 		
 		if (owner != null) {
 			alert.initOwner(owner);
+			alert.getDialogPane().getScene().getStylesheets().addAll(owner.getScene().getStylesheets());
+			alert.getDialogPane().getScene().getRoot().getStyleClass().addAll(owner.getScene().getRoot().getStyleClass());
 		}
 		if (modality != null) {
 			alert.initModality(modality);
@@ -205,6 +215,8 @@ public final class Alerts {
 		
 		if (owner != null) {
 			alert.initOwner(owner);
+			alert.getDialogPane().getScene().getStylesheets().addAll(owner.getScene().getStylesheets());
+			alert.getDialogPane().getScene().getRoot().getStyleClass().addAll(owner.getScene().getRoot().getStyleClass());
 		}
 		if (modality != null) {
 			alert.initModality(modality);
@@ -212,6 +224,34 @@ public final class Alerts {
 		alert.getDialogPane().setMaxWidth(550);
 		
 		return alert;
+	}
+	
+	public static final TextInputDialog textInput(
+			Window owner,
+			Modality modality,
+			String initialValue,
+			String title, 
+			String header, 
+			String content) {
+    	TextInputDialog prompt = new TextInputDialog(initialValue);
+    	
+    	if (owner != null) {
+    		prompt.initOwner(owner);
+			prompt.getDialogPane().getScene().getStylesheets().addAll(owner.getScene().getStylesheets());
+			prompt.getDialogPane().getScene().getRoot().getStyleClass().addAll(owner.getScene().getRoot().getStyleClass());
+		}
+		if (modality != null) {
+			prompt.initModality(modality);
+		}
+    	
+    	prompt.setTitle(title);
+    	prompt.setHeaderText(header);
+    	prompt.setContentText(content);
+    	prompt.setResizable(true);
+    	prompt.getDialogPane().setPrefWidth(400);
+    	prompt.getDialogPane().setMinWidth(400);
+    	
+    	return prompt;
 	}
 
 	private static class OptOutDialogPane extends DialogPane {

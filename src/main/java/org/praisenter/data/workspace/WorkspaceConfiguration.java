@@ -18,7 +18,6 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
@@ -68,8 +67,6 @@ public final class WorkspaceConfiguration implements ReadOnlyWorkspaceConfigurat
 	private final BooleanProperty waitForTransitionsToCompleteEnabled;
 	private final ObjectProperty<PlaceholderTransitionBehavior> placeholderTransitionBehavior;
 	
-	private final ObservableList<Display> displays;
-	private final ObservableList<Display> displaysReadOnly;
 	private final ObservableList<Resolution> resolutions;
 	private final ObservableList<Resolution> resolutionsReadOnly;
 	private final ObservableList<DisplayConfiguration> displayConfigurations;
@@ -108,8 +105,6 @@ public final class WorkspaceConfiguration implements ReadOnlyWorkspaceConfigurat
 		this.waitForTransitionsToCompleteEnabled = new SimpleBooleanProperty();
 		this.placeholderTransitionBehavior = new SimpleObjectProperty<>(PlaceholderTransitionBehavior.PLACEHOLDERS);
 		
-		this.displays = FXCollections.observableArrayList();
-		this.displaysReadOnly = FXCollections.unmodifiableObservableList(this.displays);
 		this.resolutions = FXCollections.observableArrayList(Resolution.DEFAULT_RESOLUTIONS);
 		this.resolutionsReadOnly = FXCollections.unmodifiableObservableList(this.resolutions);
 		this.displayConfigurations = FXCollections.observableArrayList();
@@ -573,21 +568,6 @@ public final class WorkspaceConfiguration implements ReadOnlyWorkspaceConfigurat
 	@Override
 	public ObjectProperty<PlaceholderTransitionBehavior> placeholderTransitionBehaviorProperty() {
 		return this.placeholderTransitionBehavior;
-	}
-
-	@Override
-	public ObservableList<Display> getDisplaysUnmodifiable() {
-		return this.displaysReadOnly;
-	}
-	
-	@JsonProperty
-	public ObservableList<Display> getDisplays() {
-		return this.displays;
-	}
-	
-	@JsonProperty
-	public void setDisplays(List<Display> displays) {
-		this.displays.setAll(displays);
 	}
 
 	@JsonProperty

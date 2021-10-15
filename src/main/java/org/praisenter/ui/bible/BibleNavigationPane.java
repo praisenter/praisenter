@@ -205,7 +205,6 @@ public final class BibleNavigationPane extends GridPane {
 		
 		Spinner<Integer> spnChapter = new Spinner<Integer>(1, Short.MAX_VALUE, 1, 1);
 		spnChapter.setEditable(true);
-//		spnChapter.setMaxWidth(65);
 		spnChapter.getValueFactory().valueProperty().bindBidirectional(this.chapter);
 		spnChapter.focusedProperty().addListener((obs) -> {
 			Platform.runLater(spnChapter.getEditor()::selectAll);
@@ -213,7 +212,6 @@ public final class BibleNavigationPane extends GridPane {
 		
 		Spinner<Integer> spnVerse = new Spinner<Integer>(1, Short.MAX_VALUE, 1, 1);
 		spnVerse.setEditable(true);
-//		spnVerse.setMaxWidth(65);
 		spnVerse.getValueFactory().valueProperty().bindBidirectional(this.verse);
 		spnVerse.focusedProperty().addListener((obs) -> {
 			Platform.runLater(spnVerse.getEditor()::selectAll);
@@ -245,7 +243,7 @@ public final class BibleNavigationPane extends GridPane {
 		}, this.book, this.chapter));
 		lblVerses.graphicProperty().bind(Bindings.createObjectBinding(() -> {
 			ReadOnlyBook book = this.book.get();
-			if (book == null) return INVALID_VERSE;
+			if (book == null) return null;
 			int cn = this.chapter.get();
 			Chapter chapter = book.getChapter(cn);
 			if (chapter == null) return INVALID_VERSE;
@@ -334,6 +332,7 @@ public final class BibleNavigationPane extends GridPane {
 				this.searchDialog.setHeight(450);
 				this.searchDialog.setResizable(true);
 				this.searchDialog.setScene(WindowHelper.createSceneWithOwnerCss(pneSearch, owner));
+				context.attachZoomHandler(this.searchDialog.getScene());
 			}
 			
 			this.searchDialogFirstItemSelected = false;

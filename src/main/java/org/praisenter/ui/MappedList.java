@@ -19,20 +19,11 @@ public final class MappedList<E, F> extends TransformationList<E, F> {
 
 	private final Function<F, E> mapper;
 	private final Map<F, E> map;
-//	private final boolean lazy;
 
 	public MappedList(ObservableList<? extends F> source, Function<F, E> mapper) {
 		super(source);
 		this.mapper = mapper;
 		this.map = new IdentityHashMap<>();
-//		this.lazy = lazy;
-		
-//		if (!lazy) {
-//			// convert any existing items in the source to 
-//			for (F item : source) {
-//				this.map.put(item, this.mapper.apply(item));
-//			}
-//		}
 	}
 
 	@Override
@@ -49,22 +40,7 @@ public final class MappedList<E, F> extends TransformationList<E, F> {
 	public E get(int index) {
 		// get the source value
 		F f = getSource().get(index);
-		
-		E e = null;
-//		if (this.lazy) {
-			// get the mapped value
-			e = this.map.computeIfAbsent(f, this.mapper);			
-//		} else {
-//			e = this.map.get(f);
-//		}
-//
-//		// check for null
-//		if (e == null) {
-//			
-//			// this should never happen - but let's log something just in case
-//			LOGGER.fatal("MappedList map didn't contain a value for " + f + " at index: " + index);
-//		}
-		
+		E e = this.map.computeIfAbsent(f, this.mapper);
 		return e;
 	}
 
@@ -75,21 +51,24 @@ public final class MappedList<E, F> extends TransformationList<E, F> {
 	
 	@Override
 	protected void sourceChanged(Change<? extends F> c) {
-//		if (!this.lazy) {
-//			// map the items if something was added
-//	        while (c.next()) {
-//	        	if (c.wasAdded()) {
-//	        		for (F value : c.getAddedSubList()) {
-//	        			this.map.putIfAbsent(value, this.mapper.apply(value));
-//	        		}
-//	        	}
-//	        }
-//			
-//	        // reset the changes
-//	        c.reset();
-//		}
+		// create a temporary map for holding removed E objects
+		final Map<F, E> temp = new IdentityHashMap<>();
+
+		// remove the items from the map for anything that
+		// was removed from the source
+        while (c.next()) {
+        	if (c.wasRemoved()) {
+        		for (F f : c.getRemoved()) {
+        			// remove it from the map
+        			E e = this.map.remove(f);
+        			// store in temp
+        			temp.put(f, e);
+        		}
+	        }
+		}
 		
-		// fire to watchers of this list
+        // reset the change an fire to wrappers/listeners
+        c.reset();
 		fireChange(new Change<E>(this) {
 
 			@Override
@@ -135,7 +114,7 @@ public final class MappedList<E, F> extends TransformationList<E, F> {
 			public List<E> getRemoved() {
 				ArrayList<E> res = new ArrayList<>(c.getRemovedSize());
 				for (F f : c.getRemoved()) {
-					E e = map.get(f);
+					E e = temp.get(f);
 					
 					if (e == null) {
 						// this should only happen if we're lazily mapping the source
@@ -171,13 +150,5 @@ public final class MappedList<E, F> extends TransformationList<E, F> {
 			}
 		});
 		
-		// finally, reset and remove any map items 
-		// for those items that were removed
-		c.reset();
-        while (c.next()) {
-        	if (c.wasRemoved()) {
-	            c.getRemoved().forEach(this.map::remove);
-	        }
-		}
 	}
 }

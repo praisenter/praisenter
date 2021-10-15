@@ -29,10 +29,11 @@ import org.praisenter.data.Persistable;
 import org.praisenter.data.media.Media;
 import org.praisenter.ui.Action;
 import org.praisenter.ui.ActionPane;
+import org.praisenter.ui.DataFormats;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.Glyphs;
 import org.praisenter.ui.Option;
-import org.praisenter.ui.controls.Alerts;
+import org.praisenter.ui.controls.Dialogs;
 import org.praisenter.ui.controls.FlowListCell;
 import org.praisenter.ui.controls.FlowListView;
 import org.praisenter.ui.document.DocumentContext;
@@ -68,7 +69,8 @@ import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
-import javafx.scene.input.DataFormat;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
@@ -76,11 +78,9 @@ import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Modality;
 
-// TODO for slide shows -> a preview?
 public final class LibraryList extends BorderPane implements ActionPane {
 	private static final Logger LOGGER = LogManager.getLogger();
 	private static final Collator COLLATOR = Collator.getInstance();
-	private static final DataFormat COPY_DATA_FORMAT = new DataFormat("application/x-praisenter-library-copy");
 	
 	private final Glyph SORT_ASC = Glyphs.SORT_ASC.duplicate();
 	private final Glyph SORT_DESC = Glyphs.SORT_DESC.duplicate();
@@ -114,7 +114,39 @@ public final class LibraryList extends BorderPane implements ActionPane {
 		this.typeFilterVisible = new SimpleBooleanProperty(true);
 		
 		this.view = new FlowListView<>(orientation, (item) -> {
-			return new LibraryListCell(item);
+			LibraryListCell cell = new LibraryListCell(item);
+			
+			// support drag n drop with library items
+			// in particular the slide editor
+			cell.setOnDragDetected(e -> {
+				Persistable p = cell.getData();
+				
+				List<UUID> ids = new ArrayList<>();
+				ids.add(p.getId());
+
+				List<File> files = new ArrayList<File>();
+				Path path = context.getWorkspaceManager().getFilePath(p);
+				
+				if (p instanceof Media) {
+					Media media = (Media)p;
+					path = media.getMediaPath();
+				}
+				
+				if (path != null) {
+					files.add(path.toFile());
+				}
+				
+				Dragboard db = cell.startDragAndDrop(TransferMode.COPY);
+				ClipboardContent content = new ClipboardContent();
+				if (files.size() > 0) content.putFiles(files);
+				content.putString(p.getName());
+				content.put(DataFormats.PRAISENTER_ID_LIST, ids);
+				db.setContent(content);
+				
+				e.consume();
+			});
+			
+			return cell;
 		});
 		
 		this.source = FXCollections.observableArrayList();
@@ -394,7 +426,7 @@ public final class LibraryList extends BorderPane implements ActionPane {
 				return !selection.isEmpty();
 			case PASTE:
 				Clipboard clipboard = Clipboard.getSystemClipboard();
-				return clipboard.hasContent(COPY_DATA_FORMAT);
+				return clipboard.hasContent(DataFormats.PRAISENTER_ID_LIST);
 			case EXPORT:
 				return !selection.isEmpty();
 			default:
@@ -462,7 +494,7 @@ public final class LibraryList extends BorderPane implements ActionPane {
 	private CompletableFuture<Void> confirmDelete(List<Persistable> items) {
 		int n = items.size();
 		if (n > 0) {
-			Alert alert = Alerts.confirm(
+			Alert alert = Dialogs.confirm(
 					this.context.getStage(), 
 					Modality.WINDOW_MODAL, 
 					Translations.get("action.delete"),
@@ -507,7 +539,7 @@ public final class LibraryList extends BorderPane implements ActionPane {
 					
 					// present them to the user
 					Platform.runLater(() -> {
-						Alert errorAlert = Alerts.exception(
+						Alert errorAlert = Dialogs.exception(
 								this.context.getStage(), 
 								null, null,	null, 
 								exceptions);
@@ -525,15 +557,13 @@ public final class LibraryList extends BorderPane implements ActionPane {
 		Persistable item = this.view.getSelectionModel().getSelectedItem();
 		if (item != null) {
 			String oldName = item.getName();
-	    	TextInputDialog prompt = new TextInputDialog(oldName);
-	    	prompt.initOwner(this.context.getStage());
-	    	prompt.initModality(Modality.WINDOW_MODAL);
-	    	prompt.setTitle(Translations.get("action.rename"));
-	    	prompt.setHeaderText(Translations.get("action.rename.newname"));
-	    	prompt.setContentText(Translations.get("action.rename.name"));
-	    	prompt.setResizable(true);
-	    	prompt.getDialogPane().setMaxWidth(400);
-	    	prompt.getDialogPane().setMinWidth(400);
+	    	TextInputDialog prompt = Dialogs.textInput(
+	    			this.context.getStage(), 
+	    			Modality.WINDOW_MODAL, 
+	    			oldName, 
+	    			Translations.get("action.rename"), 
+	    			Translations.get("action.rename.newname"), 
+	    			Translations.get("action.rename.name"));
 	    	Optional<String> result = prompt.showAndWait();
 	    	if (result.isPresent()) {
 	    		String newName = result.get();
@@ -578,7 +608,7 @@ public final class LibraryList extends BorderPane implements ActionPane {
 							// reset the name back in the case of an exception
 							item.setName(oldName);
 							
-							Alert alert = Alerts.exception(this.context.getStage(), ex);
+							Alert alert = Dialogs.exception(this.context.getStage(), ex);
 							alert.show();
 						});
 						
@@ -615,7 +645,7 @@ public final class LibraryList extends BorderPane implements ActionPane {
 			ClipboardContent content = new ClipboardContent();
 			content.putString(String.join(Constants.NEW_LINE, names));
 			if (!files.isEmpty()) content.putFiles(files);
-			if (!ids.isEmpty()) content.put(COPY_DATA_FORMAT, ids);
+			if (!ids.isEmpty()) content.put(DataFormats.PRAISENTER_ID_LIST, ids);
 			
 			Clipboard clipboard = Clipboard.getSystemClipboard();
 			clipboard.setContent(content);
@@ -628,8 +658,8 @@ public final class LibraryList extends BorderPane implements ActionPane {
 
 	private CompletableFuture<Void> paste() {
 		Clipboard clipboard = Clipboard.getSystemClipboard();
-		if (clipboard.hasContent(COPY_DATA_FORMAT)) {
-			Object data = clipboard.getContent(COPY_DATA_FORMAT);
+		if (clipboard.hasContent(DataFormats.PRAISENTER_ID_LIST)) {
+			Object data = clipboard.getContent(DataFormats.PRAISENTER_ID_LIST);
 			if (data != null && data instanceof List) {
 				List<?> entries = (List<?>)data;
 				List<Persistable> items = new ArrayList<>();
@@ -656,7 +686,7 @@ public final class LibraryList extends BorderPane implements ActionPane {
 				// for them to acknowledge
 				if (itemNoLongerExists) {
 					Platform.runLater(() -> {
-						Alert alert = Alerts.warn(
+						Alert alert = Dialogs.warn(
 								this.context.getStage(), 
 								Modality.WINDOW_MODAL, 
 								Translations.get("action.paste"), 
@@ -694,7 +724,7 @@ public final class LibraryList extends BorderPane implements ActionPane {
 					
 					// present them to the user
 					Platform.runLater(() -> {
-						Alert errorAlert = Alerts.exception(
+						Alert errorAlert = Dialogs.exception(
 								this.context.getStage(), 
 								null, null,	null, 
 								exceptions);
@@ -752,7 +782,7 @@ public final class LibraryList extends BorderPane implements ActionPane {
 					// show it to the user
 					final Throwable ex = t;
 					Platform.runLater(() -> {
-						Alerts.exception(this.context.getStage(), ex).show();
+						Dialogs.exception(this.context.getStage(), ex).show();
 					});
 					
 	    			return null;
