@@ -18,13 +18,13 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TabPane.TabClosingPolicy;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
 
 // JAVABUG (L) 09/28/18 [workaround] Focus tab content when tab is selected https://stackoverflow.com/questions/19025268/javafx-tabpane-switch-tabs-only-when-focused/19046535#19046535, https://stackoverflow.com/questions/15646724/javafx-setfocus-after-tabpaine-change/15648609#15648609
 // JAVABUG (L) 10/06/18 Tab down button (when lots of tabs) doesn't fully hide when clicked twice https://bugs.openjdk.java.net/browse/JDK-8186176
@@ -115,12 +115,14 @@ public final class DocumentsPane extends BorderPane implements ActionPane {
 			}
 		});
 		
-		SplitPane split = new SplitPane(this.documentTabs, this.documentSelectionEditor);
+		ScrollPane scroller = new ScrollPane(this.documentSelectionEditor);
+		scroller.setHbarPolicy(ScrollBarPolicy.NEVER);
+		scroller.setFitToWidth(true);
+		
+		SplitPane split = new SplitPane(this.documentTabs, scroller);
 		split.setDividerPosition(0, 0.7);
 		split.visibleProperty().bind(Bindings.size(this.documentTabs.getTabs()).greaterThan(0));
-		SplitPane.setResizableWithParent(this.documentSelectionEditor, false);
-		
-		VBox.setVgrow(this.documentSelectionEditor, Priority.ALWAYS);
+		SplitPane.setResizableWithParent(scroller, false);
 		
 		this.setCenter(split);
 	}

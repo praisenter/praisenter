@@ -186,6 +186,8 @@ https://stackoverflow.com/questions/50011276/javafx-treeview-expand-collapse-dis
 .menu-item > .accelerator-text {
     -fx-padding: 0 0 0 3em;
 }
+.slider { -fx-min-height: 2em; }
+.check-box { -fx-min-height: 2em; }
 
 /* SUPPORTED APPLICATION FONT SIZES */
 .p-fs8  { -fx-font-size: 8px; }
@@ -249,25 +251,37 @@ https://stackoverflow.com/questions/50011276/javafx-treeview-expand-collapse-dis
 }
 .p-form-field-help {}
 
-/* FORM FIELD SET */
-.p-form-field-set > .title {
-	-fx-background-color: -fx-base;
-	-fx-background-insets: 0;
+/* FORM FIELD GROUP */
+.p-form-field-group > .title {
+	-fx-background-color: -fx-text-box-border, -fx-base;
+	-fx-background-insets: 0, 0 0 1 0;
 	-fx-background-radius: 0;
 	-fx-font-size: 1.5em;
 }
-.p-form-field-set:focused > .title > .arrow-button > .arrow {
+.p-form-field-group:focused > .title > .arrow-button > .arrow {
     -fx-background-color: -fx-mark-highlight-color, -fx-mark-color;
     -fx-background-insets: 0;
     -fx-effect: null;
 }
-.p-form-field-set > *.content {
+.p-form-field-group > *.content {
 	-fx-border-width: 0;
     -fx-border-insets: 0;
     -fx-background-color: null;
 }
-.p-form-field-set > .content > * {
+.p-form-field-group > .content > * {
 	-fx-padding: 0.5em 0 0 0;
+}
+
+/* FORM FIELD SECTION */
+.p-form-field-section {
+	-fx-hgap: 0.3em;
+	-fx-vgap: 0.3em;
+}
+.p-form-field-group > .content .p-form-field-section {
+	-fx-padding: 0.8em;
+}
+.p-form-field-group > .content .p-form-field-section .p-form-field-section {
+	-fx-padding: 0em;
 }
 
 /* MAIN MENU */
@@ -343,7 +357,7 @@ https://stackoverflow.com/questions/50011276/javafx-treeview-expand-collapse-dis
 /* SETTINGS PANE */
 .p-settings-pane {
 	-fx-spacing: 0.5em;
-	-fx-padding: 0.8em;
+	/* -fx-padding: 0.8em; */
 }
 
 /* SLIDE LIST */
@@ -437,7 +451,15 @@ https://stackoverflow.com/questions/50011276/javafx-treeview-expand-collapse-dis
 	-fx-vgap: 0.5em;
 }
 
-/* BIBLE/SONG EDITOR */
+/* SELECTION EDITOR */
+.p-selection-editor {
+	-fx-spacing: 0.3em;
+}
+.p-selection-editor .p-form-field-group > .title {
+	-fx-font-size: 1.2em;
+}
+
+/* BIBLE/SONG/SLIDE EDITOR */
 .p-bible-editor,
 .p-song-editor {}
 .p-bible-editor-bulk,
@@ -453,18 +475,3 @@ https://stackoverflow.com/questions/50011276/javafx-treeview-expand-collapse-dis
 .p-song-editor-bulk-buttons > .button {
 	-fx-pref-width: 5em;
 }
-.p-bible-selection-editor,
-.p-song-selection-editor {}
-.p-bible-selection-editor > .scroll-pane,
-.p-song-selection-editor > .scroll-pane {
-	-fx-background-insets: 0;
-}
-.p-bible-selection-editor-sections,
-.p-song-selection-editor-sections {
-	-fx-spacing: 0.3em;
-}
-.p-bible-selection-editor-sections > .p-form-field-set > .title,
-.p-song-selection-editor-sections > .p-form-field-set > .title {
-	-fx-font-size: 1.3em;
-}
-
