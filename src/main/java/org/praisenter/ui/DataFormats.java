@@ -1,7 +1,5 @@
 package org.praisenter.ui;
 
-import java.util.UUID;
-
 import org.praisenter.data.bible.Book;
 import org.praisenter.data.bible.Chapter;
 import org.praisenter.data.bible.Verse;

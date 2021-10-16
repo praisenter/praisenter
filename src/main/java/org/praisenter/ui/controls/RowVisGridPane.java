@@ -60,6 +60,15 @@ public class RowVisGridPane extends GridPane {
 		}
 	}
 	
+	public int[] getRowIndexes(Node... nodes) {
+		int[] indexes = new int[nodes.length];
+		int i = 0;
+		for (Node node : nodes) {
+			indexes[i++] = GridPane.getRowIndex(node);
+		}
+		return indexes;
+	}
+	
 	public void hideRow(int rowIndex) {
 		RowDefinition row = this.rows.get(rowIndex);
 		if (row != null && row.visible) {

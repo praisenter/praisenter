@@ -1,17 +1,17 @@
 package org.praisenter.ui.slide.controls;
 
 import org.praisenter.data.slide.animation.AnimationDirection;
+import org.praisenter.data.slide.animation.AnimationEasingFunction;
+import org.praisenter.data.slide.animation.AnimationEasingType;
+import org.praisenter.data.slide.animation.AnimationFunction;
 import org.praisenter.data.slide.animation.AnimationOperation;
 import org.praisenter.data.slide.animation.AnimationOrientation;
 import org.praisenter.data.slide.animation.AnimationShapeType;
 import org.praisenter.data.slide.animation.SlideAnimation;
-import org.praisenter.data.slide.animation.AnimationFunction;
-import org.praisenter.data.slide.animation.AnimationEasingFunction;
-import org.praisenter.data.slide.animation.AnimationEasingType;
 import org.praisenter.ui.Option;
 import org.praisenter.ui.bind.BindingHelper;
 import org.praisenter.ui.bind.ObjectConverter;
-import org.praisenter.ui.controls.EditGridPane;
+import org.praisenter.ui.controls.FormFieldSection;
 import org.praisenter.ui.controls.LastValueNumberStringConverter;
 import org.praisenter.ui.controls.LongSpinnerValueFactory;
 import org.praisenter.ui.translations.Translations;
@@ -23,13 +23,11 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
 import javafx.scene.control.Spinner;
-import javafx.scene.layout.VBox;
 
 // FEATURE (L-H) expand to allow edit of animation fields, allow toggle of Transition vs. Animation fields
 
-public final class SlideAnimationPicker extends VBox {
+public final class SlideAnimationPicker extends FormFieldSection {
 	
 	private final ObjectProperty<AnimationFunction> animationFunction;
 	private final ObjectProperty<Long> duration;
@@ -136,36 +134,32 @@ public final class SlideAnimationPicker extends VBox {
 		
 		// layout
 		
-		int r = 0;
-        EditGridPane grid = new EditGridPane();
-        grid.addRow(r++, new Label(Translations.get("slide.transition.type")), cmbAnimationFunction);
-        grid.addRow(r++, new Label(Translations.get("slide.transition.duration")), spnDuration);
-        grid.addRow(r++, new Label(Translations.get("slide.transition.easing.function")), cmbEasingFunction);
-        grid.addRow(r++, new Label(Translations.get("slide.transition.easing.type")), cmbEasingType);
-        grid.addRow(r++, new Label(Translations.get("slide.transition.direction")), cmbDirections);
-        grid.addRow(r++, new Label(Translations.get("slide.transition.operation")), cmbOperations);
-        grid.addRow(r++, new Label(Translations.get("slide.transition.orientation")), cmbOrientations);
-        grid.addRow(r++, new Label(Translations.get("slide.transition.shape.type")), cmbShapeTypes);
-        grid.addRow(r++, new Label(Translations.get("slide.transition.blind.count")), spnBlindCount);
-        grid.showRowsOnly(0);
-        
-        this.getChildren().addAll(grid);
+        this.addField(Translations.get("slide.transition.type"), cmbAnimationFunction);
+        this.addField(Translations.get("slide.transition.duration"), spnDuration);
+        this.addField(Translations.get("slide.transition.easing.function"), cmbEasingFunction);
+        this.addField(Translations.get("slide.transition.easing.type"), cmbEasingType);
+        this.addField(Translations.get("slide.transition.direction"), cmbDirections);
+        this.addField(Translations.get("slide.transition.operation"), cmbOperations);
+        this.addField(Translations.get("slide.transition.orientation"), cmbOrientations);
+        this.addField(Translations.get("slide.transition.shape.type"), cmbShapeTypes);
+        this.addField(Translations.get("slide.transition.blind.count"), spnBlindCount);
+        this.showRowsOnly(0);
         
         this.animationFunction.addListener((obs, ov, nv) -> {
         	if (nv == null) {
-        		grid.showRowsOnly(0);
+        		this.showRowsOnly(0);
         		return;
         	}
         	
         	switch (nv) {
         		case BLINDS: 
-        			grid.showRowsOnly(0,1,2,3,6,8); 
+        			this.showRowsOnly(0,1,2,3,6,8); 
         			break;
         		case FADE: 
-    				grid.showRowsOnly(0,1,2,3); 
+        			this.showRowsOnly(0,1,2,3); 
     				break;
         		case PUSH: 
-        			grid.showRowsOnly(0,1,2,3,4);
+        			this.showRowsOnly(0,1,2,3,4);
         			filteredDirections.setPredicate(d -> 
         				d.getValue() == AnimationDirection.UP || 
     					d.getValue() == AnimationDirection.DOWN || 
@@ -173,23 +167,23 @@ public final class SlideAnimationPicker extends VBox {
     					d.getValue() == AnimationDirection.RIGHT);
         			break;
         		case SHAPE: 
-        			grid.showRowsOnly(0,1,2,3,5,7); 
+        			this.showRowsOnly(0,1,2,3,5,7); 
         			break;
         		case SPLIT: 
-        			grid.showRowsOnly(0,1,2,3,5,6); 
+        			this.showRowsOnly(0,1,2,3,5,6); 
         			break;
         		case SWAP: 
-        			grid.showRowsOnly(0); 
+        			this.showRowsOnly(0); 
         			break;
         		case SWIPE: 
-        			grid.showRowsOnly(0,1,2,3,4);
+        			this.showRowsOnly(0,1,2,3,4);
         			filteredDirections.setPredicate(d -> true);
         			break;
         		case ZOOM: 
-        			grid.showRowsOnly(0,1,2,3); 
+        			this.showRowsOnly(0,1,2,3); 
         			break;
         		default: 
-        			grid.showRowsOnly(0); 
+        			this.showRowsOnly(0); 
         			break;	
         	}
         });

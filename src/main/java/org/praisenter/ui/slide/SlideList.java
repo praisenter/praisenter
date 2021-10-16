@@ -41,10 +41,6 @@ public final class SlideList extends ListView<Slide> implements ActionPane {
 	public SlideList(GlobalContext context) {
 		this.context = context;
 
-		this.getSelectionModel().selectedItemProperty().addListener((obs, ov, nv) -> {
-			System.out.println("Selection changed from '" + ov + "' to '" + nv + "'");
-		});
-		
 		this.setCellFactory(s -> {
 			SlideListCell cell = new SlideListCell(context);
 			

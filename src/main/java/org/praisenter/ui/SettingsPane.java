@@ -8,7 +8,7 @@ import org.apache.logging.log4j.Logger;
 import org.praisenter.data.workspace.PlaceholderTransitionBehavior;
 import org.praisenter.data.workspace.WorkspaceConfiguration;
 import org.praisenter.ui.controls.FormField;
-import org.praisenter.ui.controls.FormFieldSet;
+import org.praisenter.ui.controls.FormFieldGroup;
 import org.praisenter.ui.themes.Theme;
 import org.praisenter.ui.translations.Translations;
 import org.praisenter.utility.StringManipulator;
@@ -19,12 +19,10 @@ import javafx.collections.ObservableList;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.TextField;
-import javafx.scene.control.TitledPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 
@@ -199,12 +197,12 @@ public class SettingsPane extends BorderPane {
 				new FormField(Translations.get("settings.theme"), Translations.get("settings.theme.description"), cmbTheme, btnRefreshThemes, btnReloadCss),
 				new FormField(Translations.get("settings.locale"), Translations.get("settings.locale.description"), cmbLocales, btnRefreshLocales),
 				new FormField(Translations.get("settings.debug"), Translations.get("settings.debug.description"), chkDebugMode));
-		FormFieldSet pneGeneral = new FormFieldSet(Translations.get("settings.general"), boxGeneral);
+		FormFieldGroup pneGeneral = new FormFieldGroup(Translations.get("settings.general"), boxGeneral);
 		
 		VBox boxSlide = new VBox(
 				new FormField(Translations.get("settings.slide.waitForTransition"), Translations.get("settings.slide.waitForTransition.description"), chkWaitForTransition),
 				new FormField(Translations.get("settings.slide.placeholderTransitionBehavior"), Translations.get("settings.slide.placeholderTransitionBehavior.description"), cmbPlaceholderTransitionBehavior));
-		FormFieldSet pneSlide = new FormFieldSet(Translations.get("settings.slide"), boxSlide);
+		FormFieldGroup pneSlide = new FormFieldGroup(Translations.get("settings.slide"), boxSlide);
 		pneSlide.setExpanded(false);
 		
 		VBox boxMedia = new VBox(
@@ -217,13 +215,13 @@ public class SettingsPane extends BorderPane {
 				new FormField(Translations.get("settings.media.videoFrameExtract.command"), Translations.get("settings.media.videoFrameExtract.command.description"), txtVideoExtractCommand),
 				new FormField(Translations.get("settings.media.adjustVolume"), Translations.get("settings.media.adjustVolume.description"), chkAdjustVolume),
 				new FormField(Translations.get("settings.media.targetVolume"), Translations.get("settings.media.targetVolume.description"), spnTargetVolume));
-		FormFieldSet pneAV = new FormFieldSet(Translations.get("settings.media"), boxMedia);
+		FormFieldGroup pneAV = new FormFieldGroup(Translations.get("settings.media"), boxMedia);
 		pneAV.setExpanded(false);
 		
 		VBox boxBible = new VBox(
 				new FormField(Translations.get("settings.bible.renumberWarning"), Translations.get("settings.bible.renumberWarning.description"), chkBibleRenumberWarning),
 				new FormField(Translations.get("settings.bible.reorderWarning"), Translations.get("settings.bible.reorderWarning.description"), chkBibleReorderWarning));
-		FormFieldSet pneBible = new FormFieldSet(Translations.get("settings.bible"), boxBible);
+		FormFieldGroup pneBible = new FormFieldGroup(Translations.get("settings.bible"), boxBible);
 		pneBible.setExpanded(false);
 		
 		VBox layout = new VBox(

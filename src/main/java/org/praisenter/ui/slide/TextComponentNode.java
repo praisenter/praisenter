@@ -8,8 +8,6 @@ import org.praisenter.data.slide.graphics.DashPattern;
 import org.praisenter.data.slide.graphics.SlidePadding;
 import org.praisenter.data.slide.graphics.SlidePaint;
 import org.praisenter.data.slide.graphics.SlideStroke;
-import org.praisenter.data.slide.text.CountdownComponent;
-import org.praisenter.data.slide.text.DateTimeComponent;
 import org.praisenter.data.slide.text.FontScaleType;
 import org.praisenter.data.slide.text.HorizontalTextAlignment;
 import org.praisenter.data.slide.text.SlideFont;
@@ -83,7 +81,7 @@ final class TextComponentNode extends SlideComponentNode<TextComponent> {
 			this.mode.addListener((obs, ov, nv) -> {
 				ttc.nowProperty().unbind();
 				if (nv == SlideMode.PRESENT) {
-					ttc.nowProperty().bind(TimeKeeper.CURRENT_TIME);
+					ttc.nowProperty().bind(TimeKeeper.currentTimeProperty());
 				} else {
 					ttc.setNow(LocalDateTime.now());
 				}
