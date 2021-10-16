@@ -11,8 +11,8 @@ import org.praisenter.data.bible.Chapter;
 import org.praisenter.data.bible.Verse;
 import org.praisenter.ui.Action;
 import org.praisenter.ui.GlobalContext;
-import org.praisenter.ui.controls.FormField;
 import org.praisenter.ui.controls.FormFieldGroup;
+import org.praisenter.ui.controls.FormFieldSection;
 import org.praisenter.ui.controls.TagListView;
 import org.praisenter.ui.controls.TextInputFieldEventFilter;
 import org.praisenter.ui.document.DocumentContext;
@@ -33,17 +33,13 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
 import javafx.scene.control.Button;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
 public final class BibleSelectionEditor extends VBox implements DocumentSelectionEditor<Bible> {
-	private static final String BIBLE_SELECTION_EDITOR_CSS = "p-bible-selection-editor";
-	private static final String BIBLE_SELECTION_EDITOR_SECTIONS_CSS = "p-bible-selection-editor-sections";
+	private static final String SELECTION_EDITOR_CSS = "p-selection-editor";
 	
 	private static final Logger LOGGER = LogManager.getLogger();
 	
@@ -76,7 +72,7 @@ public final class BibleSelectionEditor extends VBox implements DocumentSelectio
 	private final ObjectProperty<Integer> verseNumber2;
 	
 	public BibleSelectionEditor(GlobalContext context) {
-		this.getStyleClass().add(BIBLE_SELECTION_EDITOR_CSS);
+		this.getStyleClass().add(SELECTION_EDITOR_CSS);
 		
 		this.context = context;
 		this.documentContext = new SimpleObjectProperty<>();
@@ -271,45 +267,37 @@ public final class BibleSelectionEditor extends VBox implements DocumentSelectio
 				txtVerseText,
 				spnVerseNumber.getEditor());
 		
-		VBox boxGeneral = new VBox(
-				new FormField(Translations.get("bible.name"), Translations.get("bible.name.description"), txtBibleName),
-				new FormField(Translations.get("bible.language"), Translations.get("bible.language.description"), txtBibleLanguage),
-				new FormField(Translations.get("bible.source"), Translations.get("bible.source.description"), txtBibleSource),
-				new FormField(Translations.get("bible.copyright"), Translations.get("bible.copyright.description"), txtBibleCopyright),
-				new FormField(Translations.get("bible.notes"), Translations.get("bible.notes.description"), txtBibleNotes),
-				new FormField(Translations.get("bible.tags"), Translations.get("bible.tags.description"), viewTags));
-		FormFieldGroup pneGeneral = new FormFieldGroup(Translations.get("bible"), boxGeneral);
+		FormFieldSection sctBible = new FormFieldSection();
+		sctBible.addField(Translations.get("bible.name"), txtBibleName);
+		sctBible.addField(Translations.get("bible.language"), txtBibleLanguage);
+		sctBible.addField(Translations.get("bible.source"), txtBibleSource);
+		sctBible.addField(Translations.get("bible.copyright"), txtBibleCopyright);
+		sctBible.addField(Translations.get("bible.notes"), txtBibleNotes);
+		sctBible.addField(Translations.get("bible.tags"), viewTags);
 		
-		VBox boxBook = new VBox(
-				new FormField(Translations.get("bible.book.name"), Translations.get("bible.book.name.description"), txtBookName),
-				new FormField(Translations.get("bible.book.number"), Translations.get("bible.book.number.description"), spnBookNumber),
-				new FormField(Translations.get("action.edit.bulk"), Translations.get("bible.book.edit.bulk.description"), btnBookQuickEdit));
-		FormFieldGroup pneBook = new FormFieldGroup(Translations.get("bible.book"), boxBook);
+		FormFieldSection sctBook = new FormFieldSection();
+		sctBook.addField(Translations.get("bible.book.name"), txtBookName);
+		sctBook.addField(Translations.get("bible.book.number"), spnBookNumber);
+		sctBook.addField("", btnBookQuickEdit);
 		
-		VBox boxChapter = new VBox(
-				new FormField(Translations.get("bible.chapter.number"), Translations.get("bible.chapter.number.description"), spnChapterNumber),
-				new FormField(Translations.get("action.edit.bulk"), Translations.get("bible.chapter.edit.bulk.description"), btnChapterQuickEdit));
-		FormFieldGroup pneChapter = new FormFieldGroup(Translations.get("bible.chapter"), boxChapter);
+		FormFieldSection sctChapter = new FormFieldSection();
+		sctChapter.addField(Translations.get("bible.chapter.number"), spnChapterNumber);
+		sctChapter.addField("", btnChapterQuickEdit);
 		
-		VBox boxVerse = new VBox(
-				new FormField(Translations.get("bible.verse.number"), Translations.get("bible.verse.number.description"), spnVerseNumber),
-				new FormField(Translations.get("bible.verse.text"), Translations.get("bible.verse.text.description"), txtVerseText));
-		FormFieldGroup pneVerse = new FormFieldGroup(Translations.get("bible.verse"), boxVerse);
+		FormFieldSection sctVerse = new FormFieldSection();
+		sctVerse.addField(Translations.get("bible.verse.number"), spnVerseNumber);
+		sctVerse.addField(Translations.get("bible.verse.text"), txtVerseText);
+		
+		FormFieldGroup pneGeneral = new FormFieldGroup(Translations.get("bible"), sctBible);
+		FormFieldGroup pneBook = new FormFieldGroup(Translations.get("bible.book"), sctBook);
+		FormFieldGroup pneChapter = new FormFieldGroup(Translations.get("bible.chapter"), sctChapter);
+		FormFieldGroup pneVerse = new FormFieldGroup(Translations.get("bible.verse"), sctVerse);
 
-		VBox boxLayout = new VBox(
+		this.getChildren().addAll(
 				pneGeneral,
 				pneBook,
 				pneChapter,
 				pneVerse);
-		boxLayout.getStyleClass().add(BIBLE_SELECTION_EDITOR_SECTIONS_CSS);
-		
-		ScrollPane scroller = new ScrollPane(boxLayout);
-		scroller.setHbarPolicy(ScrollBarPolicy.NEVER);
-		scroller.setFitToWidth(true);
-		
-		this.getChildren().addAll(scroller);
-		
-		VBox.setVgrow(scroller, Priority.ALWAYS);
 		
 		// hide/show
 		

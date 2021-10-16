@@ -753,12 +753,12 @@ public final class SongEditor extends BorderPane implements DocumentEditor<Song>
 		}
 		
 		// TODO the selection doesn't seem consistent (probably because of the containers)
-		int row = (isParent && size > 0 
-				? this.treeView.getRow(targetItem.getChildren().get(size - 1))
-				: this.treeView.getRow(targetItem)) 
-				+ (!isParent && after ? 1 : -items.size());
+//		int row = (isParent && size > 0 
+//				? this.treeView.getRow(targetItem.getChildren().get(size - 1))
+//				: this.treeView.getRow(targetItem)) 
+//				+ (!isParent && after ? 1 : -items.size());
 		this.treeView.getSelectionModel().clearSelection();
-		this.treeView.getSelectionModel().selectRange(row, row + items.size());
+//		this.treeView.getSelectionModel().selectRange(row, row + items.size());
 		
 		this.undoManager.completeBatch();
 		

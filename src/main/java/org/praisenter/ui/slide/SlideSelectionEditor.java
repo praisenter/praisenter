@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.praisenter.data.Tag;
 import org.praisenter.data.TextType;
 import org.praisenter.data.TextVariant;
@@ -78,8 +80,6 @@ import javafx.geometry.Rectangle2D;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.Slider;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.TextArea;
@@ -91,6 +91,8 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Screen;
 
 public final class SlideSelectionEditor extends VBox implements DocumentSelectionEditor<Slide> {
+	private static final Logger LOGGER = LogManager.getLogger();
+	
 	private static final String SELECTION_EDITOR_CSS = "p-selection-editor";
 	
 	private final GlobalContext context;
@@ -766,7 +768,8 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 				} else if (nv instanceof MediaComponent) {
 					sctComponentGeneral.showRowsOnly(0,5);
 				} else {
-					// TODO unsupported component type
+					sctComponentGeneral.showRow(0);
+					LOGGER.warn("Unsupported component type: '" + nv.getClass().getName() + "'");
 				}
 			}
 		});
@@ -798,9 +801,9 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 			} else if (sc instanceof MediaComponent) {
 				return Translations.get("slide.component.media");
 			} else {
-				// TODO unsupported component type
+				LOGGER.warn("Unsupported component type: '" + sc.getClass().getName() + "'");
+				return Translations.get("slide.component");
 			}
-			return null;
 		}, this.selectedComponent));
 		
 		FormFieldGroup[] componentGroups = new FormFieldGroup[] {
@@ -850,7 +853,7 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 			group.setExpanded(false);
 		}
 		
-		VBox layout = new VBox(
+		this.getChildren().addAll(
 				ttlSlide,
 				ttlSlideBackground,
 				ttlSlideBorder,
@@ -866,12 +869,6 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 				ttlComponentTextBorder,
 				ttlComponentTextShadow,
 				ttlComponentTextGlow);
-		
-		ScrollPane scroller = new ScrollPane(layout);
-		scroller.setHbarPolicy(ScrollBarPolicy.NEVER);
-		scroller.setFitToWidth(true);
-		
-		this.getChildren().addAll(scroller);
 	}
 	
 	private void updateSlideResolutions(ObservableList<Resolution> resolutions) {

@@ -2,7 +2,6 @@ package org.praisenter.ui.display;
 
 import java.util.ArrayList;
 
-import org.praisenter.ui.AdditionalItemsList;
 import org.praisenter.ui.EmptyItemList;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.MappedList;
@@ -11,7 +10,6 @@ import org.praisenter.ui.translations.Translations;
 import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.scene.Node;

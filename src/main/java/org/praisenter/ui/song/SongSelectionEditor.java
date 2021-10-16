@@ -12,8 +12,8 @@ import org.praisenter.data.song.Song;
 import org.praisenter.data.song.SongBook;
 import org.praisenter.ui.Action;
 import org.praisenter.ui.GlobalContext;
-import org.praisenter.ui.controls.FormField;
 import org.praisenter.ui.controls.FormFieldGroup;
+import org.praisenter.ui.controls.FormFieldSection;
 import org.praisenter.ui.controls.TagListView;
 import org.praisenter.ui.controls.TextInputFieldEventFilter;
 import org.praisenter.ui.document.DocumentContext;
@@ -33,16 +33,12 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
 public final class SongSelectionEditor extends VBox implements DocumentSelectionEditor<Song> {
-	private static final String SONG_SELECTION_EDITOR_CSS = "p-song-selection-editor";
-	private static final String SONG_SELECTION_EDITOR_SECTIONS_CSS = "p-song-selection-editor-sections";
+	private static final String SELECTION_EDITOR_CSS = "p-selection-editor";
 	
 	private static final Logger LOGGER = LogManager.getLogger();
 	
@@ -86,7 +82,7 @@ public final class SongSelectionEditor extends VBox implements DocumentSelection
 	private final StringProperty sectionText;
 	
 	public SongSelectionEditor(GlobalContext context) {
-		this.getStyleClass().add(SONG_SELECTION_EDITOR_CSS);
+		this.getStyleClass().add(SELECTION_EDITOR_CSS);
 		
 		this.context = context;
 		this.documentContext = new SimpleObjectProperty<>();
@@ -387,60 +383,52 @@ public final class SongSelectionEditor extends VBox implements DocumentSelection
 				txtSongTransposition,
 				txtSongVariant);
 		
-		VBox boxGeneral = new VBox(
-				new FormField(Translations.get("song.name"), Translations.get("song.name.description"), txtSongName),
-				new FormField(Translations.get("song.source"), Translations.get("song.source.description"), txtSongSource),
-				new FormField(Translations.get("song.copyright"), Translations.get("song.copyright.description"), txtSongCopyright),
-				new FormField(Translations.get("song.ccli"), Translations.get("song.ccli.description"), txtSongCCLINumber),
-				new FormField(Translations.get("song.released"), Translations.get("song.released.description"), txtSongReleased),
-				new FormField(Translations.get("song.transposition"), Translations.get("song.transposition.description"), txtSongTransposition),
-				new FormField(Translations.get("song.tempo"), Translations.get("song.tempo.description"), txtSongTempo),
-				new FormField(Translations.get("song.key"), Translations.get("song.key.description"), txtSongKey),
-				new FormField(Translations.get("song.variant"), Translations.get("song.variant.description"), txtSongVariant),
-				new FormField(Translations.get("song.publisher"), Translations.get("song.publisher.description"), txtSongPublisher),
-				new FormField(Translations.get("song.keywords"), Translations.get("song.keywords.description"), txtSongKeywords),
-				new FormField(Translations.get("song.notes"), Translations.get("song.notes.description"), txtSongNotes),
-				new FormField(Translations.get("song.tags"), Translations.get("song.tags.description"), viewTags));
-		FormFieldGroup pneGeneral = new FormFieldGroup(Translations.get("song"), boxGeneral);
+		FormFieldSection sctGeneral = new FormFieldSection();
+		sctGeneral.addField(Translations.get("song.name"), txtSongName);
+		sctGeneral.addField(Translations.get("song.source"), txtSongSource);
+		sctGeneral.addField(Translations.get("song.copyright"), txtSongCopyright);
+		sctGeneral.addField(Translations.get("song.ccli"), txtSongCCLINumber);
+		sctGeneral.addField(Translations.get("song.released"), txtSongReleased);
+		sctGeneral.addField(Translations.get("song.transposition"), txtSongTransposition);
+		sctGeneral.addField(Translations.get("song.tempo"), txtSongTempo);
+		sctGeneral.addField(Translations.get("song.key"), txtSongKey);
+		sctGeneral.addField(Translations.get("song.variant"), txtSongVariant);
+		sctGeneral.addField(Translations.get("song.publisher"), txtSongPublisher);
+		sctGeneral.addField(Translations.get("song.keywords"), txtSongKeywords);
+		sctGeneral.addField(Translations.get("song.notes"), txtSongNotes);
+		sctGeneral.addField(Translations.get("song.tags"), viewTags);
 		
-		VBox boxAuthor = new VBox(
-				new FormField(Translations.get("song.lyrics.author.name"), Translations.get("song.lyrics.author.name.description"), txtAuthorName),
-				new FormField(Translations.get("song.lyrics.author.type"), Translations.get("song.lyrics.author.type.description"), txtAuthorType));
-		FormFieldGroup pneAuthor = new FormFieldGroup(Translations.get("song.lyrics.author"), boxAuthor);
+		FormFieldSection sctAuthor = new FormFieldSection();
+		sctAuthor.addField(Translations.get("song.lyrics.author.name"), txtAuthorName);
+		sctAuthor.addField(Translations.get("song.lyrics.author.type"), txtAuthorType);
 		
-		VBox boxSongBook = new VBox(
-				new FormField(Translations.get("song.lyrics.songbook.name"), Translations.get("song.lyrics.songbook.name.description"), txtSongBookName),
-				new FormField(Translations.get("song.lyrics.songbook.entry"), Translations.get("song.lyrics.songbook.entry.description"), txtSongBookEntry));
-		FormFieldGroup pneSongBook = new FormFieldGroup(Translations.get("song.lyrics.songbook"), boxSongBook);
+		FormFieldSection sctSongbook = new FormFieldSection();
+		sctSongbook.addField(Translations.get("song.lyrics.songbook.name"), txtSongBookName);
+		sctSongbook.addField(Translations.get("song.lyrics.songbook.entry"), txtSongBookEntry);
 		
-		VBox boxLyrics = new VBox(
-				new FormField(Translations.get("song.lyrics.original"), Translations.get("song.lyrics.original.description"), chkLyricsOriginal),
-				new FormField(Translations.get("song.lyrics.language"), Translations.get("song.lyrics.language.description"), txtLyricsLanguage),
-				new FormField(Translations.get("song.lyrics.transliteration"), Translations.get("song.lyrics.transliteration.description"), txtLyricsTransliteration),
-				new FormField(Translations.get("song.lyrics.title"), Translations.get("song.lyrics.title.description"), txtLyricsTitle),
-				new FormField(Translations.get("song.lyrics.edit.bulk"), Translations.get("song.lyrics.edit.bulk.description"), btnLyricsQuickEdit));
-		FormFieldGroup pneLyrics = new FormFieldGroup(Translations.get("song.lyrics"), boxLyrics);
-
-		VBox boxSection = new VBox(
-				new FormField(Translations.get("song.lyrics.section.name"), Translations.get("song.lyrics.section.name.description"), txtSectionName),
-				new FormField(Translations.get("song.lyrics.section.text"), Translations.get("song.lyrics.section.text.description"), txtSectionText));
-		FormFieldGroup pneSection = new FormFieldGroup(Translations.get("song.lyrics.section"), boxSection);
+		FormFieldSection sctLyrics = new FormFieldSection();
+		sctLyrics.addField(Translations.get("song.lyrics.original"), chkLyricsOriginal);
+		sctLyrics.addField(Translations.get("song.lyrics.language"), txtLyricsLanguage);
+		sctLyrics.addField(Translations.get("song.lyrics.transliteration"), txtLyricsTransliteration);
+		sctLyrics.addField(Translations.get("song.lyrics.title"), txtLyricsTitle);
+		sctLyrics.addField("", btnLyricsQuickEdit);
 		
-		VBox boxLayout = new VBox(
+		FormFieldSection sctSection = new FormFieldSection();
+		sctSection.addField(Translations.get("song.lyrics.section.name"), txtSectionName);
+		sctSection.addField(Translations.get("song.lyrics.section.text"), txtSectionText);
+		
+		FormFieldGroup pneGeneral = new FormFieldGroup(Translations.get("song"), sctGeneral);
+		FormFieldGroup pneAuthor = new FormFieldGroup(Translations.get("song.lyrics.author"), sctAuthor);
+		FormFieldGroup pneSongBook = new FormFieldGroup(Translations.get("song.lyrics.songbook"), sctSongbook);
+		FormFieldGroup pneLyrics = new FormFieldGroup(Translations.get("song.lyrics"), sctLyrics);
+		FormFieldGroup pneSection = new FormFieldGroup(Translations.get("song.lyrics.section"), sctSection);
+		
+		this.getChildren().addAll(
 				pneGeneral,
 				pneAuthor,
 				pneSongBook,
 				pneLyrics,
 				pneSection);
-		boxLayout.getStyleClass().add(SONG_SELECTION_EDITOR_SECTIONS_CSS);
-		
-		ScrollPane scroller = new ScrollPane(boxLayout);
-		scroller.setHbarPolicy(ScrollBarPolicy.NEVER);
-		scroller.setFitToWidth(true);
-		
-		this.getChildren().addAll(scroller);
-		
-		VBox.setVgrow(scroller, Priority.ALWAYS);
 		
 		// hide/show
 		

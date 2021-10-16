@@ -1,11 +1,8 @@
 package org.praisenter.ui.controls;
 
-import org.praisenter.ui.Glyphs;
-
 import javafx.geometry.HPos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.ColumnConstraints;
 
 public class FormFieldSection extends RowVisGridPane {
@@ -43,18 +40,14 @@ public class FormFieldSection extends RowVisGridPane {
 	}
 	
 	public int addField(Node field) {
-		return this.addField(null, null, false, field);
+		return this.addField(null, null, field);
 	}
 	
 	public int addField(String label, Node field) {
-		return this.addField(label, null, label != null, field);
+		return this.addField(label, null, field);
 	}
 	
 	public int addField(String label, String helpText, Node field) {
-		return this.addField(label, helpText, label != null, field);
-	}
-	
-	public int addField(String label, String helpText, boolean useTooltip, Node field) {
 		Label lblFieldLabel = null;
 		if (label != null) {
 			lblFieldLabel = new Label(label);
@@ -70,16 +63,9 @@ public class FormFieldSection extends RowVisGridPane {
 		this.add(field, lblFieldLabel != null ? 1 : 0, row, lblFieldLabel != null ? 1 : 2);
 
 		if (helpText != null && !helpText.isBlank()) {
-			if (useTooltip) {
-				Tooltip tt = new Tooltip(helpText);
-				Label graphic = Glyphs.INFO.duplicate();
-				graphic.setTooltip(tt);
-				lblFieldLabel.setGraphic(graphic);
-			} else {
-				Label lblHelpText = new Label(helpText);
-				lblHelpText.getStyleClass().add(FORM_FIELD_SECTION_HELP_CSS);
-				this.add(lblHelpText, 0, this.row++, 2);
-			}
+			Label lblHelpText = new Label(helpText);
+			lblHelpText.getStyleClass().add(FORM_FIELD_SECTION_HELP_CSS);
+			this.add(lblHelpText, 1, this.row++);
 		}
 		
 		return row;
