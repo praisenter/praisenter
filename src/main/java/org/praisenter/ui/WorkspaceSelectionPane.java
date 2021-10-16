@@ -18,8 +18,6 @@ import org.praisenter.data.workspace.WorkspacePathResolver;
 import org.praisenter.data.workspace.Workspaces;
 import org.praisenter.ui.translations.Translations;
 
-import javafx.application.Platform;
-import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;

@@ -5,7 +5,7 @@ import org.praisenter.data.slide.effects.SlideShadow;
 import org.praisenter.ui.Option;
 import org.praisenter.ui.bind.BindingHelper;
 import org.praisenter.ui.bind.ObjectConverter;
-import org.praisenter.ui.controls.EditGridPane;
+import org.praisenter.ui.controls.FormFieldSection;
 import org.praisenter.ui.controls.LastValueNumberStringConverter;
 import org.praisenter.ui.controls.TextInputFieldEventFilter;
 import org.praisenter.ui.slide.convert.PaintConverter;
@@ -19,15 +19,13 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ColorPicker;
-import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
-import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
 // FIXME replace color pickers with custom one
-public final class SlideShadowPicker extends VBox {
+public final class SlideShadowPicker extends FormFieldSection {
 	private static final Color DEFAULT_COLOR = new Color(0.0, 0.0, 0.0, 0.8);
 	
 	private final ObjectProperty<SlideShadow> value;
@@ -159,26 +157,23 @@ public final class SlideShadowPicker extends VBox {
 		TextInputFieldEventFilter.applyTextInputFieldEventFilter(txtX, txtY);
 		
 		// layout
-		int r = 0;
-		EditGridPane grid = new EditGridPane();
-		grid.addRow(r++, new Label(label), cbType);
-		grid.addRow(r++, new Label(Translations.get("slide.shadow.color")), pkrColor);
-		grid.addRow(r++, new Label(Translations.get("slide.shadow.offset.x")), txtX);
-		grid.addRow(r++, new Label(Translations.get("slide.shadow.offset.y")), txtY);
-		grid.addRow(r++, new Label(Translations.get("slide.shadow.radius")), sldRadius);
-		grid.addRow(r++, new Label(Translations.get("slide.shadow.spread")), sldSpread);
 		
-		grid.showRowsOnly(0);
+		int fIndex = this.addField(Translations.get("slide.shadow.type"), cbType);
+		this.addField(Translations.get("slide.shadow.color"), pkrColor);
+		this.addField(Translations.get("slide.shadow.offset.x"), txtX);
+		this.addField(Translations.get("slide.shadow.offset.y"), txtY);
+		this.addField(Translations.get("slide.shadow.radius"), sldRadius);
+		this.addField(Translations.get("slide.shadow.spread"), sldSpread);
+		
+		this.showRowsOnly(fIndex);
 		
 		this.type.addListener((obs, ov, nv) -> {
 			if (nv == null) {
-				grid.showRowsOnly(0);
+				this.showRowsOnly(fIndex);
 			} else {
-				grid.showRowsOnly(0,1,2,3,4,5);
+				this.showRowsOnly(fIndex, fIndex + 1, fIndex + 2, fIndex + 3, fIndex + 4, fIndex + 5);
 			}
 		});
-		
-		this.getChildren().addAll(grid);
 	}
 
 	private SlideShadow getCurrentValue() {

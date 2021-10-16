@@ -14,7 +14,7 @@ import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.Option;
 import org.praisenter.ui.bind.BindingHelper;
 import org.praisenter.ui.bind.ObjectConverter;
-import org.praisenter.ui.controls.EditGridPane;
+import org.praisenter.ui.controls.FormFieldSection;
 import org.praisenter.ui.slide.convert.PaintConverter;
 import org.praisenter.ui.translations.Translations;
 
@@ -24,11 +24,9 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ColorPicker;
-import javafx.scene.control.Label;
-import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
-public final class SlidePaintPicker extends VBox {
+public final class SlidePaintPicker extends FormFieldSection {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
 	private final ObjectProperty<SlidePaint> value;
@@ -46,6 +44,7 @@ public final class SlidePaintPicker extends VBox {
 			boolean allowImage,
 			boolean allowVideo,
 			String label) {
+		super(null);
 		this.value = new SimpleObjectProperty<>();
 		
 		this.type = new SimpleObjectProperty<>(PaintType.NONE);
@@ -83,33 +82,29 @@ public final class SlidePaintPicker extends VBox {
 			allowed = new MediaType[] { MediaType.VIDEO };
 		}
 		
-		int r = 0;
-		EditGridPane grid = new EditGridPane();
-		grid.addRow(r++, new Label(label), cbType);
-		grid.addRow(r++, new Label(Translations.get("slide.paint." + PaintType.COLOR)), pkrColor);
-		grid.add(pkrGradient, 0, r++, 2);
+		int fIndex = this.addField(label, cbType);
+		this.addField(Translations.get("slide.paint." + PaintType.COLOR), pkrColor);
+		this.addSubSection(pkrGradient);
 		
 		if (allowImage || allowVideo) {
 			MediaObjectPicker pkrMedia = new MediaObjectPicker(context, allowed);
 			pkrMedia.valueProperty().bindBidirectional(this.media);
-			grid.add(pkrMedia, 0, r++, 2);
+			this.addSubSection(pkrMedia);
 		}
 		
-		grid.showRowsOnly(0);
+		this.showRowsOnly(fIndex);
 		
 		this.type.addListener((obs, ov, nv) -> {
 			if (nv == null || nv == PaintType.NONE) {
-				grid.showRowsOnly(0);
+				this.showRowsOnly(fIndex);
 			} else if (nv == PaintType.COLOR) {
-				grid.showRowsOnly(0,1);
+				this.showRowsOnly(fIndex, fIndex + 1);
 			} else if (nv == PaintType.GRADIENT) {
-				grid.showRowsOnly(0,2);
+				this.showRowsOnly(fIndex, fIndex + 2);
 			} else if (nv == PaintType.MEDIA) {
-				grid.showRowsOnly(0,3);
+				this.showRowsOnly(fIndex, fIndex + 3);
 			}
 		});
-		
-		this.getChildren().add(grid);
 		
 		BindingHelper.bindBidirectional(this.type, this.value, new ObjectConverter<PaintType, SlidePaint>() {
 			@Override

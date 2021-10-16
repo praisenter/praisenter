@@ -13,7 +13,7 @@ import org.praisenter.data.song.SongBook;
 import org.praisenter.ui.Action;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.controls.FormField;
-import org.praisenter.ui.controls.FormFieldSet;
+import org.praisenter.ui.controls.FormFieldGroup;
 import org.praisenter.ui.controls.TagListView;
 import org.praisenter.ui.controls.TextInputFieldEventFilter;
 import org.praisenter.ui.document.DocumentContext;
@@ -401,17 +401,17 @@ public final class SongSelectionEditor extends VBox implements DocumentSelection
 				new FormField(Translations.get("song.keywords"), Translations.get("song.keywords.description"), txtSongKeywords),
 				new FormField(Translations.get("song.notes"), Translations.get("song.notes.description"), txtSongNotes),
 				new FormField(Translations.get("song.tags"), Translations.get("song.tags.description"), viewTags));
-		FormFieldSet pneGeneral = new FormFieldSet(Translations.get("song"), boxGeneral);
+		FormFieldGroup pneGeneral = new FormFieldGroup(Translations.get("song"), boxGeneral);
 		
 		VBox boxAuthor = new VBox(
 				new FormField(Translations.get("song.lyrics.author.name"), Translations.get("song.lyrics.author.name.description"), txtAuthorName),
 				new FormField(Translations.get("song.lyrics.author.type"), Translations.get("song.lyrics.author.type.description"), txtAuthorType));
-		FormFieldSet pneAuthor = new FormFieldSet(Translations.get("song.lyrics.author"), boxAuthor);
+		FormFieldGroup pneAuthor = new FormFieldGroup(Translations.get("song.lyrics.author"), boxAuthor);
 		
 		VBox boxSongBook = new VBox(
 				new FormField(Translations.get("song.lyrics.songbook.name"), Translations.get("song.lyrics.songbook.name.description"), txtSongBookName),
 				new FormField(Translations.get("song.lyrics.songbook.entry"), Translations.get("song.lyrics.songbook.entry.description"), txtSongBookEntry));
-		FormFieldSet pneSongBook = new FormFieldSet(Translations.get("song.lyrics.songbook"), boxSongBook);
+		FormFieldGroup pneSongBook = new FormFieldGroup(Translations.get("song.lyrics.songbook"), boxSongBook);
 		
 		VBox boxLyrics = new VBox(
 				new FormField(Translations.get("song.lyrics.original"), Translations.get("song.lyrics.original.description"), chkLyricsOriginal),
@@ -419,12 +419,12 @@ public final class SongSelectionEditor extends VBox implements DocumentSelection
 				new FormField(Translations.get("song.lyrics.transliteration"), Translations.get("song.lyrics.transliteration.description"), txtLyricsTransliteration),
 				new FormField(Translations.get("song.lyrics.title"), Translations.get("song.lyrics.title.description"), txtLyricsTitle),
 				new FormField(Translations.get("song.lyrics.edit.bulk"), Translations.get("song.lyrics.edit.bulk.description"), btnLyricsQuickEdit));
-		FormFieldSet pneLyrics = new FormFieldSet(Translations.get("song.lyrics"), boxLyrics);
+		FormFieldGroup pneLyrics = new FormFieldGroup(Translations.get("song.lyrics"), boxLyrics);
 
 		VBox boxSection = new VBox(
 				new FormField(Translations.get("song.lyrics.section.name"), Translations.get("song.lyrics.section.name.description"), txtSectionName),
 				new FormField(Translations.get("song.lyrics.section.text"), Translations.get("song.lyrics.section.text.description"), txtSectionText));
-		FormFieldSet pneSection = new FormFieldSet(Translations.get("song.lyrics.section"), boxSection);
+		FormFieldGroup pneSection = new FormFieldGroup(Translations.get("song.lyrics.section"), boxSection);
 		
 		VBox boxLayout = new VBox(
 				pneGeneral,

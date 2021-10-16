@@ -6,10 +6,9 @@ import org.praisenter.data.slide.graphics.SlideGradientType;
 import org.praisenter.ui.Option;
 import org.praisenter.ui.bind.BindingHelper;
 import org.praisenter.ui.bind.ObjectConverter;
-import org.praisenter.ui.controls.EditGridPane;
+import org.praisenter.ui.controls.FormFieldSection;
 import org.praisenter.ui.slide.convert.PaintConverter;
 import org.praisenter.ui.translations.Translations;
-import org.praisenter.utility.ClasspathLoader;
 import org.praisenter.utility.Numbers;
 
 import javafx.beans.binding.Bindings;
@@ -25,7 +24,6 @@ import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ColorPicker;
-import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
@@ -41,7 +39,6 @@ import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
@@ -54,7 +51,7 @@ import javafx.scene.shape.StrokeType;
 // JAVABUG (L) 06/14/17 [workaround] Color picker in context menu (or other dialog) doesn't work if you click the "Custom Color" link https://bugs.openjdk.java.net/browse/JDK-8175803
 
 // FIXME replace color pickers with custom one
-public final class SlideGradientPicker extends VBox {
+public final class SlideGradientPicker extends FormFieldSection {
 	private static final Image TRANSPARENT_PATTERN = new Image(SlideGradientPicker.class.getResourceAsStream("/org/praisenter/images/transparent.png"));
 	private static final double WIDTH = 125;
 	private static final double HEIGHT = 125;
@@ -77,6 +74,12 @@ public final class SlideGradientPicker extends VBox {
 	private final DoubleProperty handle2Y;
 	
     public SlideGradientPicker() {
+    	this(null);
+    }
+	
+    public SlideGradientPicker(String label) {
+    	super(label);
+    	
     	this.value = new SimpleObjectProperty<SlideGradient>();
     	this.type = new SimpleObjectProperty<>(SlideGradientType.LINEAR);
     	this.cycleType = new SimpleObjectProperty<>(SlideGradientCycleType.NONE);
@@ -224,20 +227,16 @@ public final class SlideGradientPicker extends VBox {
         pp.setPadding(new Insets(10, 0, 10, 0));
         
         // build the layout
-        
-        int r = 0;
-        EditGridPane grid = new EditGridPane();
-        grid.add(pp, 1, r++, 1);
-        grid.addRow(r++, new Label(Translations.get("slide.gradient.type")), cbType);
-        grid.addRow(r++, new Label(Translations.get("slide.gradient.stop1.color")), pkrStop1);
-        grid.addRow(r++, new Label(Translations.get("slide.gradient.stop1.offset")), sldStop1);
-        grid.addRow(r++, new Label(Translations.get("slide.gradient.stop2.color")), pkrStop2);
-        grid.addRow(r++, new Label(Translations.get("slide.gradient.stop2.offset")), sldStop2);
-        grid.addRow(r++, new Label(Translations.get("slide.gradient.cycle")), cbCycleType);
-        grid.hideRow(0);
-        grid.showRow(0);
-        
-        this.getChildren().addAll(grid);
+
+	    int fIndex = this.addField(null, pp);
+	    this.addField(Translations.get("slide.gradient.type"), cbType);
+	    this.addField(Translations.get("slide.gradient.stop1.color"), pkrStop1);
+	    this.addField(Translations.get("slide.gradient.stop1.offset"), sldStop1);
+	    this.addField(Translations.get("slide.gradient.stop2.color"), pkrStop2);
+	    this.addField(Translations.get("slide.gradient.stop2.offset"), sldStop2);
+	    this.addField(Translations.get("slide.gradient.cycle"), cbCycleType);
+        this.hideRow(fIndex);
+        this.showRow(fIndex);
         
 		// bindings
 		

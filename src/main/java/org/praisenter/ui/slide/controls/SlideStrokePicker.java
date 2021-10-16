@@ -12,7 +12,7 @@ import org.praisenter.data.slide.graphics.SlideStrokeType;
 import org.praisenter.ui.Option;
 import org.praisenter.ui.bind.BindingHelper;
 import org.praisenter.ui.bind.ObjectConverter;
-import org.praisenter.ui.controls.EditGridPane;
+import org.praisenter.ui.controls.FormFieldSection;
 import org.praisenter.ui.controls.LastValueNumberStringConverter;
 import org.praisenter.ui.translations.Translations;
 
@@ -23,19 +23,17 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
-import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
 import javafx.util.Callback;
 
-public final class SlideStrokePicker extends VBox {
+public final class SlideStrokePicker extends FormFieldSection {
 	private final ObjectProperty<SlideStroke> value;
 	
 	private final SlideStrokeType type;
@@ -49,6 +47,8 @@ public final class SlideStrokePicker extends VBox {
 	private final BooleanBinding isValueSelected;
 	
 	public SlideStrokePicker(SlideStrokeType type, String label, boolean showRadius) {
+		super(null);
+		
 		this.value = new SimpleObjectProperty<>();
 		
 		this.type = type;
@@ -63,19 +63,16 @@ public final class SlideStrokePicker extends VBox {
 		SlidePaintPicker pkrPaint = new SlidePaintPicker(null, true, true, true, false, false, label);
 		pkrPaint.valueProperty().bindBidirectional(this.paint);
 		
-		Label lblRadius = new Label(Translations.get("slide.border.radius"));
 		TextField txtRadius = new TextField();
 		TextFormatter<Double> tfRadius = new TextFormatter<Double>(LastValueNumberStringConverter.forDouble());
 		txtRadius.setTextFormatter(tfRadius);
 		tfRadius.valueProperty().bindBidirectional(this.radius);
 
-		Label lblWidth = new Label(Translations.get("slide.border.width"));
 		TextField txtWidth = new TextField();
 		TextFormatter<Double> tfWidth = new TextFormatter<Double>(LastValueNumberStringConverter.forDouble());
 		txtWidth.setTextFormatter(tfWidth);
 		tfWidth.valueProperty().bindBidirectional(this.width);
 		
-		Label lblCap = new Label(Translations.get("slide.border.cap"));
 		ObservableList<Option<SlideStrokeCap>> capOptions = FXCollections.observableArrayList();
 		capOptions.add(new Option<>(Translations.get("slide.stroke.cap." + SlideStrokeCap.BUTT), SlideStrokeCap.BUTT));
 		capOptions.add(new Option<>(Translations.get("slide.stroke.cap." + SlideStrokeCap.SQUARE), SlideStrokeCap.SQUARE));
@@ -84,7 +81,6 @@ public final class SlideStrokePicker extends VBox {
 		cbCap.setMaxWidth(Double.MAX_VALUE);
 		BindingHelper.bindBidirectional(cbCap.valueProperty(), this.cap);
 
-		Label lblJoin = new Label(Translations.get("slide.border.join"));
 		ObservableList<Option<SlideStrokeJoin>> joinOptions = FXCollections.observableArrayList();
 		joinOptions.add(new Option<>(Translations.get("slide.stroke.join." + SlideStrokeJoin.MITER), SlideStrokeJoin.MITER));
 		joinOptions.add(new Option<>(Translations.get("slide.stroke.join." + SlideStrokeJoin.BEVEL), SlideStrokeJoin.BEVEL));
@@ -93,7 +89,6 @@ public final class SlideStrokePicker extends VBox {
 		cbJoin.setMaxWidth(Double.MAX_VALUE);
 		BindingHelper.bindBidirectional(cbJoin.valueProperty(), this.join);
 		
-		Label lbldashes = new Label(Translations.get("slide.border.dashes"));
 		ObservableList<DashPattern> dashOptions = FXCollections.observableArrayList();
 		dashOptions.add(DashPattern.SOLID);
 		dashOptions.add(DashPattern.DASH);
@@ -113,40 +108,25 @@ public final class SlideStrokePicker extends VBox {
 		cmbDash.setMaxWidth(Double.MAX_VALUE);
 		cmbDash.valueProperty().bindBidirectional(this.dashes);
 		
-		int r = 0;
-		EditGridPane grid = new EditGridPane();
-		grid.add(pkrPaint, 0, r++, 2);
-		grid.addRow(r++, lblWidth, txtWidth);
-		grid.addRow(r++, lblRadius, txtRadius);
-		grid.addRow(r++, lblCap, cbCap);
-		grid.addRow(r++, lblJoin, cbJoin);
-		grid.addRow(r++, lbldashes, cmbDash);
+		int fIndex = this.addSubSection(pkrPaint);
+		this.addField(Translations.get("slide.border.width"), txtWidth);
+		this.addField(Translations.get("slide.border.radius"), txtRadius);
+		this.addField(Translations.get("slide.border.cap"), cbCap);
+		this.addField(Translations.get("slide.border.join"), cbJoin);
+		this.addField(Translations.get("slide.border.dashes"), cmbDash);
 		
-		this.getChildren().addAll(grid);
-		
-		grid.showRowsOnly(0);
+		this.showRowsOnly(fIndex);
 		
 		this.isValueSelected.addListener((obs, ov, nv) -> {
 			if (nv) {
 				if (showRadius) {
-					grid.showRowsOnly(0,1,2,3,4,5);
+					this.showRowsOnly(fIndex, fIndex + 1, fIndex + 2, fIndex + 3, fIndex + 4, fIndex + 5);
 				} else {
-					grid.showRowsOnly(0,1,3,4,5);
+					this.showRowsOnly(fIndex, fIndex + 1, fIndex + 3, fIndex + 4, fIndex + 5);
 				}
 			}
-			else grid.showRowsOnly(0);
+			else this.showRowsOnly(fIndex);
 		});
-		
-//		txtWidth.visibleProperty().bind(this.isValueSelected);
-//		txtWidth.managedProperty().bind(txtWidth.visibleProperty());
-//		txtRadius.visibleProperty().bind(this.isValueSelected);
-//		txtRadius.managedProperty().bind(txtRadius.visibleProperty());
-//		cbCap.visibleProperty().bind(this.isValueSelected);
-//		cbCap.managedProperty().bind(cbCap.visibleProperty());
-//		cbJoin.visibleProperty().bind(this.isValueSelected);
-//		cbJoin.managedProperty().bind(cbJoin.visibleProperty());
-//		cmbDash.visibleProperty().bind(this.isValueSelected);
-//		cmbDash.managedProperty().bind(cmbDash.visibleProperty());
 		
 		BindingHelper.bindBidirectional(this.paint, this.value, new ObjectConverter<SlidePaint, SlideStroke>() {
 			@Override

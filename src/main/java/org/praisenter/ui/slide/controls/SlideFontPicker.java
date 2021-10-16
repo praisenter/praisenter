@@ -6,7 +6,7 @@ import org.praisenter.data.slide.text.SlideFontWeight;
 import org.praisenter.ui.Option;
 import org.praisenter.ui.bind.BindingHelper;
 import org.praisenter.ui.bind.ObjectConverter;
-import org.praisenter.ui.controls.EditGridPane;
+import org.praisenter.ui.controls.FormFieldSection;
 import org.praisenter.ui.controls.LastValueNumberStringConverter;
 import org.praisenter.ui.controls.TextInputFieldEventFilter;
 import org.praisenter.ui.translations.Translations;
@@ -25,7 +25,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.Spinner;
-import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.util.Callback;
 
@@ -33,7 +32,7 @@ import javafx.util.Callback;
 // JAVABUG (L) 03/15/16 Java FX does not have a facility to derive fonts; If this is added in the future, consider changing the bold button to a drop down of values https://bugs.openjdk.java.net/browse/JDK-8091064
 // see also https://bitbucket.org/controlsfx/controlsfx/src/13e52b38df16842b71a4c9df1cadbeba6087742a/controlsfx/src/main/java/org/controlsfx/dialog/FontSelectorDialog.java?at=default&fileviewer=file-view-default
 
-public final class SlideFontPicker extends VBox {
+public final class SlideFontPicker extends FormFieldSection {
 	private final ObservableList<String> families;
 	private final Font defaultJavaFXFont;
 	
@@ -184,14 +183,10 @@ public final class SlideFontPicker extends VBox {
 		
 		TextInputFieldEventFilter.applyTextInputFieldEventFilter(spnSize.getEditor());
 
-		int r = 0;
-		EditGridPane grid = new EditGridPane();
-		grid.addRow(r++, new Label(label), cmbFamily);
-		grid.addRow(r++, new Label(Translations.get("slide.font.weight")), cmbWeight);
-		grid.addRow(r++, new Label(Translations.get("slide.font.style")), cmbPosture);
-		grid.addRow(r++, new Label(Translations.get("slide.font.size")), spnSize);
-		
-		this.getChildren().addAll(grid);
+		this.addField(label, cmbFamily);
+		this.addField(Translations.get("slide.font.weight"), cmbWeight);
+		this.addField(Translations.get("slide.font.style"), cmbPosture);
+		this.addField(Translations.get("slide.font.size"), spnSize);
 	}
 	
 	private SlideFont getCurrentValue() {

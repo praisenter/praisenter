@@ -3,7 +3,7 @@ package org.praisenter.ui.slide.controls;
 import org.praisenter.data.slide.effects.SlideColorAdjust;
 import org.praisenter.ui.bind.BindingHelper;
 import org.praisenter.ui.bind.ObjectConverter;
-import org.praisenter.ui.controls.EditGridPane;
+import org.praisenter.ui.controls.FormFieldSection;
 import org.praisenter.ui.translations.Translations;
 
 import javafx.beans.property.BooleanProperty;
@@ -13,14 +13,12 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.CheckBox;
-import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
-import javafx.scene.layout.VBox;
 
 // JAVABUG (L) 08/09/17 [workaround] LabelFormatter doesn't give enough control of the labels https://bugs.openjdk.java.net/browse/JDK-8091345
 // JAVABUG (H) 08/09/17 [workaround] The ticks aren't evenly spaced; setting the LabelFormatter seemed to fix it https://bugs.openjdk.java.net/browse/JDK-8164328
 
-public final class SlideColorAdjustPicker extends VBox {
+public final class SlideColorAdjustPicker extends FormFieldSection {
 	private final ObjectProperty<SlideColorAdjust> value = new SimpleObjectProperty<SlideColorAdjust>();
 	
 	private final BooleanProperty enabled;
@@ -35,6 +33,12 @@ public final class SlideColorAdjustPicker extends VBox {
 	private final ObjectProperty<Double> contrastAsObject;
 	
 	public SlideColorAdjustPicker() {
+		this(null);
+	}
+	
+	public SlideColorAdjustPicker(String label) {
+		super(label);
+		
 		this.enabled = new SimpleBooleanProperty();
 		
 		this.hue = new SimpleDoubleProperty();
@@ -55,25 +59,21 @@ public final class SlideColorAdjustPicker extends VBox {
 		Slider sldBrightness = this.buildSlider();
 		Slider sldContrast = this.buildSlider();
 		
-		int r = 0;
-		EditGridPane grid = new EditGridPane();
-		grid.addRow(r++, new Label(Translations.get("slide.coloradjust.enabled")), enable);
-		grid.addRow(r++, new Label(Translations.get("slide.coloradjust.hue")), sldHue);
-		grid.addRow(r++, new Label(Translations.get("slide.coloradjust.saturation")), sldSaturation);
-		grid.addRow(r++, new Label(Translations.get("slide.coloradjust.brightness")), sldBrightness);
-		grid.addRow(r++, new Label(Translations.get("slide.coloradjust.contrast")), sldContrast);
+		int fIndex = this.addField(Translations.get("slide.coloradjust.enabled"), enable);
+		this.addField(Translations.get("slide.coloradjust.hue"), sldHue);
+		this.addField(Translations.get("slide.coloradjust.saturation"), sldSaturation);
+		this.addField(Translations.get("slide.coloradjust.brightness"), sldBrightness);
+		this.addField(Translations.get("slide.coloradjust.contrast"), sldContrast);
 		
-		grid.showRowsOnly(0);
+		this.showRowsOnly(fIndex);
 		this.enabled.addListener((obs, ov, nv) -> {
 			if (nv) {
-				grid.showRows(0,1,2,3,4);
+				this.showRows(fIndex, fIndex + 1, fIndex + 2, fIndex + 3, fIndex + 4);
 			} else {
-				grid.showRowsOnly(0);
+				this.showRowsOnly(fIndex);
 			}
 		});
 		
-		this.getChildren().addAll(grid);
-
 		sldHue.valueProperty().bindBidirectional(this.hue);
 		sldSaturation.valueProperty().bindBidirectional(this.saturation);
 		sldBrightness.valueProperty().bindBidirectional(this.brightness);

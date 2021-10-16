@@ -12,7 +12,7 @@ import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.Option;
 import org.praisenter.ui.bind.BindingHelper;
 import org.praisenter.ui.bind.ObjectConverter;
-import org.praisenter.ui.controls.EditGridPane;
+import org.praisenter.ui.controls.FormFieldSection;
 import org.praisenter.ui.controls.WindowHelper;
 import org.praisenter.ui.library.LibraryList;
 import org.praisenter.ui.library.LibraryListType;
@@ -33,12 +33,10 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Dialog;
-import javafx.scene.control.Label;
-import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.StageStyle;
 
-public final class MediaObjectPicker extends VBox {
+public final class MediaObjectPicker extends FormFieldSection {
 	private final ObjectProperty<MediaObject> value;
 	
 	private final ObjectProperty<Media> media;
@@ -54,6 +52,15 @@ public final class MediaObjectPicker extends VBox {
 	public MediaObjectPicker(
 			GlobalContext context,
 			MediaType... allowedTypes) {
+		this(null, context, allowedTypes);
+	}
+	
+	public MediaObjectPicker(
+			String label,
+			GlobalContext context,
+			MediaType... allowedTypes) {
+		super(label);
+		
 		this.value = new SimpleObjectProperty<>();
 		
 		this.media = new SimpleObjectProperty<>();
@@ -127,26 +134,22 @@ public final class MediaObjectPicker extends VBox {
 		SlideColorAdjustPicker pkrColorAdjust = new SlideColorAdjustPicker();
 		pkrColorAdjust.valueProperty().bindBidirectional(this.colorAdjust);
 		
-		int r = 0;
-		EditGridPane grid = new EditGridPane();
-		grid.addRow(r++, new Label(Translations.get("media")), btnMedia);
-		grid.addRow(r++, new Label(Translations.get("slide.media.loop")), chkLoop);
-		grid.addRow(r++, new Label(Translations.get("slide.media.mute")), chkMute);
-		grid.addRow(r++, new Label(Translations.get("slide.media.scale.type")), cbScaleType);
-		grid.add(pkrColorAdjust, 0, r++, 2);
-		grid.showRowsOnly(0);
-		
-		this.getChildren().add(grid);
+		int fIndex = this.addField(Translations.get("media"), btnMedia);
+		this.addField(Translations.get("slide.media.loop"), chkLoop);
+		this.addField(Translations.get("slide.media.mute"), chkMute);
+		this.addField(Translations.get("slide.media.scale.type"), cbScaleType);
+		this.addSubSection(pkrColorAdjust);
+		this.showRowsOnly(fIndex);
 		
 		this.media.addListener((obs, ov, nv) -> {
 			if (nv == null) {
-				grid.showRowsOnly(0);
+				this.showRowsOnly(fIndex);
 			} else if (nv.getMediaType() == MediaType.AUDIO) {
-				grid.showRowsOnly(0,1,2);
+				this.showRowsOnly(fIndex, fIndex + 1, fIndex + 2);
 			} else if (nv.getMediaType() == MediaType.IMAGE) {
-				grid.showRowsOnly(0,3,4);
+				this.showRowsOnly(fIndex, fIndex + 3, fIndex + 4);
 			} else if (nv.getMediaType() == MediaType.VIDEO) {
-				grid.showRowsOnly(0,1,2,3,4);
+				this.showRowsOnly(fIndex, fIndex + 1, fIndex + 2, fIndex + 3, fIndex + 4);
 			}
 		});
 		

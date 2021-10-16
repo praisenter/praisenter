@@ -3,19 +3,18 @@ package org.praisenter.ui.slide.controls;
 import org.praisenter.data.slide.graphics.SlidePadding;
 import org.praisenter.ui.bind.BindingHelper;
 import org.praisenter.ui.bind.ObjectConverter;
+import org.praisenter.ui.controls.FormFieldSection;
 import org.praisenter.ui.controls.LastValueNumberStringConverter;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.HPos;
-import javafx.geometry.Pos;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
 
-public final class SlidePaddingPicker extends VBox {
+public final class SlidePaddingPicker extends FormFieldSection {
 	private final ObjectProperty<SlidePadding> value;
 	
 	private final ObjectProperty<Double> top;
@@ -71,12 +70,9 @@ public final class SlidePaddingPicker extends VBox {
 		GridPane.setHalignment(txtTop, HPos.CENTER);
 		GridPane.setHalignment(txtBottom, HPos.CENTER);
 		
-		this.getChildren().addAll(layout);
-		this.setAlignment(Pos.CENTER);
+		this.addField(layout);
+		GridPane.setHalignment(layout, HPos.CENTER);
 
-//		layout.setBorder(new Border(new BorderStroke(Color.ORANGE, new BorderStrokeStyle(StrokeType.CENTERED, StrokeLineJoin.ROUND, StrokeLineCap.ROUND, 5, 0, null), new CornerRadii(0), new BorderWidths(5))));
-//		this.setBorder(new Border(new BorderStroke(Color.BLACK, new BorderStrokeStyle(StrokeType.CENTERED, StrokeLineJoin.ROUND, StrokeLineCap.ROUND, 5, 0, null), new CornerRadii(0), new BorderWidths(5))));
-		
 		BindingHelper.bindBidirectional(this.top, this.value, new ObjectConverter<Double, SlidePadding>() {
 			@Override
 			public SlidePadding convertFrom(Double t) {

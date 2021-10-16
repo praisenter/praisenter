@@ -3,15 +3,15 @@ package org.praisenter.ui.controls;
 import javafx.scene.Node;
 import javafx.scene.control.TitledPane;
 
-public class FormFieldSet extends TitledPane {
-	private static final String FORM_FIELD_SET_CSS = "p-form-field-set";
+public class FormFieldGroup extends TitledPane {
+	private static final String FORM_FIELD_SET_CSS = "p-form-field-group";
 	
-	public FormFieldSet() {
+	public FormFieldGroup() {
 		super();
 		this.setDefaults();
 	}
 
-	public FormFieldSet(String title, Node content) {
+	public FormFieldGroup(String title, Node content) {
 		super(title, content);
 		this.setDefaults();
 	}

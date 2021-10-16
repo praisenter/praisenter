@@ -12,7 +12,7 @@ import org.praisenter.data.bible.Verse;
 import org.praisenter.ui.Action;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.controls.FormField;
-import org.praisenter.ui.controls.FormFieldSet;
+import org.praisenter.ui.controls.FormFieldGroup;
 import org.praisenter.ui.controls.TagListView;
 import org.praisenter.ui.controls.TextInputFieldEventFilter;
 import org.praisenter.ui.document.DocumentContext;
@@ -278,23 +278,23 @@ public final class BibleSelectionEditor extends VBox implements DocumentSelectio
 				new FormField(Translations.get("bible.copyright"), Translations.get("bible.copyright.description"), txtBibleCopyright),
 				new FormField(Translations.get("bible.notes"), Translations.get("bible.notes.description"), txtBibleNotes),
 				new FormField(Translations.get("bible.tags"), Translations.get("bible.tags.description"), viewTags));
-		FormFieldSet pneGeneral = new FormFieldSet(Translations.get("bible"), boxGeneral);
+		FormFieldGroup pneGeneral = new FormFieldGroup(Translations.get("bible"), boxGeneral);
 		
 		VBox boxBook = new VBox(
 				new FormField(Translations.get("bible.book.name"), Translations.get("bible.book.name.description"), txtBookName),
 				new FormField(Translations.get("bible.book.number"), Translations.get("bible.book.number.description"), spnBookNumber),
 				new FormField(Translations.get("action.edit.bulk"), Translations.get("bible.book.edit.bulk.description"), btnBookQuickEdit));
-		FormFieldSet pneBook = new FormFieldSet(Translations.get("bible.book"), boxBook);
+		FormFieldGroup pneBook = new FormFieldGroup(Translations.get("bible.book"), boxBook);
 		
 		VBox boxChapter = new VBox(
 				new FormField(Translations.get("bible.chapter.number"), Translations.get("bible.chapter.number.description"), spnChapterNumber),
 				new FormField(Translations.get("action.edit.bulk"), Translations.get("bible.chapter.edit.bulk.description"), btnChapterQuickEdit));
-		FormFieldSet pneChapter = new FormFieldSet(Translations.get("bible.chapter"), boxChapter);
+		FormFieldGroup pneChapter = new FormFieldGroup(Translations.get("bible.chapter"), boxChapter);
 		
 		VBox boxVerse = new VBox(
 				new FormField(Translations.get("bible.verse.number"), Translations.get("bible.verse.number.description"), spnVerseNumber),
 				new FormField(Translations.get("bible.verse.text"), Translations.get("bible.verse.text.description"), txtVerseText));
-		FormFieldSet pneVerse = new FormFieldSet(Translations.get("bible.verse"), boxVerse);
+		FormFieldGroup pneVerse = new FormFieldGroup(Translations.get("bible.verse"), boxVerse);
 
 		VBox boxLayout = new VBox(
 				pneGeneral,
