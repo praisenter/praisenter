@@ -27,6 +27,8 @@ public final class SlideNavigationPane extends BorderPane {
 	
 	private final ObjectProperty<Slide> value;
 	
+	private boolean isSelecting = false;
+	
 	public SlideNavigationPane(GlobalContext context) {
 		this.value = new SimpleObjectProperty<Slide>(null);
 		
@@ -44,11 +46,22 @@ public final class SlideNavigationPane extends BorderPane {
 		Bindings.bindContent(slides.getItems(), this.slideList); 
 		
 		slides.getSelectedItems().addListener((Change<?> c) -> {
+			this.isSelecting = true;
 			List<?> selected = c.getList();
 			if (selected.size() > 0) {
 				this.value.set((Slide)selected.get(0));
 			} else {
 				this.value.set(null);
+			}
+			this.isSelecting = false;
+		});
+		
+		this.value.addListener((obs, ov, nv) -> {
+			if (this.isSelecting) {
+				return;
+			}
+			if (nv != null) {
+				slides.getSelectionModel().select(nv);
 			}
 		});
 		

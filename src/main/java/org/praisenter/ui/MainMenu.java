@@ -3,6 +3,7 @@ package org.praisenter.ui;
 import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
@@ -155,6 +156,10 @@ final class MainMenu extends MenuBar {
 				this.createMenuItem(Action.APPLICATION_LOGS),
 				this.createMenuItem(Action.WORKSPACE_LOGS),
 				new SeparatorMenuItem(),
+				this.createMenuItem(Action.DOWNLOAD_UNBOUND_BIBLES),
+				this.createMenuItem(Action.DOWNLOAD_ZEFANIA_BIBLES),
+				this.createMenuItem(Action.DOWNLOAD_OPENSONG_BIBLES),
+				new SeparatorMenuItem(),
 				this.createMenuItem(Action.CHECK_FOR_UPDATE),
 				this.createMenuItem(Action.ABOUT));
 		
@@ -214,6 +219,15 @@ final class MainMenu extends MenuBar {
 				return;
 			case CHECK_FOR_UPDATE:
 				this.checkForUpdate();
+				return;
+			case DOWNLOAD_ZEFANIA_BIBLES:
+				this.openUrl("https://sourceforge.net/projects/zefania-sharp/files/Bibles/");
+				return;
+			case DOWNLOAD_UNBOUND_BIBLES: 
+				this.openUrl("https://github.com/wnbittle/unbound-bible-archive");
+				return;
+			case DOWNLOAD_OPENSONG_BIBLES:
+				this.openUrl("http://www.opensong.org/home/download");
 				return;
 			default:
 				break;
@@ -317,5 +331,15 @@ final class MainMenu extends MenuBar {
 			});
 			return null;
 		});
+	}
+	
+	private void openUrl(String url) {
+		if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+			try {
+			    Desktop.getDesktop().browse(new URI(url));
+			} catch (Exception e) {
+			    e.printStackTrace();
+			}
+		}
 	}
 }

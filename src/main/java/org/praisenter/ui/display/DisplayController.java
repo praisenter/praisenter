@@ -755,7 +755,10 @@ public final class DisplayController extends BorderPane {
 				if (!nv.hasPlaceholders()) {
 					// then it's a slide
 					tabs.getSelectionModel().select(2);
-					handleDisplayChange.accept(DisplayChange.STANDARD, nv.copy(), null);
+					Slide slide = context.getWorkspaceManager().getItem(Slide.class, nv.getId());
+					if (slide != null) {
+						slideNavigationPane.setValue(slide);
+					}
 					return;
 				}
 				

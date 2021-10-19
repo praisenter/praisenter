@@ -475,3 +475,14 @@ https://stackoverflow.com/questions/50011276/javafx-treeview-expand-collapse-dis
 .p-song-editor-bulk-buttons > .button {
 	-fx-pref-width: 5em;
 }
+
+
+.button:disabled .p-save-all-adder {
+	-fx-opacity: 0.4;
+}
+.p-save-all-adder {
+	-fx-fill: -fx-text-base-color;
+}
+.p-new-adder {
+	-fx-background-color: white;
+}

@@ -421,6 +421,9 @@ public final class GlobalContext {
 			case CHECK_FOR_UPDATE:
 			case ABOUT:
 			case RESET_FONT_SIZE:
+			case DOWNLOAD_UNBOUND_BIBLES:
+			case DOWNLOAD_ZEFANIA_BIBLES:
+			case DOWNLOAD_OPENSONG_BIBLES:
 				return true;
 			case INCREASE_FONT_SIZE:
 				return this.workspaceManager.getWorkspaceConfiguration().getApplicationFontSize() < 22;
