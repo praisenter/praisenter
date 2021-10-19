@@ -35,6 +35,7 @@ import org.praisenter.ui.Glyphs;
 import org.praisenter.ui.Option;
 import org.praisenter.ui.controls.Dialogs;
 import org.praisenter.ui.controls.FlowListCell;
+import org.praisenter.ui.controls.FlowListSelectionModel;
 import org.praisenter.ui.controls.FlowListView;
 import org.praisenter.ui.document.DocumentContext;
 import org.praisenter.ui.events.ActionStateChangedEvent;
@@ -391,6 +392,10 @@ public final class LibraryList extends BorderPane implements ActionPane {
 	
 	public ObservableList<Persistable> getItems() {
 		return this.source;
+	}
+	
+	public FlowListSelectionModel<Persistable> getSelectionModel() {
+		return this.view.getSelectionModel();
 	}
 	
 	@Override

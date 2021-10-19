@@ -13,33 +13,32 @@ import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.Border;
-import javafx.scene.layout.BorderStroke;
-import javafx.scene.layout.BorderStrokeStyle;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
+import javafx.scene.shape.Path;
 import javafx.scene.shape.Rectangle;
-import javafx.scene.shape.StrokeLineCap;
-import javafx.scene.shape.StrokeLineJoin;
-import javafx.scene.shape.StrokeType;
+import javafx.scene.shape.SVGPath;
 
 // TODO convert icons to SVG + css
 
 public enum Action {
 	SAVE("action.save", new KeyCodeCombination(KeyCode.S, KeyCombination.SHORTCUT_DOWN), () -> Glyphs.SAVE.duplicate()),
 	SAVE_ALL("action.saveall", new KeyCodeCombination(KeyCode.S, KeyCombination.SHIFT_DOWN, KeyCombination.SHORTCUT_DOWN), () -> {
-		// TODO need better icon or set background color for second one
 		StackPane stack = new StackPane();
-		StackPane pane = new StackPane(Glyphs.SAVE.duplicate().size(12));
+		StackPane pane = new StackPane(Glyphs.SAVE.duplicate());
 		pane.setTranslateX(3);
-		pane.setTranslateY(3);
-//		pane.setBackground(new Background(new BackgroundFill(Color.LIGHTGRAY, null, null)));
+		pane.setTranslateY(1);
+		
 		stack.setTranslateX(-3);
-		stack.setTranslateY(-3);
-		stack.getChildren().addAll(Glyphs.SAVE.duplicate().size(12), pane);
+		stack.setTranslateY(-1);
+		
+		SVGPath path = new SVGPath();
+		path.setContent("M0,0 L10,0 L10,1 L1,1 L1,12 L0,12 Z");
+		path.getStyleClass().add("p-save-all-adder");
+
+		stack.getChildren().addAll(path, pane);
 		return stack;
 	}),
 	RENAME("action.rename", new KeyCodeCombination(KeyCode.R, KeyCombination.SHORTCUT_DOWN), () -> Glyphs.RENAME.duplicate()),
@@ -142,7 +141,14 @@ public enum Action {
 	NEW_LYRICS("action.new.song.lyrics", getGraphicSupplierForNew(Glyphs.NEW_LYRICS)),
 	NEW_AUTHOR("action.new.song.author", getGraphicSupplierForNew(Glyphs.NEW_AUTHOR)),
 	NEW_SONGBOOK("action.new.song.songbook", getGraphicSupplierForNew(Glyphs.NEW_SONGBOOK)),
-	NEW_SECTION("action.new.song.section", getGraphicSupplierForNew(Glyphs.NEW_SECTION))
+	NEW_SECTION("action.new.song.section", getGraphicSupplierForNew(Glyphs.NEW_SECTION)),
+	
+	// other
+	DOWNLOAD_ZEFANIA_BIBLES("action.about.download.zefania"),
+	DOWNLOAD_UNBOUND_BIBLES("action.about.download.unbound"),
+	DOWNLOAD_OPENSONG_BIBLES("action.about.download.opensong"),
+//	DOWNLOAD_ZEFANIA_BIBLES("action.about.download.zefania"),
+//	DOWNLOAD_ZEFANIA_BIBLES("action.about.download.zefania"),
 	
 	;
 	
@@ -154,7 +160,8 @@ public enum Action {
 //			BorderStroke stroke2 = new BorderStroke(Color.WHITE, BorderStrokeStyle.SOLID, null, null);
 			Glyph plus = Glyphs.NEW.duplicate().size(6).color(Color.BLACK);
 //			plus.setBorder(new Border(stroke2));
-			plus.setBackground(new Background(new BackgroundFill(Color.WHITE, null, null)));
+//			plus.setBackground(new Background(new BackgroundFill(Color.WHITE, null, null)));
+			plus.getStyleClass().add("p-new-adder");
 			plus.setPadding(new Insets(1, 2, 1, 2));
 //			plus.setShape(new Circle(Math.max(plus.getWidth() * 0.5, 24)));
 			plus.setTranslateX(3);
