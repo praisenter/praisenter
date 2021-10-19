@@ -1,3 +1,4 @@
+--type: deb
 --name ${app.name}
 --icon ${project.basedir}/package/linux64/praisenter.png
 --dest ${project.build.directory}
