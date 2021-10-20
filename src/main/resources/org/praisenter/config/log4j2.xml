@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="error" name="example-config">
+<!-- https://logging.apache.org/log4j/2.0/manual/configuration.html#PropertySubstitution -->
+    <Properties>
+        <Property name="logs.archive">${sys:praisenter.logs.dir}/archive</Property>
+        <Property name="log.pattern">%-5level %d{ISO8601} [%t] %c.%M:%L %m%n%ex</Property>
+    </Properties>
+    <Appenders>
+		<Console name="console" target="SYSTEM_OUT">
+			<PatternLayout pattern="${log.pattern}"/>
+		</Console>
+
+        <RollingFile name="file"
+                     fileName="${sys:praisenter.logs.dir}/praisenter.log"
+                     filePattern="${logs.archive}/praisenter.log.%d{yyyy-MM-dd}.gz">
+            <PatternLayout pattern="${log.pattern}"/>
+            <Policies>
+	            <!-- <TimeBasedTriggeringPolicy interval="1" /> -->
+	            <SizeBasedTriggeringPolicy size="5MB" />
+            </Policies>
+            <DefaultRolloverStrategy max="10"/>
+        </RollingFile>
+    </Appenders>
+    <Loggers>
+        <Root level="debug">
+            <AppenderRef ref="file" level="trace" />
+            <AppenderRef ref="console" level="trace" />
+        </Root>
+    </Loggers>
+</Configuration>

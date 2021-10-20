@@ -1,0 +1,11 @@
+Manifest-Version: 1.0
+JavaFX-Version: 2.1
+implementation-vendor: nhildebr
+implementation-title: AnimatedCircles
+implementation-version: 1.0
+JavaFX-Preloader-Class: firstpreloader.FirstPreloader
+JavaFX-Application-Class: animatedcircles.AnimatedCircles
+JavaFX-Class-Path: lib/FirstPreloader.jar
+JavaFX-Fallback-Class: com.javafx.main.NoJavaFXFallback
+Created-By: JavaFX Packager
+Main-Class: com/javafx/main/Main

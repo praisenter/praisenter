@@ -1,0 +1,4 @@
+Build the app as a self contained .exe/dmg/etc. - not sure, might have its own problems
+ -Dprism.maxvram=90M
+ -Dprism.verbose=true 
+ -Dprism.poolstats=true - monitors the texture pool usage
