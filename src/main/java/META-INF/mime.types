@@ -1,0 +1,92 @@
+# image types
+image/png													png PNG x-png X-PNG
+image/gif													gif GIF
+image/bmp													bmp BMP bm BM
+image/jpeg													jpg JPG jpeg JPEG jpe JPE jfif JFIF
+image/vnd.wap.wbmp											wbmp WBMP
+image/tiff													tif TIF tiff TIFF
+
+# video types
+video/ogg													ogv OGV
+video/ogg													ogg OGG
+video/x-msvideo   											avi AVI
+video/x-ms-wmv												wmv WMV
+video/x-flv													flv FLV
+video/x-shockwave-flash										swf SWF
+video/mp4													mp4 MP4 mp4v MP4V mpg4 MPG4
+video/mpeg													mpeg MPEG mpg MPG mpe MPE m1v M1V m2v M2V
+video/quicktime												qt QT mov MOV
+video/x-ms-asf												asf ASF asx ASX
+video/3gpp													3gp 3GP
+video/3gpp2													3g2 3G2
+video/h261													h261 H261
+video/h263													h263 H263
+video/h264													h264 H264
+video/webm													webm WEBM
+
+# audio types
+audio/midi 													mid MID midi MIDI kar KAR rmi RMI
+audio/x-ms-wma												wma WMA
+audio/mpeg													mpga MPGA mp2 MP2 mp2a MP2A mp3 MP3 m2a M2A m3a M3A
+audio/x-aiff												aif AIF aifc AIFC aiff AIFF
+audio/wav													wav WAV
+audio/ogg													oga OGA
+audio/flac													flac FLAC
+audio/m4a													m4a M4A
+audio/mp4													mp4a MP4A
+audio/basic													au AU snd SND
+audio/3gp													3gpp 3GPP
+
+# other
+application/xml												xml XML xsl XSL
+application/json											json JSON
+
+# not supported by the media library but we still want to
+# show a correct mime type on the error report
+text/plain													txt TXT text TEXT log LOG
+text/html													htm HTM html HTML shtml SHTML
+text/css													css CSS
+text/csv													csv CSV
+text/richtext												rtx RTX
+application/xml-dtd											dtd DTD
+application/xslt+xml										xslt XSLT
+application/pdf 											pdf PDF
+application/javascript										js JS
+application/msword											doc DOC dot DOT
+application/postscript										ai AI eps EPS ps PS
+application/rss+xml											rss RSS
+application/rtf												rtf RTF
+application/vnd.lotus-notes									nsf NSF
+application/vnd.lotus-wordpro								lwp LWP
+application/vnd.ms-cab-compressed							cab CAB
+application/vnd.ms-excel									xls XLS xlm XLM xla XLA xlc XLC xlt XLT xlw XLW
+application/vnd.ms-powerpoint								ppt PPT pps PPS pot POT
+application/vnd.ms-project									mpp MPP mpt MPT
+application/vnd.ms-works									wps WPS wks WKS wcm WCM wdb WDB
+application/vnd.visio										vsd VSD vst VST vss VSS vsw VSW
+application/vnd.wordperfect									wpd WPD
+application/x-msaccess										mdb MDB
+application/x-mspublisher									pub PUB
+application/vnd.oasis.opendocument.chart					odc ODC
+application/vnd.oasis.opendocument.chart-template			otc OTC
+application/vnd.oasis.opendocument.formula					odf ODF
+application/vnd.oasis.opendocument.formula-template			otf OTF
+application/vnd.oasis.opendocument.graphics					odg ODG
+application/vnd.oasis.opendocument.graphics-template		otg OTG
+application/vnd.oasis.opendocument.image					odi ODI
+application/vnd.oasis.opendocument.image-template			oti OTI
+application/vnd.oasis.opendocument.presentation				odp ODP
+application/vnd.oasis.opendocument.presentation-template	otp OTP
+application/vnd.oasis.opendocument.spreadsheet				ods ODS
+application/vnd.oasis.opendocument.spreadsheet-template		ots OTS
+application/vnd.oasis.opendocument.text						odt ODT
+application/vnd.oasis.opendocument.text-master				otm OTM
+application/vnd.oasis.opendocument.text-template			ott OTT
+application/vnd.oasis.opendocument.text-web					oth OTH
+application/x-bzip											bz BZ
+application/x-bzip2											bz2 BZ2 boz BOZ
+application/x-gtar											gtar GTAR
+application/x-rar-compressed								rar RAR
+application/zip             								zip ZIP
+application/x-tar           								tar TAR
+application/x-7z-compressed									7z 7Z

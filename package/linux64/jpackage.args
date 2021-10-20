@@ -1,0 +1,27 @@
+--type: deb
+--name ${app.name}
+--icon ${project.basedir}/package/linux64/praisenter.png
+--dest ${project.build.directory}
+--main-jar ${project.build.finalName}.jar
+--main-class ${main-class}
+--input ${project.build.directory}/dependency
+--app-version ${app.version}
+--runtime-image ${project.build.directory}/jvm-image
+--temp ${project.build.directory}/installer-work
+--vendor ${app.vendor}
+--description "${project.description}"
+--copyright "(C) ${app.vendor}"
+--linux-shortcut
+--linux-package-name ${app.vendor}
+--linux-menu-group "Office;Presentation;Spirituality"
+--java-options "-Xms1g"
+--java-options "--add-exports=javafx.base/com.sun.javafx.event=ALL-UNNAMED"
+--java-options "--add-exports=javafx.graphics/com.sun.javafx.scene=ALL-UNNAMED"
+--java-options "--add-exports=javafx.graphics/com.sun.javafx.scene.traversal=ALL-UNNAMED"
+--java-options "--add-exports=javafx.controls/com.sun.javafx.scene.control.behavior=ALL-UNNAMED"
+--java-options "--add-exports=javafx.controls/com.sun.javafx.scene.control=ALL-UNNAMED"
+--java-options "--add-exports=javafx.controls/com.sun.javafx.scene.control.inputmap=ALL-UNNAMED"
+--java-options "--add-exports=javafx.base/com.sun.javafx.collections=ALL-UNNAMED"
+--java-options "--add-exports=javafx.base/com.sun.javafx.runtime=ALL-UNNAMED"
+--java-options "--add-opens=javafx.controls/javafx.scene.control.skin=ALL-UNNAMED"
+--java-options "--add-opens=javafx.graphics/javafx.scene=ALL-UNNAMED"
