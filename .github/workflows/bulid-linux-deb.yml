@@ -4,6 +4,7 @@
 name: Build Unix Installer
 
 on:
+  workflow_dispatch:
   pull_request:
     branches: [ master ]
 
