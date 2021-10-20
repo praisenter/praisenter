@@ -12,7 +12,7 @@
 --description "${project.description}"
 --copyright "(C) ${app.vendor}"
 --linux-shortcut
---linux-package-name ${app.vendor}
+--linux-package-name praisenter
 --linux-menu-group "Office;Presentation;Spirituality"
 --java-options "-Xms1g"
 --java-options "--add-exports=javafx.base/com.sun.javafx.event=ALL-UNNAMED"
