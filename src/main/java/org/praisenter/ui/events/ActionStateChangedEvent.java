@@ -4,7 +4,7 @@ import javafx.event.Event;
 import javafx.event.EventTarget;
 import javafx.event.EventType;
 
-public class ActionStateChangedEvent extends Event {
+public final class ActionStateChangedEvent extends Event {
 	private static final long serialVersionUID = -1818732710497511105L;
 	
 	public static final EventType<ActionStateChangedEvent> ALL = new EventType<>(Event.ANY, "ACTION_STATE_CHANGED_ALL");

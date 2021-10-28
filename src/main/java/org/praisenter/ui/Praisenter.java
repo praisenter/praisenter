@@ -39,7 +39,7 @@ public final class Praisenter extends Application {
     			// just ignore it if we get an exception
     		}
     	}
-    	
+
     	LifecycleHandler lifecycleHandler = new LifecycleHandler();
     	lifecycleHandler.start(this, stage, path);
     }

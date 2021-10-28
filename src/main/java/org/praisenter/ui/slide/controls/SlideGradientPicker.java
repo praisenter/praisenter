@@ -29,12 +29,6 @@ import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.BackgroundImage;
-import javafx.scene.layout.BackgroundRepeat;
-import javafx.scene.layout.Border;
-import javafx.scene.layout.BorderStroke;
-import javafx.scene.layout.BorderStrokeStyle;
-import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
@@ -43,15 +37,15 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Shape;
-import javafx.scene.shape.StrokeLineCap;
-import javafx.scene.shape.StrokeLineJoin;
-import javafx.scene.shape.StrokeType;
 
 // FEATURE (L-L) Add ability to configure any number of gradient stops
 // JAVABUG (L) 06/14/17 [workaround] Color picker in context menu (or other dialog) doesn't work if you click the "Custom Color" link https://bugs.openjdk.java.net/browse/JDK-8175803
 
 // FIXME replace color pickers with custom one
 public final class SlideGradientPicker extends FormFieldSection {
+	private static final String GRADIENT_PREVIEW_CSS = "p-gradient-preview";
+	private static final String GRADIENT_PREVIEW_BACKGROUND_CSS = "p-gradient-preview-background";
+	
 	private static final Image TRANSPARENT_PATTERN = new Image(SlideGradientPicker.class.getResourceAsStream("/org/praisenter/images/transparent.png"));
 	private static final double WIDTH = 125;
 	private static final double HEIGHT = 125;
@@ -136,14 +130,14 @@ public final class SlideGradientPicker extends FormFieldSection {
         bg.setPrefSize(WIDTH, HEIGHT);
         bg.setMaxSize(WIDTH, HEIGHT);
         bg.setMinSize(WIDTH, HEIGHT);
-        bg.setBackground(new Background(new BackgroundImage(TRANSPARENT_PATTERN, BackgroundRepeat.REPEAT, BackgroundRepeat.REPEAT, null, null)));
+        bg.getStyleClass().add(GRADIENT_PREVIEW_BACKGROUND_CSS);
         
         // the preview pane itself
         Pane preview = new Pane();
         preview.setPrefSize(WIDTH, HEIGHT);
         preview.setMaxSize(WIDTH, HEIGHT);
         preview.setMinSize(WIDTH, HEIGHT);
-        preview.setBorder(new Border(new BorderStroke(Color.LIGHTGRAY, new BorderStrokeStyle(StrokeType.OUTSIDE, StrokeLineJoin.MITER, StrokeLineCap.SQUARE, 1.0, 0.0, null), null, new BorderWidths(1))));
+        preview.getStyleClass().add(GRADIENT_PREVIEW_CSS);
         preview.backgroundProperty().bind(Bindings.createObjectBinding(() -> {
         	Paint paint = PaintConverter.toJavaFX(this.value.get());
         	return new Background(new BackgroundFill(paint, CornerRadii.EMPTY, Insets.EMPTY));

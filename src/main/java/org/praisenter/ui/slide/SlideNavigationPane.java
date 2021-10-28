@@ -2,8 +2,6 @@ package org.praisenter.ui.slide;
 
 import java.util.List;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.praisenter.data.slide.Slide;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.library.LibraryList;
@@ -19,8 +17,6 @@ import javafx.geometry.Orientation;
 import javafx.scene.layout.BorderPane;
 
 public final class SlideNavigationPane extends BorderPane {
-	private static final Logger LOGGER = LogManager.getLogger();
-
 	private final ObservableList<Slide> slideList;
 	
 	// value

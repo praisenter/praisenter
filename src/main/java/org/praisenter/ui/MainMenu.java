@@ -338,7 +338,7 @@ final class MainMenu extends MenuBar {
 			try {
 			    Desktop.getDesktop().browse(new URI(url));
 			} catch (Exception e) {
-			    e.printStackTrace();
+				LOGGER.error("Failed to open default browser for URL: " + url, e);
 			}
 		}
 	}

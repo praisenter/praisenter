@@ -733,7 +733,7 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 		sctTextComponentGeneral.addField(Translations.get("slide.text.wrapping"), chkComponentTextWrapping);
 		
 		FormFieldSection sctTextComponentBasic = new FormFieldSection();
-		sctTextComponentBasic.addField(txtComponentText);
+		sctTextComponentBasic.addField(Translations.get("slide.text"), txtComponentText);
 		
 		FormFieldSection sctTextComponentPlaceholder = new FormFieldSection();
 		sctTextComponentPlaceholder.addField(Translations.get("slide.placeholder.type"), cbComponentTextType);

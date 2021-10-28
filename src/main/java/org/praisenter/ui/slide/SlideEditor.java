@@ -62,6 +62,8 @@ import javafx.scene.layout.StackPane;
 //		UUID group property on each slide component, when grouped sizing and moving work on the group, can't select individual when grouped; or grouped at selection level only
 // FEATURE (L-M) Add grid snaping to sizing/moving of components
 public final class SlideEditor extends BorderPane implements DocumentEditor<Slide> {
+	private static final String SLIDE_EDITOR_CSS = "p-slide-editor";
+	
 	private static final Logger LOGGER = LogManager.getLogger();
 
 	private final GlobalContext context;
@@ -80,6 +82,8 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 	public SlideEditor(
 			GlobalContext context, 
 			DocumentContext<Slide> document) {
+		this.getStyleClass().add(SLIDE_EDITOR_CSS);
+		
 		this.context = context;
 		this.document = document;
 		
@@ -396,6 +400,8 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 			case NEW_SLIDE_DATETIME_COMPONENT:
 			case NEW_SLIDE_COUNTDOWN_COMPONENT:
 				return true;
+			case SAVE:
+				return ctx.hasUnsavedChanges();
 			case REDO:
 				return ctx.getUndoManager().isRedoAvailable();
 			case UNDO:

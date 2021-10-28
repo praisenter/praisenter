@@ -55,7 +55,7 @@ public final class SlidePaddingPicker extends FormFieldSection {
 		tfLeft.valueProperty().bindBidirectional(this.left);
 		
 		Rectangle r = new Rectangle(0, 0, 50, 50);
-		r.getStyleClass().add("padding-box");
+		r.getStyleClass().add("p-padding-box");
 		
 		GridPane layout = new GridPane();
 		layout.setVgap(10);

@@ -48,7 +48,6 @@ public final class ActionBar extends ToolBar {
 			this.createSeparatorForGroup(Action.SAVE, Action.SAVE_ALL),
 			this.createButton(Action.SAVE),
 			this.createButton(Action.SAVE_ALL),
-			// TODO bulk edit button??
 			this.createSeparatorForGroup(Action.UNDO, Action.REDO),
 			this.createButton(Action.UNDO),
 			this.createButton(Action.REDO),

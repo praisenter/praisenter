@@ -231,10 +231,10 @@ public final class SongPersistAdapter implements PersistAdapter<Song> {
 							}
 							
 							if (itemResults == null || itemResults.isEmpty()) {
-								LOGGER.warn("The content of the file '" + entry.getName() + "' was not recognized by any supported format provider.");
+								LOGGER.warn("The content of the file '" + entry.getName() + "' was not recognized by any supported song format provider.");
 							}
 						} else {
-							LOGGER.warn("The mime type '" + mimeType + "' of the file '" + entry.getName() + "' was not recognized by any supported format provider.");
+							LOGGER.warn("The mime type '" + mimeType + "' of the file '" + entry.getName() + "' was not recognized by any supported song format provider.");
 						}
 					}
 				}

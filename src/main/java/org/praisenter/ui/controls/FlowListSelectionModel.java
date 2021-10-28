@@ -27,6 +27,8 @@ package org.praisenter.ui.controls;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 import org.praisenter.ui.MappedList;
@@ -79,6 +81,8 @@ public final class FlowListSelectionModel<T> {
 	
 	/** True if multi-selection is enabled */
 	private final BooleanProperty multiselect = new SimpleBooleanProperty(true);
+	
+	private BiFunction<T, T, Boolean> identityProvider = (a, b) -> Objects.equals(a, b);
 	
 	// internal state
 	
@@ -149,7 +153,8 @@ public final class FlowListSelectionModel<T> {
 	public boolean isSelected(T item) {
 		if (item != null) {
 			for (FlowListCell<T> cell : this.selected) {
-				if (item.equals(cell.getData())) {
+				//item.equals(cell.getData())
+				if (this.identityProvider.apply(item, cell.getData())) {
 					return true;
 				}
 			}
@@ -172,7 +177,7 @@ public final class FlowListSelectionModel<T> {
 			List<FlowListCell<T>> cells = new ArrayList<FlowListCell<T>>();
 			for (Node node : this.view.getLayoutChildren()) {
 				FlowListCell<T> cell = (FlowListCell<T>)node;
-				if (item.equals(cell.getData())) {
+				if (this.identityProvider.apply(item, cell.getData())) {
 					cells.add(cell);
 				}
 			}
@@ -192,7 +197,7 @@ public final class FlowListSelectionModel<T> {
 			List<FlowListCell<T>> cells = new ArrayList<FlowListCell<T>>();
 			for (Node node : this.view.getLayoutChildren()) {
 				FlowListCell<T> cell = (FlowListCell<T>)node;
-				if (item.equals(cell.getData())) {
+				if (this.identityProvider.apply(item, cell.getData())) {
 					cells.add(cell);
 				}
 			}
@@ -212,7 +217,7 @@ public final class FlowListSelectionModel<T> {
 		if (item != null) {
 			List<FlowListCell<T>> cells = new ArrayList<FlowListCell<T>>();
 			for (FlowListCell<T> cell : this.selected) {
-				if (item.equals(cell.getData())) {
+				if (this.identityProvider.apply(item, cell.getData())) {
 					cells.add(cell);
 				}
 			}
@@ -237,7 +242,7 @@ public final class FlowListSelectionModel<T> {
 			for (T item : items) {
 				for (Node node : this.view.getLayoutChildren()) {
 					FlowListCell<T> cell = (FlowListCell<T>)node;
-					if (item.equals(cell.getData())) {
+					if (this.identityProvider.apply(item, cell.getData())) {
 						cells.add(cell);
 					}
 				}
@@ -258,10 +263,13 @@ public final class FlowListSelectionModel<T> {
 				return;
 			}
 			List<FlowListCell<T>> cells = new ArrayList<FlowListCell<T>>();
-			for (Node node : this.view.getLayoutChildren()) {
-				FlowListCell<T> cell = (FlowListCell<T>)node;
-				if (items.contains(cell.getData())) {
-					cells.add(cell);
+			for (T item : items) {
+				for (Node node : this.view.getLayoutChildren()) {
+					FlowListCell<T> cell = (FlowListCell<T>)node;
+					if (this.identityProvider.apply(item, cell.getData())) {
+						cells.add(cell);
+						break;
+					}
 				}
 			}
 			this.selectCellsOnly(cells);
@@ -586,5 +594,13 @@ public final class FlowListSelectionModel<T> {
 	 */
 	public BooleanProperty multiselectProperty() {
 		return this.multiselect;
+	}
+	
+	public BiFunction<T, T, Boolean> getIdentityProvider() {
+		return this.identityProvider;
+	}
+	
+	public void setIdentityProvider(BiFunction<T, T, Boolean> identityProvider) {
+		this.identityProvider = identityProvider;
 	}
 }

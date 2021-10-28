@@ -1,182 +1,15 @@
-/** tree cell drag n drop styles */
-.tree-cell:drag-over-parent {
-	-fx-background-color: -fx-faint-focus-color;
-}
+/* .root {
+	 -fx-base: rgba(20, 20, 20, 255);
+} */
 
-.tree-cell:drag-over-sibling-top {
-	-fx-border-color: -fx-text-base-color;
-    -fx-border-style: solid;
-    -fx-border-width: 1 0 0 0;
-}
-
-.tree-cell:drag-over-sibling-bottom {
-	-fx-border-color: -fx-text-base-color;
-    -fx-border-style: solid;
-    -fx-border-width: 0 0 1 0;
-}
-
-/** force glyphs to color the same way as the text */
-.tree-view:focused .tree-cell:selected .glyph-font {
-	-fx-text-fill: -fx-focused-text-base-color;
-}
-
-.tree-cell:selected .glyph-font {
-	-fx-text-fill: -fx-text-base-color;
-}
-
-/* 
-Bug fix for expand/collapse indicator in JavaFX 10 (10/11/2018)
-https://stackoverflow.com/questions/50011276/javafx-treeview-expand-collapse-disclosure-arrow-bug 
-*/
-.tree-cell > .tree-disclosure-node > .arrow,
-.tree-table-row-cell > .tree-disclosure-node > .arrow {
-    -fx-rotate: 0;
-}
-
-.tree-cell:expanded > .tree-disclosure-node > .arrow,
-.tree-table-row-cell:expanded > .tree-disclosure-node > .arrow {
-    -fx-rotate: 90;
-}
-
-.split-pane {
-	-fx-padding: 0;
-}
-
-/* ============== Reusable Components ================= */
-
-/* FlowListView */
-.flow-list-view {}
-.flow-list-view-tiles {
-	-fx-padding: 5 5 5 5;
-	-fx-vgap: 5;
-	-fx-hgap: 5;
-}
-.flow-list-view-cell {
-	-fx-background-color: transparent;
-	-fx-border-color: transparent;
-	-fx-border-width: 1;
-	-fx-border-style: solid;
-	-fx-padding: 2 2 2 2;
-	-fx-alignment: top-center;
-}
-.flow-list-view-cell:hover { 
-	-fx-background-color: -fx-faint-focus-color; /*rgba(153, 209, 255, 0.5)*/
-}
-.flow-list-view-cell:selected {
-	-fx-background-color: derive(-fx-faint-focus-color, 20%); /*rgb(204, 232, 255);*/
-	-fx-border-color: -fx-faint-focus-color; /*rgb(153, 209, 255)*/
-	-fx-border-width: 1;
-	-fx-border-style: solid;
-}
-.flow-list-view-drag-selection-area {
-	-fx-fill: -fx-faint-focus-color; /*rgba(255, 204, 204, 0.5);*/
-	-fx-stroke: -fx-focus-color; /*rgb(255, 153, 153);*/
-	-fx-smooth: false;
-	-fx-stroke-width: 1;
-}
-
-/** TagListView */
-.tag-list-view {}
-.tag-list-view-tags {
-	-fx-padding: 0.3em 0 0 0;
-	-fx-vgap: 0.2em;
-	-fx-hgap: 0.2em;
-}
-.tag-list-view .tag-list-view-tags .tag {}
-
-/** MediaPreview */
-.media-preview {}
-.media-preview .media-preview-controls {
-	-fx-spacing: 2;
-	-fx-alignment: CENTER;
-	-fx-padding: 2 0 0 0;
-}
-
-/** Spinner w/ overlay */
-.progress-overlay {
-	-fx-background-color: rgba(255, 255, 255, 0.3);
-}
-.progress-overlay-indicator {}
-
-/* ============== Praisenter Components ================= */
-
-/* the action bar (vertical button bar) */
-.p-action-bar {}
-
-/* styles for the item in the library listing */
-.library-list-cell {
-	-fx-alignment: top-center;
-	-fx-pref-width: 110;
-}
-.library-list-cell > .image-wrapper {
-	-fx-alignment: bottom-center;
-	-fx-pref-height: 100;
-	-fx-max-height: 100;
-	-fx-min-height: 100;
-}
-.library-list-cell > .image-wrapper > .image-underlay > .bible {
-	-fx-image: url("/org/praisenter/images/bible-icon.png");
-}
-.library-list-cell > .image-wrapper > .image-underlay > .song {
-	-fx-image: url("/org/praisenter/images/song-lyrics-icon.png");
-}
-.library-list-cell > .image-wrapper > .image-underlay {
-}
-.library-list-cell > .image-wrapper > .dropshadow-underlay {
-	-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.25), 2, 0, 2, 2);
-}
-.library-list-cell > .image-wrapper > .transparent-underlay {
-	-fx-background-image: url("/org/praisenter/images/transparent.png");
-	-fx-background-repeat: repeat;
-}
-.library-list-cell > Label {
-	-fx-text-alignment: center;
-	-fx-padding: 5 0 0 0;
-	/*-fx-wrap-text: true;*/
-}
-
-/* grid control for the right side editor area */
-.edit-grid {
-	-fx-hgap: 3;
-	-fx-vgap: 3;
-}
-
-/* ============== Praisenter Other ================= */
-
-/* the verse number in the bible tree editor UI */
-.tree-cell .verse-number,
-.tree-cell .section-name {
-	-fx-font-weight: bold; 
-	-fx-font-size: 0.8em;
-}
-
-.error-label {
-	-fx-text-fill: RED;
-}
-
-/* the square in the middle of the 4 text boxes when editing the padding for text component */
-.padding-box {
-	-fx-fill: transparent;
-	-fx-stroke: BLACK;
-	-fx-stroke-type: outside;
-	-fx-stroke-line-cap: butt;
-	-fx-stroke-line-join: miter;
-	-fx-stroke-miter-limit: 10;
-	-fx-stroke-width: 1;
-}
-
-.highlight {
-	-fx-font-weight: bold;
-	-fx-underline: true;
-	-fx-fill: blue;
-}
-
+/* BASE JAVA FX OVERRIDES */
 .table-view:focused .table-cell:selected Text,
 .table-view:focused .table-row-cell:selected Text {
 	-fx-fill: -fx-focused-text-base-color;
 }
-
-/* BASE JAVA FX OVERRIDES */
+.split-pane {
+	-fx-padding: 0;
+}
 .context-menu .separator:horizontal {
 	-fx-padding: 0.5em 0;
 }
@@ -205,6 +38,57 @@ https://stackoverflow.com/questions/50011276/javafx-treeview-expand-collapse-dis
 .p-fs20 { -fx-font-size: 20px; }
 .p-fs21 { -fx-font-size: 21px; }
 .p-fs22 { -fx-font-size: 22px; }
+
+.p-error-label {
+	-fx-text-fill: RED;
+}
+
+/* the square in the middle of the 4 text boxes when editing the padding for text component */
+.p-padding-box {
+	-fx-fill: transparent;
+	-fx-stroke: BLACK;
+	-fx-stroke-type: outside;
+	-fx-stroke-line-cap: butt;
+	-fx-stroke-line-join: miter;
+	-fx-stroke-miter-limit: 10;
+	-fx-stroke-width: 1;
+}
+
+.p-search-highlight {
+	-fx-font-weight: bold;
+	-fx-underline: true;
+	-fx-fill: blue;
+}
+
+/* the verse number in the bible tree editor UI */
+.p-verse-number,
+.p-section-name {
+	-fx-font-weight: bold; 
+	-fx-font-size: 0.8em;
+}
+
+/** tree cell drag n drop styles */
+.tree-cell:drag-over-parent {
+	-fx-background-color: -fx-faint-focus-color;
+}
+.tree-cell:drag-over-sibling-top {
+	-fx-border-color: -fx-text-base-color;
+    -fx-border-style: solid;
+    -fx-border-width: 1 0 0 0;
+}
+.tree-cell:drag-over-sibling-bottom {
+	-fx-border-color: -fx-text-base-color;
+    -fx-border-style: solid;
+    -fx-border-width: 0 0 1 0;
+}
+
+/** force glyphs to color the same way as the text */
+.tree-view:focused .tree-cell:selected .glyph-font {
+	-fx-text-fill: -fx-focused-text-base-color;
+}
+.tree-cell:selected .glyph-font {
+	-fx-text-fill: -fx-text-base-color;
+}
 
 /* WORKSPACE SELECTION PANE */
 .p-workspace-selection-pane {
@@ -485,4 +369,125 @@ https://stackoverflow.com/questions/50011276/javafx-treeview-expand-collapse-dis
 }
 .p-new-adder {
 	-fx-background-color: white;
+}
+
+/* CONTROLS */
+.p-datetime-picker {
+	-fx-padding: 0.2em;
+}
+
+.p-edit-grid {
+	-fx-hgap: 3;
+	-fx-vgap: 3;
+}
+
+.p-flow-list-view {}
+.p-flow-list-view-tiles {
+	-fx-padding: 5 5 5 5;
+	-fx-vgap: 5;
+	-fx-hgap: 5;
+}
+.p-flow-list-view-cell {
+	-fx-background-color: transparent;
+	-fx-border-color: transparent;
+	-fx-border-width: 1;
+	-fx-border-style: solid;
+	-fx-padding: 2 2 2 2;
+	-fx-alignment: top-center;
+}
+.p-flow-list-view-cell:hover { 
+	-fx-background-color: -fx-faint-focus-color; /*rgba(153, 209, 255, 0.5)*/
+}
+.p-flow-list-view-cell:selected {
+	-fx-background-color: derive(-fx-faint-focus-color, 20%); /*rgb(204, 232, 255);*/
+	-fx-border-color: -fx-faint-focus-color; /*rgb(153, 209, 255)*/
+	-fx-border-width: 1;
+	-fx-border-style: solid;
+}
+.p-flow-list-view-drag-selection-area {
+	-fx-fill: -fx-faint-focus-color; /*rgba(255, 204, 204, 0.5);*/
+	-fx-stroke: -fx-focus-color; /*rgb(255, 153, 153);*/
+	-fx-smooth: false;
+	-fx-stroke-width: 1;
+}
+
+.p-tag-list-view {}
+.p-tag-list-view-tags {
+	-fx-padding: 0.3em 0 0 0;
+	-fx-vgap: 0.2em;
+	-fx-hgap: 0.2em;
+}
+.p-tag-list-view-tag {}
+
+.p-media-preview {}
+.p-media-preview-controls {
+	-fx-spacing: 0.2em;
+	-fx-alignment: CENTER;
+	-fx-padding: 0.2em 0 0 0;
+}
+
+.p-progress-overlay {
+	-fx-background-color: rgba(255, 255, 255, 0.3);
+}
+.p-progress-overlay-indicator {}
+
+.p-library-item-details {
+	-fx-spacing: 0.5em;
+	-fx-padding: 1em;
+	-fx-pref-width: 255;
+	-fx-max-width: 255;
+}
+.p-library-item-details-value-list {
+	-fx-hgap: 0.5em;
+	-fx-vgap: 0.5em;
+}
+
+.p-action-bar {}
+
+.p-library-list {}
+.p-library-list-left {
+	-fx-pref-width: 270;
+	-fx-max-width: 270;
+}
+.p-library-list-filter-bar {
+	-fx-vgap: 0.5em;
+	-fx-hgap: 0.5em;
+	-fx-padding: 0.5em;
+}
+.p-library-list-cell {
+	-fx-alignment: top-center;
+	-fx-pref-width: 110;
+}
+.p-library-list-cell-graphic {
+	-fx-alignment: bottom-center;
+	-fx-pref-height: 100;
+	-fx-max-height: 100;
+	-fx-min-height: 100;
+}
+.p-library-list-cell-bible > .p-library-list-cell-thumbnail {
+	-fx-image: url("/org/praisenter/images/bible-icon.png");
+}
+.p-library-list-cell-song > .p-library-list-cell-thumbnail {
+	-fx-image: url("/org/praisenter/images/song-lyrics-icon.png");
+}
+.p-library-list-cell-slide,
+.p-library-list-cell-image,
+.p-library-list-cell-bible,
+.p-library-list-cell-song,
+.p-library-list-cell-audio {
+	-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.25), 2, 0, 2, 2);
+}
+.p-library-list-cell-slide {
+	-fx-background-image: url("/org/praisenter/images/transparent.png");
+	-fx-background-repeat: repeat;
+}
+.p-library-list-cell-label {
+	-fx-text-alignment: center;
+	-fx-padding: 0.5em 0 0 0;
+}
+
+.p-slide-template-list-cell {}
+.p-slide-template-list-cell-graphic {
+	-fx-background-image: url("/org/praisenter/images/transparent.png");
+	-fx-background-repeat: repeat;
 }

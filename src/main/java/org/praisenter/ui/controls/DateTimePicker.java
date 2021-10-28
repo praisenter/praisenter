@@ -13,13 +13,15 @@ import javafx.scene.control.DatePicker;
 import javafx.scene.layout.VBox;
 
 public final class DateTimePicker extends VBox {
+	private static final String DATETIME_PICKER_CSS = "p-datetime-picker";
+	
 	private final DatePicker pkrDate;
 	private final TimeSpinner spnTime;
 	
 	private final ObjectProperty<LocalDateTime> value = new SimpleObjectProperty<LocalDateTime>(LocalDateTime.now());
 	
 	public DateTimePicker() {
-		setSpacing(2);
+		this.getStyleClass().add(DATETIME_PICKER_CSS);
 		
 		this.pkrDate = new DatePicker(LocalDate.now());
 		this.spnTime = new TimeSpinner();

@@ -224,10 +224,10 @@ public final class BiblePersistAdapter implements PersistAdapter<Bible> {
 							}
 							
 							if (itemResults == null || itemResults.isEmpty()) {
-								LOGGER.warn("The content of the file '" + entry.getName() + "' was not recognized by any supported format provider.");
+								LOGGER.warn("The content of the file '" + entry.getName() + "' was not recognized by any supported Bible format provider.");
 							}
 						} else {
-							LOGGER.warn("The mime type '" + mimeType + "' of the file '" + entry.getName() + "' was not recognized by any supported format provider.");
+							LOGGER.warn("The mime type '" + mimeType + "' of the file '" + entry.getName() + "' was not recognized by any supported Bible format provider.");
 						}
 					}
 				}

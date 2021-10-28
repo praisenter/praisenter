@@ -37,6 +37,8 @@ import javafx.stage.Modality;
 import javafx.stage.StageStyle;
 
 public final class MediaObjectPicker extends FormFieldSection {
+	private static final String MEDIA_DIALOG_CSS = "p-media-dialog";
+	
 	private final ObjectProperty<MediaObject> value;
 	
 	private final ObjectProperty<Media> media;
@@ -108,6 +110,9 @@ public final class MediaObjectPicker extends FormFieldSection {
 		dlgMedia.initStyle(StageStyle.UTILITY);
 		dlgMedia.initModality(Modality.WINDOW_MODAL);
 		dlgMedia.setResizable(true);
+		dlgMedia.setWidth(800);
+		dlgMedia.setHeight(600);
+		dlgMedia.getDialogPane().getStyleClass().add(MEDIA_DIALOG_CSS);
 	    dlgMedia.getDialogPane().getButtonTypes().addAll(ButtonType.CANCEL, ButtonType.OK);
 		
 		Button btnMedia = new Button(Translations.get("slide.media.choose"));

@@ -157,31 +157,31 @@
 		<dependency>
 			<groupId>org.openjfx</groupId>
 			<artifactId>javafx-base</artifactId>
-			<version>16</version>
+			<version>17.0.1</version>
 			<classifier>${jfx.platform}</classifier>
 		</dependency>
 		<dependency>
 			<groupId>org.openjfx</groupId>
 			<artifactId>javafx-controls</artifactId>
-			<version>16</version>
+			<version>17.0.1</version>
 			<classifier>${jfx.platform}</classifier>
 		</dependency>
 		<dependency>
 			<groupId>org.openjfx</groupId>
 			<artifactId>javafx-media</artifactId>
-			<version>16</version>
+			<version>17.0.1</version>
 			<classifier>${jfx.platform}</classifier>
 		</dependency>
 		<dependency>
 			<groupId>org.openjfx</groupId>
 			<artifactId>javafx-swing</artifactId>
-			<version>16</version>
+			<version>17.0.1</version>
 			<classifier>${jfx.platform}</classifier>
 		</dependency>
 		<dependency>
 			<groupId>org.openjfx</groupId>
 			<artifactId>javafx-web</artifactId>
-			<version>16</version>
+			<version>17.0.1</version>
 			<classifier>${jfx.platform}</classifier>
 		</dependency>
 		<dependency>

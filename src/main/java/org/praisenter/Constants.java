@@ -87,7 +87,7 @@ public final class Constants {
 	public static final String UPGRADE_ARCHIVE_ABSOLUTE_PATH = Constants.ROOT_PATH + Constants.UPGRADE_ARCHIVE_RELATIVE_PATH;
 	
 	/** The URL to check for a new released version of the application */
-	public static final String UPGRADE_VERSION_CHECK_URL = "https://raw.githubusercontent.com/wnbittle/praisenter/version3/release-version.txt";
+	public static final String UPGRADE_VERSION_CHECK_URL = "https://raw.githubusercontent.com/wnbittle/praisenter/master/release-version.txt";
 
 	
 	///////////////////////////

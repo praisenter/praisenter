@@ -17,7 +17,6 @@ import org.praisenter.ui.song.SongEditor;
 import org.praisenter.ui.translations.Translations;
 
 import javafx.application.Platform;
-import javafx.beans.binding.Bindings;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Tab;
@@ -25,6 +24,8 @@ import javafx.stage.Modality;
 
 public final class DocumentTab extends Tab {
 	private static final Logger LOGGER = LogManager.getLogger();
+	
+	private static final String UNSAVED_DOCUMENT_CSS = "p-unsaved-document";
 	
 	private final GlobalContext context;
 	private final DocumentContext<? extends Persistable> document;
@@ -77,6 +78,8 @@ public final class DocumentTab extends Tab {
 			e.consume();
 		});
 		
+		this.textProperty().bind(document.documentNameProperty());
+		
 		// set the default focus when the tab is selected
 		this.selectedProperty().addListener((obs, ov, nv) -> {
 			if (nv) {
@@ -84,14 +87,13 @@ public final class DocumentTab extends Tab {
 			}
 		});
 		
-		// set the tab name based on the document and whether it's been changed
-		this.textProperty().bind(Bindings.createStringBinding(() -> {
-			if (document.hasUnsavedChanges()) {
-				return "*" + document.getDocumentName();
+		document.hasUnsavedChangesProperty().addListener((obs, ov, nv) -> {
+			if (nv) {
+				this.getStyleClass().add(UNSAVED_DOCUMENT_CSS);
+			} else {
+				this.getStyleClass().remove(UNSAVED_DOCUMENT_CSS);
 			}
-			return document.getDocumentName();
-		}, document.documentNameProperty(), document.hasUnsavedChangesProperty()));
-		
+		});
 	}
 	
 	@SuppressWarnings("unchecked")

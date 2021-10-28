@@ -125,7 +125,6 @@ public final class DocumentContext<T extends Persistable> {
 		return this.clazz;
 	}
 	
-	// TODO i don't like this being publically writable, but we need it to be writable in the document editors
 	public ObservableList<Object> getSelectedItems() {
 		return this.selectedItems;
 	}

@@ -55,7 +55,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
-import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
@@ -64,7 +63,10 @@ import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.ToggleButton;
@@ -80,6 +82,11 @@ import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Modality;
 
 public final class LibraryList extends BorderPane implements ActionPane {
+	private static final String LIBRARY_LIST_CSS = "p-library-list";
+	private static final String LIBRARY_LIST_FILTER_BAR_CSS = "p-library-list-filter-bar";
+	private static final String LIBRARY_LIST_ITEMS_CSS = "p-library-list-items";
+	private static final String LIBRARY_LIST_RIGHT_CSS = "p-library-list-right";
+	
 	private static final Logger LOGGER = LogManager.getLogger();
 	private static final Collator COLLATOR = Collator.getInstance();
 	
@@ -104,6 +111,8 @@ public final class LibraryList extends BorderPane implements ActionPane {
 	private final BooleanProperty typeFilterVisible;
 	
 	public LibraryList(GlobalContext context, Orientation orientation, LibraryListType... filterTypes) {
+		this.getStyleClass().add(LIBRARY_LIST_CSS);
+		
 		this.context = context;
 		
 		this.textFilter = new SimpleStringProperty();
@@ -148,6 +157,22 @@ public final class LibraryList extends BorderPane implements ActionPane {
 			});
 			
 			return cell;
+		});
+		this.view.getStyleClass().add(LIBRARY_LIST_ITEMS_CSS);
+		
+		// override the selection model's identity provider to check the 
+		// ids instead of object equality.  This is because of the way the
+		// library is managed -> we always create a copy of an item, update
+		// it, then overwrite the item in the library - so object equality
+		// is not preserved.  To ensure the selected item stays selected
+		// under these conditions we need to use the identity of the object
+		// instead of it's object reference
+		this.view.getSelectionModel().setIdentityProvider((a, b) -> {
+			if (a == b) return true;
+			if (a == null) return false;
+			if (b == null) return false;
+			if (a.getId().equals(b.getId())) return true;
+			return false;
 		});
 		
 		this.source = FXCollections.observableArrayList();
@@ -230,6 +255,12 @@ public final class LibraryList extends BorderPane implements ActionPane {
 		
 		Bindings.bindContent(this.view.getItems(), sorted);
 		
+//		sorted.addListener((Change<? extends Persistable> c) -> {
+//			while (c.next()) {
+//				
+//			}
+//		});
+		
 		this.view.addEventHandler(FlowListViewSelectionEvent.DOUBLE_CLICK, (e) -> {
 			FlowListCell<?> view = (FlowListCell<?>)e.getTarget();
         	Object item = view.getData();
@@ -248,57 +279,6 @@ public final class LibraryList extends BorderPane implements ActionPane {
 		typeOptions.add(0, new Option<LibraryListType>());
 		ObservableList<Option<LibraryListType>> typeFilters = FXCollections.observableArrayList(typeOptions);
 		
-		
-		
-//		ListChangeListener<? super Persistable> sourceListener = (ListChangeListener.Change<? extends Persistable> changes) -> {
-//			List<Option<LibraryListType>> typeOptions = new ArrayList<>();
-//			typeOptions.addAll(this.source.stream()
-//					.map(i -> LibraryListType.from(i))
-//					.distinct()
-//					.sorted((a,b) -> a.getOrder() - b.getOrder())
-//					.map(t -> new Option<LibraryListType>(t.getName(), t))
-//					.collect(Collectors.toList()));
-//			
-//			Option<LibraryListType> currentValue = null;
-//			if (typeOptions.size() == 1) {
-//				// just choose the only option
-//				currentValue = typeOptions.get(0);
-//			} else if (typeOptions.size() > 1) {
-//				// if there's more than one type, add the all option
-//				typeOptions.add(0, new Option<>());
-//				
-//				// does the current type filter exist in the new set?
-//				Option<LibraryListType> currentTypeFilter = this.typeFilter.get();
-//				if (currentTypeFilter != null) {
-//					for (Option<LibraryListType> option : typeOptions) {
-//						if (option.equals(currentTypeFilter)) {
-//							currentValue = currentTypeFilter;
-//							break;
-//						}
-//					}
-//				}
-//			}
-//			
-//			// this is annoying, for whatever reason we couldn't set this value at this time
-//			// the FilteredList class would throw an IndexOutOfBoundsException
-//			// this should work though since they are posted to the event queue and run in-order
-//			final Option<LibraryListType> nv = currentValue;
-//			Platform.runLater(() -> {
-//				typeFilters.setAll(typeOptions);
-//				// since it's possible that there could be multiple of these waiting on the 
-//				// event queue, lets make sure that the new value we are setting is in the
-//				// latest set of available filters
-//				if (typeFilters.contains(nv)) {
-//					this.typeFilter.set(nv);
-//				} else {
-//					this.typeFilter.set(null);
-//				}
-//			});
-//		};
-//		this.source.addListener(sourceListener);
-//		sourceListener.onChanged(null);
-//		//sourceListener.invalidated(null);
-		
 		// filtering and sorting
 		
 		ObservableList<Option<LibraryListSortField>> sortFields = FXCollections.observableArrayList();
@@ -311,6 +291,8 @@ public final class LibraryList extends BorderPane implements ActionPane {
         ChoiceBox<Option<LibraryListType>> cbTypes = new ChoiceBox<Option<LibraryListType>>(typeFilters);
         cbTypes.setValue(new Option<>());
         cbTypes.valueProperty().bindBidirectional(this.typeFilter);
+        lblFilter.visibleProperty().bind(this.typeFilterVisible);
+        lblFilter.managedProperty().bind(cbTypes.visibleProperty());
         cbTypes.visibleProperty().bind(this.typeFilterVisible);
         cbTypes.managedProperty().bind(cbTypes.visibleProperty());
 		
@@ -337,24 +319,27 @@ public final class LibraryList extends BorderPane implements ActionPane {
         pSort.setSpacing(5);
         
         FlowPane top = new FlowPane();
-        top.setHgap(5);
-        top.setVgap(5);
+        top.getStyleClass().add(LIBRARY_LIST_FILTER_BAR_CSS);
         top.setAlignment(Pos.BASELINE_LEFT);
-        top.setPadding(new Insets(5));
         top.setPrefWrapLength(0);
         
         top.getChildren().addAll(pFilter, pSort);
         
         LibraryItemDetails details = new LibraryItemDetails(context);
+        details.setMinWidth(0);
         details.itemProperty().bind(this.view.getSelectionModel().selectedItemProperty());
-        details.visibleProperty().bind(detailsPaneVisible);
-        details.managedProperty().bind(details.visibleProperty());
-		
-//        top.setBorder(new Border(new BorderStroke(Color.GREEN, new BorderStrokeStyle(StrokeType.CENTERED, StrokeLineJoin.MITER, StrokeLineCap.SQUARE, 1.0, 0.0, null), null, new BorderWidths(4.0))));
-//        details.setBorder(new Border(new BorderStroke(Color.MAGENTA, new BorderStrokeStyle(StrokeType.CENTERED, StrokeLineJoin.MITER, StrokeLineCap.SQUARE, 1.0, 0.0, null), null, new BorderWidths(4.0))));
         
+        ScrollPane detailsScroller = new ScrollPane(details);
+//		detailsScroller.setFitToWidth(true);
+		detailsScroller.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
+		detailsScroller.setHbarPolicy(ScrollBarPolicy.NEVER);
+		detailsScroller.getStyleClass().add(LIBRARY_LIST_RIGHT_CSS);
+		details.prefWidthProperty().bind(detailsScroller.widthProperty());
+		
 		ContextMenu menu = new ContextMenu();
 		menu.getItems().addAll(
+				this.createMenuItem(Action.OPEN),
+				new SeparatorMenuItem(),
 				this.createMenuItem(Action.SELECT_ALL),
 				this.createMenuItem(Action.SELECT_INVERT),
 				this.createMenuItem(Action.SELECT_NONE),
@@ -369,12 +354,24 @@ public final class LibraryList extends BorderPane implements ActionPane {
 			);
 		this.view.setContextMenu(menu);
 		
-//		this.view.setBorder(new Border(new BorderStroke(Color.RED, new BorderStrokeStyle(StrokeType.CENTERED, StrokeLineJoin.MITER, StrokeLineCap.SQUARE, 1.0, 0.0, null), null, new BorderWidths(4.0))));
+		BorderPane left = new BorderPane();
+		left.setTop(top);
+		left.setCenter(this.view);
+		SplitPane split = new SplitPane(left, detailsScroller);
+		split.setDividerPosition(0, 0.75);
+		SplitPane.setResizableWithParent(detailsScroller, false);
 		
-		this.setTop(top);
-		this.setCenter(this.view);
-		this.setRight(details);
-//		this.setBottom(details);
+		this.detailsPaneVisible.addListener((obs, ov, nv) -> {
+			if (nv) {
+				split.getItems().add(0, left);
+				this.setCenter(split);
+			} else {
+				split.getItems().remove(left);
+				this.setCenter(left);
+			}
+		});
+
+		this.setCenter(split);
 	}
 
 	private MenuItem createMenuItem(Action action) {
@@ -415,8 +412,11 @@ public final class LibraryList extends BorderPane implements ActionPane {
 
 	@Override
 	public boolean isActionEnabled(Action action) {
-		List<?> selection = this.view.getSelectionModel().getSelectedItems();
+		List<Persistable> selection = this.view.getSelectionModel().getSelectedItems();
+		Persistable selected = selection.size() > 0 ? selection.get(0) : null;
 		switch (action) {
+			case OPEN:
+				return selection.size() == 1 && selected.getClass().isAnnotationPresent(Editable.class);
 			case SELECT_ALL:
 			case SELECT_NONE:
 			case SELECT_INVERT:
@@ -447,6 +447,9 @@ public final class LibraryList extends BorderPane implements ActionPane {
 	@Override
 	public CompletableFuture<Void> executeAction(Action action) {
 		switch (action) {
+			case OPEN:
+				this.openDocument();
+	        	break;
 			case SELECT_ALL:
 				this.view.getSelectionModel().selectAll();
 				break;
@@ -471,6 +474,16 @@ public final class LibraryList extends BorderPane implements ActionPane {
 		}
 		
 		return CompletableFuture.completedFuture(null);
+	}
+	
+	private void openDocument() {
+		List<Persistable> selection = this.view.getSelectionModel().getSelectedItems();
+		Persistable selected = selection.size() > 0 ? selection.get(0) : null;
+		if (selected != null) {
+	    	if (selected.getClass().isAnnotationPresent(Editable.class)) {
+	    		this.context.openDocument(selected.copy());
+	    	}
+		}
 	}
 	
 	private CompletableFuture<Void> delete() {

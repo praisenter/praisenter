@@ -1,9 +1,14 @@
 package org.praisenter.ui.controls;
 
+import org.praisenter.ui.events.RowVisGridPaneEvent;
+
 import javafx.geometry.HPos;
+import javafx.geometry.VPos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
 import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.RowConstraints;
 
 public class FormFieldSection extends RowVisGridPane {
 	private static final String FORM_FIELD_SECTION_CSS = "p-form-field-section";
@@ -37,6 +42,25 @@ public class FormFieldSection extends RowVisGridPane {
 		cc1.setHalignment(HPos.LEFT);
 		cc1.setPercentWidth(70);
 		this.getColumnConstraints().add(cc1);
+		
+		// when the row vis grid is relayout-ed we need to remove
+		// and re-add the row constraints because if they stick around
+		// JavaFX thinks there's a row there and adds the padding
+		this.addEventHandler(RowVisGridPaneEvent.RELAYOUT, e -> {
+			// generate row constraints based on content
+			this.getRowConstraints().clear();
+			for (int i = 0; i < this.getRowCount(); i++) {
+				Node node = this.getNodeForLocation(i, 1);
+				if (node != null) {
+					RowConstraints rc0 = new RowConstraints();
+					rc0.setValignment(VPos.CENTER);
+					if (node instanceof TextArea || node instanceof TagListView) {
+						rc0.setValignment(VPos.BASELINE);
+					}
+					this.getRowConstraints().add(rc0);
+				}
+			}
+		});
 	}
 	
 	public int addField(Node field) {
@@ -67,6 +91,13 @@ public class FormFieldSection extends RowVisGridPane {
 			lblHelpText.getStyleClass().add(FORM_FIELD_SECTION_HELP_CSS);
 			this.add(lblHelpText, 1, this.row++);
 		}
+		
+		RowConstraints rc0 = new RowConstraints();
+		rc0.setValignment(VPos.CENTER);
+		if (field instanceof TextArea || field instanceof TagListView) {
+			rc0.setValignment(VPos.BASELINE);
+		}
+		this.getRowConstraints().add(rc0);
 		
 		return row;
 	}
