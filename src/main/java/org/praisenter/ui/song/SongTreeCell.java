@@ -24,7 +24,7 @@ final class SongTreeCell extends TreeCell<Object> {
 		this.author = Glyphs.NEW_AUTHOR.duplicate();
 		
 		this.graphic = new Label();
-		this.graphic.getStyleClass().addAll("section-name");
+		this.graphic.getStyleClass().addAll("p-section-name");
 	}
 	
 	@Override

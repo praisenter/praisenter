@@ -94,6 +94,8 @@ public final class DisplayController extends BorderPane {
 	
 	private final IntegerProperty lastTabIndex;
 	
+	private boolean selectingQueuedSlide = false;
+	
 	public DisplayController(GlobalContext context, DisplayTarget target) {
 		this.getStyleClass().add(DISPLAY_CONTROLLER_CSS);
 		
@@ -593,6 +595,10 @@ public final class DisplayController extends BorderPane {
 			double tw = configuration.getWidth();
 			double th = configuration.getHeight();
 			
+			if (!this.selectingQueuedSlide) {
+				lstSlideQueue.getSelectionModel().clearSelection();
+			}
+			
 			Slide sld = null;
 			if (slide != null) {
 				sld = slide.copy();
@@ -751,6 +757,7 @@ public final class DisplayController extends BorderPane {
 			LOGGER.debug("{} was selected", nv);
 			
 			if (nv != null) {
+				this.selectingQueuedSlide = true;
 				// check for slide first
 				if (!nv.hasPlaceholders()) {
 					// then it's a slide
@@ -759,6 +766,8 @@ public final class DisplayController extends BorderPane {
 					if (slide != null) {
 						slideNavigationPane.setValue(slide);
 					}
+					
+					this.selectingQueuedSlide = false;
 					return;
 				}
 				
@@ -787,6 +796,8 @@ public final class DisplayController extends BorderPane {
 						cmbSongSlideTemplate.setValue(template.get());
 					}
 				}
+				
+				this.selectingQueuedSlide = false;
 			}
 		});
 		

@@ -1,7 +1,5 @@
 package org.praisenter.ui.song;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.praisenter.data.Persistable;
 import org.praisenter.data.TextVariant;
 import org.praisenter.data.song.Lyrics;
@@ -21,14 +19,18 @@ import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
@@ -44,8 +46,6 @@ public final class SongNavigationPane extends VBox {
 	private static final String SONG_NAVIGATION_LYRIC_SELECTION_CSS = "p-song-nav-lyric-selection";
 	private static final String SONG_NAVIGATION_SECTIONS_CSS = "p-song-nav-sections";
 	
-	private static final Logger LOGGER = LogManager.getLogger();
-
 	private static final Lyrics EMPTY_LYRICS = new Lyrics();
 	
 	private final ObjectProperty<ReadOnlySong> song;
@@ -59,6 +59,7 @@ public final class SongNavigationPane extends VBox {
 	
 	private final ObservableList<Node> sectionsToNodesMapping;
 	
+	private final StringProperty searchTerms;
 	private Stage searchDialog;
 	
 	private boolean mutating = false;
@@ -148,16 +149,6 @@ public final class SongNavigationPane extends VBox {
 			return btnSection;
 		});
 
-		Label lblSongTitle = new Label();
-		lblSongTitle.textProperty().bind(Bindings.createStringBinding(() -> {
-			ReadOnlySong song = this.song.get();
-			if (song == null) {
-				return null;
-			}
-			
-			return Translations.get("song.nav.selected", song.getDefaultTitle());
-		}, this.song));
-		
 		TextArea txtDescription = new TextArea();
 		txtDescription.setEditable(false);
 		txtDescription.setMinHeight(0);
@@ -198,10 +189,12 @@ public final class SongNavigationPane extends VBox {
 			}
 		});
 		
-		Button btnSearch = new Button(Translations.get("search"));
-		btnSearch.setOnAction(e -> {
+		this.searchTerms = new SimpleStringProperty();
+		
+		EventHandler<ActionEvent> onSearchAction = e -> {
 			if (this.searchDialog == null) {
 				SongSearchPane pneSearch = new SongSearchPane(context);
+				pneSearch.searchTermsProperty().bindBidirectional(this.searchTerms);
 				pneSearch.valueProperty().addListener((obs, ov, nv) -> {
 					if (nv != null) {
 						this.song.set(nv.getSong());
@@ -219,12 +212,23 @@ public final class SongNavigationPane extends VBox {
 				this.searchDialog.setHeight(450);
 				this.searchDialog.setResizable(true);
 				this.searchDialog.setScene(WindowHelper.createSceneWithOwnerCss(pneSearch, owner));
+				this.searchDialog.setOnShown(we -> {
+					pneSearch.search();
+				});
 				context.attachZoomHandler(this.searchDialog.getScene());
 			}
 			
 			this.searchDialog.show();
 			WindowHelper.centerOnParent(this.getScene().getWindow(), this.searchDialog);
-		});
+		};
+		
+		TextField txtSearch = new TextField();
+		txtSearch.textProperty().bindBidirectional(this.searchTerms);
+		txtSearch.setPromptText(Translations.get("search.terms.placeholder"));
+		txtSearch.setOnAction(onSearchAction);
+		
+		Button btnSearch = new Button(Translations.get("search"));
+		btnSearch.setOnAction(onSearchAction);
 		
 		// listen for edit changes
 		context.getWorkspaceManager().getItemsUnmodifiable().addListener((Change<? extends Persistable> c) -> {
@@ -288,8 +292,8 @@ public final class SongNavigationPane extends VBox {
 		pneLyrics.getStyleClass().add(SONG_NAVIGATION_LYRIC_SELECTION_CSS);
 		
 		int row = 0;
-		pneLyrics.add(lblSongTitle, 1, row, 3, 1);
-		pneLyrics.add(btnSearch, 0, row, 1, 1);
+		pneLyrics.add(txtSearch, 0, row, 3, 1);
+		pneLyrics.add(btnSearch, 3, row, 1, 1);
 		
 		row++;
 		pneLyrics.add(cmbPrimaryLyrics, 0, row, 2, 1);
@@ -301,7 +305,8 @@ public final class SongNavigationPane extends VBox {
 			pneLyrics.getColumnConstraints().add(cc);
 		}
 		
-		lblSongTitle.setMaxWidth(Double.MAX_VALUE);
+		txtSearch.setMaxWidth(Double.MAX_VALUE);
+		btnSearch.setMaxWidth(Double.MAX_VALUE);
 		cmbPrimaryLyrics.setMaxWidth(Double.MAX_VALUE);
 		cmbSecondaryLyrics.setMaxWidth(Double.MAX_VALUE);
 		

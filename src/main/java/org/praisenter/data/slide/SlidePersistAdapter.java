@@ -210,10 +210,10 @@ public final class SlidePersistAdapter implements PersistAdapter<Slide> {
 							}
 							
 							if (itemResults == null || itemResults.isEmpty()) {
-								LOGGER.trace("The content of the file '" + entry.getName() + "' was not recognized by any supported format provider.");
+								LOGGER.trace("The content of the file '" + entry.getName() + "' was not recognized by any supported slide format provider.");
 							}
 						} else {
-							LOGGER.trace("The mime type '" + mimeType + "' of the file '" + entry.getName() + "' was not recognized by any supported format provider.");
+							LOGGER.trace("The mime type '" + mimeType + "' of the file '" + entry.getName() + "' was not recognized by any supported slide format provider.");
 						}
 					}
 				}

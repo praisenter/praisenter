@@ -173,7 +173,7 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 		Button btnCancel = new Button(Translations.get("cancel"));
 		btnCancel.minWidthProperty().bind(btnCancel.prefWidthProperty());
 		Label lblError = new Label();
-		lblError.getStyleClass().add("error-label");
+		lblError.getStyleClass().add("p-error-label");
 		lblError.setMaxWidth(Double.MAX_VALUE);
 		lblError.textProperty().bind(this.bulkEditModeError);
 		lblError.visibleProperty().bind(this.bulkEditModeError.length().greaterThan(0));
@@ -282,6 +282,8 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 				return ctx.getSelectedCount() == 1 && (ctx.getSelectedType() == Book.class || ctx.getSelectedType() == Chapter.class);
 			case NEW_VERSE:
 				return ctx.getSelectedCount() == 1 && (ctx.getSelectedType() == Chapter.class || ctx.getSelectedType() == Verse.class);
+			case SAVE:
+				return ctx.hasUnsavedChanges();
 			case REDO:
 				return ctx.getUndoManager().isRedoAvailable();
 			case UNDO:

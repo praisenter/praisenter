@@ -3,6 +3,8 @@ package org.praisenter.ui.controls;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.praisenter.ui.events.RowVisGridPaneEvent;
+
 import javafx.scene.Node;
 import javafx.scene.layout.GridPane;
 
@@ -147,8 +149,7 @@ public class RowVisGridPane extends GridPane {
 				for (ColumnDefinition col : row.columns.values()) {
 					this.getChildren().remove(col.node);
 				}
-			}
-			if (row.visible) {
+			} else {
 				// add any column nodes that aren't already on the scene
 				for (ColumnDefinition col : row.columns.values()) {
 					if (!this.getChildren().contains(col.node)) {
@@ -168,7 +169,20 @@ public class RowVisGridPane extends GridPane {
 			}
 		}
 		
+		this.fireEvent(new RowVisGridPaneEvent(this, this, RowVisGridPaneEvent.RELAYOUT));
+		
 		return i;
+	}
+	
+	protected Node getNodeForLocation(int row, int col) {
+		RowDefinition rd = this.rows.get(row);
+		if (rd != null) {
+			ColumnDefinition cd = rd.columns.get(col);
+			if (cd != null) {
+				return cd.node;
+			}
+		}
+		return null;
 	}
 	
 	private class ColumnDefinition {

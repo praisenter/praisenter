@@ -47,20 +47,19 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
 import javafx.collections.SetChangeListener;
-import javafx.geometry.Insets;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.VBox;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.text.Font;
 
-final class LibraryItemDetails extends BorderPane {
+final class LibraryItemDetails extends VBox {
+	private static final String LIBRARY_ITEM_DETAILS_CSS = "p-library-item-details";
+	private static final String LIBRARY_ITEM_DETAILS_VALUE_LIST_CSS = "p-library-item-details-value-list";
+	
 	private static final Logger LOGGER = LogManager.getLogger();
 	
 	private final GlobalContext context;
@@ -219,12 +218,6 @@ final class LibraryItemDetails extends BorderPane {
 			}
 		});
 		
-		VBox content = new VBox(5);
-		
-		ScrollPane scrLayout = new ScrollPane(content);
-		scrLayout.setFitToWidth(true);
-		scrLayout.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
-		
 		// label section
 		Label lblNameValue = new Label();
 		Label lblModifiedValue = new Label();
@@ -294,11 +287,11 @@ final class LibraryItemDetails extends BorderPane {
 		SlideView slide = new SlideView(context);
 		slide.setClipEnabled(true);
 		slide.setViewMode(SlideMode.VIEW);
-		slide.prefWidthProperty().bind(content.widthProperty());
 		slide.managedProperty().bind(slide.visibleProperty());
 		slide.setFitToWidthEnabled(true);
 		slide.setViewScaleAlignCenter(false);
 		slide.setVisible(false);
+		slide.prefWidthProperty().bind(this.widthProperty());
 		
 		// preview for image
 		ImageView image = new ImageView();
@@ -322,7 +315,7 @@ final class LibraryItemDetails extends BorderPane {
 		}, this.item));
 		image.setPreserveRatio(true);
 		image.fitWidthProperty().bind(Bindings.createDoubleBinding(() -> {
-			double tw = this.widthProperty().get() - 35;
+			double tw = this.widthProperty().get() - 25;
 			Image img = image.imageProperty().get();
 			if (img != null) {
 				double iw = img.getWidth();
@@ -335,7 +328,8 @@ final class LibraryItemDetails extends BorderPane {
 
 		// media player for audio/video
 		MediaPreview player = new MediaPreview();
-		player.maxWidthProperty().bind(this.widthProperty().subtract(35));
+		player.setMinWidth(0);
+		player.prefWidthProperty().bind(this.widthProperty().subtract(25));
 		player.managedProperty().bind(player.visibleProperty());
 		player.setVisible(false);
 		player.mediaPlayerProperty().bind(Bindings.createObjectBinding(() -> {
@@ -372,9 +366,6 @@ final class LibraryItemDetails extends BorderPane {
 			}
 		});
 		
-//		slide.setBorder(new Border(new BorderStroke(Color.ORANGE, new BorderStrokeStyle(StrokeType.CENTERED, StrokeLineJoin.MITER, StrokeLineCap.SQUARE, 1.0, 0.0, null), null, new BorderWidths(4.0))));
-		
-
 		Label lblCreated = new Label(Translations.get("item.created"));
 		Label lblModified = new Label(Translations.get("item.modified"));
 		Label lblWidth = new Label(Translations.get("item.width"));
@@ -397,15 +388,13 @@ final class LibraryItemDetails extends BorderPane {
 		
 		int r = 0;
 		RowVisGridPane labels = new RowVisGridPane();
+		labels.getStyleClass().add(LIBRARY_ITEM_DETAILS_VALUE_LIST_CSS);
 		ColumnConstraints cc1 = new ColumnConstraints();
 		cc1.setPercentWidth(50);
 		ColumnConstraints cc2 = new ColumnConstraints();
 		cc2.setPercentWidth(50);
-//		cc2.setHalignment(HPos.RIGHT);
 		labels.getColumnConstraints().addAll(cc1, cc2);
 		labels.setMaxWidth(Double.MAX_VALUE);
-		labels.setVgap(2);
-		labels.setHgap(2);
 		
 		labels.add(lblCreated, 0, r); labels.add(lblCreatedValue, 1, r++);
 		labels.add(lblModified, 0, r); labels.add(lblModifiedValue, 1, r++);
@@ -431,15 +420,12 @@ final class LibraryItemDetails extends BorderPane {
 		
 		labels.hideRows(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16);
 		
-//		labels.setBorder(new Border(new BorderStroke(Color.BLUEVIOLET, new BorderStrokeStyle(StrokeType.CENTERED, StrokeLineJoin.MITER, StrokeLineCap.SQUARE, 1.0, 0.0, null), null, new BorderWidths(4.0))));
-		
 		this.item.addListener((obs, ov, nv) -> {
 			this.mostRecentSlide = null;
 			slide.setSlide(null);
 			slide.setVisible(false);
 			image.setVisible(false);
 			player.setVisible(false);
-//			labels.hideRows(0,1,2,3,4,5,6,7,8,9,10);
 			if (nv == null) {
 				labels.showRowsOnly();
 			} else if (nv instanceof Slide) {
@@ -479,17 +465,13 @@ final class LibraryItemDetails extends BorderPane {
 			}
 		});
 		
-		content.setPadding(new Insets(10));
-		content.getChildren().addAll(lblNameValue
+		this.getStyleClass().add(LIBRARY_ITEM_DETAILS_CSS);
+		this.getChildren().addAll(
+				lblNameValue
 				,image
 				,slide
 				,player
 				,labels);
-		
-		this.setCenter(scrLayout);
-		
-		this.setMaxWidth(250);
-		this.setPrefWidth(250);
 	}
 	
 	private long getFileSize(Persistable item) {

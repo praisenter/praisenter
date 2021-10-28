@@ -57,6 +57,7 @@ public final class WorkspaceManager {
 	private final WorkspaceConfiguration workspaceConfiguration;
 	private final SearchIndex searchIndex;
 	private final Set<Path> otherWorkspaces;
+	private final boolean newWorkspace;
 	
 	private final ConcurrentMap<Class<?>, PersistentStore<?>> adapters;
 	
@@ -72,11 +73,13 @@ public final class WorkspaceManager {
 			WorkspacePathResolver pathResolver,
 			WorkspaceConfiguration workspaceConfiguration,
 			SearchIndex searchIndex,
-			Set<Path> otherWorkspaces) {
+			Set<Path> otherWorkspaces,
+			boolean isNewWorkspace) {
 		this.pathResolver = pathResolver;
 		this.workspaceConfiguration = workspaceConfiguration;
 		this.searchIndex = searchIndex;
 		this.otherWorkspaces = otherWorkspaces;
+		this.newWorkspace = isNewWorkspace;
 		
 		this.adapters = new ConcurrentHashMap<>();
 		
@@ -91,6 +94,7 @@ public final class WorkspaceManager {
 	
 	public static WorkspaceManager open(Path basePath, Set<Path> otherWorkspaces) throws IOException {
 		WorkspacePathResolver pathResolver = new WorkspacePathResolver(basePath);
+		boolean isNewWorkspace = false;
 		
 		// create all the paths for the workspace
 		LOGGER.info("Initializing workspace folders...");
@@ -129,6 +133,7 @@ public final class WorkspaceManager {
 		} else {
 			// generate the file
 			workspaceConfiguration = new WorkspaceConfiguration();
+			isNewWorkspace = true;
 			try {
 				JsonIO.write(configFilePath, workspaceConfiguration);
 			} catch (Exception ex) {
@@ -152,7 +157,8 @@ public final class WorkspaceManager {
 				pathResolver,
 				workspaceConfiguration,
 				searchIndex,
-				Collections.unmodifiableSet(otherWorkspaces));
+				Collections.unmodifiableSet(otherWorkspaces),
+				isNewWorkspace);
 	}
 	
 	public WorkspacePathResolver getWorkspacePathResolver() {
@@ -175,6 +181,10 @@ public final class WorkspaceManager {
 	
 	public Set<Path> getOtherWorkspaces() {
 		return this.otherWorkspaces;
+	}
+	
+	public boolean isNewWorkspace() {
+		return this.newWorkspace;
 	}
 	
 	public CompletableFuture<Void> registerBiblePersistAdapter() {

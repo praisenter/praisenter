@@ -90,15 +90,9 @@ public final class InstallUpgradeHandler {
 	}
 	
 	public CompletableFuture<Void> performUpgradeSteps() {
-//		logger.info("Starting upgrade steps");
-		
-		// TODO any version to version specific "scripts"
 		// we'll need to be very careful here if we want to prevent issues where we leave the 
 		// application files in a bad state. That might mean we need to manually archive the 
 		// library so we can revert or something like that
-		
-//		logger.info("All upgrade steps complete");
-		
 		return CompletableFuture.completedFuture(null);
 	}
 	

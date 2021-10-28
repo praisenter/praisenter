@@ -21,7 +21,7 @@ final class BibleTreeCell extends TreeCell<Object> {
 		this.book = Glyphs.NEW_BOOK.duplicate();
 		this.chapter = Glyphs.NEW_CHAPTER.duplicate();
 		this.graphic = new Label();
-		this.graphic.getStyleClass().addAll("verse-number");
+		this.graphic.getStyleClass().addAll("p-verse-number");
 	}
 	
 	@Override

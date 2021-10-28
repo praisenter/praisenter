@@ -11,17 +11,11 @@ import javafx.scene.Node;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Path;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.SVGPath;
-
-// TODO convert icons to SVG + css
 
 public enum Action {
 	SAVE("action.save", new KeyCodeCombination(KeyCode.S, KeyCombination.SHORTCUT_DOWN), () -> Glyphs.SAVE.duplicate()),
@@ -42,8 +36,9 @@ public enum Action {
 		return stack;
 	}),
 	RENAME("action.rename", new KeyCodeCombination(KeyCode.R, KeyCombination.SHORTCUT_DOWN), () -> Glyphs.RENAME.duplicate()),
-	DELETE("action.delete", new KeyCodeCombination(KeyCode.DELETE), () -> Glyphs.DELETE.duplicate()),
+	DELETE("action.delete", new KeyCodeCombination(KeyCode.DELETE), () -> Glyphs.DELETE.duplicate().color(Color.RED)),
 	
+	OPEN("action.open"),
 	UNDO("action.undo", new KeyCodeCombination(KeyCode.Z, KeyCombination.SHORTCUT_DOWN), () -> Glyphs.UNDO.duplicate()),
 	REDO("action.redo", RuntimeProperties.IS_WINDOWS_OS
 			// windows

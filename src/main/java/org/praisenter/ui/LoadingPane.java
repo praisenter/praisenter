@@ -1,5 +1,7 @@
 package org.praisenter.ui;
 
+import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -9,6 +11,7 @@ import org.praisenter.async.AsyncHelper;
 import org.praisenter.ui.slide.JavaFXSlideRenderer;
 import org.praisenter.ui.translations.Translations;
 import org.praisenter.ui.upgrade.InstallUpgradeHandler;
+import org.praisenter.utility.ClasspathLoader;
 import org.praisenter.utility.RuntimeProperties;
 
 import javafx.animation.Animation;
@@ -279,6 +282,37 @@ final class LoadingPane extends Pane {
 		});
 	}
 	
+	private CompletableFuture<Void> initializeNewWorkspace() {
+		return AsyncHelper.onJavaFXThreadAndWait(() -> {
+			this.message.set(Translations.get("task.workspace.initialize"));
+		}).apply(null).thenCompose((v) -> {
+			CompletableFuture<Void> future = CompletableFuture.completedFuture(null);
+			LOGGER.info("Checking for new workspace");
+			if (this.context.workspaceManager.isNewWorkspace()) {
+				// copy the sample data to the workspace
+				try {
+					LOGGER.info("Initializing new workspace.");
+					java.nio.file.Path path = this.context.workspaceManager.getWorkspacePathResolver().getBasePath().resolve("new-workspace-samples.zip");
+					ClasspathLoader.copy("/org/praisenter/data/new-workspace-samples.zip", path);
+					List<File> files = new ArrayList<>();
+					files.add(path.toFile());
+					future = this.context.importFiles(files).thenAccept(v2 -> {
+						LOGGER.info("Workspace initialized.");
+					}).exceptionally(t -> {
+						LOGGER.warn("Failed to import sample data: " + t.getMessage(), t);
+						return null;
+					});
+				} catch (Exception ex) {
+					LOGGER.warn("Failed to extract sample data: " + ex.getMessage(), ex);
+				}
+			}
+			
+			return future;
+		}).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
+			this.progress.set(0.95);
+		}));
+	}
+	
 	private CompletableFuture<Node> loadMainUI() {
 		return AsyncHelper.onJavaFXThreadAndWait((v) -> {
 			this.message.set(Translations.get("task.loading.ui"));
@@ -317,6 +351,8 @@ final class LoadingPane extends Pane {
 			return this.loadDisplayManager();
 		}).thenCompose((v) -> {
 			return this.loadFonts();
+		}).thenCompose((v) -> {
+			return this.initializeNewWorkspace();		
 		}).thenCompose((v) -> {
 			return this.loadMainUI();
 		});

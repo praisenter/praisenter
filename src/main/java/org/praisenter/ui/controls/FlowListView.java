@@ -63,6 +63,10 @@ import javafx.util.Callback;
  * @param <T> the item type
  */
 public class FlowListView<T> extends ScrollPane {
+	private static final String FLOW_LIST_VIEW_CSS = "p-flow-list-view";
+	private static final String FLOW_LIST_VIEW_DRAG_SELECTION_AREA_CSS = "p-flow-list-view-drag-selection-area";
+	private static final String FLOW_LIST_VIEW_TILES_CSS = "p-flow-list-view-tiles";
+	
     /** The :hover CSS pseudo class for styling */
     private static final PseudoClass HOVER = PseudoClass.getPseudoClass("hover");
     
@@ -115,14 +119,14 @@ public class FlowListView<T> extends ScrollPane {
 	 * @param cellFactory the cell factory
 	 */
 	public FlowListView(Orientation orientation, Callback<T, ? extends FlowListCell<T>> cellFactory) {
-		this.getStyleClass().add("flow-list-view");
+		this.getStyleClass().add(FLOW_LIST_VIEW_CSS);
 		
 		this.cellFactory = cellFactory;
 
 		this.layout = new TilePane();
 		
 		this.dragRect = new Rectangle();
-		this.dragRect.getStyleClass().add("flow-list-view-drag-selection-area");
+		this.dragRect.getStyleClass().add(FLOW_LIST_VIEW_DRAG_SELECTION_AREA_CSS);
 		this.dragRect.setManaged(false);
 		this.dragRect.setVisible(false);
 		this.dragRect.setMouseTransparent(true);
@@ -142,7 +146,7 @@ public class FlowListView<T> extends ScrollPane {
         StackPane stack = new StackPane(this.layout, this.dragRect);
         this.setContent(stack);
         
-        this.layout.getStyleClass().add("flow-list-view-tiles");
+        this.layout.getStyleClass().add(FLOW_LIST_VIEW_TILES_CSS);
         this.layout.setOrientation(orientation);
         
         // make the min height of the listing pane the height of the split pane 

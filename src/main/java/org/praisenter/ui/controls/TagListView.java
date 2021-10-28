@@ -59,6 +59,11 @@ import javafx.util.StringConverter;
  * @version 3.0.0
  */
 public final class TagListView extends BorderPane {
+	private static final String TAG_LIST_VIEW_CSS = "p-tag-list-view";
+	private static final String TAG_LIST_VIEW_TAGS_CSS = "p-tag-list-view-tags";
+	private static final String TAG_LIST_VIEW_TAG_CSS = "p-tag-list-view-tag";
+	private static final String TAG_LIST_VIEW_TAG_X_CSS = "p-tag-list-view-tag-x";
+	
 	/** The set of tags */
 	private final ObservableSet<Tag> tags;
 	
@@ -78,10 +83,11 @@ public final class TagListView extends BorderPane {
 		this.tags = FXCollections.observableSet();
 		this.tagNodes = FXCollections.observableArrayList();
 		
-		this.getStyleClass().add("tag-list-view");
+		this.getStyleClass().add(TAG_LIST_VIEW_CSS);
 		
 		FlowPane btns = new FlowPane();
-		btns.getStyleClass().add("tag-list-view-tags");
+		btns.getStyleClass().add(TAG_LIST_VIEW_TAGS_CSS);
+		btns.prefWrapLengthProperty().bind(this.widthProperty());
 		
 		// bind the children of this view to the tagNode list
 		Bindings.bindContent(btns.getChildren(), this.tagNodes);
@@ -117,7 +123,7 @@ public final class TagListView extends BorderPane {
 						if (name == null || name.length() == 0) {
 							return Collections.emptyList();
 						}
-						return all.stream().filter(t -> t.getName().toLowerCase().contains(name)).collect(Collectors.toList());
+						return all.stream().filter(t -> t.getName().toLowerCase().startsWith(name)).collect(Collectors.toList());
 					}
                 },
                 new StringConverter<Tag>() {
@@ -156,8 +162,8 @@ public final class TagListView extends BorderPane {
 	 */
 	private final Button generateTagNode(Tag tag) {
 		Button btn = new Button(tag.getName(), generateX());
-		btn.getStyleClass().add("tag");
-		btn.setTooltip(new Tooltip(tag.getName()));
+		btn.getStyleClass().add(TAG_LIST_VIEW_TAG_CSS);
+		btn.setTooltip(new Tooltip(Translations.get("tags.remove")));
 		btn.setUserData(tag);
 		
 		// set the click action
@@ -184,7 +190,7 @@ public final class TagListView extends BorderPane {
     	MoveTo m2 = new MoveTo(7, 0);
     	LineTo l2 = new LineTo(0, 7);
     	x.getElements().addAll(m1, l1, m2, l2);
-    	x.getStyleClass().add("tag-list-view-tag-x");
+    	x.getStyleClass().add(TAG_LIST_VIEW_TAG_X_CSS);
     	return x;
 	}
 	

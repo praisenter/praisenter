@@ -428,28 +428,18 @@ public final class GlobalContext {
 			case INCREASE_FONT_SIZE:
 				return this.workspaceManager.getWorkspaceConfiguration().getApplicationFontSize() < 22;
 			case DECREASE_FONT_SIZE:
-				// JAVABUG (M) 09/21/2021 Font size reduction doesn't make the controls smaller https://bugs.openjdk.java.net/browse/JDK-8205473
-				// JAVABUG (M) 09/21/2021 Font size changes recalculate size https://bugs.openjdk.java.net/browse/JDK-8204568
-				// TODO I think this was fixed in Java FX 17 - we should try to upgrade
 				return this.workspaceManager.getWorkspaceConfiguration().getApplicationFontSize() > 8;
 			default:
 				break;
 		}
 		
-		// actions based on the current document or documents
-		DocumentContext<?> document = this.currentDocument.get();
+		// actions based on the current open documents
 		switch (action) {
-			case SAVE:
-				return document != null && document.hasUnsavedChanges();
 			case SAVE_ALL:
 				for (DocumentContext<?> ctx : this.openDocuments) {
 					if (ctx.hasUnsavedChanges()) return true;
 				}
 				return false;
-			case REDO:
-				return document != null && document.getUndoManager().isRedoAvailable();
-			case UNDO:
-				return document != null && document.getUndoManager().isUndoAvailable();
 			default:
 				break;
 		}

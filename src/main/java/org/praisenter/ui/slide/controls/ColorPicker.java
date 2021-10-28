@@ -1,66 +1,24 @@
 package org.praisenter.ui.slide.controls;
 
-import java.util.List;
 import java.util.Locale;
-import java.util.stream.Stream;
 
-import org.praisenter.data.media.Media;
-import org.praisenter.data.media.MediaType;
-import org.praisenter.data.slide.effects.SlideColorAdjust;
-import org.praisenter.data.slide.graphics.ScaleType;
-import org.praisenter.data.slide.media.MediaObject;
-import org.praisenter.ui.GlobalContext;
-import org.praisenter.ui.Option;
-import org.praisenter.ui.bind.BindingHelper;
-import org.praisenter.ui.bind.ObjectConverter;
-import org.praisenter.ui.controls.EditGridPane;
-import org.praisenter.ui.controls.WindowHelper;
-import org.praisenter.ui.library.LibraryList;
-import org.praisenter.ui.library.LibraryListType;
-import org.praisenter.ui.translations.Translations;
-
-import javafx.beans.binding.Bindings;
-import javafx.beans.binding.ObjectBinding;
-import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.collections.transformation.FilteredList;
-import javafx.event.EventHandler;
-import javafx.geometry.Insets;
-import javafx.geometry.Orientation;
-import javafx.geometry.Pos;
-import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.ChoiceBox;
-import javafx.scene.control.Dialog;
-import javafx.scene.control.Label;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.CycleMethod;
 import javafx.scene.paint.LinearGradient;
 import javafx.scene.paint.Stop;
-import javafx.stage.Modality;
-import javafx.stage.StageStyle;
 
 // TODO custom color picker if the OOB one doesn't get fixed
 

@@ -161,12 +161,12 @@ public class SlideView extends Region implements Playable {
 		
 		viewBackground.prefWidthProperty().bind(Bindings.createDoubleBinding(() -> {
 			Scaling scaling = this.viewScale.get();
-			return scaling.width;
+			return Math.floor(scaling.width);
 		}, this.viewScale));
 		
 		viewBackground.prefHeightProperty().bind(Bindings.createDoubleBinding(() -> {
 			Scaling scaling = this.viewScale.get();
-			return scaling.height;
+			return Math.floor(scaling.height);
 		}, this.viewScale));
 		
 //		viewBackground.setBorder(new Border(new BorderStroke(Color.DARKTURQUOISE, new BorderStrokeStyle(StrokeType.CENTERED, StrokeLineJoin.MITER, StrokeLineCap.SQUARE, 1.0, 0.0, null), null, new BorderWidths(4.0))));
@@ -184,13 +184,13 @@ public class SlideView extends Region implements Playable {
 		viewBackground.layoutXProperty().bind(Bindings.createDoubleBinding(() -> {
 			if (!this.viewScaleAlignCenter.get()) return 0.0;
 			Scaling scaling = this.viewScale.get();
-			return scaling.x;
+			return Math.ceil(scaling.x);
 		}, this.viewScale, this.viewScaleAlignCenter));
 		
 		viewBackground.layoutYProperty().bind(Bindings.createDoubleBinding(() -> {
 			if (!this.viewScaleAlignCenter.get()) return 0.0;
 			Scaling scaling = this.viewScale.get();
-			return scaling.y;
+			return Math.ceil(scaling.y);
 		}, this.viewScale, this.viewScaleAlignCenter));
 		
 		this.clip = new Rectangle();

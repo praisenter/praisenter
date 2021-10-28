@@ -27,13 +27,14 @@ import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
-import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
 import javafx.util.Callback;
 
 public final class SlideStrokePicker extends FormFieldSection {
+	private static final String DASH_PATTERN_CSS = "p-slide-dash-pattern";
+	
 	private final ObjectProperty<SlideStroke> value;
 	
 	private final SlideStrokeType type;
@@ -233,7 +234,7 @@ public final class SlideStrokePicker extends FormFieldSection {
 			
             {
             	line = new Line(0, 0, 50, 0);
-            	line.setStroke(Color.BLACK);
+            	line.getStyleClass().add(DASH_PATTERN_CSS);
             	line.setStrokeLineJoin(StrokeLineJoin.MITER);
             	line.setStrokeLineCap(StrokeLineCap.ROUND);
             	line.setStrokeWidth(2);

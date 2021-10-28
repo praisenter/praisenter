@@ -55,6 +55,9 @@ import javafx.util.Duration;
  * @see <a href="http://docs.oracle.com/javase/8/javafx/media-tutorial/playercontrol.htm#sthref18">Controlling Media Playback</a>
  */
 public final class MediaPreview extends BorderPane implements Playable {
+	private static final String MEDIA_PREVIEW_CSS = "p-media-preview";
+	private static final String MEDIA_PREVIEW_CONTROLS_CSS = "p-media-preview-controls";
+	
 	private static final Logger LOGGER = LogManager.getLogger();
 	  
     private final ObjectProperty<MediaPlayer> player;
@@ -73,7 +76,7 @@ public final class MediaPreview extends BorderPane implements Playable {
      * Default constructor.
      */
     public MediaPreview() {
-    	this.getStyleClass().add("media-preview");
+    	this.getStyleClass().add(MEDIA_PREVIEW_CSS);
     	
     	MediaView mediaView = new MediaView();
         mediaView.setPreserveRatio(true);
@@ -85,7 +88,7 @@ public final class MediaPreview extends BorderPane implements Playable {
         this.setCenter(mediaView);
 
         HBox controlsBar = new HBox();
-        controlsBar.getStyleClass().add("media-preview-controls");
+        controlsBar.getStyleClass().add(MEDIA_PREVIEW_CONTROLS_CSS);
         BorderPane.setAlignment(controlsBar, Pos.CENTER);
 
         // play/pause button

@@ -73,6 +73,8 @@ public final class SongSearchPane extends VBox {
 	private final StringProperty terms;
 	private final ObservableList<SongSearchResult> results;
 	
+	private final Runnable search;
+	
 	// value
 	
 	private final ObjectProperty<SongSearchResult> value;
@@ -189,7 +191,7 @@ public final class SongSearchPane extends VBox {
 						if (mpart.contains("</B>")) {
 							String[] nparts = mpart.split("</B>");
 							Text temp = new Text(nparts[0]);
-							temp.getStyleClass().add("highlight");
+							temp.getStyleClass().add("p-search-highlight");
 							text.getChildren().add(temp);
 							// it's possible mpart could be "blah</B>" which would only give us one part
 							if (nparts.length > 1) {
@@ -239,7 +241,7 @@ public final class SongSearchPane extends VBox {
 		
 		this.getChildren().addAll(top, stack, lblResults);
 		
-		EventHandler<ActionEvent> handler = e -> {
+		this.search = () -> {
 			String text = this.terms.get();
 			Option<SearchType> type = this.searchType.get();
 			
@@ -265,6 +267,10 @@ public final class SongSearchPane extends VBox {
 					return null;
 				});
 			}
+		};
+		
+		EventHandler<ActionEvent> handler = e -> {
+			this.search.run();
 		};
 		
 		// update the search results when things are changed, removed, added, etc.
@@ -299,6 +305,10 @@ public final class SongSearchPane extends VBox {
 	public void clear() {
 		this.terms.set(null);
 		this.results.clear();
+	}
+	
+	public void search() {
+		this.search.run();
 	}
 	
 	public SongSearchResult getValue() {

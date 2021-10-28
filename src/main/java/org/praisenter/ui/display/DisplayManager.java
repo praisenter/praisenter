@@ -17,8 +17,6 @@ import javafx.collections.ObservableList;
 import javafx.geometry.Rectangle2D;
 import javafx.stage.Screen;
 
-// TODO it would be nice if we could cache the screen changes (removes, adds) and then operate on them more gracefully
-
 public final class DisplayManager {
 	private static final Logger LOGGER = LogManager.getLogger();
 

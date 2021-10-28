@@ -51,7 +51,7 @@ final class PraisenterPane extends BorderPane {
 	private static final String TAB_NAVIGATION_ICON_LIBRARY_CLASS = "p-tab-navigation-library-icon";
 	private static final String TAB_NAVIGATION_ICON_SETTINGS_CLASS = "p-tab-navigation-settings-icon";
 	private static final String TAB_NAVIGATION_ICON_TASKS_CLASS = "p-tab-navigation-tasks-icon";
-
+	private static final String FOOTER_CLASS = "p-footer";
 	
 	private final GlobalContext context;
 	private final ObservableList<Persistable> items;
@@ -183,10 +183,11 @@ final class PraisenterPane extends BorderPane {
 		lblWorkspacePath.setPadding(new Insets(0, 5, 0, 0));
 		
 		BorderPane bottom = new BorderPane();
-		bottom.setLeft(new HBox(5, 
+		bottom.getStyleClass().add(FOOTER_CLASS);
+		bottom.setLeft(new HBox( 
 				lblCompletedTasks, new Separator(Orientation.VERTICAL),
 				progress, lblCurrentTask));
-		bottom.setRight(new HBox(5, 
+		bottom.setRight(new HBox( 
 				lblUpdateAvailable, new Separator(Orientation.VERTICAL), 
 				lblWorkspacePath, new Separator(Orientation.VERTICAL), 
 				lblVersion));

@@ -268,7 +268,7 @@ public final class BibleSearchPane extends VBox {
 						if (mpart.contains("</B>")) {
 							String[] nparts = mpart.split("</B>");
 							Text temp = new Text(nparts[0]);
-							temp.getStyleClass().add("highlight");
+							temp.getStyleClass().add("p-search-highlight");
 							text.getChildren().add(temp);
 							// it's possible mpart could be "blah</B>" which would only give us one part
 							if (nparts.length > 1) {

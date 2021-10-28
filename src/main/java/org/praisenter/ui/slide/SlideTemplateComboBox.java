@@ -20,7 +20,7 @@ public class SlideTemplateComboBox extends ComboBox<Slide> {
         // JAVABUG (L) 09/16/17 [workaround] The combobox's drop down goes off screen - I've mitigated by reducing the number of items visible at one time
         this.setVisibleRowCount(6);
 		this.setCellFactory((view) -> {
-			return new SlideThumbnailListCell();
+			return new SlideTemplateListCell();
 		});
 		this.setButtonCell(new ListCell<Slide>() {
 			@Override
