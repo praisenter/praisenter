@@ -2,38 +2,38 @@
 	/* base colors */
 	base-color: rgb(30, 30, 30);
 	/* github: #0d1117 */
-	base-font-color: #b1b1b1;
+	base-font-color: #c2c2c2;
 	hover-font-color: white;
-	accent-color: rgb(45, 112, 201);
+	accent-color: rgb(38, 95, 170);
 	/* alternate accent color (purple): rgb(121, 121, 212) */
 
 	/* shades for depth */
 	L0B: base-color;
-	L0H: derive(base-color,  2.5%);
+	L0H: derive(base-color,  6%);
 
 	/* 40 */
-	L1B: derive(base-color,  4.5%);
-	L1H: derive(base-color,  7.0%);
+	L1B: derive(base-color,  8%);
+	L1H: derive(base-color, 12%);
 	
 	/* 50 */
-	L2B: derive(base-color,  9.0%);
-	L2H: derive(base-color, 11.5%);
+	L2B: derive(base-color, 16%);
+	L2H: derive(base-color, 20%);
 	
 	/* 60 */
-	L3B: derive(base-color, 13.5%);
-	L3H: derive(base-color, 16.0%);
+	L3B: derive(base-color, 24%);
+	L3H: derive(base-color, 28%);
 	
 	/* 70 */
-	L4B: derive(base-color, 18.0%);
-	L4H: derive(base-color, 20.0%);
+	L4B: derive(base-color, 32%);
+	L4H: derive(base-color, 36%);
 	
 	/* 80 */
-	L5B: derive(base-color, 22.5%);
-	L5H: derive(base-color, 24.5%);
+	L5B: derive(base-color, 40%);
+	L5H: derive(base-color, 44%);
 	
 	/* 90 */
-	L6B: derive(base-color, 27.0%);
-	L6H: derive(base-color, 29.0%);
+	L6B: derive(base-color, 48%);
+	L6H: derive(base-color, 52%);
 
 	/* javafx resets */
 	-fx-base: base-color;
@@ -71,6 +71,7 @@
     tab-area-background-color: L0H;
     tab-background-color: L1H;
 	tab-font-color: base-font-color;
+	tab-hover-background-color: L1B;
     tab-focused-background-color: L0B;
 	tab-close-icon-color: base-font-color;
 	tab-close-hover-icon-color: hover-font-color;
@@ -97,7 +98,7 @@
 	dialog-header-background-color: L1H;
 
 	/* listview */
-	list-view-background-color: L0H;
+	list-view-background-color: L0B;
 	list-view-hover-font-color: hover-font-color;
 	list-view-cell-empty-background-color: transparent;
 
@@ -282,6 +283,9 @@
 }
 .tab > .tab-container > .tab-close-button:hover {
 	-fx-background-color: tab-close-hover-icon-color;
+}
+.tab-pane .tab:hover {
+	-fx-background-color: tab-hover-background-color;
 }
 .tab-pane .tab:selected {
 	-fx-border-width: 0 1 3 0;
