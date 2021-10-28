@@ -188,7 +188,7 @@
 }
 .menu-item:focused  .arrow {
 	-fx-background-color: white;
-	-fx-padding: 0;
+	/* -fx-padding: 0; */
 	-fx-text-fill: white;
 	-fx-fill: white;
 }
