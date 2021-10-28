@@ -193,7 +193,7 @@ public final class LifecycleHandler {
 			Scene scene = new Scene(wss);
 			
 			// just use the default theme
-			scene.getStylesheets().add(Theme.getAvailableThemes().get(0).getCss());
+			scene.getStylesheets().add(Theme.getTheme("default").getCss());
 			stage.setScene(scene);
 			stage.sizeToScene();
 			stage.show();
