@@ -8,7 +8,7 @@ public interface MediaConfiguration {
 	public static final String DEFAULT_AUDIO_EXTENSION = "m4a";
 	
 	/** The target mean volume for audio/video (this was found through experimentation with Java FX) */
-	public static final double DEFAULT_TARGET_MEAN_VOLUME = -30.0;
+	public static final double DEFAULT_TARGET_MEAN_VOLUME = 0.0;
 	
 	/** The default FFmpeg command for transcoding */
 	public static final String DEFAULT_TRANSCODE_COMMAND = "{ffmpeg} -v fatal -i {source} -y -ignore_unknown {volumeadjust} {target}";

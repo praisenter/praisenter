@@ -172,7 +172,8 @@ abstract class AbstractMediaLoader implements MediaLoader {
 				withTransparency, 
 				this.configuration.getThumbnailWidth(), 
 				this.configuration.getThumbnailHeight(), 
-				ResampleOp.FILTER_LANCZOS);
+				ResampleOp.FILTER_LANCZOS,
+				true);
 	}
 
 	/**

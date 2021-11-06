@@ -18,6 +18,7 @@ import org.praisenter.Constants;
 import org.praisenter.Version;
 import org.praisenter.async.AsyncHelper;
 import org.praisenter.ui.controls.Dialogs;
+import org.praisenter.ui.controls.WindowHelper;
 import org.praisenter.ui.translations.Translations;
 import org.praisenter.ui.upgrade.UpgradeChecker;
 
@@ -31,6 +32,9 @@ import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.input.KeyCombination;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
+import javafx.stage.Window;
 
 final class MainMenu extends MenuBar {
 	private static final Logger LOGGER = LogManager.getLogger();
@@ -38,6 +42,8 @@ final class MainMenu extends MenuBar {
 	private static final String MAIN_MENU_CLASS = "p-main-menu";
 	
 	private final GlobalContext context;
+	
+	private Stage aboutDialog;
 
 	public MainMenu(GlobalContext context) {
 		super();
@@ -229,6 +235,9 @@ final class MainMenu extends MenuBar {
 			case DOWNLOAD_OPENSONG_BIBLES:
 				this.openUrl("http://www.opensong.org/home/download");
 				return;
+			case ABOUT:
+				this.showAbout();
+				return;
 			default:
 				break;
 		}
@@ -341,5 +350,26 @@ final class MainMenu extends MenuBar {
 				LOGGER.error("Failed to open default browser for URL: " + url, e);
 			}
 		}
+	}
+	
+	private void showAbout() {
+		if (this.aboutDialog == null) {
+			AboutPane pneAbout = new AboutPane();
+			
+			Window owner = this.getScene().getWindow();
+			this.aboutDialog = new Stage();
+			this.aboutDialog.initOwner(owner);
+			this.aboutDialog.setTitle(Translations.get("about.title"));
+			this.aboutDialog.initModality(Modality.WINDOW_MODAL);
+			this.aboutDialog.initStyle(StageStyle.DECORATED);
+			this.aboutDialog.setWidth(800);
+			this.aboutDialog.setHeight(450);
+			this.aboutDialog.setResizable(true);
+			this.aboutDialog.setScene(WindowHelper.createSceneWithOwnerCss(pneAbout, owner));
+			this.context.attachZoomHandler(this.aboutDialog.getScene());
+		}
+		
+		this.aboutDialog.show();
+		WindowHelper.centerOnParent(this.getScene().getWindow(), this.aboutDialog);
 	}
 }

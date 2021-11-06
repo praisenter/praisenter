@@ -151,6 +151,7 @@ public final class SongNavigationPane extends VBox {
 
 		TextArea txtDescription = new TextArea();
 		txtDescription.setEditable(false);
+		txtDescription.setWrapText(true);
 		txtDescription.setMinHeight(0);
 		txtDescription.textProperty().bind(Bindings.createStringBinding(() -> {
 			ReadOnlySong song = this.song.get();
@@ -207,7 +208,7 @@ public final class SongNavigationPane extends VBox {
 				this.searchDialog.initOwner(owner);
 				this.searchDialog.setTitle(Translations.get("song.search.title"));
 				this.searchDialog.initModality(Modality.NONE);
-				this.searchDialog.initStyle(StageStyle.UTILITY);
+				this.searchDialog.initStyle(StageStyle.DECORATED);
 				this.searchDialog.setWidth(800);
 				this.searchDialog.setHeight(450);
 				this.searchDialog.setResizable(true);

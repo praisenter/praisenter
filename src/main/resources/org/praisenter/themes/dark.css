@@ -8,6 +8,10 @@
 	/* alternate accent color (purple): rgb(121, 121, 212) */
 
 	/* shades for depth */
+	L-1B: derive(base-color, -50%);
+	L-1H: derive(base-color, -60%);
+
+	/* 30 */
 	L0B: base-color;
 	L0H: derive(base-color,  6%);
 
@@ -55,8 +59,8 @@
 	scrollpane-thumb-background-color: L3H;
 
 	/* menus */
-	menu-bar-background-color: L4B;
-	menu-bar-hover-background-color: L4H;
+	menu-bar-background-color: L3H;
+	menu-bar-hover-background-color: L4B;
 	menu-background-color: L0H;
 	menu-separator-color: L6B;
 	menu-hover-font-color: hover-font-color;
@@ -78,7 +82,8 @@
 	tab-unsaved-font-color: rgb(204, 167, 0);
 
 	/* toolbar */
-	toolbar-background-color: L1H;
+	toolbar-background-color: L2B;
+	toolbar-separator-color: L1B;
 
     /* buttons */
     button-background-color: L0H;
@@ -103,6 +108,7 @@
 	list-view-cell-empty-background-color: transparent;
 
 	/* library list */
+	library-list-background-color: L-1B;
 	library-list-hover-background-color: L2B;
 	library-list-selected-background-color:  L2H;
 	library-list-selected-font-color: hover-font-color;
@@ -239,6 +245,7 @@
 .scroll-bar .track,
 .scroll-pane .corner {
 	-fx-pref-width: 1em;
+	-fx-pref-height: 1em;
 	-fx-background-color: scrollpane-track-background-color;
 	-fx-background-insets: 0;
 	-fx-padding: 0;
@@ -253,8 +260,12 @@
 }
 
 /* TABS */
+.tab-pane {
+	-fx-open-tab-animation: NONE; 
+	-fx-close-tab-animation: NONE;
+}
 .tab-pane .tab-header-area {
-	-fx-padding: 0.15em 0 0 0;
+	-fx-padding: 0;
 }
 .tab-pane .tab-header-background {
 	-fx-background-color: tab-area-background-color;
@@ -270,9 +281,9 @@
 	-fx-background-radius: 0;
 	-fx-background-insets: 0;
 	-fx-padding: 0.5em 1em;
-	-fx-border-width: 0 1 3 0;
+	-fx-border-width: 3 1 0 0;
 	-fx-border-style: solid;
-	-fx-border-color: tab-area-background-color tab-area-background-color tab-background-color tab-area-background-color;
+	-fx-border-color:  tab-background-color tab-area-background-color tab-area-background-color tab-area-background-color;
 }
 .tab > .tab-container > .tab-label {
 	-fx-padding: 0 0.5em 0 0 ;
@@ -288,9 +299,9 @@
 	-fx-background-color: tab-hover-background-color;
 }
 .tab-pane .tab:selected {
-	-fx-border-width: 0 1 3 0;
+	-fx-border-width: 3 1 0 0;
 	-fx-border-style: solid;
-	-fx-border-color: tab-area-background-color tab-area-background-color accent-color tab-area-background-color;
+	-fx-border-color: accent-color tab-area-background-color tab-area-background-color tab-area-background-color;
 	-fx-background-color: tab-focused-background-color;
 	-fx-border-insets: 0;
 	-fx-background-insets: 0;
@@ -305,18 +316,24 @@
 /* TOOLBAR */
 .tool-bar {
 	-fx-spacing: 0;
-	-fx-padding: 0.15em 0 0 0.15em;
+	-fx-padding: 0;
 	-fx-background-color: toolbar-background-color;
+}
+.tool-bar .button {
+	-fx-background-color: toolbar-background-color;
+}
+.tool-bar .button:hover {
+	-fx-background-color: accent-color;
 }
 .tool-bar .tool-bar-overflow-button .context-menu .menu-item {
 	-fx-padding: 0;
 }
 .tool-bar .separator .line {
-	-fx-padding: 0.04em;
-	-fx-background-color: toolbar-background-color;
+	-fx-padding: 0.025;
+	-fx-background-color: toolbar-separator-color;
 	-fx-effect: null;
 	-fx-border-width: 0;
-	-fx-background-insets: 0;
+	-fx-background-insets: 0.5em 0;
 }
 
 /* SPLITPANE */
@@ -930,12 +947,13 @@
 	-fx-background-color: field-group-title-background-color;
 	-fx-background-insets: 0, 0 0 1 0;
 	-fx-background-radius: 0;
-	-fx-font-size: 1.5em;
+	-fx-font-size: 1.3em;
 }
 .p-form-field-group > .title > .arrow-button > .arrow {
     -fx-background-color: base-font-color;
     -fx-background-insets: 0;
     -fx-effect: null;
+	-fx-font-size: 1em;
 }
 .p-form-field-group > *.content {
 	-fx-border-width: 0;
@@ -1092,8 +1110,8 @@
 
 .p-media-dialog > .content {
 	-fx-padding: 0;
-	-fx-pref-height: 600;
-	-fx-pref-width: 800;
+	-fx-pref-width: 900;
+	-fx-pref-height: 450;
 }
 
 /* CONTROLS */
@@ -1170,8 +1188,11 @@
 .p-action-bar {}
 
 .p-library-list {}
+.p-library-list .p-flow-list-view .viewport {
+	-fx-background-color: library-list-background-color;
+}
 .p-library-list .p-flow-list-view-tiles {
-	-fx-background-color: control-background-color;
+	-fx-background-color: library-list-background-color;
 }
 .p-library-list-right {
 	-fx-min-width: 200;

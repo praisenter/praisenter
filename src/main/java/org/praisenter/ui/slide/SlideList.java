@@ -18,6 +18,7 @@ import org.praisenter.ui.events.ActionStateChangedEvent;
 import org.praisenter.ui.translations.Translations;
 
 import javafx.collections.ObservableList;
+import javafx.scene.CacheHint;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.ListView;
@@ -43,6 +44,11 @@ public final class SlideList extends ListView<Slide> implements ActionPane {
 
 		this.setCellFactory(s -> {
 			SlideListCell cell = new SlideListCell(context);
+			
+			// critical for performance for large lists of slides...
+			cell.setCache(true);
+			cell.setCacheHint(CacheHint.SPEED);
+			cell.setCacheShape(true);
 			
 			cell.setOnDragDetected(e -> this.dragDetected(e, cell));
 			cell.setOnDragDone(e -> this.dragDone(e));

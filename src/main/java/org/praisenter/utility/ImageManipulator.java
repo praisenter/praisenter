@@ -127,9 +127,10 @@ public final class ImageManipulator {
 	 * @param tw the target width
 	 * @param th the target height
 	 * @param quality the quality as defined by AffineTransformOp
+	 * @param scaleDownOnly true if the image should only be scaled down (and not scaled up)
 	 * @return BufferedImage
 	 */
-	public static final BufferedImage getUniformScaledImage(BufferedImage image, int tw, int th, int quality) {
+	public static final BufferedImage getUniformScaledImage(BufferedImage image, int tw, int th, int quality, boolean scaleDownOnly) {
 		// get the width/height
         int iw = image.getWidth();
         int ih = image.getHeight();
@@ -147,9 +148,13 @@ public final class ImageManipulator {
 			s = ph;
 		}
 		
-	    // attempt to resize it
-		BufferedImageOp op = new ResampleOp((int)Math.floor(s * iw), (int)Math.floor(s * ih), quality);
-	    return op.filter(image, null);
+		if (!scaleDownOnly || s < 1.0) {
+		    // attempt to resize it
+			BufferedImageOp op = new ResampleOp((int)Math.floor(s * iw), (int)Math.floor(s * ih), quality);
+		    return op.filter(image, null);
+		}
+		
+		return image;
 	}
 
 	/**

@@ -107,11 +107,9 @@ public final class MediaObjectPicker extends FormFieldSection {
 		});
 		dlgMedia.resultProperty().bindBidirectional(this.media);
 		dlgMedia.initOwner(context.getStage());
-		dlgMedia.initStyle(StageStyle.UTILITY);
+		dlgMedia.initStyle(StageStyle.DECORATED);
 		dlgMedia.initModality(Modality.WINDOW_MODAL);
 		dlgMedia.setResizable(true);
-		dlgMedia.setWidth(800);
-		dlgMedia.setHeight(600);
 		dlgMedia.getDialogPane().getStyleClass().add(MEDIA_DIALOG_CSS);
 	    dlgMedia.getDialogPane().getButtonTypes().addAll(ButtonType.CANCEL, ButtonType.OK);
 		

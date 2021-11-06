@@ -219,7 +219,7 @@ public final class MediaPreview extends BorderPane implements Playable {
         		
         		btnMute.graphicProperty().bind(Bindings.createObjectBinding(() -> {
         			boolean isMuted = nv.isMute();
-        			return isMuted ? this.control : this.mute;
+        			return isMuted ? this.mute : this.control;
         		}, nv.muteProperty()));
         		
         		nv.volumeProperty().bindBidirectional(sldVolume.valueProperty());

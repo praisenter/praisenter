@@ -1,5 +1,7 @@
 package org.praisenter.ui.library;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.praisenter.data.Persistable;
 import org.praisenter.data.bible.ReadOnlyBible;
 import org.praisenter.data.media.MediaType;
@@ -15,6 +17,8 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
 
 final class LibraryListCell extends FlowListCell<Persistable> {
+	private static final Logger LOGGER = LogManager.getLogger();
+	
 	private static final String LIBRARY_LIST_CELL_CSS = "p-library-list-cell";
 	private static final String LIBRARY_LIST_CELL_GRAPHIC_CSS = "p-library-list-cell-graphic";
 	private static final String LIBRARY_LIST_CELL_THUMBNAIL_CSS = "p-library-list-cell-thumbnail";
@@ -50,35 +54,32 @@ final class LibraryListCell extends FlowListCell<Persistable> {
     		thumb.imageProperty().bind(Bindings.createObjectBinding(() -> {
     			return new Image(media.getMediaThumbnailPath().toUri().toURL().toExternalForm());
     		}, media.mediaThumbnailPathProperty()));
-    		if (media.getMediaType() != MediaType.VIDEO) underlay.getStyleClass().add(LIBRARY_LIST_CELL_VIDEO_CSS);
-    		else if (media.getMediaType() != MediaType.AUDIO) underlay.getStyleClass().add(LIBRARY_LIST_CELL_AUDIO_CSS);
-    		else if (media.getMediaType() != MediaType.IMAGE) underlay.getStyleClass().add(LIBRARY_LIST_CELL_IMAGE_CSS);
-//    		if (media.getMediaType() != MediaType.VIDEO) {
-//    			underlay.getStyleClass().add("dropshadow-underlay");
-//    		}
+    		
+    		if (media.getMediaType() != MediaType.VIDEO) {
+    			underlay.getStyleClass().add(LIBRARY_LIST_CELL_VIDEO_CSS);
+    		} else if (media.getMediaType() != MediaType.AUDIO) {
+    			underlay.getStyleClass().add(LIBRARY_LIST_CELL_AUDIO_CSS);
+    		} else if (media.getMediaType() != MediaType.IMAGE) {
+    			underlay.getStyleClass().add(LIBRARY_LIST_CELL_IMAGE_CSS);
+    		}
     		label.textProperty().bind(media.nameProperty());
     	} else if (data instanceof ReadOnlySlide) {
     		final ReadOnlySlide slide = (ReadOnlySlide)data;
     		underlay.getStyleClass().add(LIBRARY_LIST_CELL_SLIDE_CSS);
-//			underlay.getStyleClass().addAll("transparent-underlay", "dropshadow-underlay");
     		thumb.imageProperty().bind(Bindings.createObjectBinding(() -> {
     			return new Image(slide.getThumbnailPath().toUri().toURL().toExternalForm());
     		}, slide.thumbnailPathProperty()));
     		label.textProperty().bind(slide.nameProperty());
     	} else if (data instanceof ReadOnlyBible) {
     		final ReadOnlyBible bible = (ReadOnlyBible)data;
-//    		underlay.getStyleClass().add("dropshadow-underlay");
     		underlay.getStyleClass().add(LIBRARY_LIST_CELL_BIBLE_CSS);
-//    		thumb.getStyleClass().add("bible");
     		label.textProperty().bind(bible.nameProperty());
     	} else if (data instanceof ReadOnlySong) {
     		final ReadOnlySong song = (ReadOnlySong)data;
     		underlay.getStyleClass().add(LIBRARY_LIST_CELL_SONG_CSS);
-//    		underlay.getStyleClass().add("dropshadow-underlay");
-//    		thumb.getStyleClass().add("song");
     		label.textProperty().bind(song.nameProperty());
     	} else {
-    		// TODO log a warning
+    		LOGGER.warn("Unknown data type: '" + data.getClass() + "'.");
     	}
     	
     	// add the image and label to the cell
