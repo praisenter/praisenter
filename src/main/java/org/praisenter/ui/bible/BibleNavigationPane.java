@@ -327,7 +327,7 @@ public final class BibleNavigationPane extends GridPane {
 				this.searchDialog.initOwner(owner);
 				this.searchDialog.setTitle(Translations.get("bible.search.title"));
 				this.searchDialog.initModality(Modality.NONE);
-				this.searchDialog.initStyle(StageStyle.UTILITY);
+				this.searchDialog.initStyle(StageStyle.DECORATED);
 				this.searchDialog.setWidth(800);
 				this.searchDialog.setHeight(450);
 				this.searchDialog.setResizable(true);

@@ -65,6 +65,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.robot.Robot;
+import javafx.scene.text.TextAlignment;
 import javafx.stage.Modality;
 import javafx.util.Duration;
 
@@ -305,6 +306,10 @@ public final class DisplayController extends BorderPane {
 		// NOTE: we have to do a bidirectional binding here because the SlideList itself
 		// allows delete, copy, paste, and dnd
 		SlideList lstSlideQueue = new SlideList(context);
+		Label lblEmptySlideList = new Label(Translations.get("display.controller.slide.queue.empty"));
+		lblEmptySlideList.setWrapText(true);
+		lblEmptySlideList.setTextAlignment(TextAlignment.CENTER);
+		lstSlideQueue.setPlaceholder(lblEmptySlideList);
 		Bindings.bindContentBidirectional(lstSlideQueue.getItems(), this.slides);
 		
 		// listen for changes to the slides (remove and update)

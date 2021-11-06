@@ -186,7 +186,8 @@ final class PraisenterPane extends BorderPane {
 		bottom.getStyleClass().add(FOOTER_CLASS);
 		bottom.setLeft(new HBox( 
 				lblCompletedTasks, new Separator(Orientation.VERTICAL),
-				progress, lblCurrentTask));
+				progress,  new Separator(Orientation.VERTICAL), 
+				lblCurrentTask));
 		bottom.setRight(new HBox( 
 				lblUpdateAvailable, new Separator(Orientation.VERTICAL), 
 				lblWorkspacePath, new Separator(Orientation.VERTICAL), 

@@ -7,9 +7,6 @@ import java.util.Map;
 import javafx.application.Application;
 import javafx.stage.Stage;
 
-// TODO testing on High DPI screens
-// TODO fix dark theme
-
 // FEATURE (L-M) Evaluate detecting text language for better indexing (a field per language) in lucene; Apache Tika or LangDetect; This would also be used in the searches to know what indexed fields to use
 // FEATURE (L-M) Use Apache POI to read powerpoint files
 // FEATURE (M-L) Evaluate alternate JavaFX styles here https://github.com/JFXtras/jfxtras-styles

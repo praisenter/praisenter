@@ -1,39 +1,42 @@
 .root {
 	/* base colors */
-	base-color: rgb(30, 30, 30);
+	base-color: rgb(255, 255, 255);
 	/* github: #0d1117 */
-	base-font-color: #b1b1b1;
-	hover-font-color: white;
-	accent-color: rgb(45, 112, 201);
+	base-font-color: #333;
+	hover-font-color: #333;
+	/* accent-color: rgb(45, 112, 201); */
+	accent-color: rgb(196, 227, 255);
+	accent-color-light: rgb(229, 243, 255);
+	accent-color-dark: rgb(76, 156, 226);
 	/* alternate accent color (purple): rgb(121, 121, 212) */
 
-	/* shades for depth */
+	/* 30 */
 	L0B: base-color;
-	L0H: derive(base-color,  2.5%);
+	L0H: derive(base-color,  -2%);
 
 	/* 40 */
-	L1B: derive(base-color,  4.5%);
-	L1H: derive(base-color,  7.0%);
+	L1B: derive(base-color,  -4%);
+	L1H: derive(base-color,  -8%);
 	
 	/* 50 */
-	L2B: derive(base-color,  9.0%);
-	L2H: derive(base-color, 11.5%);
+	L2B: derive(base-color,  -8%);
+	L2H: derive(base-color, -10%);
 	
 	/* 60 */
-	L3B: derive(base-color, 13.5%);
-	L3H: derive(base-color, 16.0%);
+	L3B: derive(base-color, -12%);
+	L3H: derive(base-color, -14%);
 	
 	/* 70 */
-	L4B: derive(base-color, 18.0%);
-	L4H: derive(base-color, 20.0%);
+	L4B: derive(base-color, -16%);
+	L4H: derive(base-color, -28%);
 	
 	/* 80 */
-	L5B: derive(base-color, 22.5%);
-	L5H: derive(base-color, 24.5%);
+	L5B: derive(base-color, -20%);
+	L5H: derive(base-color, -22%);
 	
 	/* 90 */
-	L6B: derive(base-color, 27.0%);
-	L6H: derive(base-color, 29.0%);
+	L6B: derive(base-color, -24%);
+	L6H: derive(base-color, -26%);
 
 	/* javafx resets */
 	-fx-base: base-color;
@@ -55,40 +58,42 @@
 	scrollpane-thumb-background-color: L3H;
 
 	/* menus */
-	menu-bar-background-color: L4B;
-	menu-bar-hover-background-color: L4H;
-	menu-background-color: L0H;
-	menu-separator-color: L6B;
+	menu-bar-background-color: L0B;
+	menu-bar-hover-background-color: accent-color-light;
+	menu-background-color: L1B;
+	menu-separator-color: L2B;
 	menu-hover-font-color: hover-font-color;
 
     /* left-nav */
-    left-navigation-background-color: L2B;
-	left-navigation-hover-background-color: L3B;
+    left-navigation-background-color: base-color;
+	left-navigation-hover-background-color: accent-color-light;
     left-navigation-font-color: base-font-color;
     left-navigation-hover-font-color: hover-font-color;
     
     /* tabs */
-    tab-area-background-color: L0H;
-    tab-background-color: L1H;
+    tab-area-background-color: L1H;
+    tab-background-color: L1B;
 	tab-font-color: base-font-color;
+	tab-hover-background-color: L1H;
     tab-focused-background-color: L0B;
 	tab-close-icon-color: base-font-color;
 	tab-close-hover-icon-color: hover-font-color;
-	tab-unsaved-font-color: rgb(204, 167, 0);
+	tab-unsaved-font-color: rgb(122, 59, 0);
 
 	/* toolbar */
-	toolbar-background-color: L1H;
+	toolbar-background-color: L0H;
+	toolbar-separator-color: L1H;
 
     /* buttons */
-    button-background-color: L0H;
+    button-background-color: L1B;
 	button-hover-background-color: accent-color;
     button-font-color: base-font-color;
 	button-hover-font-color: hover-font-color;
 	toggle-button-selected-background-color: L2B;
 	
 	/* CONTROLS */
-	control-background-color: L0H;
-	control-hover-background-color: L1B;
+	control-background-color: L1B;
+	control-hover-background-color: L1H;
 	
 	tree-cell-selected-font-color: hover-font-color;
 	tree-cell-drag-over-parent-background-color: L1H;
@@ -102,6 +107,7 @@
 	list-view-cell-empty-background-color: transparent;
 
 	/* library list */
+	library-list-background-color: L0H;
 	library-list-hover-background-color: L2B;
 	library-list-selected-background-color:  L2H;
 	library-list-selected-font-color: hover-font-color;
@@ -122,8 +128,8 @@
 	field-group-title-background-color: L1B;
 
 	/* footer */
-	footer-background-color: rgb(104, 33, 122);
-	footer-font-color: hover-font-color;
+	footer-background-color: rgb(97, 33, 122);
+	footer-font-color: white;
 
 	/* tables */
 	table-header-background-color: L1B;
@@ -131,8 +137,8 @@
 
 	/* other */
 	error-font-color: red;
-	search-highlight-font-color: accent-color;
-	new-adder-background-color: rgb(83, 172, 83);
+	search-highlight-font-color: accent-color-dark;
+	new-adder-background-color: rgb(104, 219, 104);
 	progress-overlay-background-color: rgba(0, 0, 0, 0.1);
 }
 
@@ -177,9 +183,19 @@
 .menu-item {
 	-fx-padding: 0.3em 1em 0.3em 1em;
 }
+.menu-item:focused,
 .menu-item:focused > .label,
 .menu-item:focused .graphic-container .label {
 	-fx-text-fill: menu-hover-font-color;
+}
+.menu .menu {
+	-fx-padding: 0.3em 1em 0.3em 1em;
+}
+.menu-item:focused  .arrow {
+	-fx-background-color: white;
+	/* -fx-padding: 0; */
+	-fx-text-fill: white;
+	-fx-fill: white;
 }
 .menu-item > .accelerator-text {
     -fx-padding: 0 0 0 3em;
@@ -228,6 +244,7 @@
 .scroll-bar .track,
 .scroll-pane .corner {
 	-fx-pref-width: 1em;
+	-fx-pref-height: 1em;
 	-fx-background-color: scrollpane-track-background-color;
 	-fx-background-insets: 0;
 	-fx-padding: 0;
@@ -242,8 +259,12 @@
 }
 
 /* TABS */
+.tab-pane {
+	-fx-open-tab-animation: NONE; 
+	-fx-close-tab-animation: NONE;
+}
 .tab-pane .tab-header-area {
-	-fx-padding: 0.15em 0 0 0;
+	-fx-padding: 0;
 }
 .tab-pane .tab-header-background {
 	-fx-background-color: tab-area-background-color;
@@ -259,9 +280,9 @@
 	-fx-background-radius: 0;
 	-fx-background-insets: 0;
 	-fx-padding: 0.5em 1em;
-	-fx-border-width: 0 1 3 0;
+	-fx-border-width: 3 1 0 0;
 	-fx-border-style: solid;
-	-fx-border-color: tab-area-background-color tab-area-background-color tab-background-color tab-area-background-color;
+	-fx-border-color:  tab-background-color tab-area-background-color tab-area-background-color tab-area-background-color;
 }
 .tab > .tab-container > .tab-label {
 	-fx-padding: 0 0.5em 0 0 ;
@@ -273,10 +294,13 @@
 .tab > .tab-container > .tab-close-button:hover {
 	-fx-background-color: tab-close-hover-icon-color;
 }
+.tab-pane .tab:hover {
+	-fx-background-color: tab-hover-background-color;
+}
 .tab-pane .tab:selected {
-	-fx-border-width: 0 1 3 0;
+	-fx-border-width: 3 1 0 0;
 	-fx-border-style: solid;
-	-fx-border-color: tab-area-background-color tab-area-background-color accent-color tab-area-background-color;
+	-fx-border-color: accent-color tab-area-background-color tab-area-background-color tab-area-background-color;
 	-fx-background-color: tab-focused-background-color;
 	-fx-border-insets: 0;
 	-fx-background-insets: 0;
@@ -291,18 +315,24 @@
 /* TOOLBAR */
 .tool-bar {
 	-fx-spacing: 0;
-	-fx-padding: 0.15em 0 0 0.15em;
+	-fx-padding: 0;
 	-fx-background-color: toolbar-background-color;
+}
+.tool-bar .button {
+	-fx-background-color: toolbar-background-color;
+}
+.tool-bar .button:hover {
+	-fx-background-color: accent-color;
 }
 .tool-bar .tool-bar-overflow-button .context-menu .menu-item {
 	-fx-padding: 0;
 }
 .tool-bar .separator .line {
-	-fx-padding: 0.04em;
-	-fx-background-color: toolbar-background-color;
+	-fx-padding: 0.025;
+	-fx-background-color: toolbar-separator-color;
 	-fx-effect: null;
 	-fx-border-width: 0;
-	-fx-background-insets: 0;
+	-fx-background-insets: 0.5em 0;
 }
 
 /* SPLITPANE */
@@ -781,11 +811,11 @@
 .p-tab-navigation > .tab-header-area > .headers-region > .tab:hover {
 	-fx-background-color: left-navigation-hover-background-color;
 	-fx-border-width: 5 0 0 0;
-	-fx-border-color: accent-color;
+	-fx-border-color: accent-color-dark;
 }
 .p-tab-navigation > .tab-header-area > .headers-region > .tab:selected {
 	-fx-border-width: 5 0 0 0;
-	-fx-border-color: accent-color;
+	-fx-border-color: accent-color-dark;
 	-fx-border-radius: 0;
 	-fx-background-color: left-navigation-hover-background-color;
 	-fx-background-radius: 0;
@@ -916,12 +946,13 @@
 	-fx-background-color: field-group-title-background-color;
 	-fx-background-insets: 0, 0 0 1 0;
 	-fx-background-radius: 0;
-	-fx-font-size: 1.5em;
+	-fx-font-size: 1.3em;
 }
 .p-form-field-group > .title > .arrow-button > .arrow {
     -fx-background-color: base-font-color;
     -fx-background-insets: 0;
     -fx-effect: null;
+	-fx-font-size: 1em;
 }
 .p-form-field-group > *.content {
 	-fx-border-width: 0;
@@ -1056,7 +1087,9 @@
 
 /* BIBLE/SONG/SLIDE EDITOR */
 .p-bible-editor,
-.p-song-editor {}
+.p-song-editor {
+	-fx-padding: 0.5em 0 0 0;
+}
 .p-bible-editor-bulk,
 .p-song-editor-bulk {
 	-fx-spacing: 0.5em;
@@ -1076,8 +1109,8 @@
 
 .p-media-dialog > .content {
 	-fx-padding: 0;
-	-fx-pref-height: 600;
-	-fx-pref-width: 800;
+	-fx-pref-width: 900;
+	-fx-pref-height: 450;
 }
 
 /* CONTROLS */
@@ -1154,8 +1187,11 @@
 .p-action-bar {}
 
 .p-library-list {}
+.p-library-list .p-flow-list-view .viewport {
+	-fx-background-color: library-list-background-color;
+}
 .p-library-list .p-flow-list-view-tiles {
-	-fx-background-color: control-background-color;
+	-fx-background-color: library-list-background-color;
 }
 .p-library-list-right {
 	-fx-min-width: 200;

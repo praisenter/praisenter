@@ -146,7 +146,7 @@ final class AudioMediaLoader extends AbstractMediaLoader implements MediaLoader 
 		}
 		
 		// images
-		BufferedImage image = ClasspathLoader.getBufferedImage("/org/praisenter/data/media/default-audio-image.png");
+		BufferedImage image = ClasspathLoader.getBufferedImage("/org/praisenter/images/audio-default-thumbnail.png");
 		
 		// FEATURE (L-H) consider calling an external service to get album art  https://musicbrainz.org/doc/MusicBrainz_API/Search
 //		try {

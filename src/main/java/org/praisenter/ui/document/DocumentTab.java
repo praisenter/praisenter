@@ -88,12 +88,18 @@ public final class DocumentTab extends Tab {
 		});
 		
 		document.hasUnsavedChangesProperty().addListener((obs, ov, nv) -> {
-			if (nv) {
-				this.getStyleClass().add(UNSAVED_DOCUMENT_CSS);
-			} else {
-				this.getStyleClass().remove(UNSAVED_DOCUMENT_CSS);
-			}
+			this.setUnsavedChangesStyle(nv);
 		});
+		
+		this.setUnsavedChangesStyle(document.isNew());
+	}
+	
+	private void setUnsavedChangesStyle(boolean hasUnsavedChanges) {
+		if (hasUnsavedChanges) {
+			this.getStyleClass().add(UNSAVED_DOCUMENT_CSS);
+		} else {
+			this.getStyleClass().remove(UNSAVED_DOCUMENT_CSS);
+		}
 	}
 	
 	@SuppressWarnings("unchecked")

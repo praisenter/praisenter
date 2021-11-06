@@ -9,10 +9,12 @@ import org.praisenter.data.workspace.PlaceholderTransitionBehavior;
 import org.praisenter.data.workspace.WorkspaceConfiguration;
 import org.praisenter.ui.controls.FormField;
 import org.praisenter.ui.controls.FormFieldGroup;
+import org.praisenter.ui.controls.LastValueNumberStringConverter;
 import org.praisenter.ui.themes.Theme;
 import org.praisenter.ui.translations.Translations;
 import org.praisenter.utility.StringManipulator;
 
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -168,6 +170,12 @@ public class SettingsPane extends BorderPane {
 		
 		// target mean volume
 		Spinner<Double> spnTargetVolume = new Spinner<>(-100, 100, configuration.getTargetMeanVolume(), 1);
+		spnTargetVolume.setEditable(true);
+		spnTargetVolume.getValueFactory().setConverter(LastValueNumberStringConverter.forDouble((originalValueText) -> {
+			Platform.runLater(() -> {
+				spnTargetVolume.getEditor().setText(originalValueText);
+			});
+		}));
 		spnTargetVolume.valueProperty().addListener((obs, ov, nv) -> {
 			configuration.setTargetMeanVolume(nv);
 		});

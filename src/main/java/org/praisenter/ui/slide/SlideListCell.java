@@ -37,7 +37,10 @@ final class SlideListCell extends ListCell<Slide> {
 	        	if (newItem.hasPlaceholders()) {
 	        		TextItem txt = newItem.getPlaceholderData().get(TextVariant.PRIMARY, TextType.TITLE);
 	        		if (txt != null) {
-	        			name = txt.getText();
+	        			String replacedName = txt.getText();
+	        			if (replacedName != null && !replacedName.isBlank()) {
+	        				name = replacedName;
+	        			}
 	        		}
 	        	}
 	        	this.setText(name);

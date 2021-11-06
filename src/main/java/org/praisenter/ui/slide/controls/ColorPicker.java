@@ -20,8 +20,6 @@ import javafx.scene.paint.CycleMethod;
 import javafx.scene.paint.LinearGradient;
 import javafx.scene.paint.Stop;
 
-// TODO custom color picker if the OOB one doesn't get fixed
-
 public final class ColorPicker extends VBox {
 	// https://palettolithic.com/
 	private static final String[][] PALETTE = new String[][] { 

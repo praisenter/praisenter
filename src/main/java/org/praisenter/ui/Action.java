@@ -139,11 +139,9 @@ public enum Action {
 	NEW_SECTION("action.new.song.section", getGraphicSupplierForNew(Glyphs.NEW_SECTION)),
 	
 	// other
-	DOWNLOAD_ZEFANIA_BIBLES("action.about.download.zefania"),
-	DOWNLOAD_UNBOUND_BIBLES("action.about.download.unbound"),
-	DOWNLOAD_OPENSONG_BIBLES("action.about.download.opensong"),
-//	DOWNLOAD_ZEFANIA_BIBLES("action.about.download.zefania"),
-//	DOWNLOAD_ZEFANIA_BIBLES("action.about.download.zefania"),
+	DOWNLOAD_ZEFANIA_BIBLES("action.download.zefania"),
+	DOWNLOAD_UNBOUND_BIBLES("action.download.unbound"),
+	DOWNLOAD_OPENSONG_BIBLES("action.download.opensong"),
 	
 	;
 	
