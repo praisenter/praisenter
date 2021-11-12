@@ -93,7 +93,7 @@ public final class WorkspaceConfiguration implements ReadOnlyWorkspaceConfigurat
 		this.targetMeanVolume = new SimpleDoubleProperty(MediaConfiguration.DEFAULT_TARGET_MEAN_VOLUME);
 		
 		this.languageTag = new SimpleStringProperty(null);
-		this.themeName = new SimpleStringProperty("default");
+		this.themeName = new SimpleStringProperty("flat-dark");
 		this.applicationX = new SimpleDoubleProperty(POSITION_SIZE_UNSET);
 		this.applicationY = new SimpleDoubleProperty(POSITION_SIZE_UNSET);
 		this.applicationWidth = new SimpleDoubleProperty(POSITION_SIZE_UNSET);

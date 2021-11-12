@@ -126,6 +126,18 @@ public final class Constants {
 	/** The path to the default theme file on the classpath */
 	public static final String THEMES_DEFAULT_THEME_ON_CLASSPATH = "/org/praisenter/themes/" + Constants.THEMES_DEFAULT_THEME_FILENAME;
 	
+	/** The default theme file name */
+	public static final String THEMES_FLAT_DARK_THEME_FILENAME = "flat-dark.css";
+	
+	/** The path to the default theme file on the classpath */
+	public static final String THEMES_FLAT_DARK_THEME_ON_CLASSPATH = "/org/praisenter/themes/" + Constants.THEMES_FLAT_DARK_THEME_FILENAME;
+	
+	/** The default theme file name */
+	public static final String THEMES_FLAT_LIGHT_THEME_FILENAME = "flat-light.css";
+	
+	/** The path to the default theme file on the classpath */
+	public static final String THEMES_FLAT_LIGHT_THEME_ON_CLASSPATH = "/org/praisenter/themes/" + Constants.THEMES_FLAT_LIGHT_THEME_FILENAME;
+	
 	
 	///////////////////////////
 	// OTHER
