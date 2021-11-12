@@ -138,6 +138,16 @@ public final class InstallUpgradeHandler {
 				Constants.THEMES_DEFAULT_THEME_FILENAME, 
 				Constants.THEMES_DEFAULT_THEME_ON_CLASSPATH,
 				isUpgrade);
+		this.installOrUpgradeClasspathFile(
+				Constants.THEMES_ABSOLUTE_PATH, 
+				Constants.THEMES_FLAT_DARK_THEME_FILENAME, 
+				Constants.THEMES_FLAT_DARK_THEME_ON_CLASSPATH,
+				isUpgrade);
+		this.installOrUpgradeClasspathFile(
+				Constants.THEMES_ABSOLUTE_PATH, 
+				Constants.THEMES_FLAT_LIGHT_THEME_FILENAME, 
+				Constants.THEMES_FLAT_LIGHT_THEME_ON_CLASSPATH,
+				isUpgrade);
 	}
 	
 	private void installOrUpgradeClasspathFile(String filePath, String fileName, String classpathPath, boolean isUpgrade) {

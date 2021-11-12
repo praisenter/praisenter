@@ -20,7 +20,7 @@ public final class Theme implements Comparable<Theme> {
 	private static final Logger LOGGER = LogManager.getLogger();
 
 	private static final Pattern THEME_PATTERN = Pattern.compile("^(.+)\\.css$", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
-	private static final Theme DEFAULT = new Theme("Default", Theme.class.getResource("/org/praisenter/themes/default.css").toExternalForm());
+	private static final Theme DEFAULT = new Theme("default", Theme.class.getResource("/org/praisenter/themes/default.css").toExternalForm());
 
 	/**
 	 * Returns an unmodifiable list of available themes.

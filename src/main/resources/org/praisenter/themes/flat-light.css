@@ -1,0 +1,1244 @@
+.root {
+	/* base colors */
+	base-color: rgb(255, 255, 255);
+	/* github: #0d1117 */
+	base-font-color: #333;
+	hover-font-color: #333;
+	/* accent-color: rgb(45, 112, 201); */
+	accent-color: rgb(196, 227, 255);
+	accent-color-light: rgb(229, 243, 255);
+	accent-color-dark: rgb(76, 156, 226);
+	/* alternate accent color (purple): rgb(121, 121, 212) */
+
+	/* 30 */
+	L0B: base-color;
+	L0H: derive(base-color,  -2%);
+
+	/* 40 */
+	L1B: derive(base-color,  -4%);
+	L1H: derive(base-color,  -8%);
+	
+	/* 50 */
+	L2B: derive(base-color,  -8%);
+	L2H: derive(base-color, -10%);
+	
+	/* 60 */
+	L3B: derive(base-color, -12%);
+	L3H: derive(base-color, -14%);
+	
+	/* 70 */
+	L4B: derive(base-color, -16%);
+	L4H: derive(base-color, -28%);
+	
+	/* 80 */
+	L5B: derive(base-color, -20%);
+	L5H: derive(base-color, -22%);
+	
+	/* 90 */
+	L6B: derive(base-color, -24%);
+	L6H: derive(base-color, -26%);
+
+	/* javafx resets */
+	-fx-base: base-color;
+	-fx-background: base-color;
+	-fx-background-color: base-color;
+	-fx-control-inner-background: base-color;
+	-fx-control-inner-background-alt: base-color;
+	-fx-pressed-base: base-color;
+	-fx-body-color: base-color;
+	-fx-body-color-bottomup: base-color;
+	-fx-body-color-to-right: base-color;
+	-fx-accent: accent-color;
+	-fx-dark-text-color: base-font-color;
+    -fx-mid-text-color: base-font-color;
+    -fx-light-text-color: base-font-color;
+
+	/* scrollpane */
+	scrollpane-track-background-color: L1B;
+	scrollpane-thumb-background-color: L3H;
+
+	/* menus */
+	menu-bar-background-color: L0B;
+	menu-bar-hover-background-color: accent-color-light;
+	menu-background-color: L1B;
+	menu-separator-color: L2B;
+	menu-hover-font-color: hover-font-color;
+
+    /* left-nav */
+    left-navigation-background-color: base-color;
+	left-navigation-hover-background-color: accent-color-light;
+    left-navigation-font-color: base-font-color;
+    left-navigation-hover-font-color: hover-font-color;
+    
+    /* tabs */
+    tab-area-background-color: L1H;
+    tab-background-color: L1B;
+	tab-font-color: base-font-color;
+	tab-hover-background-color: L1H;
+    tab-focused-background-color: L0B;
+	tab-close-icon-color: base-font-color;
+	tab-close-hover-icon-color: hover-font-color;
+	tab-unsaved-font-color: rgb(122, 59, 0);
+
+	/* toolbar */
+	toolbar-background-color: L0H;
+	toolbar-separator-color: L1H;
+
+    /* buttons */
+    button-background-color: L1B;
+	button-hover-background-color: accent-color;
+    button-font-color: base-font-color;
+	button-hover-font-color: hover-font-color;
+	toggle-button-selected-background-color: L2B;
+	
+	/* CONTROLS */
+	control-background-color: L1B;
+	control-hover-background-color: L1H;
+	
+	tree-cell-selected-font-color: hover-font-color;
+	tree-cell-drag-over-parent-background-color: L1H;
+	tree-cell-drag-over-sibling-color: L6H;
+	split-pane-separator-color: L0H;
+	dialog-header-background-color: L1H;
+
+	/* listview */
+	list-view-background-color: L0H;
+	list-view-hover-font-color: hover-font-color;
+	list-view-cell-empty-background-color: transparent;
+
+	/* library list */
+	library-list-background-color: L0H;
+	library-list-hover-background-color: L2B;
+	library-list-selected-background-color:  L2H;
+	library-list-selected-font-color: hover-font-color;
+	library-list-drag-select-background-color: rgba(45, 112, 201, 0.5);
+	library-list-drag-select-border-color: accent-color;
+
+	/* taglist */
+	tag-list-view-tag-font-color: base-font-color;
+	tag-list-view-tag-hover-font-color: hover-font-color;
+
+	/* datepicker */
+	datepicker-popup-background-color: L0H;
+	datepicker-popup-font-color: base-font-color;
+	datepicker-popup-hover-font-color: hover-font-color;
+	datepicker-popup-prev-next-month-days-background-color: L1B;
+	datepicker-popup-week-background-color: L2B;
+	
+	field-group-title-background-color: L1B;
+
+	/* footer */
+	footer-background-color: rgb(97, 33, 122);
+	footer-font-color: white;
+
+	/* tables */
+	table-header-background-color: L1B;
+	table-row-odd-background-color: L0H;
+
+	/* other */
+	error-font-color: red;
+	search-highlight-font-color: accent-color-dark;
+	new-adder-background-color: rgb(104, 219, 104);
+	progress-overlay-background-color: rgba(0, 0, 0, 0.1);
+}
+
+/********************************************************************************/
+/********************************************************************************/
+/********************************************************************************/
+/********************************************************************************/
+/* JAVA FX FLAT OVERRIDES */
+/********************************************************************************/
+/********************************************************************************/
+/********************************************************************************/
+/********************************************************************************/
+
+/** MENU BAR */
+.menu-bar { 
+	-fx-padding: 0; 
+	-fx-background-color: menu-bar-background-color;
+}
+.menu-bar .menu { 
+	-fx-background-insets: 0;
+	-fx-padding: 7 10;
+}
+.menu-bar .menu-button {
+	-fx-border-width: 0;
+	/* -fx-padding: 0;  */
+	-fx-background-color: menu-bar-background-color;
+}
+.menu-bar > .container > .menu-button:hover,
+.menu-bar > .container > .menu-button:focused,
+.menu-bar > .container > .menu-button:showing {
+	-fx-background-color: menu-bar-hover-background-color;
+}
+.menu-bar .menu > .right-container > .arrow { 
+	-fx-background-color: base-font-color;
+}
+.menu-item .graphic-container {
+	-fx-padding: 0 0.5em 0 0;
+}
+.menu-item .graphic-container .label {
+	-fx-text-fill: base-font-color;
+}
+.menu-item {
+	-fx-padding: 0.3em 1em 0.3em 1em;
+}
+.menu-item:focused,
+.menu-item:focused > .label,
+.menu-item:focused .graphic-container .label {
+	-fx-text-fill: menu-hover-font-color;
+}
+.menu .menu {
+	-fx-padding: 0.3em 1em 0.3em 1em;
+}
+.menu-item:focused  .arrow {
+	-fx-background-color: white;
+	/* -fx-padding: 0; */
+	-fx-text-fill: white;
+	-fx-fill: white;
+}
+.menu-item > .accelerator-text {
+    -fx-padding: 0 0 0 3em;
+}
+.context-menu {
+	-fx-padding: 5 1 5 1;
+	-fx-background-color: menu-background-color;
+	-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 2, 0, 1, 2);
+}
+.context-menu .separator:horizontal {
+	-fx-padding: 0.5em 0;
+}
+.context-menu .separator:horizontal .line {
+    -fx-border-color: menu-separator-color;
+    -fx-border-width: 1 0 0 0;
+    -fx-border-insets: 0;
+}
+
+/* SCROLLPANE */
+.scroll-pane {
+	-fx-background-insets: 0;
+	-fx-background: base-color;
+	-fx-border-width: 0;
+	-fx-border-insets: 0;
+	-fx-padding: 0;
+}
+.scroll-pane:focused {
+	-fx-background-color: base-color;
+	-fx-background-insets: 0;
+}
+.scroll-bar .increment-button,
+.scroll-bar .decrement-button {
+	-fx-background-insets: 0;
+	-fx-pref-width: 0;
+	-fx-pref-height: 0;
+	-fx-min-width: 0;
+	-fx-min-height: 0;
+	-fx-padding: 0;
+	-fx-border-width: 0;
+}
+.scroll-bar > .increment-button > .increment-arrow,
+.scroll-bar > .decrement-button > .decrement-arrow {
+	-fx-padding: 0;
+}
+.scroll-bar,
+.scroll-bar .track,
+.scroll-pane .corner {
+	-fx-pref-width: 1em;
+	-fx-pref-height: 1em;
+	-fx-background-color: scrollpane-track-background-color;
+	-fx-background-insets: 0;
+	-fx-padding: 0;
+}
+.scroll-bar .thumb {
+	-fx-background-color: scrollpane-thumb-background-color;
+	-fx-background-insets: 0;
+	-fx-background-radius: 0;
+	-fx-border-insets: 0;
+	-fx-border-width: 0;
+	-fx-padding: 0;
+}
+
+/* TABS */
+.tab-pane {
+	-fx-open-tab-animation: NONE; 
+	-fx-close-tab-animation: NONE;
+}
+.tab-pane .tab-header-area {
+	-fx-padding: 0;
+}
+.tab-pane .tab-header-background {
+	-fx-background-color: tab-area-background-color;
+	-fx-border-insets: 0;
+	-fx-border-width: 0;
+	-fx-background-radius: 0;
+	-fx-background-insets: 0;
+}
+.tab-pane .tab {
+	-fx-background-color: tab-background-color;
+	-fx-border-insets: 0;
+	-fx-border-width: 0;
+	-fx-background-radius: 0;
+	-fx-background-insets: 0;
+	-fx-padding: 0.5em 1em;
+	-fx-border-width: 3 1 0 0;
+	-fx-border-style: solid;
+	-fx-border-color:  tab-background-color tab-area-background-color tab-area-background-color tab-area-background-color;
+}
+.tab > .tab-container > .tab-label {
+	-fx-padding: 0 0.5em 0 0 ;
+}
+.tab > .tab-container > .tab-close-button {
+	-fx-effect: null;
+	-fx-background-color: tab-close-icon-color;
+}
+.tab > .tab-container > .tab-close-button:hover {
+	-fx-background-color: tab-close-hover-icon-color;
+}
+.tab-pane .tab:hover {
+	-fx-background-color: tab-hover-background-color;
+}
+.tab-pane .tab:selected {
+	-fx-border-width: 3 1 0 0;
+	-fx-border-style: solid;
+	-fx-border-color: accent-color tab-area-background-color tab-area-background-color tab-area-background-color;
+	-fx-background-color: tab-focused-background-color;
+	-fx-border-insets: 0;
+	-fx-background-insets: 0;
+}
+.tab-pane .tab .focus-indicator {
+	-fx-border-width: 0;
+}
+.tab-pane .tab-down-button {
+	-fx-background-color: base-color;
+}
+
+/* TOOLBAR */
+.tool-bar {
+	-fx-spacing: 0;
+	-fx-padding: 0;
+	-fx-background-color: toolbar-background-color;
+}
+.tool-bar .button {
+	-fx-background-color: toolbar-background-color;
+}
+.tool-bar .button:hover {
+	-fx-background-color: accent-color;
+}
+.tool-bar .tool-bar-overflow-button .context-menu .menu-item {
+	-fx-padding: 0;
+}
+.tool-bar .separator .line {
+	-fx-padding: 0.025;
+	-fx-background-color: toolbar-separator-color;
+	-fx-effect: null;
+	-fx-border-width: 0;
+	-fx-background-insets: 0.5em 0;
+}
+
+/* SPLITPANE */
+.split-pane {
+	-fx-padding: 0;
+	-fx-background-insets: 0;
+	-fx-border-insets: 0;
+	-fx-border-width: 0;
+	-fx-background-color: transparent;
+}
+.split-pane .split-pane-divider {
+	-fx-background-color: split-pane-separator-color;
+	-fx-pref-width: 4;
+}
+
+/* BUTTON */
+.button,
+.toggle-button {
+	-fx-background-color: button-background-color;
+	-fx-background-radius: 0;
+	-fx-background-insets: 0;
+	-fx-padding: 0.6em 1em;
+	-fx-text-fill: button-font-color;
+}
+.button:hover,
+.toggle-button:hover {
+	-fx-background-color: button-hover-background-color;
+	-fx-text-fill: button-hover-font-color;
+}
+.button .label,
+.toggle-button .label {
+	-fx-text-fill: button-font-color;
+}
+.button:hover .label,
+.toggle-button:hover .label {
+	-fx-text-fill: button-hover-font-color;
+}
+
+/* TREEVIEW */
+.tree-view {
+	-fx-background-insets: 0;
+	-fx-border-insets: 0;
+	-fx-border-width: 0;
+	-fx-padding: 0;
+}
+.tree-cell .label {
+	-fx-text-fill: base-font-color;
+}
+.tree-cell:focused,
+.tree-cell:filled:selected,
+.tree-cell:filled:selected .label {
+	-fx-background-color: accent-color;
+	-fx-text-fill: tree-cell-selected-font-color;
+}
+.tree-cell:filled:selected > .tree-disclosure-node > .arrow,
+.tree-cell:focused > .tree-disclosure-node > .arrow {
+	-fx-background-color: tree-cell-selected-font-color;
+}
+
+/* LISTVIEW */
+.list-view {
+	-fx-background-insets: 0;
+	-fx-border-insets: 0;
+	-fx-border-width: 0;
+	-fx-padding: 0;
+	-fx-background-color: list-view-background-color;
+}
+.list-view .list-cell {
+	-fx-background-color: list-view-background-color;
+}
+.list-view .list-cell:odd {
+	-fx-background-color: list-view-background-color;
+}
+.list-view .list-cell:hover,
+.list-view .list-cell:filled:selected,
+.list-view .list-cell:focused {
+	-fx-text-fill: list-view-hover-font-color;
+	-fx-background-color: accent-color;
+}
+.list-view .list-cell:empty {
+	-fx-background-color: list-view-cell-empty-background-color;
+}
+
+/* FIELDS */
+.text-input {
+    -fx-prompt-text-fill: base-font-color;
+}
+.text-field {
+	-fx-background-color: control-background-color;
+	-fx-border-color: control-background-color;
+	-fx-border-width: 1;
+	-fx-border-style: solid;
+	-fx-padding: 0.5em 0.3em;
+	-fx-border-radius: 0;
+	-fx-background-radius: 0;
+}
+.text-field:hover,
+.text-field:focused,
+.text-area:hover,
+.text-area:focused {
+	-fx-border-color: accent-color;
+	-fx-background-color: control-hover-background-color;
+}
+
+.text-area {
+	-fx-border-width: 1;
+	-fx-border-style: solid;
+	-fx-border-color: control-background-color;
+}
+.text-area, 
+.text-area .content {
+	-fx-background-color: control-background-color;
+	-fx-background-radius: 0;
+	-fx-background-insets: 0;
+	-fx-border-radius: 0;
+}
+
+.spinner {
+	-fx-background-color: control-background-color;
+}
+.spinner .increment-arrow-button,
+.spinner .decrement-arrow-button {
+	-fx-background-color: control-background-color;
+}
+.spinner .increment-arrow-button:hover,
+.spinner .decrement-arrow-button:hover {
+	-fx-background-color: control-hover-background-color;
+}
+.spinner .increment-arrow-button .increment-arrow,
+.spinner .decrement-arrow-button .decrement-arrow {
+	-fx-background-color: base-font-color;
+	-fx-background-insets: 0;
+}
+
+.check-box { 
+	-fx-min-height: 2em; 
+}
+.check-box .box {
+	-fx-background-color: control-background-color;
+	-fx-background-insets: 0;
+	-fx-border-radius: 0;
+	-fx-border-width: 1;
+	-fx-border-style: solid;
+	-fx-border-color: control-background-color;
+}
+.check-box:hover .box {
+	-fx-border-color: accent-color;
+}
+.check-box:selected .box {
+	-fx-background-color: accent-color;
+	-fx-border-color: accent-color;
+}
+.check-box:selected:hover .box {
+	-fx-background-color: accent-color;
+	-fx-border-color: accent-color;
+}
+.check-box:selected .mark {
+	-fx-background-color: base-color;
+	-fx-shape: "M20.285 2l-11.285 11.567-5.286-5.011-3.714 3.716 9 8.728 15-15.285z";
+}
+
+.choice-box, 
+.combo-box,
+.menu-button,
+.split-menu-button,
+.color-picker {
+	-fx-background-insets: 0;
+	-fx-background-color: control-background-color;
+	-fx-padding: 0.2em 0 0.2em 0;
+	-fx-background-radius: 0;
+	-fx-border-width: 1;
+	-fx-border-style: solid;
+	-fx-border-color: control-background-color;
+	
+}
+.choice-box:hover, 
+.combo-box:hover,
+.menu-button:hover,
+.split-menu-button:hover,
+.color-picker:hover,
+.combo-box:focused {
+	-fx-border-color: accent-color;
+	-fx-background-color: control-hover-background-color;
+}
+.choice-box .arrow,
+.color-picker .arrow,
+.combo-box .arrow {
+	-fx-background-color: button-font-color;
+}
+/* .combo-box:hover,
+.combo-box:focused {
+	-fx-background-color: control-background-color;
+} */
+
+.slider { 
+	-fx-min-height: 2em;
+}
+.slider .track {
+	-fx-background-color: control-hover-background-color;
+	-fx-background-insets: 2;
+}
+.slider .thumb {
+	-fx-background-color: control-hover-background-color;
+}
+.slider:hover .thumb {
+	-fx-background-color: accent-color;
+}
+
+.progress-bar {
+	-fx-padding: 0.25em 0 0.25em 0;
+}
+.progress-bar .track {
+	-fx-padding: 0;
+	-fx-background-color: control-background-color;
+}
+.progress-bar .bar {
+	-fx-background-color: accent-color;
+	-fx-padding: 0.5em;
+}
+.progress-bar .track,
+.progress-bar .bar {
+	-fx-background-insets: 0;
+	-fx-background-radius: 0;
+}
+.progress-indicator {
+}
+.progress-indicator .indicator {
+	-fx-effect: null;
+	-fx-background-color: yellow;
+	-fx-border-color: accent-color;
+	-fx-border-width: 2;
+}
+.progress-indicator .progress {
+	-fx-background-insets: -1;
+}
+
+/* DATEPICKER */
+.date-picker {
+	-fx-background-insets: 0;
+}
+.date-picker .arrow-button .arrow {
+	-fx-background-color: button-font-color;
+}
+.date-picker .arrow-button {
+	-fx-background-color: control-background-color;
+	-fx-background-insets: 0;
+	-fx-background-radius: 0;
+	-fx-border-radius: 0;
+	-fx-border-width: 0;
+}
+.date-picker .arrow-button:hover {
+	-fx-background-color: control-hover-background-color;
+}
+.date-picker-popup > .month-year-pane {
+	-fx-padding: 0.5em;
+}
+.date-picker-popup > * > .spinner {
+	-fx-spacing: 0.5em;
+}
+.date-picker-popup .month-year-pane {
+	-fx-background-color: datepicker-popup-week-background-color;
+}
+.date-picker-popup .spinner,
+.date-picker-popup .spinner .button {
+	-fx-border-radius: 0;
+	-fx-background-insets: 0;
+	-fx-border-width: 0;
+	-fx-border-insets: 0;
+	-fx-background-radius: 0;
+}
+.date-picker-popup .spinner .button .left-arrow,
+.date-picker-popup .spinner .button .right-arrow {
+	-fx-background-color: button-font-color;
+}
+.date-picker-popup .spinner .button:hover .left-arrow,
+.date-picker-popup .spinner .button:hover .right-arrow {
+	-fx-background-color: button-hover-font-color;
+}
+.date-picker-popup .date-cell {
+	-fx-background-insets: 0;
+	-fx-border-width: 0;
+	-fx-padding: 0.75em;
+}
+.date-picker-popup .day-cell:focused,
+.date-picker-popup .day-cell:hover,
+.date-picker-popup .selected {
+	-fx-text-fill: datepicker-popup-hover-font-color;
+}
+.date-picker-popup .day-name-cell {
+	-fx-background-color: datepicker-popup-week-background-color;
+	-fx-text-fill: base-font-color;
+}
+.date-picker-popup > * > .previous-month,
+.date-picker-popup > * > .next-month {
+    -fx-background: datepicker-popup-prev-next-month-days-background-color;
+}
+.date-picker-popup > * > .previous-month:hover,
+.date-picker-popup > * > .next-month:hover {
+    -fx-background: accent-color;
+}
+
+.combo-box:editable {
+	-fx-background-insets: 0;
+	-fx-padding: 0;
+}
+.combo-box:editable .arrow-button {
+	-fx-background-color: control-background-color;
+	-fx-background-insets: 0;
+	-fx-background-radius: 0;
+	-fx-border-radius: 0;
+	-fx-border-width: 0;
+}
+.combo-box:editable .arrow-button:hover {
+	-fx-background-color: control-hover-background-color;
+}
+.combo-box:editable > .text-field {
+	-fx-border-width: 0;
+}
+
+.toggle-button:selected {
+	-fx-background-color: toggle-button-selected-background-color;
+}
+.toggle-button:selected:hover {
+	-fx-background-color: accent-color;
+}
+
+.auto-complete-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:selected,
+.auto-complete-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:focused,
+.auto-complete-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:focused,
+.auto-complete-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected,
+.auto-complete-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:hover,
+.auto-complete-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected:hover {
+	-fx-background-color: accent-color !important;
+}
+
+/* TABLES */
+.table-view {
+	-fx-background-insets: 0;
+	-fx-padding: 0;
+	-fx-border-width: 0;
+	-fx-border-insets: 0;
+}
+.table-view .column-header-background,
+.tree-table-view > .column-header-background {
+    -fx-background-insets: 0;
+}
+.table-view .column-header,
+.table-view .filler,
+.table-view > .column-header-background > .show-hide-columns-button,
+.table-view:constrained-resize .filler {
+    -fx-background-color: transparent, table-header-background-color;
+    -fx-background-insets: 0, 0 3 0 0;
+    -fx-text-fill: base-font-color;
+}
+.table-view .table-row-cell:selected,
+.table-view .table-cell:selected {
+    -fx-background: accent-color;
+	-fx-background-insets: 0;
+}
+.table-view .table-row-cell:selected > * {
+    -fx-text-fill: hover-font-color;
+}
+.table-cell,
+.table-row-cell {
+	-fx-border-width: 0;
+	-fx-background-insets: 0;
+}
+.table-cell Text,
+.table-row-cell Text {
+	-fx-fill: base-font-color;
+}
+.table-row-cell:odd {
+    -fx-background: table-row-odd-background-color;
+}
+.table-cell:selected Text,
+.table-row-cell:selected Text {
+	-fx-text-fill: hover-font-color;
+	-fx-fill: hover-font-color;
+}
+
+/* DIALOGS */
+.dialog-pane:header .header-panel {
+	-fx-background-color: dialog-header-background-color;
+}
+
+/********************************************************************************/
+/********************************************************************************/
+/********************************************************************************/
+/********************************************************************************/
+/* PRAISENTER STYLES */
+/********************************************************************************/
+/********************************************************************************/
+/********************************************************************************/
+/********************************************************************************/
+
+/* SUPPORTED APPLICATION FONT SIZES */
+.p-fs8  { -fx-font-size: 8px; }
+.p-fs9  { -fx-font-size: 9px; }
+.p-fs10 { -fx-font-size: 10px; }
+.p-fs11 { -fx-font-size: 11px; }
+.p-fs12 { -fx-font-size: 12px; }
+.p-fs13 { -fx-font-size: 13px; }
+.p-fs14 { -fx-font-size: 14px; }
+.p-fs15 { -fx-font-size: 15px; }
+.p-fs16 { -fx-font-size: 16px; }
+.p-fs17 { -fx-font-size: 17px; }
+.p-fs18 { -fx-font-size: 18px; }
+.p-fs19 { -fx-font-size: 19px; }
+.p-fs20 { -fx-font-size: 20px; }
+.p-fs21 { -fx-font-size: 21px; }
+.p-fs22 { -fx-font-size: 22px; }
+
+/* UNSAVED CHANGES */
+.p-unsaved-document > .tab-container > .tab-label {
+	-fx-text-fill: tab-unsaved-font-color;
+}
+
+.p-error-label {
+	-fx-text-fill: error-font-color;
+}
+
+/* the square in the middle of the 4 text boxes when editing the padding for text component */
+.p-padding-box {
+	-fx-fill: transparent;
+	-fx-stroke: base-font-color;
+	-fx-stroke-type: outside;
+	-fx-stroke-line-cap: butt;
+	-fx-stroke-line-join: miter;
+	-fx-stroke-miter-limit: 10;
+	-fx-stroke-width: 1;
+}
+
+.p-gradient-preview {
+	-fx-border-width: 1;
+	-fx-border-color: L1B;
+}
+.p-gradient-preview-background {
+	-fx-background-image: url("/org/praisenter/images/transparent.png");
+	-fx-background-repeat: repeat;
+}
+
+.p-search-highlight {
+	-fx-font-weight: bold;
+	-fx-underline: true;
+	-fx-fill: search-highlight-font-color;
+}
+
+.button:disabled .p-save-all-adder {
+	-fx-opacity: 0.4;
+}
+.p-save-all-adder {
+	-fx-fill: base-font-color;
+}
+.p-new-adder {
+	-fx-background-color: new-adder-background-color;
+	-fx-text-fill: hover-font-color !important;
+}
+
+/* TAB NAVIGATION */
+.p-tab-navigation {}
+.p-tab-navigation > .tab-header-area {
+	-fx-padding: 0;
+}
+.p-tab-navigation > .tab-header-area > .tab-header-background {
+	-fx-background-color: left-navigation-background-color;
+	-fx-background-insets: 0;
+}
+.p-tab-navigation > .tab-header-area > .headers-region > .tab {
+	-fx-background-color: left-navigation-background-color;
+	-fx-border-radius: 0;
+	-fx-background-radius: 0;
+	-fx-background-insets: 0;
+	-fx-border-width: 0;
+	-fx-padding: 0.083333em 0.5em 0.0769em 0.5em;
+}
+.p-tab-navigation > .tab-header-area > .headers-region > .tab:hover {
+	-fx-background-color: left-navigation-hover-background-color;
+	-fx-border-width: 5 0 0 0;
+	-fx-border-color: accent-color-dark;
+}
+.p-tab-navigation > .tab-header-area > .headers-region > .tab:selected {
+	-fx-border-width: 5 0 0 0;
+	-fx-border-color: accent-color-dark;
+	-fx-border-radius: 0;
+	-fx-background-color: left-navigation-hover-background-color;
+	-fx-background-radius: 0;
+	-fx-background-insets: 0;
+}
+.p-tab-navigation > .tab-header-area > .headers-region > .tab:selected .focus-indicator {
+	-fx-border-width: 0;
+    -fx-border-insets: 0;
+    -fx-border-radius: 0;
+}
+.p-tab-navigation > .tab-header-area > .headers-region > .tab > .tab-container > .tab-label {
+	-fx-padding: 1.5em 1.1em;
+}
+.p-tab-navigation-icon {
+    -fx-background-color: left-navigation-font-color;
+    -size: 2em;
+    -fx-max-height: -size;
+    -fx-max-width: -size;
+    -fx-min-height: -size;
+    -fx-min-width: -size;
+    -fx-pref-height: -size;
+    -fx-pref-width: -size;
+}
+.p-tab-navigation > .tab-header-area > .headers-region > .tab:hover .p-tab-navigation-icon,
+.p-tab-navigation > .tab-header-area > .headers-region > .tab:selected .p-tab-navigation-icon {
+	-fx-background-color: left-navigation-hover-font-color;
+}
+
+/* https://linearicons.com/ */
+.p-tab-navigation-present-icon {
+	-fx-shape: "M17.5 2h-16c-0.827 0-1.5 0.673-1.5 1.5v10c0 0.827 0.673 1.5 1.5 1.5h7.5v2h-3.5c-0.276 0-0.5 0.224-0.5 0.5s0.224 0.5 0.5 0.5h8c0.276 0 0.5-0.224 0.5-0.5s-0.224-0.5-0.5-0.5h-3.5v-2h7.5c0.827 0 1.5-0.673 1.5-1.5v-10c0-0.827-0.673-1.5-1.5-1.5zM18 13.5c0 0.276-0.224 0.5-0.5 0.5h-16c-0.276 0-0.5-0.224-0.5-0.5v-10c0-0.276 0.224-0.5 0.5-0.5h16c0.276 0 0.5 0.224 0.5 0.5v10z";
+}
+.p-tab-navigation-library-icon {
+	-fx-shape: "M10 12c-0.066 0-0.132-0.013-0.194-0.039l-9.5-4c-0.185-0.078-0.306-0.26-0.306-0.461s0.121-0.383 0.306-0.461l9.5-4c0.124-0.052 0.264-0.052 0.388 0l9.5 4c0.185 0.078 0.306 0.26 0.306 0.461s-0.121 0.383-0.306 0.461l-9.5 4c-0.062 0.026-0.128 0.039-0.194 0.039zM1.788 7.5l8.212 3.457 8.212-3.457-8.212-3.457-8.212 3.457z M10 15c-0.066 0-0.132-0.013-0.194-0.039l-9.5-4c-0.254-0.107-0.374-0.4-0.267-0.655s0.4-0.374 0.655-0.267l9.306 3.918 9.306-3.918c0.254-0.107 0.548 0.012 0.655 0.267s-0.012 0.548-0.267 0.655l-9.5 4c-0.062 0.026-0.128 0.039-0.194 0.039z M10 18c-0.066 0-0.132-0.013-0.194-0.039l-9.5-4c-0.254-0.107-0.374-0.4-0.267-0.655s0.4-0.374 0.655-0.267l9.306 3.918 9.306-3.918c0.254-0.107 0.548 0.012 0.655 0.267s-0.012 0.548-0.267 0.655l-9.5 4c-0.062 0.026-0.128 0.039-0.194 0.039z";
+}
+.p-tab-navigation-settings-icon {
+	-fx-shape: "M7.631 19.702c-0.041 0-0.083-0.005-0.125-0.016-0.898-0.231-1.761-0.587-2.564-1.059-0.233-0.137-0.315-0.434-0.186-0.671 0.159-0.292 0.243-0.622 0.243-0.957 0-1.103-0.897-2-2-2-0.334 0-0.665 0.084-0.957 0.243-0.237 0.129-0.534 0.047-0.671-0.186-0.472-0.804-0.828-1.666-1.059-2.564-0.065-0.254 0.077-0.515 0.325-0.598 0.814-0.274 1.362-1.036 1.362-1.895s-0.547-1.621-1.362-1.895c-0.248-0.084-0.39-0.344-0.325-0.598 0.231-0.898 0.587-1.761 1.059-2.564 0.137-0.233 0.434-0.315 0.671-0.186 0.291 0.159 0.622 0.243 0.957 0.243 1.103 0 2-0.897 2-2 0-0.334-0.084-0.665-0.243-0.957-0.129-0.237-0.047-0.534 0.186-0.671 0.804-0.472 1.666-0.828 2.564-1.059 0.254-0.065 0.515 0.077 0.598 0.325 0.274 0.814 1.036 1.362 1.895 1.362s1.621-0.547 1.895-1.362c0.084-0.248 0.345-0.39 0.598-0.325 0.898 0.231 1.761 0.587 2.564 1.059 0.233 0.137 0.315 0.434 0.186 0.671-0.159 0.292-0.243 0.622-0.243 0.957 0 1.103 0.897 2 2 2 0.334 0 0.665-0.084 0.957-0.243 0.237-0.129 0.534-0.047 0.671 0.186 0.472 0.804 0.828 1.666 1.059 2.564 0.065 0.254-0.077 0.515-0.325 0.598-0.814 0.274-1.362 1.036-1.362 1.895s0.547 1.621 1.362 1.895c0.248 0.084 0.39 0.344 0.325 0.598-0.231 0.898-0.587 1.761-1.059 2.564-0.137 0.233-0.434 0.315-0.671 0.186-0.292-0.159-0.622-0.243-0.957-0.243-1.103 0-2 0.897-2 2 0 0.334 0.084 0.665 0.243 0.957 0.129 0.237 0.047 0.534-0.186 0.671-0.804 0.472-1.666 0.828-2.564 1.059-0.254 0.065-0.515-0.077-0.598-0.325-0.274-0.814-1.036-1.362-1.895-1.362s-1.621 0.547-1.895 1.362c-0.070 0.207-0.264 0.341-0.474 0.341zM10 17c1.127 0 2.142 0.628 2.655 1.602 0.52-0.161 1.026-0.369 1.51-0.622-0.108-0.314-0.164-0.646-0.164-0.98 0-1.654 1.346-3 3-3 0.334 0 0.666 0.056 0.98 0.164 0.253-0.484 0.462-0.989 0.622-1.51-0.974-0.512-1.602-1.527-1.602-2.655s0.628-2.142 1.602-2.655c-0.161-0.52-0.369-1.026-0.622-1.51-0.314 0.108-0.646 0.164-0.98 0.164-1.654 0-3-1.346-3-3 0-0.334 0.056-0.666 0.164-0.98-0.484-0.253-0.989-0.462-1.51-0.622-0.512 0.974-1.527 1.602-2.655 1.602s-2.142-0.628-2.655-1.602c-0.52 0.16-1.026 0.369-1.51 0.622 0.108 0.314 0.164 0.646 0.164 0.98 0 1.654-1.346 3-3 3-0.334 0-0.666-0.056-0.98-0.164-0.253 0.484-0.462 0.989-0.622 1.51 0.974 0.512 1.602 1.527 1.602 2.655s-0.628 2.142-1.602 2.655c0.16 0.52 0.369 1.026 0.622 1.51 0.314-0.108 0.646-0.164 0.98-0.164 1.654 0 3 1.346 3 3 0 0.334-0.056 0.666-0.164 0.98 0.484 0.253 0.989 0.462 1.51 0.622 0.512-0.974 1.527-1.602 2.655-1.602z M10 13c-1.654 0-3-1.346-3-3s1.346-3 3-3 3 1.346 3 3-1.346 3-3 3zM10 8c-1.103 0-2 0.897-2 2s0.897 2 2 2c1.103 0 2-0.897 2-2s-0.897-2-2-2z";
+}
+.p-tab-navigation-tasks-icon {
+	-fx-shape: "M17.071 2.929c-1.889-1.889-4.4-2.929-7.071-2.929-3.094 0-5.975 1.425-7.853 3.807v-1.307c0-0.276-0.224-0.5-0.5-0.5s-0.5 0.224-0.5 0.5v2.972c0 0.229 0.155 0.428 0.377 0.485 0.097 0.025 0.195 0.019 0.284-0.011v0l2.853-0.972c0.261-0.089 0.401-0.373 0.312-0.634s-0.373-0.401-0.634-0.312l-1.49 0.508c1.688-2.208 4.32-3.534 7.152-3.534 4.963 0 9 4.037 9 9s-4.037 9-9 9c-3.316 0-6.354-1.815-7.928-4.737-0.131-0.243-0.434-0.334-0.677-0.203s-0.334 0.434-0.203 0.677c1.749 3.246 5.125 5.263 8.809 5.263 2.671 0 5.182-1.040 7.071-2.929s2.929-4.4 2.929-7.071c0-2.671-1.040-5.182-2.929-7.071z M10 10.5c-0.084 0-0.167-0.021-0.243-0.063l-4.5-2.5c-0.241-0.134-0.328-0.438-0.194-0.68s0.438-0.328 0.68-0.194l4.24 2.355 5.249-3.34c0.233-0.148 0.542-0.080 0.69 0.153s0.080 0.542-0.153 0.69l-5.5 3.5c-0.082 0.052-0.175 0.078-0.268 0.078z";
+}
+
+/* FOOTER */
+.p-footer {
+	-fx-spacing: 0.5em;
+	-fx-background-color: footer-background-color;
+	-fx-padding: 0.20em 1em;
+}
+.p-footer .separator:vertical {
+	-fx-padding: 0 0.5em;
+}
+.p-footer .separator:vertical .line {
+	-fx-border-width: 0;
+	-fx-background-insets: 0;
+}
+.p-footer .label {
+	-fx-text-fill: footer-font-color;
+}
+
+/* the verse number in the bible tree editor UI */
+.tree-cell .p-verse-number,
+.tree-cell .p-section-name {
+	-fx-font-weight: bold; 
+	-fx-font-size: 0.8em;
+	-fx-text-fill: tree-cell-selected-font-color;
+}
+
+/** tree cell drag n drop styles */
+.tree-cell:drag-over-parent {
+	-fx-background-color: tree-cell-drag-over-parent-background-color;
+}
+.tree-cell:drag-over-sibling-top {
+	-fx-border-color: tree-cell-drag-over-sibling-color;
+    -fx-border-style: solid;
+    -fx-border-width: 1 0 0 0;
+}
+.tree-cell:drag-over-sibling-bottom {
+	-fx-border-color: tree-cell-drag-over-sibling-color;
+    -fx-border-style: solid;
+    -fx-border-width: 0 0 1 0;
+}
+
+/* WORKSPACE SELECTION PANE */
+.p-workspace-selection-pane {
+	-fx-pref-width: 600;
+}
+.p-workspace-selection-pane-title {
+	-fx-font-weight: bold;
+}
+.p-workspace-selection-pane-description {}
+.p-workspace-selection-pane-overview {
+	-fx-padding: 0.8em;
+	-fx-background-color: L1H;
+	-fx-spacing: 0.5em;
+}
+.p-workspace-selection-pane-selection {
+	-fx-padding: 0.8em 0.8em 0.5em 0.8em;
+	-fx-spacing: 0.5em;
+}
+.p-workspace-selection-pane-buttons {
+	-fx-padding: 1.4em 0.8em 0.8em 0.8em;
+	-fx-spacing: 0.5em;
+}
+.p-workspace-selection-pane-launch-button {
+	-fx-font-weight: bold;
+}
+.p-workspace-selection-pane-warning {
+	-fx-padding: 0.5em 2em 0 2em;
+	-fx-spacing: 0.5em;
+}
+
+/* FORM FIELD */
+.p-form-field {
+	-fx-padding: 0.8em;
+	-fx-spacing: 0.5em;
+}
+.p-form-field:hover {}
+.p-form-field-label {
+	-fx-font-weight: bold;
+}
+.p-form-field-value {
+	-fx-spacing: 0.5em;
+}
+.p-form-field-help {}
+
+/* FORM FIELD GROUP */
+.p-form-field-group > .title {
+	-fx-background-color: field-group-title-background-color;
+	-fx-background-insets: 0, 0 0 1 0;
+	-fx-background-radius: 0;
+	-fx-font-size: 1.3em;
+}
+.p-form-field-group > .title > .arrow-button > .arrow {
+    -fx-background-color: base-font-color;
+    -fx-background-insets: 0;
+    -fx-effect: null;
+	-fx-font-size: 1em;
+}
+.p-form-field-group > *.content {
+	-fx-border-width: 0;
+    -fx-border-insets: 0;
+    -fx-background-color: null;
+}
+.p-form-field-group > .content > * {
+	-fx-padding: 0.5em 0 0 0;
+}
+
+/* FORM FIELD SECTION */
+.p-form-field-section {
+	-fx-hgap: 0.3em;
+	-fx-vgap: 0.3em;
+}
+.p-form-field-group > .content .p-form-field-section {
+	-fx-padding: 0.8em;
+}
+.p-form-field-group > .content .p-form-field-section .p-form-field-section,
+.p-form-field-group > .content .p-form-field-section .p-form-field-section .p-form-field-section,
+.p-form-field-group > .content .p-form-field-section .p-form-field-section .p-form-field-section .p-form-field-section {
+	-fx-padding: 0em;
+}
+
+/* SETTINGS PANE */
+.p-settings-pane {
+	-fx-spacing: 0.5em;
+}
+
+/* SLIDE LIST */
+.p-slide-list {
+	-fx-pref-width: 17em; /* ~200px */
+}
+.p-slide-list-cell {
+	-fx-alignment: CENTER;
+	-fx-padding: 0.5em 0 0.8em 0;
+	-fx-pref-width: 14em;
+}
+.p-slide-list-cell-slide-view {
+	-fx-pref-width: 14.45em; /* ~170px */
+	-fx-pref-height: 7.65em; /* ~90px */
+}
+
+/* DISPLAY CONTROLLER */
+.p-display-controllers {
+	-fx-spacing: 0.8em;
+	-fx-padding: 0.8em 0.8em 0 0.8em;
+}
+.p-display-controllers-add-container {
+	-fx-padding: 1.3em 0.5em;
+}
+
+.p-display-controller {
+	-fx-min-width: 51em;
+	-fx-padding: 0 0 0.8em 0;
+}
+.p-display-controller-header {
+	-fx-spacing: 0.5em;
+	-fx-padding: 0.5em;
+}
+.p-display-controller-name {
+	-fx-font-size: 1.5em;
+}
+.p-display-controller-left,
+.p-display-controller-right {
+	-fx-spacing: 0.5em;
+}
+.p-display-controller-right {
+	-fx-max-width: 34em;
+}
+.p-display-controller-chk-row {
+	-fx-spacing: 0.5em;
+}
+.p-display-controller-btn-grid {
+	-fx-vgap: 0.5em;
+	-fx-hgap: 0.5em;
+	-fx-padding: 0 0 0 0.5em;
+}
+.p-display-controller-tabs {
+	-fx-padding: 0 0 0 0.5em;
+}
+.p-display-controller-tabs > .tab-header-area {
+	-fx-padding: 0.5em 0 0 0;
+}
+.p-display-controller-tabs > .tab-header-area > .headers-region > .tab {
+	-fx-padding: 0.25em 1.5em;
+}
+.p-display-controller-tab {
+	-fx-padding: 0.5em 0 0 0;
+	-fx-spacing: 0.5em;
+}
+
+/* BIBLE NAVIGATION (CONTROLLER) */
+.p-bible-nav {
+	-fx-hgap: 0.5em;
+	-fx-vgap: 0.5em;
+}
+
+/* SONG NAVIGATION (CONTROLLER) */
+.p-song-nav {
+	-fx-spacing: 2em;
+}
+.p-song-nav-lyric-selection {
+	-fx-hgap: 0.5em;
+	-fx-vgap: 0.5em;
+}
+.p-song-nav-sections {
+	-fx-hgap: 0.5em;
+	-fx-vgap: 0.5em;
+}
+
+/* SEARCH MODALS */
+.p-bible-search,
+.p-song-search {
+	-fx-spacing: 0.5em;
+	-fx-padding: 0.5em;
+}
+.p-bible-search-criteria,
+.p-song-search-criteria {
+	-fx-spacing: 0.5em;
+	-fx-hgap: 0.5em;
+	-fx-vgap: 0.5em;
+}
+
+/* SELECTION EDITOR */
+.p-selection-editor {
+	-fx-spacing: 0.3em;
+}
+.p-selection-editor .p-form-field-group > .title {
+	-fx-font-size: 1.2em;
+}
+
+/* BIBLE/SONG/SLIDE EDITOR */
+.p-bible-editor,
+.p-song-editor {
+	-fx-padding: 0.5em 0 0 0;
+}
+.p-bible-editor-bulk,
+.p-song-editor-bulk {
+	-fx-spacing: 0.5em;
+	-fx-padding: 0.5em;
+}
+.p-bible-editor-bulk-buttons,
+.p-song-editor-bulk-buttons {
+	-fx-spacing: 0.5em;
+}
+.p-bible-editor-bulk-buttons > .button,
+.p-song-editor-bulk-buttons > .button {
+	-fx-pref-width: 5em;
+}
+.p-slide-editor {
+	-fx-padding: 1em;
+}
+
+.p-media-dialog > .content {
+	-fx-padding: 0;
+	-fx-pref-width: 900;
+	-fx-pref-height: 450;
+}
+
+/* CONTROLS */
+.p-datetime-picker {
+	-fx-padding: 0.2em;
+}
+
+.p-flow-list-view {}
+.p-flow-list-view-tiles {
+	-fx-padding: 0.5em;
+	-fx-vgap: 0.5em;
+	-fx-hgap: 0.5em;
+}
+.p-flow-list-view-cell {
+	-fx-padding: 0.25em;
+	-fx-alignment: top-center;
+}
+.p-flow-list-view-cell:hover { 
+	-fx-background-color: library-list-hover-background-color;
+}
+.p-flow-list-view-cell:selected {
+	-fx-background-color: library-list-selected-background-color;
+	-fx-text-fill: library-list-selected-font-color;
+}
+.p-flow-list-view-cell:hover .label,
+.p-flow-list-view-cell:selected .label {
+	-fx-text-fill: library-list-selected-font-color;
+}
+.p-flow-list-view-drag-selection-area {
+	-fx-fill: library-list-drag-select-background-color;
+	-fx-stroke: library-list-drag-select-border-color;
+	-fx-smooth: false;
+	-fx-stroke-width: 1;
+}
+
+.p-tag-list-view {}
+.p-tag-list-view-tags {
+	-fx-padding: 0.3em 0 0 0;
+	-fx-vgap: 0.2em;
+	-fx-hgap: 0.2em;
+}
+.p-tag-list-view-tag {}
+.p-tag-list-view-tag-x {
+	-fx-stroke: tag-list-view-tag-font-color;
+}
+.p-tag-list-view-tag:hover .p-tag-list-view-tag-x {
+	-fx-stroke: tag-list-view-tag-hover-font-color;
+}
+
+.p-media-preview {}
+.p-media-preview-controls {
+	-fx-spacing: 0.2em;
+	-fx-alignment: CENTER;
+	-fx-padding: 0.2em 0 0 0;
+}
+
+.p-progress-overlay {
+	-fx-background-color: progress-overlay-background-color;
+}
+.p-progress-overlay .spinner {
+	-fx-background-color: transparent;
+}
+.p-progress-overlay-indicator {}
+
+.p-library-item-details {
+	-fx-spacing: 0.5em;
+	-fx-padding: 1em;
+}
+.p-library-item-details-value-list {
+	-fx-hgap: 0.5em;
+	-fx-vgap: 0.5em;
+}
+
+.p-action-bar {}
+
+.p-library-list {}
+.p-library-list .p-flow-list-view .viewport {
+	-fx-background-color: library-list-background-color;
+}
+.p-library-list .p-flow-list-view-tiles {
+	-fx-background-color: library-list-background-color;
+}
+.p-library-list-right {
+	-fx-min-width: 200;
+}
+.p-library-list-filter-bar {
+	-fx-vgap: 0.5em;
+	-fx-hgap: 0.5em;
+	-fx-padding: 0.5em;
+}
+.p-library-list-cell {
+	-fx-alignment: top-center;
+	-fx-pref-width: 110;
+}
+.p-library-list-cell-graphic {
+	-fx-alignment: bottom-center;
+	-fx-pref-height: 100;
+	-fx-max-height: 100;
+	-fx-min-height: 100;
+}
+.p-library-list-cell-bible > .p-library-list-cell-thumbnail {
+	-fx-image: url("/org/praisenter/images/bible-icon.png");
+}
+.p-library-list-cell-song > .p-library-list-cell-thumbnail {
+	-fx-image: url("/org/praisenter/images/song-lyrics-icon.png");
+}
+.p-library-list-cell-slide,
+.p-library-list-cell-image,
+.p-library-list-cell-bible,
+.p-library-list-cell-song,
+.p-library-list-cell-audio {
+	-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.25), 2, 0, 2, 2);
+}
+.p-library-list-cell-slide {
+	-fx-background-image: url("/org/praisenter/images/transparent.png");
+	-fx-background-repeat: repeat;
+}
+.p-library-list-cell-label {
+	-fx-text-alignment: center;
+	-fx-padding: 0.5em 0 0 0;
+}
+
+.p-slide-template-list-cell {}
+.p-slide-template-list-cell-graphic {
+	-fx-background-image: url("/org/praisenter/images/transparent.png");
+	-fx-background-repeat: repeat;
+}
+
+.p-slide-dash-pattern {
+	-fx-stroke: base-font-color;
+}

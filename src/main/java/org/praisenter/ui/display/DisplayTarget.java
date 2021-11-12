@@ -14,6 +14,7 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.event.EventHandler;
+import javafx.scene.CacheHint;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Border;
@@ -116,6 +117,10 @@ public final class DisplayTarget extends Stage {
 		this.notificationView.setAutoHideEnabled(true);
 		
 		this.container.getChildren().addAll(this.slideView, this.notificationView);
+		
+		// cache hints
+		this.container.setCache(true);
+		this.container.setCacheHint(CacheHint.SPEED);
 		
 		// events
 		
