@@ -32,7 +32,7 @@ A free and open source presentation software package for Churches, providing dis
 ## Screenshots:
 Workspace Selection
 
-![Workspace Selection](https://github.com/wnbittle/praisenter/blob/master/images/worspace-selection.png)
+![Workspace Selection](https://github.com/wnbittle/praisenter/blob/master/images/workspace-selection.png)
 
 Single Output
 
