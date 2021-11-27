@@ -28,6 +28,7 @@ import org.praisenter.data.workspace.WorkspaceConfiguration;
 import org.praisenter.data.workspace.WorkspaceManager;
 import org.praisenter.data.workspace.Workspaces;
 import org.praisenter.ui.controls.Dialogs;
+import org.praisenter.ui.controls.WindowHelper;
 import org.praisenter.ui.fonts.OpenIconic;
 import org.praisenter.ui.themes.Theme;
 import org.praisenter.ui.translations.Translations;
@@ -49,7 +50,6 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
-import javafx.scene.image.Image;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
@@ -164,14 +164,7 @@ public final class LifecycleHandler {
     	stage.setTitle(Constants.NAME + " " + Version.STRING);
     	
     	// icons
-    	stage.getIcons().add(new Image(Praisenter.class.getResourceAsStream("/org/praisenter/logo/icon16x16alt.png"), 16, 16, true, true));
-    	stage.getIcons().add(new Image(Praisenter.class.getResourceAsStream("/org/praisenter/logo/icon32x32.png")));
-    	stage.getIcons().add(new Image(Praisenter.class.getResourceAsStream("/org/praisenter/logo/icon48x48.png")));
-    	stage.getIcons().add(new Image(Praisenter.class.getResourceAsStream("/org/praisenter/logo/icon64x64.png")));
-    	stage.getIcons().add(new Image(Praisenter.class.getResourceAsStream("/org/praisenter/logo/icon96x96.png")));
-    	stage.getIcons().add(new Image(Praisenter.class.getResourceAsStream("/org/praisenter/logo/icon128x128.png")));
-    	stage.getIcons().add(new Image(Praisenter.class.getResourceAsStream("/org/praisenter/logo/icon256x256.png")));
-    	stage.getIcons().add(new Image(Praisenter.class.getResourceAsStream("/org/praisenter/logo/icon512x512.png")));
+    	WindowHelper.setIcons(stage);
     	
 		// load fonts
     	LOGGER.info("Loading glyph fonts.");

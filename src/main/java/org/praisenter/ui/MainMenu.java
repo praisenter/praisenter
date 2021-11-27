@@ -362,11 +362,12 @@ final class MainMenu extends MenuBar {
 			this.aboutDialog.setTitle(Translations.get("about.title"));
 			this.aboutDialog.initModality(Modality.WINDOW_MODAL);
 			this.aboutDialog.initStyle(StageStyle.DECORATED);
-			this.aboutDialog.setWidth(800);
-			this.aboutDialog.setHeight(450);
+			this.aboutDialog.setWidth(600);
+			this.aboutDialog.setHeight(375);
 			this.aboutDialog.setResizable(true);
 			this.aboutDialog.setScene(WindowHelper.createSceneWithOwnerCss(pneAbout, owner));
 			this.context.attachZoomHandler(this.aboutDialog.getScene());
+			WindowHelper.setIcons(this.aboutDialog);
 		}
 		
 		this.aboutDialog.show();

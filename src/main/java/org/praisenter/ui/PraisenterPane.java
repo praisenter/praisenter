@@ -169,16 +169,7 @@ final class PraisenterPane extends BorderPane {
 		
 		Label lblVersion = new Label("Praisenter: " + Version.STRING);
 		lblVersion.setPadding(new Insets(0, 5, 0, 0));
-//		
-//		Label lblJfxVersion = new Label("JFX: " + System.getProperties().get("javafx.runtime.version"));
-//		lblJfxVersion.setPadding(new Insets(0, 5, 0, 0));
-//
-//		Label lblLuceneVersion = new Label("Lucene: " + org.apache.lucene.util.Version.LATEST);
-//		lblLuceneVersion.setPadding(new Insets(0, 5, 0, 0));
-//		
-//		Label lblJavaVersion = new Label("Java: " + RuntimeProperties.JAVA_VERSION);
-//		lblJavaVersion.setPadding(new Insets(0, 5, 0, 0));
-//		
+
 		Label lblWorkspacePath = new Label(context.getWorkspaceManager().getWorkspacePathResolver().getBasePath().toAbsolutePath().toString());
 		lblWorkspacePath.setPadding(new Insets(0, 5, 0, 0));
 		

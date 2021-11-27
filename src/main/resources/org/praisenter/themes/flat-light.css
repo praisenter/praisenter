@@ -1242,3 +1242,10 @@
 .p-slide-dash-pattern {
 	-fx-stroke: base-font-color;
 }
+
+.p-about {}
+.p-about-left,
+.p-about-right {
+	-fx-padding: 1em;
+	-fx-spacing: 1em;
+}
