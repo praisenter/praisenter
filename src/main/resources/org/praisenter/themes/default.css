@@ -491,3 +491,10 @@
 	-fx-background-image: url("/org/praisenter/images/transparent.png");
 	-fx-background-repeat: repeat;
 }
+
+.p-about {}
+.p-about-left,
+.p-about-right {
+	-fx-padding: 1em;
+	-fx-spacing: 1em;
+}

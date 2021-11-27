@@ -51,6 +51,8 @@ public final class Constants {
 			// /user/home/dir/Praisenter3/
 			RuntimeProperties.USER_HOME + RuntimeProperties.PATH_SEPARATOR + ROOT_RELATIVE_PATH;
 	
+	public static final String WEBSITE = "https://github.com/wnbittle/praisenter";
+	
 	///////////////////////////
 	// LOGGING
 	

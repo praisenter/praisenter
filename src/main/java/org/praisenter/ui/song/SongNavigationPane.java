@@ -216,6 +216,7 @@ public final class SongNavigationPane extends VBox {
 				this.searchDialog.setOnShown(we -> {
 					pneSearch.search();
 				});
+				WindowHelper.setIcons(this.searchDialog);
 				context.attachZoomHandler(this.searchDialog.getScene());
 			}
 			

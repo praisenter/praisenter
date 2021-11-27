@@ -332,6 +332,7 @@ public final class BibleNavigationPane extends GridPane {
 				this.searchDialog.setHeight(450);
 				this.searchDialog.setResizable(true);
 				this.searchDialog.setScene(WindowHelper.createSceneWithOwnerCss(pneSearch, owner));
+				WindowHelper.setIcons(this.searchDialog);
 				context.attachZoomHandler(this.searchDialog.getScene());
 			}
 			
