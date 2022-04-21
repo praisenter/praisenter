@@ -67,7 +67,7 @@
         <!-- Reminder: javafx.web (the embedded browser component) is not included in this project by default due
         to GitHub template size restrictions. You can download the full SDK from https://openjfx.io -->
         <!-- This only needs to include modules part of the JVM or JavaFX jmods -->
-        <jvm.modules>java.base,java.management,java.net.http,java.sql,java.xml,java.desktop,javafx.base,javafx.controls,javafx.graphics,javafx.media,javafx.swing,javafx.web</jvm.modules>
+        <jvm.modules>java.base,java.management,java.net.http,java.sql,java.xml,java.desktop,javafx.base,javafx.controls,javafx.graphics,javafx.media,javafx.swing,javafx.web,java.naming</jvm.modules>
 
         <!-- Set the project to UTF-8, avoiding warnings in the build logs -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -102,12 +102,12 @@
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-api</artifactId>
-			<version>2.17.1</version>
+			<version>2.17.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-core</artifactId>
-			<version>2.17.1</version>
+			<version>2.17.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.controlsfx</groupId>
