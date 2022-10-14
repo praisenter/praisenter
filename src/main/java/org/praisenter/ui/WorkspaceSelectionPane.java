@@ -78,7 +78,10 @@ final class WorkspaceSelectionPane extends VBox {
 		
 		Path lastSelectedPath = null;
 		try {
-			lastSelectedPath = Paths.get(workspacesManager.getData().getLastSelectedWorkspace());
+			String savedPath = workspacesManager.getData().getLastSelectedWorkspace();
+			if (savedPath != null) {
+				lastSelectedPath = Paths.get(savedPath);
+			}
 		} catch (Exception ex) {
 			LOGGER.warn("Failed to parse path '" + workspacesManager.getData().getLastSelectedWorkspace() + "': " + ex.getMessage(), ex);
 		}
