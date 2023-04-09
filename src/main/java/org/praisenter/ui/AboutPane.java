@@ -20,7 +20,6 @@ import javafx.scene.control.TableView;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
@@ -34,8 +33,6 @@ final class AboutPane extends BorderPane {
 	private class DataPoint {
 		String name;
 		String value;
-		
-		public DataPoint() {}
 		
 		public DataPoint(String name, String value) {
 			this.name = name;
