@@ -1,13 +1,10 @@
 package org.praisenter.data.song;
 
-import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.Reader;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +24,7 @@ import org.apache.logging.log4j.Logger;
 import org.praisenter.data.DataFormatProvider;
 import org.praisenter.data.DataReadResult;
 import org.praisenter.data.InvalidFormatException;
+import org.praisenter.data.bible.Verse;
 import org.praisenter.utility.MimeType;
 import org.praisenter.utility.Streams;
 import org.xml.sax.Attributes;
@@ -47,13 +45,13 @@ final class ChurchViewSongFormatProvider implements DataFormatProvider<Song> {
 //	
 	@Override
 	public boolean isSupported(Path path) {
-		try (Reader reader = new BufferedReader(new FileReader(path.toFile()))) {
+		try (FileInputStream stream = new FileInputStream(path.toFile())) {
 			XMLInputFactory f = XMLInputFactory.newInstance();
 			// prevent XXE attacks
 			// https://www.owasp.org/index.php/XML_External_Entity_(XXE)_Prevention_Cheat_Sheet#XMLInputFactory_.28a_StAX_parser.29
 			f.setProperty(XMLInputFactory.SUPPORT_DTD, false);
 			f.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false);
-			XMLStreamReader r = f.createXMLStreamReader(reader);
+			XMLStreamReader r = f.createXMLStreamReader(stream);
 			while(r.hasNext()) {
 			    r.next();
 			    if (r.isStartElement()) {
