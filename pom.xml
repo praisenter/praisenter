@@ -222,7 +222,7 @@
             <resource>
                 <directory>${project.basedir}/src/main/resources</directory>
                 <includes>
-                	<include>org/praisenter/**/**.*</include>
+                	<include>org/praisenter/**/**</include>
                 	<include>org/praisenter/data/media/*</include>
                 	<include>org/praisenter/data/media/tools/${platform}</include>
                 </includes>
