@@ -1,6 +1,7 @@
 package org.praisenter.ui;
 
 import java.awt.Desktop;
+import java.awt.EventQueue;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -278,27 +279,35 @@ final class MainMenu extends MenuBar {
 	}
 	
 	private void viewApplicationLogs() {
-		if (Desktop.isDesktopSupported()) {
-		    try {
-				Desktop.getDesktop().open(Paths.get(Constants.LOGS_ABSOLUTE_PATH).toFile());
-			} catch (IOException ex) {
-				LOGGER.error("Unable to open logs directory due to: " + ex.getMessage(), ex);
-			}
-		} else {
-			LOGGER.warn("Desktop is not supported. Failed to open log path.");
-		}
+		// Desktop must be used from the AWT EventQueue
+		// https://stackoverflow.com/a/65863422
+    	EventQueue.invokeLater(() -> {
+    		if (Desktop.isDesktopSupported()) {
+	    		try {
+	    			Desktop.getDesktop().open(Paths.get(Constants.LOGS_ABSOLUTE_PATH).toFile());
+				} catch (IOException ex) {
+					LOGGER.error("Unable to open logs directory due to: " + ex.getMessage(), ex);
+				}
+    		} else {
+    			LOGGER.warn("Desktop is not supported. Failed to open log path.");
+    		}
+    	});
 	}
 	
 	private void viewWorkspaceLogs() {
-		if (Desktop.isDesktopSupported()) {
-		    try {
-				Desktop.getDesktop().open(this.context.getWorkspaceManager().getWorkspacePathResolver().getLogsPath().toFile());
-			} catch (IOException ex) {
-				LOGGER.error("Unable to open logs directory due to: " + ex.getMessage(), ex);
+		// Desktop must be used from the AWT EventQueue
+		// https://stackoverflow.com/a/65863422
+		EventQueue.invokeLater(() -> {
+			if (Desktop.isDesktopSupported()) {
+			    try {
+					Desktop.getDesktop().open(this.context.getWorkspaceManager().getWorkspacePathResolver().getLogsPath().toFile());
+				} catch (IOException ex) {
+					LOGGER.error("Unable to open logs directory due to: " + ex.getMessage(), ex);
+				}
+			} else {
+				LOGGER.warn("Desktop is not supported. Failed to open log path.");
 			}
-		} else {
-			LOGGER.warn("Desktop is not supported. Failed to open log path.");
-		}
+		});
 	}
 	
 	private void checkForUpdate() {

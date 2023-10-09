@@ -65,3 +65,12 @@ Light Mode
 JavaFX Mode
 
 ![JavaFX Mode](https://github.com/wnbittle/praisenter/blob/master/images/javafx-mode.png)
+
+## Building
+Install WiX Toolset 3.x:
+https://github.com/wixtoolset/wix3/releases
+
+Run Maven build:
+```shell
+mvn clean install
+```

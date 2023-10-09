@@ -11,6 +11,8 @@ import org.praisenter.ui.slide.convert.PaintConverter;
 import org.praisenter.ui.translations.Translations;
 import org.praisenter.utility.Numbers;
 
+import atlantafx.base.controls.ProgressSliderSkin;
+import atlantafx.base.theme.Styles;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
@@ -103,6 +105,8 @@ public final class SlideGradientPicker extends FormFieldSection {
         
         // stop 1 offset slider
         Slider sldStop1 = new Slider(0, 1, 0);
+        sldStop1.getStyleClass().add(Styles.SMALL);
+        sldStop1.setSkin(new ProgressSliderSkin(sldStop1));
         sldStop1.valueProperty().bindBidirectional(this.stop1Offset);
         
         // stop 1 color
@@ -112,6 +116,8 @@ public final class SlideGradientPicker extends FormFieldSection {
         
         // stop 2 offset slider
         Slider sldStop2 = new Slider(0, 1, 1);
+        sldStop2.getStyleClass().add(Styles.SMALL);
+        sldStop2.setSkin(new ProgressSliderSkin(sldStop2));
         sldStop2.valueProperty().bindBidirectional(this.stop2Offset);
         
         // stop 2 color

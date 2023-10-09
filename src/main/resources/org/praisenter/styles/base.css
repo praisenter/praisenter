@@ -1,0 +1,709 @@
+.root {
+	tab-unsaved-font-color: rgb(204, 167, 0);
+	error-font-color: red;
+	new-adder-background-color: rgb(83, 172, 83);
+}
+
+/********************************************************************************/
+/********************************************************************************/
+/********************************************************************************/
+/********************************************************************************/
+/* OVERRIDES */
+/********************************************************************************/
+/********************************************************************************/
+/********************************************************************************/
+/********************************************************************************/
+.tree-view .tree-cell:hover,
+.list-view .list-cell:hover {
+	-fx-background-color: -color-neutral-subtle;
+}
+.tree-view .tree-cell:selected,
+.list-view .list-cell:selected {
+	-fx-background-color: -color-neutral-muted;
+}
+.tree-view .tree-cell:empty:hover,
+.list-view .list-cell:empty:hover {
+	-fx-background-color: null;
+}
+
+.menu-item > .graphic-container {
+    -fx-padding: 0em 0.4em 0em 0em;
+}
+
+/********************************************************************************/
+/********************************************************************************/
+/********************************************************************************/
+/********************************************************************************/
+/* PRAISENTER STYLES */
+/********************************************************************************/
+/********************************************************************************/
+/********************************************************************************/
+/********************************************************************************/
+
+.glyph-font {
+	-fx-text-fill: -color-fg-default;
+}
+
+/* SUPPORTED APPLICATION FONT SIZES */
+.p-fs8  { -fx-font-size: 8px; }
+.p-fs9  { -fx-font-size: 9px; }
+.p-fs10 { -fx-font-size: 10px; }
+.p-fs11 { -fx-font-size: 11px; }
+.p-fs12 { -fx-font-size: 12px; }
+.p-fs13 { -fx-font-size: 13px; }
+.p-fs14 { -fx-font-size: 14px; }
+.p-fs15 { -fx-font-size: 15px; }
+.p-fs16 { -fx-font-size: 16px; }
+.p-fs17 { -fx-font-size: 17px; }
+.p-fs18 { -fx-font-size: 18px; }
+.p-fs19 { -fx-font-size: 19px; }
+.p-fs20 { -fx-font-size: 20px; }
+.p-fs21 { -fx-font-size: 21px; }
+.p-fs22 { -fx-font-size: 22px; }
+
+/* UNSAVED CHANGES */
+.p-unsaved-document > .tab-container > .tab-label {
+	-fx-text-fill: tab-unsaved-font-color;
+}
+
+.p-error-label {
+	-fx-text-fill: error-font-color;
+}
+
+/* the square in the middle of the 4 text boxes when editing the padding for text component */
+.p-padding-box {
+	-fx-fill: transparent;
+	-fx-stroke: -color-accent-emphasis;
+	-fx-stroke-type: outside;
+	-fx-stroke-line-cap: butt;
+	-fx-stroke-line-join: miter;
+	-fx-stroke-miter-limit: 10;
+	-fx-stroke-width: 1;
+}
+
+.p-gradient-preview {
+	-fx-border-width: 1;
+	-fx-border-color: -color-border-default;
+}
+.p-gradient-preview-background {
+	-fx-background-image: url("/org/praisenter/images/transparent.png");
+	-fx-background-repeat: repeat;
+}
+
+.p-search-highlight {
+	-fx-font-weight: bold;
+	-fx-underline: true;
+	-fx-fill: -color-accent-emphasis;
+}
+
+.button:disabled .p-save-all-adder {
+	-fx-opacity: 0.4;
+}
+.p-save-all-adder {
+	-fx-fill: -color-fg-default;
+}
+.p-new-adder {
+	-fx-background-color: new-adder-background-color;
+	-fx-text-fill: -color-fg-emphasis !important;
+}
+
+/* the verse number in the bible tree editor UI */
+.tree-cell .p-verse-number,
+.tree-cell .p-section-name {
+	-fx-font-weight: bold; 
+	-fx-font-size: 0.8em;
+	/* -fx-min-width: 3em; */
+	-fx-text-alignment: right;
+	-fx-text-fill: -color-accent-fg;
+}
+
+.tree-cell .p-book-icon {
+	-fx-text-fill: -color-accent-fg;
+}
+.tree-cell .p-chapter-icon {
+	-fx-text-fill: -color-accent-emphasis;
+}
+.tree-cell .p-songbook-icon {
+	-fx-text-fill: -color-accent-emphasis;
+}
+.tree-cell .p-lyrics-icon {
+	-fx-text-fill: -color-accent-fg;
+}
+.tree-cell .p-author-icon {
+	-fx-text-fill: -color-accent-emphasis;
+}
+
+/** tree cell drag n drop styles */
+.tree-cell:drag-over-parent {
+	-fx-background-color: -color-neutral-muted !important;
+}
+.tree-cell:drag-over-sibling-top {
+	-fx-border-color: -color-border-default;
+    -fx-border-style: solid;
+    -fx-border-width: 1 0 0 0;
+}
+.tree-cell:drag-over-sibling-bottom {
+	-fx-border-color: -color-border-default;
+    -fx-border-style: solid;
+    -fx-border-width: 0 0 1 0;
+}
+
+/* WORKSPACE SELECTION PANE */
+.p-workspace-selection-pane {
+	-fx-pref-width: 600;
+}
+.p-workspace-selection-pane-title {
+	-fx-font-weight: bold;
+}
+.p-workspace-selection-pane-description {}
+.p-workspace-selection-pane-overview {
+	-fx-padding: 0.8em;
+	/* -fx-background-color: L1H; */
+	-fx-spacing: 0.5em;
+}
+.p-workspace-selection-pane-selection {
+	-fx-padding: 0.8em 0.8em 0.5em 0.8em;
+	-fx-spacing: 0.5em;
+}
+.p-workspace-selection-pane-buttons {
+	-fx-padding: 1.4em 0.8em 0.8em 0.8em;
+	-fx-spacing: 0.5em;
+}
+.p-workspace-selection-pane-launch-button {
+	-fx-font-weight: bold;
+}
+.p-workspace-selection-pane-warning {
+	-fx-padding: 0.5em 2em 0 2em;
+	-fx-spacing: 0.5em;
+}
+
+/* FORM FIELD */
+.p-form-field {
+	/* -fx-padding: 0.8em;
+	-fx-spacing: 0.5em; */
+}
+.p-form-field:hover {}
+.p-form-field-label {
+	/* -fx-font-weight: bold; */
+}
+.p-form-field-value {
+	/* -fx-spacing: 0.5em; */
+}
+.p-form-field-help {}
+
+/* FORM FIELD GROUP */
+.p-form-field-group > .title {
+	/* -fx-background-color: field-group-title-background-color; */
+	/* -fx-background-insets: 0, 0 0 1 0;
+	-fx-background-radius: 0;
+	-fx-font-size: 1.3em; */
+}
+.p-form-field-group > .title > .arrow-button > .arrow {
+    /* -fx-background-color: base-font-color; */
+    /* -fx-background-insets: 0;
+    -fx-effect: null;
+	-fx-font-size: 1em; */
+}
+.p-form-field-group > *.content {
+	/* -fx-border-width: 0;
+    -fx-border-insets: 0;
+    -fx-background-color: null; */
+}
+.p-form-field-group > .content > * {
+	/* -fx-padding: 0.5em 0 0 0; */
+}
+
+/* FORM FIELD SECTION */
+.p-form-field-section {
+	/* -fx-hgap: 0.3em;
+	-fx-vgap: 0.3em; */
+}
+.p-form-field-group > .content .p-form-field-section {
+	/* -fx-padding: 0.8em; */
+}
+.p-form-field-group > .content .p-form-field-section .p-form-field-section,
+.p-form-field-group > .content .p-form-field-section .p-form-field-section .p-form-field-section,
+.p-form-field-group > .content .p-form-field-section .p-form-field-section .p-form-field-section .p-form-field-section {
+	/* -fx-padding: 0em; */
+}
+
+/* SETTINGS PAGE */
+.p-settings-page {}
+.p-settings-page .p-settings-page-scroll {}
+.p-settings-page .p-settings-page-scroll .p-settings-page-flow {}
+.p-settings-page .p-settings-page-scroll .p-settings-page-flow .p-settings-page-group {
+	-fx-padding: 2em;
+	-fx-max-width: 550;
+	-fx-pref-width: 550;
+	-fx-min-width: 550;
+}
+
+/* TASKLIST PAGE */
+.p-tasklist-page {
+	-fx-padding: 2em 2em 0 2em;
+}
+.p-tasklist-page .p-tasklist-title {
+	-fx-padding: 0 0 0.55em 0;
+}
+.p-tasklist-page .p-tasklist-split {
+	-fx-padding: 0 0 0 0;
+	-fx-border-width: 1 0 0 0;
+	-fx-border-color: -color-border-muted;
+}
+.p-tasklist-page .p-tasklist-split .p-tasklist-page-list {
+	-fx-padding: 0 0 0 0;
+}
+.p-tasklist-page .p-tasklist-split .p-tasklist-page-list .p-tasklist-status-icon {
+	-size: 1em;
+    -fx-max-height: -size;
+    -fx-max-width: -size;
+    -fx-min-height: -size;
+    -fx-min-width: -size;
+    -fx-pref-height: -size;
+    -fx-pref-width: -size;
+}
+.p-tasklist-page .p-tasklist-split .p-tasklist-page-list .p-tasklist-status-icon.p-tasklist-status-icon-error {
+	-fx-shape: -icon-error;
+	-fx-background-color: -color-danger-fg;
+}
+.p-tasklist-page .p-tasklist-split .p-tasklist-page-list .p-tasklist-status-icon.p-tasklist-status-icon-pending {
+	-fx-shape: -icon-pending;
+	-fx-background-color: -color-warning-fg;
+}
+.p-tasklist-page .p-tasklist-split .p-tasklist-page-list .p-tasklist-status-icon.p-tasklist-status-icon-success {
+	-fx-shape: -icon-success;
+	-fx-background-color: -color-success-fg;
+}
+.p-tasklist-page .p-tasklist-split .p-tasklist-page-fields {
+	-fx-padding: 2em 0 2em 2em;
+	-fx-spacing: 0.5em;
+}
+
+/* TAB NAVIGATION */
+.p-tab-navigation {}
+.p-tab-navigation > .tab-header-area {
+	-fx-padding: 0;
+}
+.p-tab-navigation > .tab-header-area > .tab-header-background {
+	/* -fx-background-color: ; */
+	-fx-background-insets: 0;
+}
+.p-tab-navigation > .tab-header-area > .headers-region > .tab {
+	/* -fx-background-color: left-navigation-background-color; */
+	-fx-border-radius: 0;
+	-fx-background-radius: 0;
+	-fx-background-insets: 0;
+	-fx-border-width: 0;
+	-fx-padding: 0.083333em 0.5em 0.0769em 0.5em;
+}
+.p-tab-navigation > .tab-header-area > .headers-region > .tab:hover {
+	/* -fx-background-color: left-navigation-hover-background-color; */
+	-fx-border-width: 3 0 0 0;
+	-fx-border-color: -color-accent-emphasis;
+}
+.p-tab-navigation > .tab-header-area > .headers-region > .tab:selected {
+	-fx-border-width: 3 0 0 0;
+	-fx-border-color: -color-accent-emphasis;
+	-fx-border-radius: 0;
+	/* -fx-background-color: left-navigation-hover-background-color; */
+	-fx-background-radius: 0;
+	-fx-background-insets: 0;
+}
+.p-tab-navigation > .tab-header-area > .headers-region > .tab:selected .focus-indicator {
+	-fx-border-width: 0;
+    -fx-border-insets: 0;
+    -fx-border-radius: 0;
+}
+.p-tab-navigation .tab-content-area {
+	-fx-border-width: 0 0 0 1;
+	-fx-border-color: -color-border-muted;
+	-fx-min-width: 0;
+}
+.p-tab-navigation > .tab-header-area > .headers-region > .tab > .tab-container > .tab-label {
+	-fx-padding: 1.5em 1.1em;
+}
+.p-tab-navigation-icon {
+    -fx-background-color: -color-fg-default;
+    -size: 2em;
+    -fx-max-height: -size;
+    -fx-max-width: -size;
+    -fx-min-height: -size;
+    -fx-min-width: -size;
+    -fx-pref-height: -size;
+    -fx-pref-width: -size;
+}
+.p-tab-navigation > .tab-header-area > .headers-region > .tab:hover .p-tab-navigation-icon,
+.p-tab-navigation > .tab-header-area > .headers-region > .tab:selected .p-tab-navigation-icon {
+	/* -fx-background-color: left-navigation-hover-font-color; */
+}
+
+/* https://linearicons.com/ */
+.p-tab-navigation-present-icon {
+	-fx-shape: -icon-desktop;
+}
+.p-tab-navigation-library-icon {
+	-fx-shape: -icon-layers;
+}
+.p-tab-navigation-settings-icon {
+	-fx-shape: -icon-gear;
+}
+.p-tab-navigation-tasks-icon {
+	-fx-shape: -icon-history;
+}
+.p-tab-navigation-editor-icon {
+	-fx-shape: -icon-pencil;
+}
+
+/* MAINMENU */
+.p-main-menu {}
+
+/* FOOTER */
+.p-footer {
+	-fx-background-color: -color-accent-emphasis;
+	-fx-padding: 0.2em 1em;
+}
+.p-footer .separator:vertical .line {
+	-fx-border-width: 0;
+	-fx-background-insets: 0;
+}
+.p-footer .label {
+	-fx-text-fill: -color-fg-emphasis;
+}
+.p-footer .track {
+	-fx-background-color: -color-bg-default;
+}
+.p-footer .bar {
+	-fx-background-color: -color-neutral-muted;
+}
+
+/* ACTION BAR */
+.p-action-bar {}
+
+/* SLIDE LIST */
+.p-slide-list {
+	-fx-pref-width: 17em; /* ~200px */
+}
+.p-slide-list-cell {
+	-fx-alignment: CENTER;
+	-fx-padding: 0.5em 0 0.8em 0;
+	-fx-pref-width: 14em;
+	-fx-cell-size: null;
+}
+.p-slide-list-cell-slide-view {
+	-fx-pref-width: 14.45em; /* ~170px */
+	-fx-pref-height: 7.65em; /* ~90px */
+}
+
+/* DISPLAY CONTROLLER */
+.p-display-controllers {
+	-fx-spacing: 0.8em;
+	-fx-padding: 0.8em;
+}
+.p-display-controllers-add-container {
+	-fx-padding: 1.3em 0.5em;
+}
+
+.p-display-controller {
+	-fx-min-width: 48em;
+	-fx-padding: 0;
+}
+.p-display-controller-header {
+	-fx-spacing: 0.5em;
+	-fx-padding: 0.5em;
+}
+.p-display-controller-name {
+	-fx-font-size: 1.5em;
+}
+.p-display-controller-left,
+.p-display-controller-right {
+	-fx-spacing: 0.5em;
+}
+.p-display-controller-right {
+	-fx-max-width: 30em;
+}
+.p-display-controller-chk-row {
+	-fx-spacing: 0.5em;
+}
+.p-display-controller-btn-grid {
+	-fx-vgap: 0.5em;
+	-fx-hgap: 0.5em;
+	-fx-padding: 0 0 0 0.5em;
+}
+.p-display-controller-tabs {
+	-fx-padding: 0 0 0 0.5em;
+}
+.p-display-controller-tabs > .tab-header-area {
+	-fx-padding: 0.5em 0 0 0;
+}
+.p-display-controller-tabs > .tab-header-area > .headers-region > .tab {
+	-fx-padding: 0.25em 1.5em;
+}
+.p-display-controller-tab {
+	-fx-padding: 0.5em 0 0 0;
+	-fx-spacing: 0.5em;
+}
+
+/* BIBLE NAVIGATION (CONTROLLER) */
+.p-bible-nav {
+	-fx-hgap: 0.5em;
+	-fx-vgap: 0.5em;
+}
+
+/* SONG NAVIGATION (CONTROLLER) */
+.p-song-nav {
+	-fx-spacing: 2em;
+}
+.p-song-nav-lyric-selection {
+	-fx-hgap: 0.5em;
+	-fx-vgap: 0.5em;
+}
+.p-song-nav-sections {
+	-fx-hgap: 0.5em;
+	-fx-vgap: 0.5em;
+}
+
+/* SEARCH MODALS */
+.p-bible-search,
+.p-song-search {
+	-fx-spacing: 0.5em;
+	-fx-padding: 0.5em;
+}
+.p-bible-search-criteria,
+.p-song-search-criteria {
+	-fx-spacing: 0.5em;
+	-fx-hgap: 0.5em;
+	-fx-vgap: 0.5em;
+}
+
+/* SELECTION EDITOR */
+.p-selection-editor {
+	-fx-spacing: 0.3em;
+}
+.p-selection-editor .p-form-field-group > .title {
+	-fx-font-size: 1.2em;
+}
+
+/* BIBLE/SONG/SLIDE EDITOR */
+.p-bible-editor,
+.p-song-editor {
+	-fx-padding: 0;
+}
+.p-bible-editor .tree-view,
+.p-song-editor .tree-view {
+	-fx-padding: 0;
+	-fx-border-width: 0;
+	/* -fx-background-color: sunken; */
+}
+.p-bible-editor .tree-view .tree-cell,
+.p-song-editor .tree-view .tree-cell {
+	/* -fx-background-color: sunken; */
+}
+/* .p-bible-editor .tree-view .tree-cell:hover,
+.p-song-editor .tree-view .tree-cell:hover {
+	-fx-background-color: -color-neutral-subtle;
+}
+.p-bible-editor .tree-view .tree-cell:selected,
+.p-song-editor .tree-view .tree-cell:selected {
+	-fx-background-color: -color-neutral-muted;
+}
+.p-bible-editor .tree-view .tree-cell:empty:hover,
+.p-song-editor .tree-view .tree-cell:empty:hover {
+	-fx-background-color: null;
+} */
+.p-bible-editor-bulk,
+.p-song-editor-bulk {
+	-fx-spacing: 0.5em;
+	-fx-padding: 0.5em;
+}
+.p-bible-editor-bulk-buttons,
+.p-song-editor-bulk-buttons {
+	-fx-spacing: 0.5em;
+}
+.p-bible-editor-bulk-buttons > .button,
+.p-song-editor-bulk-buttons > .button {
+	-fx-pref-width: 5em;
+}
+.p-slide-editor {
+	-fx-padding: 2em;
+	/* -fx-background-color: sunken; */
+	-fx-border-width: 0;
+}
+
+.p-media-dialog > .content {
+	-fx-padding: 0;
+	-fx-pref-width: 900;
+	-fx-pref-height: 450;
+}
+
+/* CONTROLS */
+.p-datetime-picker {
+	/* -fx-padding: 0.2em; */
+}
+
+.p-flow-list-view {}
+.p-flow-list-view-tiles {
+	-fx-padding: 0.5em;
+	-fx-vgap: 0.5em;
+	-fx-hgap: 0.5em;
+}
+.p-flow-list-view-cell {
+	-fx-padding: 0.25em;
+	-fx-alignment: top-center;
+}
+.p-flow-list-view-cell:hover { 
+	-fx-background-color: -color-neutral-subtle;
+}
+.p-flow-list-view-cell:selected {
+	-fx-background-color: -color-neutral-muted;
+	-fx-text-fill: -color-fg-default;
+}
+/* .p-flow-list-view-cell:hover .label,
+.p-flow-list-view-cell:selected .label {
+	-fx-text-fill: library-list-selected-font-color; 
+} */
+.p-flow-list-view-drag-selection-area {
+	-fx-fill: -color-neutral-subtle;
+	-fx-stroke: -color-border-default;
+	-fx-smooth: false;
+	-fx-stroke-width: 1;
+}
+
+.p-tag-list-view {}
+.p-tag-list-view-tags {
+	-fx-padding: 0.3em 0 0 0;
+	-fx-vgap: 0.2em;
+	-fx-hgap: 0.2em;
+}
+.p-tag-list-view-tag {}
+.p-tag-list-view-tag-x {
+	-fx-stroke: -color-fg-default;
+}
+.p-tag-list-view-tag:hover .p-tag-list-view-tag-x {
+	-fx-stroke: -color-fg-default;
+}
+
+.p-media-preview {}
+.p-media-preview-controls {
+	-fx-spacing: 0.2em;
+	-fx-alignment: CENTER;
+	-fx-padding: 0.2em 0 0 0;
+}
+
+.p-progress-overlay {
+	/* -fx-background-color: progress-overlay-background-color; */
+}
+.p-progress-overlay .spinner {
+	/* -fx-background-color: transparent; */
+}
+.p-progress-overlay-indicator {}
+
+.p-library-item-details {
+	-fx-spacing: 0.5em;
+	-fx-padding: 0.5em;
+}
+.p-library-item-details-value-list {
+	-fx-hgap: 0.5em;
+	-fx-vgap: 0.5em;
+}
+
+
+
+.p-documents-pane-scroller {}
+.p-documents-pane-tabs .tab-content-area {
+	-fx-border-width: 0;
+}
+
+.p-library-list {
+	-fx-padding: 1em 0 0 0;
+}
+.p-library-list .p-flow-list-view .viewport {
+	/* -fx-background-color: sunken; */
+}
+.p-library-list .p-flow-list-view-tiles {
+	/* -fx-background-color: library-list-background-color; */
+}
+.p-library-list-right {
+	/* -fx-min-width: 200; */
+	-fx-padding: 2em;
+}
+.p-library-list-filter-bar {
+	-fx-vgap: 0.5em;
+	-fx-hgap: 0.5em;
+	-fx-padding: 0.5em;
+}
+.p-library-list-cell {
+	-fx-alignment: top-center;
+	-fx-pref-width: 110;
+}
+.p-library-list-cell-graphic {
+	-fx-alignment: bottom-center;
+	-fx-pref-height: 100;
+	-fx-max-height: 100;
+	-fx-min-height: 100;
+}
+.p-library-list-cell-bible > .p-library-list-cell-thumbnail {
+	-fx-image: url("/org/praisenter/images/bible-icon.png");
+}
+.p-library-list-cell-song > .p-library-list-cell-thumbnail {
+	-fx-image: url("/org/praisenter/images/song-lyrics-icon.png");
+}
+.p-library-list-cell-slide,
+.p-library-list-cell-image,
+.p-library-list-cell-bible,
+.p-library-list-cell-song,
+.p-library-list-cell-audio {
+	-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.25), 2, 0, 2, 2);
+}
+.p-library-list-cell-slide {
+	-fx-background-image: url("/org/praisenter/images/transparent.png");
+	-fx-background-repeat: repeat;
+}
+.p-library-list-cell-label {
+	-fx-text-alignment: center;
+	-fx-padding: 0.5em 0 0 0;
+}
+
+.p-library-list-sort-direction .p-library-list-sort-direction-icon {
+	-size: 1em;
+	-fx-background-color: -color-fg-default;
+    -fx-max-height: -size;
+    -fx-max-width: -size;
+    -fx-min-height: -size;
+    -fx-min-width: -size;
+    -fx-pref-height: -size;
+    -fx-pref-width: -size;
+	-fx-shape: -icon-sortdesc;
+}
+.p-library-list-sort-direction:selected .p-library-list-sort-direction-icon {
+	-fx-shape: -icon-sortasc;
+	
+}
+.p-library-list .p-library-list-search-icon {
+	-size: 1.25em;
+	/* -fx-padding: 0.25em; */
+	-fx-background-color: -color-fg-default;
+    -fx-max-height: -size;
+    -fx-max-width: -size;
+    -fx-min-height: -size;
+    -fx-min-width: -size;
+    -fx-pref-height: -size;
+    -fx-pref-width: -size;
+	-fx-shape: -icon-search;
+}
+
+.p-slide-template-list-cell {}
+.p-slide-template-list-cell-graphic {
+	-fx-background-image: url("/org/praisenter/images/transparent.png");
+	-fx-background-repeat: repeat;
+}
+
+.p-slide-dash-pattern {
+	/* -fx-stroke: base-font-color; */
+}
+
+.p-about {}
+.p-about-left,
+.p-about-right {
+	-fx-padding: 1em;
+	-fx-spacing: 1em;
+}

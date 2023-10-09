@@ -229,11 +229,15 @@ public final class BibleSelectionEditor extends VBox implements DocumentSelectio
 		spnBookNumber.setEditable(true);
 		spnBookNumber.getValueFactory().valueProperty().bindBidirectional(this.bookNumber2);
 		spnBookNumber.setMaxWidth(Double.MAX_VALUE);
+		spnBookNumber.setPrefWidth(120);
+		spnBookNumber.getStyleClass().add(Spinner.STYLE_CLASS_SPLIT_ARROWS_HORIZONTAL);
 		
 		Spinner<Integer> spnChapterNumber = new Spinner<>(1, Integer.MAX_VALUE, 1);
 		spnChapterNumber.setEditable(true);
 		spnChapterNumber.getValueFactory().valueProperty().bindBidirectional(this.chapterNumber2);
 		spnChapterNumber.setMaxWidth(Double.MAX_VALUE);
+		spnChapterNumber.setPrefWidth(120);
+		spnChapterNumber.getStyleClass().add(Spinner.STYLE_CLASS_SPLIT_ARROWS_HORIZONTAL);
 		
 		TextArea txtVerseText = new TextArea();
 		txtVerseText.textProperty().bindBidirectional(this.verseText);
@@ -243,6 +247,8 @@ public final class BibleSelectionEditor extends VBox implements DocumentSelectio
 		spnVerseNumber.setEditable(true);
 		spnVerseNumber.getValueFactory().valueProperty().bindBidirectional(this.verseNumber2);
 		spnVerseNumber.setMaxWidth(Double.MAX_VALUE);
+		spnVerseNumber.setPrefWidth(120);
+		spnVerseNumber.getStyleClass().add(Spinner.STYLE_CLASS_SPLIT_ARROWS_HORIZONTAL);
 		
 		Button btnBookQuickEdit = new Button(Translations.get("action.edit.bulk"));
 		Button btnChapterQuickEdit = new Button(Translations.get("action.edit.bulk"));

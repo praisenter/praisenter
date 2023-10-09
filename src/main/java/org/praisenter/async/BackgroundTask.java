@@ -16,6 +16,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
+// TODO add an StringProperty action field to store "Import", "Save", "Delete", etc.
 public final class BackgroundTask implements ReadOnlyBackgroundTask, Comparable<ReadOnlyBackgroundTask> {
 	private final StringProperty name;
 	private final StringProperty message;

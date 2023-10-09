@@ -111,7 +111,7 @@ public final class ActionBar extends ToolBar {
 	}
 	
 	private Separator createSeparatorForGroup(Action... actions) {
-		Separator sep = new Separator();
+		Separator sep = new Separator(Orientation.VERTICAL);
 		
 		ReadOnlyBooleanProperty[] dependents = new ReadOnlyBooleanProperty[actions.length];
 		for (int i = 0; i < actions.length; i++) {

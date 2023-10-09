@@ -1,6 +1,7 @@
 package org.praisenter.ui;
 
 import java.awt.Desktop;
+import java.awt.EventQueue;
 import java.net.URI;
 
 import org.apache.logging.log4j.LogManager;
@@ -107,13 +108,17 @@ final class AboutPane extends BorderPane {
 		layout.getChildren().add(link);
 		
 		link.setOnAction(e -> {
-			if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-				try {
-				    Desktop.getDesktop().browse(new URI(Constants.WEBSITE));
-				} catch (Exception ex) {
-					LOGGER.error("Failed to open default browser for URL: " + Constants.WEBSITE, ex);
+			// Desktop must be used from the AWT EventQueue
+			// https://stackoverflow.com/a/65863422
+			EventQueue.invokeLater(() -> {
+				if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+					try {
+					    Desktop.getDesktop().browse(new URI(Constants.WEBSITE));
+					} catch (Exception ex) {
+						LOGGER.error("Failed to open default browser for URL: " + Constants.WEBSITE, ex);
+					}
 				}
-			}
+			});
 		});
 		
 		this.setLeft(left);

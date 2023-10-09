@@ -33,6 +33,7 @@ import org.praisenter.data.slide.text.VerticalTextAlignment;
 import org.praisenter.data.workspace.Resolution;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.Glyphs;
+import org.praisenter.ui.Icons;
 import org.praisenter.ui.MappedList;
 import org.praisenter.ui.Option;
 import org.praisenter.ui.bind.BindingHelper;
@@ -59,6 +60,9 @@ import org.praisenter.ui.slide.convert.TimeFormatConverter;
 import org.praisenter.ui.translations.Translations;
 import org.praisenter.ui.undo.UndoManager;
 
+import atlantafx.base.controls.ProgressSliderSkin;
+import atlantafx.base.controls.Tile;
+import atlantafx.base.theme.Styles;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.binding.Bindings;
@@ -80,6 +84,8 @@ import javafx.geometry.Rectangle2D;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.Separator;
 import javafx.scene.control.Slider;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.TextArea;
@@ -541,6 +547,8 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 		spnTime.getValueFactory().valueProperty().bindBidirectional(this.timeAsObject);
 		
 		Slider sldOpacity = new Slider(0, 1, 1);
+		sldOpacity.getStyleClass().add(Styles.SMALL);
+		sldOpacity.setSkin(new ProgressSliderSkin(sldOpacity));
 		sldOpacity.valueProperty().bindBidirectional(this.opacity);
 		
 		SlidePaintPicker pkrBackground = new SlidePaintPicker(context, true, true, true, true, true, Translations.get("slide.background"));
@@ -564,6 +572,8 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 		pkrComponentBorder.valueProperty().bindBidirectional(this.componentBorder);
 		
 		Slider sldComponentOpacity = new Slider(0, 1, 1);
+		sldComponentOpacity.getStyleClass().add(Styles.SMALL);
+		sldComponentOpacity.setSkin(new ProgressSliderSkin(sldComponentOpacity));
 		sldComponentOpacity.valueProperty().bindBidirectional(this.componentOpacity);
 		
 		SlideShadowPicker pkrComponentShadow = new SlideShadowPicker(Translations.get("slide.shadow"));
@@ -601,10 +611,10 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 		cbComponentFontScaleType.setMaxWidth(Double.MAX_VALUE);
 		BindingHelper.bindBidirectional(cbComponentFontScaleType.valueProperty(), this.componentFontScaleType);
 		
-		ToggleButton tglHAlignLeft = new ToggleButton("", Glyphs.HALIGN_LEFT.duplicate());
-		ToggleButton tglHAlignRight = new ToggleButton("", Glyphs.HALIGN_RIGHT.duplicate());
-		ToggleButton tglHAlignCenter = new ToggleButton("", Glyphs.HALIGN_CENTER.duplicate());
-		ToggleButton tglHAlignJustify = new ToggleButton("", Glyphs.HALIGN_JUSTIFY.duplicate());
+		ToggleButton tglHAlignLeft = new ToggleButton("", Icons.getIcon(Icons.HORIZONTAL_ALIGN_LEFT));// Glyphs.HALIGN_LEFT.duplicate());
+		ToggleButton tglHAlignRight = new ToggleButton("", Icons.getIcon(Icons.HORIZONTAL_ALIGN_RIGHT));// Glyphs.HALIGN_RIGHT.duplicate());
+		ToggleButton tglHAlignCenter = new ToggleButton("", Icons.getIcon(Icons.HORIZONTAL_ALIGN_CENTER));// Glyphs.HALIGN_CENTER.duplicate());
+		ToggleButton tglHAlignJustify = new ToggleButton("", Icons.getIcon(Icons.HORIZONTAL_ALIGN_JUSTIFY));// Glyphs.HALIGN_JUSTIFY.duplicate());
 		BindingHelper.bindBidirectional(this.componentHorizontalTextAlignment, tglHAlignLeft.selectedProperty(), HorizontalTextAlignment.LEFT);
 		BindingHelper.bindBidirectional(this.componentHorizontalTextAlignment, tglHAlignRight.selectedProperty(), HorizontalTextAlignment.RIGHT);
 		BindingHelper.bindBidirectional(this.componentHorizontalTextAlignment, tglHAlignCenter.selectedProperty(), HorizontalTextAlignment.CENTER);
@@ -613,9 +623,9 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 //		SegmentedButton segComponentHAlignment = new SegmentedButton(tglHAlignLeft, tglHAlignCenter, tglHAlignRight, tglHAlignJustify);
 		HBox segComponentHAlignment = new HBox(1, tglHAlignLeft, tglHAlignCenter, tglHAlignRight, tglHAlignJustify);
 
-		ToggleButton tglVAlignTop = new ToggleButton("", Glyphs.VALIGN_TOP.duplicate());
-		ToggleButton tglVAlignCenter = new ToggleButton("", Glyphs.VALIGN_CENTER.duplicate());
-		ToggleButton tglVAlignBottom = new ToggleButton("", Glyphs.VALIGN_BOTTOM.duplicate());
+		ToggleButton tglVAlignTop = new ToggleButton("", Icons.getIcon(Icons.VERTICAL_ALIGN_TOP));// Glyphs.VALIGN_TOP.duplicate());
+		ToggleButton tglVAlignCenter = new ToggleButton("", Icons.getIcon(Icons.VERTICAL_ALIGN_CENTER));// Glyphs.VALIGN_CENTER.duplicate());
+		ToggleButton tglVAlignBottom = new ToggleButton("", Icons.getIcon(Icons.VERTICAL_ALIGN_BOTTOM));// Glyphs.VALIGN_BOTTOM.duplicate());
 		BindingHelper.bindBidirectional(this.componentVerticalTextAlignment, tglVAlignTop.selectedProperty(), VerticalTextAlignment.TOP);
 		BindingHelper.bindBidirectional(this.componentVerticalTextAlignment, tglVAlignCenter.selectedProperty(), VerticalTextAlignment.CENTER);
 		BindingHelper.bindBidirectional(this.componentVerticalTextAlignment, tglVAlignBottom.selectedProperty(), VerticalTextAlignment.BOTTOM);
@@ -710,16 +720,25 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 				txtComponentText,
 				txtLineSpacing);
 		
-		FormFieldSection sctGeneral = new FormFieldSection();
-		sctGeneral.addField(Translations.get("item.name"), txtName);
-		sctGeneral.addField(Translations.get("slide.target"), cmbTargetSize);
-		sctGeneral.addField(Translations.get("slide.width"), txtWidth);
-		sctGeneral.addField(Translations.get("slide.height"), txtHeight);
-		sctGeneral.addField(Translations.get("slide.time"), spnTime);
-		sctGeneral.addField(Translations.get("slide.opacity"), sldOpacity);
-		sctGeneral.addField(Translations.get("tags"), viewTags);
+//		FormFieldSection sctGeneral = new FormFieldSection();
+//		sctGeneral.addField(Translations.get("item.name"), txtName);
+//		sctGeneral.addField(Translations.get("slide.target"), cmbTargetSize);
+//		sctGeneral.addField(Translations.get("slide.width"), txtWidth);
+//		sctGeneral.addField(Translations.get("slide.height"), txtHeight);
+//		sctGeneral.addField(Translations.get("slide.time"), spnTime);
+//		sctGeneral.addField(Translations.get("slide.opacity"), sldOpacity);
+//		sctGeneral.addField(Translations.get("tags"), viewTags);
 
-		FormFieldGroup ttlSlide = new FormFieldGroup(Translations.get("slide"), sctGeneral);
+		Label ttlGeneral = new Label(Translations.get("slide")); ttlGeneral.getStyleClass().add(Styles.TITLE_4);
+		Tile tleName = new Tile(Translations.get("item.name"), Translations.get("item.name")); tleName.setAction(txtName); tleName.setActionHandler(txtName::requestFocus);
+		Tile tleTarget = new Tile(Translations.get("slide.target"), Translations.get("slide.target")); tleTarget.setAction(cmbTargetSize); tleTarget.setActionHandler(cmbTargetSize::requestFocus);
+		Tile tleWidth = new Tile(Translations.get("slide.width"), Translations.get("slide.width")); tleWidth.setAction(txtWidth); tleWidth.setActionHandler(txtWidth::requestFocus);
+		Tile tleHeight = new Tile(Translations.get("slide.height"), Translations.get("slide.height")); tleHeight.setAction(txtHeight); tleHeight.setActionHandler(txtHeight::requestFocus);
+		Tile tleTime = new Tile(Translations.get("slide.time"), Translations.get("slide.time")); tleTime.setAction(spnTime); tleTime.setActionHandler(spnTime::requestFocus);
+		Tile tleOpacity = new Tile(Translations.get("slide.opacity"), Translations.get("slide.opacity")); tleOpacity.setAction(sldOpacity);
+		VBox vGeneral = new VBox(ttlGeneral, new Separator(), tleName, tleTarget, tleWidth, tleHeight, tleTime, tleOpacity, viewTags);
+		
+//		FormFieldGroup ttlSlide = new FormFieldGroup(Translations.get("slide"), sctGeneral);
 		FormFieldGroup ttlSlideBackground = new FormFieldGroup(Translations.get("slide.slide.background"), pkrBackground);
 		FormFieldGroup ttlSlideBorder = new FormFieldGroup(Translations.get("slide.slide.border"), pkrBorder);
 		FormFieldGroup ttlSlideTransition = new FormFieldGroup(Translations.get("slide.slide.transition"), pkrTransition);
@@ -854,7 +873,7 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 		}
 		
 		this.getChildren().addAll(
-				ttlSlide,
+				vGeneral,
 				ttlSlideBackground,
 				ttlSlideBorder,
 				ttlSlideTransition,

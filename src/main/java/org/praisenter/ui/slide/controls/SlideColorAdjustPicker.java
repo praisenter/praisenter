@@ -6,6 +6,8 @@ import org.praisenter.ui.bind.ObjectConverter;
 import org.praisenter.ui.controls.FormFieldSection;
 import org.praisenter.ui.translations.Translations;
 
+import atlantafx.base.controls.ProgressSliderSkin;
+import atlantafx.base.theme.Styles;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
@@ -154,7 +156,8 @@ public final class SlideColorAdjustPicker extends FormFieldSection {
 	
 	private Slider buildSlider() {
 		Slider slider = new Slider(-1, 1, 0);
-		
+		slider.getStyleClass().add(Styles.SMALL);
+		slider.setSkin(new ProgressSliderSkin(slider));
 //		slider.setMajorTickUnit(0.2);
 //		slider.setMinorTickCount(0);
 //		slider.setShowTickMarks(true);
