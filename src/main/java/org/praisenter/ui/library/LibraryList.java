@@ -19,7 +19,6 @@ import java.util.zip.ZipOutputStream;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.controlsfx.glyphfont.Glyph;
 import org.praisenter.Constants;
 import org.praisenter.Editable;
 import org.praisenter.async.AsyncHelper;
@@ -31,7 +30,6 @@ import org.praisenter.ui.Action;
 import org.praisenter.ui.ActionPane;
 import org.praisenter.ui.DataFormats;
 import org.praisenter.ui.GlobalContext;
-import org.praisenter.ui.Glyphs;
 import org.praisenter.ui.Option;
 import org.praisenter.ui.controls.Dialogs;
 import org.praisenter.ui.controls.FlowListCell;
@@ -43,6 +41,7 @@ import org.praisenter.ui.events.FlowListViewSelectionEvent;
 import org.praisenter.ui.translations.Translations;
 import org.praisenter.utility.StringManipulator;
 
+import atlantafx.base.controls.CustomTextField;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
@@ -56,7 +55,6 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import javafx.geometry.Orientation;
-import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ChoiceBox;
@@ -65,18 +63,18 @@ import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
+import javafx.scene.control.Separator;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.SplitPane;
-import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.control.ToolBar;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.FlowPane;
-import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Modality;
@@ -90,8 +88,8 @@ public final class LibraryList extends BorderPane implements ActionPane {
 	private static final Logger LOGGER = LogManager.getLogger();
 	private static final Collator COLLATOR = Collator.getInstance();
 	
-	private final Glyph SORT_ASC = Glyphs.SORT_ASC.duplicate();
-	private final Glyph SORT_DESC = Glyphs.SORT_DESC.duplicate();
+//	private final Glyph SORT_ASC = Glyphs.SORT_ASC.duplicate();
+//	private final Glyph SORT_DESC = Glyphs.SORT_DESC.duplicate();
 	
 	private final GlobalContext context;
 	
@@ -296,34 +294,30 @@ public final class LibraryList extends BorderPane implements ActionPane {
         cbTypes.visibleProperty().bind(this.typeFilterVisible);
         cbTypes.managedProperty().bind(cbTypes.visibleProperty());
 		
+        // TODO clean up style classes
         Label lblSort = new Label(Translations.get("list.sort.field"));
         ChoiceBox<Option<LibraryListSortField>> cbSort = new ChoiceBox<Option<LibraryListSortField>>(sortFields);
         cbSort.valueProperty().bindBidirectional(this.sortField);
-        ToggleButton tgl = new ToggleButton(null);
-        tgl.graphicProperty().bind(Bindings.createObjectBinding(() -> {
-        	boolean isAsc = this.sortAscending.get();
-        	return isAsc ? SORT_ASC : SORT_DESC;
-        }, this.sortAscending));
+        Region regSortDirection = new Region();
+        regSortDirection.getStyleClass().add("p-library-list-sort-direction-icon");
+        ToggleButton tgl = new ToggleButton(null, regSortDirection);
+        tgl.getStyleClass().add("p-library-list-sort-direction");
         tgl.selectedProperty().bindBidirectional(this.sortAscending);
         
-        TextField txtSearch = new TextField();
+        CustomTextField txtSearch = new CustomTextField();
         txtSearch.setPromptText(Translations.get("list.filter.search"));
         txtSearch.textProperty().bindBidirectional(this.textFilter);
         
-        HBox pFilter = new HBox(lblFilter, cbTypes, txtSearch); 
-        pFilter.setAlignment(Pos.BASELINE_LEFT);
-        pFilter.setSpacing(5);
+        Region searchIcon = new Region();
+        searchIcon.getStyleClass().add("p-library-list-search-icon");
+        txtSearch.setLeft(searchIcon);
         
-        HBox pSort = new HBox(lblSort, cbSort, tgl);
-        pSort.setAlignment(Pos.CENTER_LEFT);
-        pSort.setSpacing(5);
-        
-        FlowPane top = new FlowPane();
-        top.getStyleClass().add(LIBRARY_LIST_FILTER_BAR_CSS);
-        top.setAlignment(Pos.BASELINE_LEFT);
-        top.setPrefWrapLength(0);
-        
-        top.getChildren().addAll(pFilter, pSort);
+        ToolBar top = new ToolBar(
+        		txtSearch,
+        		new Separator(Orientation.VERTICAL),
+        		lblFilter, cbTypes,
+        		new Separator(Orientation.VERTICAL),
+        		lblSort, cbSort, tgl);
         
         LibraryItemDetails details = new LibraryItemDetails(context);
         details.setMinWidth(0);
@@ -358,7 +352,7 @@ public final class LibraryList extends BorderPane implements ActionPane {
 		left.setTop(top);
 		left.setCenter(this.view);
 		SplitPane split = new SplitPane(left, detailsScroller);
-		split.setDividerPosition(0, 0.75);
+		split.setDividerPosition(0, 0.70);
 		SplitPane.setResizableWithParent(detailsScroller, false);
 		
 		this.detailsPaneVisible.addListener((obs, ov, nv) -> {
@@ -520,40 +514,34 @@ public final class LibraryList extends BorderPane implements ActionPane {
 					Translations.get("action.confirm.delete"));
 			Optional<ButtonType> result = alert.showAndWait();
 			if (result.isPresent() && result.get() == ButtonType.OK) {
-				int size = items.size();
-				String btName = Translations.get("action.delete.task.multiple", size);
-				if (size == 1) {
-					btName = Translations.get("action.delete.task", items.get(0).getName());
-				}
-				
-				BackgroundTask task = new BackgroundTask();
-				task.setName(btName);
-				task.setMessage(btName);
-				
 				CompletableFuture<?>[] futures = new CompletableFuture<?>[n];
 				int i = 0;
 				for (Persistable item : items) {
-					futures[i++] = this.context.getWorkspaceManager().delete(item).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
+					
+					BackgroundTask task = new BackgroundTask();
+					task.setName(item.getName());
+					task.setMessage(Translations.get("action.delete.task", item.getName()));
+					this.context.addBackgroundTask(task);
+					
+					futures[i++] = this.context.getWorkspaceManager().delete(item).thenRun(() -> {
+						task.setProgress(1.0);
+					}).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
 						// close the document if its open
 						this.context.closeDocument(item);
 					})).exceptionally((t) -> {
 						LOGGER.error("Failed to delete item '" + item.getName() + "': " + t.getMessage(), t);
+						task.setException(t);
 						throw new CompletionException(t);
 					});
 				}
 				
-				this.context.addBackgroundTask(task);
-				return CompletableFuture.allOf(futures).thenRun(() -> {
-					task.setProgress(1.0);
-				}).exceptionally((t) -> {
+				
+				return CompletableFuture.allOf(futures).exceptionally((t) -> {
 					// log the exception
 					LOGGER.error("Failed to delete one or more items (see prior error logs for details)");
 					
 					// get the root exceptions from the futures
 					List<Throwable> exceptions = AsyncHelper.getExceptions(futures);
-					
-					// update the task
-					task.setException(exceptions.get(0));
 					
 					// present them to the user
 					Platform.runLater(() -> {
@@ -596,7 +584,7 @@ public final class LibraryList extends BorderPane implements ActionPane {
 	    			copy.setModifiedDate(Instant.now());
 	    			
 	    			BackgroundTask task = new BackgroundTask();
-					task.setName(Translations.get("action.rename.task", oldName, newName));
+					task.setName(newName);
 					task.setMessage(Translations.get("action.rename.task", oldName, newName));
 					
 					this.context.addBackgroundTask(task);
@@ -714,31 +702,31 @@ public final class LibraryList extends BorderPane implements ActionPane {
 					});
 				}
 				
-				BackgroundTask task = new BackgroundTask();
-				task.setName(Translations.get("action.paste.task", items.size()));
-				task.setMessage(Translations.get("action.paste.task", items.size()));
-				
 				int i = 0;
 				final CompletableFuture<?>[] futures = new CompletableFuture<?>[items.size()];
 				for (Persistable item : items) {
-					futures[i++] = this.context.getWorkspaceManager().create(item).exceptionally(t -> {
+
+					BackgroundTask task = new BackgroundTask();
+					task.setName(Translations.get("action.paste.task", items.size()));
+					task.setMessage(Translations.get("action.paste.task", items.size()));
+					this.context.addBackgroundTask(task);
+					
+					futures[i++] = this.context.getWorkspaceManager().create(item).thenRun(() -> {
+						task.setProgress(1.0);
+					}).exceptionally(t -> {
 						LOGGER.error("Failed to paste item '" + item.getName() + "' due to: " + t.getMessage(), t);
+						task.setException(t);
 						throw new CompletionException(t);
 					});
 				}
 				
-				this.context.addBackgroundTask(task);
-				return CompletableFuture.allOf(futures).thenRun(() -> {
-					task.setProgress(1.0);
-				}).exceptionally((t) -> {
+				
+				return CompletableFuture.allOf(futures).exceptionally((t) -> {
 					// log the exception
 					LOGGER.error("Failed to paste items (see prior error logs for details)");
 					
 					// get the root exceptions from the futures
 					List<Throwable> exceptions = AsyncHelper.getExceptions(futures);
-					
-					// update the task
-					task.setException(exceptions.get(0));
 					
 					// present them to the user
 					Platform.runLater(() -> {

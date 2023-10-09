@@ -43,9 +43,9 @@ public final class FormField extends VBox {
 		if (helpText != null && !helpText.isBlank()) {
 			if (useTooltip) {
 				Tooltip tt = new Tooltip(helpText);
-				Label graphic = Glyphs.INFO.duplicate();
-				graphic.setTooltip(tt);
-				lbl.setGraphic(graphic);
+//				Label graphic = Glyphs.INFO.duplicate();
+//				graphic.setTooltip(tt);
+//				lbl.setGraphic(graphic);
 			} else {
 				Label desc = new Label(helpText);
 				desc.setWrapText(true);

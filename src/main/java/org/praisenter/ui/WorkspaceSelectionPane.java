@@ -132,12 +132,13 @@ final class WorkspaceSelectionPane extends VBox {
 		Label lblWorkspaceWarning = new Label();
 		lblWorkspaceWarning.textProperty().bind(this.warning);
 		lblWorkspaceWarning.setWrapText(true);
-		Glyph warnIcon = Glyphs.WARN.duplicate();
-		warnIcon.setMinWidth(USE_COMPUTED_SIZE);
-		warnIcon.setTextOverrun(OverrunStyle.CLIP);
-		HBox pathWarning = new HBox(warnIcon, lblWorkspaceWarning);
+		// TODO show warning icon
+//		Glyph warnIcon = Glyphs.WARN.duplicate();
+//		warnIcon.setMinWidth(USE_COMPUTED_SIZE);
+//		warnIcon.setTextOverrun(OverrunStyle.CLIP);
+		HBox pathWarning = new HBox(/*warnIcon, */lblWorkspaceWarning);
 		pathWarning.getStyleClass().add(WORKSPACE_SELECTION_PANE_WARNING_CLASS);
-		HBox.setHgrow(warnIcon, Priority.NEVER);
+//		HBox.setHgrow(warnIcon, Priority.NEVER);
 		HBox.setHgrow(lblWorkspaceWarning, Priority.ALWAYS);
 		pathWarning.visibleProperty().bind(this.warning.isNotEmpty());
 		

@@ -112,33 +112,27 @@ public final class Constants {
 	
 	
 	///////////////////////////
-	// THEMES
+	// STYLES
 	
 	// /themes
-	/** The relative path to the themes directory */
-	public static final String THEMES_RELATIVE_PATH = "themes" + RuntimeProperties.PATH_SEPARATOR;
+	/** The relative path to the styles directory */
+	public static final String STYLES_RELATIVE_PATH = "styles" + RuntimeProperties.PATH_SEPARATOR;
 	
 	// /user/home/dir/Praisenter3/themes
-	/** The absolute path to the themes directory */
-	public static final String THEMES_ABSOLUTE_PATH = Constants.ROOT_PATH + THEMES_RELATIVE_PATH;
+	/** The absolute path to the styles directory */
+	public static final String STYLES_ABSOLUTE_PATH = Constants.ROOT_PATH + STYLES_RELATIVE_PATH;
 	
-	/** The default theme file name */
-	public static final String THEMES_DEFAULT_THEME_FILENAME = "default.css";
+	/** The base styles file name */
+	public static final String STYLES_BASE_FILENAME = "base.css";
 	
-	/** The path to the default theme file on the classpath */
-	public static final String THEMES_DEFAULT_THEME_ON_CLASSPATH = "/org/praisenter/themes/" + Constants.THEMES_DEFAULT_THEME_FILENAME;
+	/** The path to the base styles file on the classpath */
+	public static final String STYLES_BASE_ON_CLASSPATH = "/org/praisenter/styles/" + Constants.STYLES_BASE_FILENAME;
 	
-	/** The default theme file name */
-	public static final String THEMES_FLAT_DARK_THEME_FILENAME = "flat-dark.css";
+	/** The icon styles file name */
+	public static final String STYLES_ICONS_FILENAME = "icons.css";
 	
-	/** The path to the default theme file on the classpath */
-	public static final String THEMES_FLAT_DARK_THEME_ON_CLASSPATH = "/org/praisenter/themes/" + Constants.THEMES_FLAT_DARK_THEME_FILENAME;
-	
-	/** The default theme file name */
-	public static final String THEMES_FLAT_LIGHT_THEME_FILENAME = "flat-light.css";
-	
-	/** The path to the default theme file on the classpath */
-	public static final String THEMES_FLAT_LIGHT_THEME_ON_CLASSPATH = "/org/praisenter/themes/" + Constants.THEMES_FLAT_LIGHT_THEME_FILENAME;
+	/** The path to the icon styles file on the classpath */
+	public static final String STYLES_ICONS_ON_CLASSPATH = "/org/praisenter/styles/" + Constants.STYLES_ICONS_FILENAME;
 	
 	
 	///////////////////////////

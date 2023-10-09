@@ -11,6 +11,8 @@ import org.praisenter.ui.controls.TextInputFieldEventFilter;
 import org.praisenter.ui.slide.convert.PaintConverter;
 import org.praisenter.ui.translations.Translations;
 
+import atlantafx.base.controls.ProgressSliderSkin;
+import atlantafx.base.theme.Styles;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleDoubleProperty;
@@ -73,9 +75,13 @@ public final class SlideShadowPicker extends FormFieldSection {
 		
 		// max-mins based on JavaFX max-min for DropShadow and InnerGlow
 		Slider sldRadius = new Slider(0.0, 127.0, 10.0);
+		sldRadius.getStyleClass().add(Styles.SMALL);
+		sldRadius.setSkin(new ProgressSliderSkin(sldRadius));
 		sldRadius.valueProperty().bindBidirectional(this.radius);
 		
 		Slider sldSpread = new Slider(0.0, 1.0, 0.0);
+		sldSpread.getStyleClass().add(Styles.SMALL);
+		sldSpread.setSkin(new ProgressSliderSkin(sldSpread));
 		sldSpread.valueProperty().bindBidirectional(this.spread);
 
 		// bindings

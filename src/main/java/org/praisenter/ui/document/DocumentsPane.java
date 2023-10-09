@@ -46,6 +46,7 @@ public final class DocumentsPane extends BorderPane implements ActionPane {
 
 		this.documentTabs = new TabPane();
 		this.documentTabs.setTabClosingPolicy(TabClosingPolicy.ALL_TABS);
+		this.documentTabs.getStyleClass().addAll("p-documents-pane-tabs");
 		
 		this.documentSelectionEditor = new CurrentDocumentSelectionEditor(context);
 		
@@ -117,6 +118,7 @@ public final class DocumentsPane extends BorderPane implements ActionPane {
 		ScrollPane scroller = new ScrollPane(this.documentSelectionEditor);
 		scroller.setHbarPolicy(ScrollBarPolicy.NEVER);
 		scroller.setFitToWidth(true);
+		scroller.getStyleClass().addAll("p-documents-pane-scroller");
 		
 		SplitPane split = new SplitPane(this.documentTabs, scroller);
 		split.setDividerPosition(0, 0.7);

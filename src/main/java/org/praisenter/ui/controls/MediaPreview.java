@@ -28,13 +28,17 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.controlsfx.glyphfont.Glyph;
 import org.praisenter.ui.Glyphs;
+import org.praisenter.ui.Icons;
 import org.praisenter.ui.Playable;
 
+import atlantafx.base.controls.ProgressSliderSkin;
+import atlantafx.base.theme.Styles;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
@@ -67,10 +71,10 @@ public final class MediaPreview extends BorderPane implements Playable {
     // since we are toggling them back and forth, lets use the
     // same glyph nodes for better memory usage and performance
     
-    private final Glyph play = Glyphs.PLAYER_PLAY.duplicate();
-    private final Glyph pause = Glyphs.PLAYER_PAUSE.duplicate();
-    private final Glyph mute = Glyphs.PLAYER_VOLUME_MUTE.duplicate();
-    private final Glyph control = Glyphs.PLAYER_VOLUME_CONTROL.duplicate();
+    private final Node play = Icons.getIcon(Icons.PLAY);//Glyphs.PLAYER_PLAY.duplicate();
+    private final Node pause = Icons.getIcon(Icons.PAUSE);//Glyphs.PLAYER_PAUSE.duplicate();
+    private final Node mute = Icons.getIcon(Icons.MUTE);//Glyphs.PLAYER_VOLUME_MUTE.duplicate();
+    private final Node control = Icons.getIcon(Icons.VOLUME);//Glyphs.PLAYER_VOLUME_CONTROL.duplicate();
     
     /**
      * Default constructor.
@@ -99,6 +103,8 @@ public final class MediaPreview extends BorderPane implements Playable {
 
         // time slider
         Slider sldTime = new Slider();
+        sldTime.getStyleClass().add(Styles.SMALL);
+        sldTime.setSkin(new ProgressSliderSkin(sldTime));
         sldTime.setMin(0);
         sldTime.setMax(100);
         sldTime.setValue(0);
@@ -136,6 +142,8 @@ public final class MediaPreview extends BorderPane implements Playable {
         
         // volume slider
         Slider sldVolume = new Slider();
+        sldVolume.getStyleClass().add(Styles.SMALL);
+        sldVolume.setSkin(new ProgressSliderSkin(sldVolume));
         sldVolume.setMin(0.0);
         sldVolume.setMax(1.0);
         sldVolume.setValue(0.5);

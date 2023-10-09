@@ -6,21 +6,28 @@ import org.praisenter.data.bible.Book;
 import org.praisenter.data.bible.Chapter;
 import org.praisenter.data.bible.Verse;
 import org.praisenter.ui.Glyphs;
+import org.praisenter.ui.Icons;
 import org.praisenter.ui.translations.Translations;
 
 import javafx.beans.binding.Bindings;
+import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.TreeCell;
 
 final class BibleTreeCell extends TreeCell<Object> {
-	private final Glyph book;
-	private final Glyph chapter;
+	private final Node book;
+	private final Node chapter;
 	private final Label graphic;
 	
 	public BibleTreeCell() {
-		this.book = Glyphs.NEW_BOOK.duplicate();
-		this.chapter = Glyphs.NEW_CHAPTER.duplicate();
+		this.book = Icons.getIcon(Icons.BOOK);
+		this.chapter = Icons.getIcon(Icons.BOOKMARK);
+//		this.book = Glyphs.NEW_BOOK.duplicate();
+//		this.chapter = Glyphs.NEW_CHAPTER.duplicate();
 		this.graphic = new Label();
+		
+//		this.book.getStyleClass().addAll("p-book-icon");
+//		this.chapter.getStyleClass().addAll("p-chapter-icon");
 		this.graphic.getStyleClass().addAll("p-verse-number");
 	}
 	

@@ -485,7 +485,7 @@ final class LibraryItemDetails extends VBox {
 	
 	private void onTagsChanged(Persistable p) {
 		BackgroundTask task = new BackgroundTask();
-		task.setName(Translations.get("task.saving", p.getName()));
+		task.setName(p.getName());
 		task.setMessage(Translations.get("task.saving", p.getName()));
 		this.context.addBackgroundTask(task);
 		

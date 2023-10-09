@@ -30,7 +30,8 @@ import org.praisenter.data.workspace.Workspaces;
 import org.praisenter.ui.controls.Dialogs;
 import org.praisenter.ui.controls.WindowHelper;
 import org.praisenter.ui.fonts.OpenIconic;
-import org.praisenter.ui.themes.Theme;
+import org.praisenter.ui.themes.StyleSheets;
+import org.praisenter.ui.themes.Themes;
 import org.praisenter.ui.translations.Translations;
 import org.praisenter.ui.upgrade.InstallUpgradeHandler;
 import org.praisenter.ui.upgrade.UpgradeChecker;
@@ -68,8 +69,8 @@ public final class LifecycleHandler {
 		ConditionalFeature.EFFECT
 	};
 	
-	private static final int MIN_WIDTH = 1000;
-	private static final int MIN_HEIGHT = 700;
+	private static final int MIN_WIDTH = 1200;
+	private static final int MIN_HEIGHT = 800;
 	
 	public void restart(GlobalContext context) {
 		this.restart(context, null);
@@ -185,8 +186,10 @@ public final class LifecycleHandler {
 			// using anything else doesn't block the application from closing
 			Scene scene = new Scene(wss);
 			
-			// just use the default theme
-			scene.getStylesheets().add(Theme.getTheme("default").getCss());
+			// use the styles
+			StyleSheets.apply(scene);
+			
+			// setup the scene
 			stage.setScene(scene);
 			stage.sizeToScene();
 			stage.show();
@@ -370,8 +373,17 @@ public final class LifecycleHandler {
     		LoadingPane loadingPane = new LoadingPane(context, installer);
     		StackPane layout = new StackPane(loadingPane);
     		
+    		// set the theme
+    		var theme = Themes.getTheme(configuration.getThemeName());
+    		if (theme != null) {
+    			Application.setUserAgentStylesheet(theme.getUserAgentStylesheet());
+    		}
+    		
     		Scene mainScene = new Scene(layout);
-    		mainScene.getStylesheets().add(Theme.getTheme(configuration.getThemeName()).getCss());
+    		
+    		// use the styles
+			StyleSheets.apply(mainScene);
+			
     		stage.setScene(mainScene);
     		stage.show();
     		

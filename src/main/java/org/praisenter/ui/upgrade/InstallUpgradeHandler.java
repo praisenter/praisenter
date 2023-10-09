@@ -43,7 +43,7 @@ public final class InstallUpgradeHandler {
 		// make sure these files exist
 		this.installOrUpgradeLog4jConfiguration(false);
 		this.installOrUpgradeDefaultLocale(false);
-		this.installOrUpgradeDefaultTheme(false);
+		this.installOrUpgradeDefaultStyles(false);
 		
 		// check for existing version file
 		Path path = Paths.get(Constants.UPGRADE_ABSOLUTE_PATH, Constants.UPGRADE_VERSION_FILENAME);
@@ -83,7 +83,7 @@ public final class InstallUpgradeHandler {
 		// otherwise, perform any upgrade steps
 		this.installOrUpgradeLog4jConfiguration(true);
 		this.installOrUpgradeDefaultLocale(true);
-		this.installOrUpgradeDefaultTheme(true);
+		this.installOrUpgradeDefaultStyles(true);
 		this.writeVersionFile();
 
 		logger.info("All install/upgrade initialization steps have completed successfully.");
@@ -103,7 +103,7 @@ public final class InstallUpgradeHandler {
 				Paths.get(Constants.UPGRADE_ABSOLUTE_PATH),
 				Paths.get(Constants.UPGRADE_ARCHIVE_ABSOLUTE_PATH),
 				Paths.get(Constants.LOCALES_ABSOLUTE_PATH),
-				Paths.get(Constants.THEMES_ABSOLUTE_PATH)
+				Paths.get(Constants.STYLES_ABSOLUTE_PATH)
 		};
 		
 		for (Path path : paths) {
@@ -132,21 +132,16 @@ public final class InstallUpgradeHandler {
 				isUpgrade);
 	}
 	
-	private void installOrUpgradeDefaultTheme(boolean isUpgrade) {
+	private void installOrUpgradeDefaultStyles(boolean isUpgrade) {
 		this.installOrUpgradeClasspathFile(
-				Constants.THEMES_ABSOLUTE_PATH, 
-				Constants.THEMES_DEFAULT_THEME_FILENAME, 
-				Constants.THEMES_DEFAULT_THEME_ON_CLASSPATH,
+				Constants.STYLES_ABSOLUTE_PATH, 
+				Constants.STYLES_BASE_FILENAME, 
+				Constants.STYLES_BASE_ON_CLASSPATH,
 				isUpgrade);
 		this.installOrUpgradeClasspathFile(
-				Constants.THEMES_ABSOLUTE_PATH, 
-				Constants.THEMES_FLAT_DARK_THEME_FILENAME, 
-				Constants.THEMES_FLAT_DARK_THEME_ON_CLASSPATH,
-				isUpgrade);
-		this.installOrUpgradeClasspathFile(
-				Constants.THEMES_ABSOLUTE_PATH, 
-				Constants.THEMES_FLAT_LIGHT_THEME_FILENAME, 
-				Constants.THEMES_FLAT_LIGHT_THEME_ON_CLASSPATH,
+				Constants.STYLES_ABSOLUTE_PATH, 
+				Constants.STYLES_ICONS_FILENAME, 
+				Constants.STYLES_ICONS_ON_CLASSPATH,
 				isUpgrade);
 	}
 	

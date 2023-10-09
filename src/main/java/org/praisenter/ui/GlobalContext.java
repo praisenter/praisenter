@@ -590,7 +590,7 @@ public final class GlobalContext {
 	}
 
 	private CompletableFuture<Void> resetApplicationFontSize() {
-		this.workspaceManager.getWorkspaceConfiguration().setApplicationFontSize(12);
+		this.workspaceManager.getWorkspaceConfiguration().setApplicationFontSize(14);
 		this.onActionStateChanged("FONT_SIZE_CHANGED=12.0");
 		return CompletableFuture.completedFuture(null);
 	}
@@ -694,7 +694,7 @@ public final class GlobalContext {
 			final Object position = context.getUndoManager().storePosition();
 			
 			BackgroundTask task = new BackgroundTask();
-			task.setName(Translations.get("task.saving", copy.getName()));
+			task.setName(copy.getName());
 			task.setMessage(Translations.get("task.saving", copy.getName()));
 			this.addBackgroundTask(task);
 			
@@ -777,37 +777,30 @@ public final class GlobalContext {
 			return CompletableFuture.completedFuture(null);
 		}
 		
-		int size = files.size();
-		String btName = Translations.get("action.import.task.multiple", size);
-		if (size == 1) {
-			btName = Translations.get("action.import.task", files.get(0).getName());
-		}
-		
-		final BackgroundTask bt = new BackgroundTask();
-		bt.setName(btName);
-		bt.setMessage(btName);
-		this.addBackgroundTask(bt);
-		
 		List<CompletableFuture<Void>> futures = new ArrayList<>();
 		
 		for (File file : files) {
+			final BackgroundTask bt = new BackgroundTask();
+			bt.setName(file.getName());
+			bt.setMessage(Translations.get("action.import.task", file.getName()));
+			this.addBackgroundTask(bt);
+			
 			LOGGER.info("Beginning import of '{}'", file.toPath().toAbsolutePath().toString());
-			CompletableFuture<Void> future = this.workspaceManager.importData(file.toPath(), Bible.class, Slide.class, Media.class, Song.class).exceptionally(t -> {
+			CompletableFuture<Void> future = this.workspaceManager.importData(file.toPath(), Bible.class, Slide.class, Media.class, Song.class).thenRun(() -> {
+				bt.setProgress(1.0);
+			}).exceptionally(t -> {
 				LOGGER.error("Failed to import file '" + file.toPath().toAbsolutePath().toString() + "' due to: " + t.getMessage(), t);
-				if (t instanceof CompletionException) throw (CompletionException)t; 
+				bt.setException(t);
+				
+				if (t instanceof CompletionException) 
+					throw (CompletionException)t;
+				
 				throw new CompletionException(t);
 			});
 			futures.add(future);
 		}
 		
-		CompletableFuture<?>[] farray = futures.toArray(new CompletableFuture[0]);
-		return CompletableFuture.allOf(farray).thenRun(() -> {
-			bt.setProgress(1.0);
-		}).exceptionally((ex) -> {
-			bt.setException(ex);
-			if (ex instanceof CompletionException) throw (CompletionException)ex;
-			throw new CompletionException(ex);
-		});
+		return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
 	}
 	
 	private CompletableFuture<Void> createNewBibleAndOpen() {

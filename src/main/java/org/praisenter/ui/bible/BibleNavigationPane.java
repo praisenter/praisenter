@@ -24,6 +24,7 @@ import org.praisenter.data.bible.Verse;
 import org.praisenter.ui.EmptyItemList;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.Glyphs;
+import org.praisenter.ui.Icons;
 import org.praisenter.ui.controls.AutoCompleteComboBox;
 import org.praisenter.ui.controls.WindowHelper;
 import org.praisenter.ui.translations.Translations;
@@ -58,8 +59,8 @@ public final class BibleNavigationPane extends GridPane {
 	
 	private static final String BIBLE_NAV_CSS = "p-bible-nav";
 	
-	private final Node INVALID_CHAPTER = Glyphs.BIBLE_NAV_INVALID.duplicate();
-	private final Node INVALID_VERSE = Glyphs.BIBLE_NAV_INVALID.duplicate();
+	private final Node INVALID_CHAPTER = Icons.getIcon(Icons.ERROR);//Glyphs.BIBLE_NAV_INVALID.duplicate();
+	private final Node INVALID_VERSE = Icons.getIcon(Icons.ERROR);//Glyphs.BIBLE_NAV_INVALID.duplicate();
 	
 	private static final ReadOnlyBible EMPTY_BIBLE = new Bible();
 	

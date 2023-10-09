@@ -4,6 +4,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
 
+import atlantafx.base.theme.PrimerDark;
+import atlantafx.base.theme.PrimerLight;
 import javafx.application.Application;
 import javafx.stage.Stage;
 
@@ -23,6 +25,9 @@ public final class Praisenter extends Application {
     
     @Override
     public void start(Stage stage) throws Exception {
+    	// the default style of the app
+    	Application.setUserAgentStylesheet(new PrimerDark().getUserAgentStylesheet());
+    	
     	Parameters params = this.getParameters();
     	Map<String, String> named = params.getNamed();
     	
