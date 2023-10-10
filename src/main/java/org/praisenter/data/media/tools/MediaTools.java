@@ -30,6 +30,7 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -116,8 +117,16 @@ public final class MediaTools {
 				if (!Files.exists(this.ffmpeg)) Files.copy(MediaTools.class.getResourceAsStream("/org/praisenter/data/media/tools/macos64/ffmpeg"), this.ffmpeg, StandardCopyOption.REPLACE_EXISTING);
 				if (!Files.exists(this.ffprobe)) Files.copy(MediaTools.class.getResourceAsStream("/org/praisenter/data/media/tools/macos64/ffprobe"), this.ffprobe, StandardCopyOption.REPLACE_EXISTING);
 			} else if (RuntimeProperties.IS_LINUX_OS) {
-				if (!Files.exists(this.ffmpeg)) Files.copy(MediaTools.class.getResourceAsStream("/org/praisenter/data/media/tools/linux64/ffmpeg"), this.ffmpeg, StandardCopyOption.REPLACE_EXISTING);
-				if (!Files.exists(this.ffprobe)) Files.copy(MediaTools.class.getResourceAsStream("/org/praisenter/data/media/tools/linux64/ffprobe"), this.ffprobe, StandardCopyOption.REPLACE_EXISTING);
+				if (!Files.exists(this.ffmpeg)) {
+					Files.copy(MediaTools.class.getResourceAsStream("/org/praisenter/data/media/tools/linux64/ffmpeg"), this.ffmpeg, StandardCopyOption.REPLACE_EXISTING);
+					// make sure they are executable
+					Files.setPosixFilePermissions(this.ffmpeg, PosixFilePermissions.fromString("-fwxrwxrwx"));
+				}
+				if (!Files.exists(this.ffprobe)) {
+					Files.copy(MediaTools.class.getResourceAsStream("/org/praisenter/data/media/tools/linux64/ffprobe"), this.ffprobe, StandardCopyOption.REPLACE_EXISTING);
+					// make sure they are executable
+					Files.setPosixFilePermissions(this.ffprobe, PosixFilePermissions.fromString("-fwxrwxrwx"));
+				}
 			}
 		} else {
 			LOGGER.error("Cannot determine FFmpeg binary based on operating system {} and architecture {}.", RuntimeProperties.OPERATING_SYSTEM, RuntimeProperties.ARCHITECTURE);
@@ -188,7 +197,12 @@ public final class MediaTools {
 			// is volume adjustment enabled?
 			if (settings.isAdjustVolumeEnabled()) {
 				// get the volume offset
-				int adjustment = this.ffmpegGetNormalizedDecibelOffset(source, settings.getTargetMeanVolume());
+				int adjustment = 0;
+				try {
+					adjustment = this.ffmpegGetNormalizedDecibelOffset(source, settings.getTargetMeanVolume());
+				} catch (Exception ex) {
+					LOGGER.error("Failed to detect volume: " + ex.getMessage(), ex);
+				}
 				if (adjustment != 0) {
 					// it's non-zero, so we need to adjust
 					// the adjustment needs to be two parameters so replace the single token with two tokens
@@ -297,7 +311,7 @@ public final class MediaTools {
 		
 		synchronized (this.getFFmpegLock()) {
 			// run the command
-			String output = CommandLine.execute(this.parseCommand("{ffmpeg} -i {media} -af \"volumedetect\" -vn -sn -dn -f null {null}", parameters));
+			String output = CommandLine.execute(this.parseCommand("{ffmpeg} -i {media} -af volumedetect -vn -sn -dn -f null {null}", parameters));
 			
 			// somewhere around -40 dB is the target for the mean volume
 			// the max_volume doesn't seem to matter as much
@@ -334,6 +348,7 @@ public final class MediaTools {
 			
 			int meanTarget = (int)Math.ceil(targetMeanVolume);
 			int meanNorm = (int)Math.ceil(meanVolume);
+			LOGGER.debug("Detected mean volume: '" + meanNorm + "'");
 			if (meanNorm > targetMeanVolume) {
 				return meanTarget - meanNorm;
 			}

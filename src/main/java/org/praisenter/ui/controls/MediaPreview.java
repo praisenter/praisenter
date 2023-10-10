@@ -26,8 +26,6 @@ package org.praisenter.ui.controls;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.controlsfx.glyphfont.Glyph;
-import org.praisenter.ui.Glyphs;
 import org.praisenter.ui.Icons;
 import org.praisenter.ui.Playable;
 
@@ -71,10 +69,10 @@ public final class MediaPreview extends BorderPane implements Playable {
     // since we are toggling them back and forth, lets use the
     // same glyph nodes for better memory usage and performance
     
-    private final Node play = Icons.getIcon(Icons.PLAY);//Glyphs.PLAYER_PLAY.duplicate();
-    private final Node pause = Icons.getIcon(Icons.PAUSE);//Glyphs.PLAYER_PAUSE.duplicate();
-    private final Node mute = Icons.getIcon(Icons.MUTE);//Glyphs.PLAYER_VOLUME_MUTE.duplicate();
-    private final Node control = Icons.getIcon(Icons.VOLUME);//Glyphs.PLAYER_VOLUME_CONTROL.duplicate();
+    private final Node play = Icons.getIcon(Icons.PLAY);
+    private final Node pause = Icons.getIcon(Icons.PAUSE);
+    private final Node mute = Icons.getIcon(Icons.MUTE);
+    private final Node control = Icons.getIcon(Icons.VOLUME);
     
     /**
      * Default constructor.

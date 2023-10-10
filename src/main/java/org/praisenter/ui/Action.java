@@ -20,24 +20,7 @@ import javafx.scene.shape.SVGPath;
 
 public enum Action {
 	SAVE("action.save", new KeyCodeCombination(KeyCode.S, KeyCombination.SHORTCUT_DOWN), getGraphicSupplier(Icons.SAVE)),
-	// TODO save all
-	SAVE_ALL("action.saveall", new KeyCodeCombination(KeyCode.S, KeyCombination.SHIFT_DOWN, KeyCombination.SHORTCUT_DOWN), getGraphicSupplier(Icons.SAVE)),
-//			() -> {
-//		StackPane stack = new StackPane();
-//		StackPane pane = new StackPane(Glyphs.SAVE.duplicate());
-//		pane.setTranslateX(3);
-//		pane.setTranslateY(1);
-//		
-//		stack.setTranslateX(-3);
-//		stack.setTranslateY(-1);
-//		
-//		SVGPath path = new SVGPath();
-//		path.setContent("M0,0 L10,0 L10,1 L1,1 L1,12 L0,12 Z");
-//		path.getStyleClass().add("p-save-all-adder");
-//
-//		stack.getChildren().addAll(path, pane);
-//		return stack;
-//	}),
+	SAVE_ALL("action.saveall", new KeyCodeCombination(KeyCode.S, KeyCombination.SHIFT_DOWN, KeyCombination.SHORTCUT_DOWN), getGraphicSupplier(Icons.SAVE_ALL)),
 	RENAME("action.rename", new KeyCodeCombination(KeyCode.R, KeyCombination.SHORTCUT_DOWN), getGraphicSupplier(Icons.RENAME)),
 	DELETE("action.delete", new KeyCodeCombination(KeyCode.DELETE), getGraphicSupplier(Icons.DELETE)),
 	
@@ -77,21 +60,21 @@ public enum Action {
 	
 	// bible
 	
-	NEW_BIBLE("action.new.bible", new KeyCodeCombination(KeyCode.B, KeyCombination.SHORTCUT_DOWN, KeyCombination.ALT_DOWN), getGraphicSupplier(Icons.BOOK)),
-	NEW_BOOK("action.new.bible.book", getGraphicSupplier(Icons.BOOK)),
-	NEW_CHAPTER("action.new.bible.chapter", getGraphicSupplier(Icons.BOOKMARK)),
-	NEW_VERSE("action.new.bible.verse", getGraphicSupplier(Icons.VERSE)),
+	NEW_BIBLE("action.new.bible", new KeyCodeCombination(KeyCode.B, KeyCombination.SHORTCUT_DOWN, KeyCombination.ALT_DOWN), getGraphicSupplier(Icons.BIBLE_ADD)),
+	NEW_BOOK("action.new.bible.book", getGraphicSupplier(Icons.BOOK_ADD)),
+	NEW_CHAPTER("action.new.bible.chapter", getGraphicSupplier(Icons.BOOKMARK_ADD)),
+	NEW_VERSE("action.new.bible.verse", getGraphicSupplier(Icons.VERSE_ADD)),
 	RENUMBER("action.renumber", getGraphicSupplier(Icons.RENUMBER)),
 	REORDER("action.reorder", getGraphicSupplier(Icons.REORDER)),
 	
 	// slide
 	
-	NEW_SLIDE("action.new.slide", new KeyCodeCombination(KeyCode.S, KeyCombination.SHORTCUT_DOWN, KeyCombination.ALT_DOWN), getGraphicSupplier(Icons.DESKTOP)),
-	NEW_SLIDE_TEXT_COMPONENT("action.new.slide.component.text", getGraphicSupplier(Icons.TEXT)),
-	NEW_SLIDE_MEDIA_COMPONENT("action.new.slide.component.media", getGraphicSupplier(Icons.MEDIA)),
-	NEW_SLIDE_DATETIME_COMPONENT("action.new.slide.component.datetime", getGraphicSupplier(Icons.CALENDAR)),
-	NEW_SLIDE_PLACEHOLDER_COMPONENT("action.new.slide.component.placeholder", getGraphicSupplier(Icons.PLACEHOLDER)),
-	NEW_SLIDE_COUNTDOWN_COMPONENT("action.new.slide.component.countdown", getGraphicSupplier(Icons.TIMER)),
+	NEW_SLIDE("action.new.slide", new KeyCodeCombination(KeyCode.S, KeyCombination.SHORTCUT_DOWN, KeyCombination.ALT_DOWN), getGraphicSupplier(Icons.DESKTOP_ADD)),
+	NEW_SLIDE_TEXT_COMPONENT("action.new.slide.component.text", getGraphicSupplier(Icons.TEXT_ADD)),
+	NEW_SLIDE_MEDIA_COMPONENT("action.new.slide.component.media", getGraphicSupplier(Icons.MEDIA_ADD)),
+	NEW_SLIDE_DATETIME_COMPONENT("action.new.slide.component.datetime", getGraphicSupplier(Icons.CALENDAR_ADD)),
+	NEW_SLIDE_PLACEHOLDER_COMPONENT("action.new.slide.component.placeholder", getGraphicSupplier(Icons.PLACEHOLDER_ADD)),
+	NEW_SLIDE_COUNTDOWN_COMPONENT("action.new.slide.component.countdown", getGraphicSupplier(Icons.TIMER_ADD)),
 	
 	// TODO change to use theme colors
 	SLIDE_COMPONENT_MOVE_BACK("action.stacking.back", new KeyCodeCombination(KeyCode.CLOSE_BRACKET, KeyCombination.SHIFT_DOWN, KeyCombination.SHORTCUT_DOWN), () -> {
@@ -137,11 +120,11 @@ public enum Action {
 	
 	// song
 	
-	NEW_SONG("action.new.song", new KeyCodeCombination(KeyCode.L, KeyCombination.SHORTCUT_DOWN, KeyCombination.ALT_DOWN), getGraphicSupplier(Icons.MUSIC)),
-	NEW_LYRICS("action.new.song.lyrics", getGraphicSupplier(Icons.MUSIC)),
-	NEW_AUTHOR("action.new.song.author", getGraphicSupplier(Icons.USER)),
-	NEW_SONGBOOK("action.new.song.songbook", getGraphicSupplier(Icons.BOOK)),
-	NEW_SECTION("action.new.song.section", getGraphicSupplier(Icons.VERSE)),
+	NEW_SONG("action.new.song", new KeyCodeCombination(KeyCode.L, KeyCombination.SHORTCUT_DOWN, KeyCombination.ALT_DOWN), getGraphicSupplier(Icons.SONG_ADD)),
+	NEW_LYRICS("action.new.song.lyrics", getGraphicSupplier(Icons.LYRICS_ADD)),
+	NEW_AUTHOR("action.new.song.author", getGraphicSupplier(Icons.USER_ADD)),
+	NEW_SONGBOOK("action.new.song.songbook", getGraphicSupplier(Icons.BOOK_ADD)),
+	NEW_SECTION("action.new.song.section", getGraphicSupplier(Icons.VERSE_ADD)),
 	
 	// other
 	DOWNLOAD_ZEFANIA_BIBLES("action.download.zefania"),
@@ -155,35 +138,6 @@ public enum Action {
 			return Icons.getIcon(icon);
 		};
 	}
-	
-//	private static final Supplier<Node> getGraphicSupplierForNew(Glyph glyph) {
-//		return () ->
-//		{
-//			StackPane stack = new StackPane();
-////			BorderStroke stroke1 = new BorderStroke(Color.BLACK, BorderStrokeStyle.SOLID, null, null);
-////			BorderStroke stroke2 = new BorderStroke(Color.WHITE, BorderStrokeStyle.SOLID, null, null);
-//			Glyph plus = Glyphs.NEW.duplicate().size(6).color(Color.BLACK);
-////			plus.setBorder(new Border(stroke2));
-////			plus.setBackground(new Background(new BackgroundFill(Color.WHITE, null, null)));
-//			plus.getStyleClass().add("p-new-adder");
-//			plus.setPadding(new Insets(1, 2, 1, 2));
-////			plus.setShape(new Circle(Math.max(plus.getWidth() * 0.5, 24)));
-//			plus.setTranslateX(3);
-//			
-////			Region backing = new Region(); 
-////			backing.setShape(new Circle(4));
-////			backing.setMaxSize(9, 9);
-////			
-////			backing.setBorder(new Border(stroke2));
-////			backing.setBackground(new Background(new BackgroundFill(Color.LIME, null, null)));
-////			backing.setTranslateX(7);
-////			backing.setTranslateY(-5);
-//			
-//			stack.getChildren().addAll(glyph.duplicate(), plus);
-//			StackPane.setAlignment(plus, Pos.TOP_RIGHT);
-//			return stack;
-//		};
-//	}
 	
 	private final String messageKey;
 	private final KeyCombination accelerator;

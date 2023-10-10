@@ -1,11 +1,9 @@
 package org.praisenter.ui.bible;
 
-import org.controlsfx.glyphfont.Glyph;
 import org.praisenter.data.bible.Bible;
 import org.praisenter.data.bible.Book;
 import org.praisenter.data.bible.Chapter;
 import org.praisenter.data.bible.Verse;
-import org.praisenter.ui.Glyphs;
 import org.praisenter.ui.Icons;
 import org.praisenter.ui.translations.Translations;
 
@@ -22,12 +20,8 @@ final class BibleTreeCell extends TreeCell<Object> {
 	public BibleTreeCell() {
 		this.book = Icons.getIcon(Icons.BOOK);
 		this.chapter = Icons.getIcon(Icons.BOOKMARK);
-//		this.book = Glyphs.NEW_BOOK.duplicate();
-//		this.chapter = Glyphs.NEW_CHAPTER.duplicate();
 		this.graphic = new Label();
 		
-//		this.book.getStyleClass().addAll("p-book-icon");
-//		this.chapter.getStyleClass().addAll("p-chapter-icon");
 		this.graphic.getStyleClass().addAll("p-verse-number");
 	}
 	

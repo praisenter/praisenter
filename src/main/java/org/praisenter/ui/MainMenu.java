@@ -89,9 +89,9 @@ final class MainMenu extends MenuBar {
 								Translations.get("menu.song"),
 								null,
 								this.createMenuItem(Action.NEW_LYRICS),
-								this.createMenuItem(Action.NEW_SECTION),
 								this.createMenuItem(Action.NEW_AUTHOR),
-								this.createMenuItem(Action.NEW_SONGBOOK)),
+								this.createMenuItem(Action.NEW_SONGBOOK),
+								this.createMenuItem(Action.NEW_SECTION)),
 						new Menu(
 								Translations.get("menu.slide"),
 								null,

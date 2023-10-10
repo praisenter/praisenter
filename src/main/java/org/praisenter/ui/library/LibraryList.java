@@ -30,8 +30,10 @@ import org.praisenter.ui.Action;
 import org.praisenter.ui.ActionPane;
 import org.praisenter.ui.DataFormats;
 import org.praisenter.ui.GlobalContext;
+import org.praisenter.ui.Icons;
 import org.praisenter.ui.Option;
 import org.praisenter.ui.controls.Dialogs;
+import org.praisenter.ui.controls.FastScrollPane;
 import org.praisenter.ui.controls.FlowListCell;
 import org.praisenter.ui.controls.FlowListSelectionModel;
 import org.praisenter.ui.controls.FlowListView;
@@ -55,6 +57,7 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import javafx.geometry.Orientation;
+import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ChoiceBox;
@@ -74,7 +77,6 @@ import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.Region;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Modality;
@@ -88,10 +90,10 @@ public final class LibraryList extends BorderPane implements ActionPane {
 	private static final Logger LOGGER = LogManager.getLogger();
 	private static final Collator COLLATOR = Collator.getInstance();
 	
-//	private final Glyph SORT_ASC = Glyphs.SORT_ASC.duplicate();
-//	private final Glyph SORT_DESC = Glyphs.SORT_DESC.duplicate();
-	
 	private final GlobalContext context;
+	private final Node sortAsc = Icons.getIcon(Icons.SORT_ASCENDING);
+	private final Node sortDesc = Icons.getIcon(Icons.SORT_DESCENDING);
+	private final Node search = Icons.getIcon(Icons.SEARCH);
 	
 	// sorting and filtering
 	
@@ -253,12 +255,6 @@ public final class LibraryList extends BorderPane implements ActionPane {
 		
 		Bindings.bindContent(this.view.getItems(), sorted);
 		
-//		sorted.addListener((Change<? extends Persistable> c) -> {
-//			while (c.next()) {
-//				
-//			}
-//		});
-		
 		this.view.addEventHandler(FlowListViewSelectionEvent.DOUBLE_CLICK, (e) -> {
 			FlowListCell<?> view = (FlowListCell<?>)e.getTarget();
         	Object item = view.getData();
@@ -294,23 +290,24 @@ public final class LibraryList extends BorderPane implements ActionPane {
         cbTypes.visibleProperty().bind(this.typeFilterVisible);
         cbTypes.managedProperty().bind(cbTypes.visibleProperty());
 		
-        // TODO clean up style classes
         Label lblSort = new Label(Translations.get("list.sort.field"));
         ChoiceBox<Option<LibraryListSortField>> cbSort = new ChoiceBox<Option<LibraryListSortField>>(sortFields);
         cbSort.valueProperty().bindBidirectional(this.sortField);
-        Region regSortDirection = new Region();
-        regSortDirection.getStyleClass().add("p-library-list-sort-direction-icon");
-        ToggleButton tgl = new ToggleButton(null, regSortDirection);
-        tgl.getStyleClass().add("p-library-list-sort-direction");
+        ToggleButton tgl = new ToggleButton(null, this.sortAsc);
         tgl.selectedProperty().bindBidirectional(this.sortAscending);
+        tgl.selectedProperty().addListener((obs, ov, nv) -> {
+        	if (nv) {
+        		tgl.setGraphic(this.sortAsc);
+        	} else {
+        		tgl.setGraphic(this.sortDesc);
+        	}
+        });
         
         CustomTextField txtSearch = new CustomTextField();
         txtSearch.setPromptText(Translations.get("list.filter.search"));
         txtSearch.textProperty().bindBidirectional(this.textFilter);
-        
-        Region searchIcon = new Region();
-        searchIcon.getStyleClass().add("p-library-list-search-icon");
-        txtSearch.setLeft(searchIcon);
+        txtSearch.setLeft(this.search);
+        txtSearch.setPrefWidth(300);
         
         ToolBar top = new ToolBar(
         		txtSearch,
@@ -318,17 +315,27 @@ public final class LibraryList extends BorderPane implements ActionPane {
         		lblFilter, cbTypes,
         		new Separator(Orientation.VERTICAL),
         		lblSort, cbSort, tgl);
+        top.getStyleClass().add(LIBRARY_LIST_FILTER_BAR_CSS);
         
         LibraryItemDetails details = new LibraryItemDetails(context);
         details.setMinWidth(0);
         details.itemProperty().bind(this.view.getSelectionModel().selectedItemProperty());
         
-        ScrollPane detailsScroller = new ScrollPane(details);
-//		detailsScroller.setFitToWidth(true);
+        ScrollPane detailsScroller = new FastScrollPane(details, 2.0);
+		detailsScroller.setFitToWidth(true);
 		detailsScroller.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
 		detailsScroller.setHbarPolicy(ScrollBarPolicy.NEVER);
 		detailsScroller.getStyleClass().add(LIBRARY_LIST_RIGHT_CSS);
 		details.prefWidthProperty().bind(detailsScroller.widthProperty());
+		
+		// JAVABUG (L) [workaround] FlowPane+ScrollPane doesn't work properly with the setFitToWidth method
+//		detailsScroller.viewportBoundsProperty().addListener((obs, ov, nv) -> {
+////			details.setPrefWrapLength(nv.getWidth());
+//			details.setPrefWidth(nv.getWidth());
+//			details.setMaxWidth(nv.getWidth());
+//			details.setMinWidth(nv.getWidth());
+//			details.requestLayout();
+//		});
 		
 		ContextMenu menu = new ContextMenu();
 		menu.getItems().addAll(
@@ -348,23 +355,21 @@ public final class LibraryList extends BorderPane implements ActionPane {
 			);
 		this.view.setContextMenu(menu);
 		
-		BorderPane left = new BorderPane();
-		left.setTop(top);
-		left.setCenter(this.view);
-		SplitPane split = new SplitPane(left, detailsScroller);
+		SplitPane split = new SplitPane(this.view, detailsScroller);
 		split.setDividerPosition(0, 0.70);
 		SplitPane.setResizableWithParent(detailsScroller, false);
 		
 		this.detailsPaneVisible.addListener((obs, ov, nv) -> {
 			if (nv) {
-				split.getItems().add(0, left);
+				split.getItems().add(0, this.view);
 				this.setCenter(split);
 			} else {
-				split.getItems().remove(left);
-				this.setCenter(left);
+				split.getItems().remove(this.view);
+				this.setCenter(this.view);
 			}
 		});
 
+		this.setTop(top);
 		this.setCenter(split);
 	}
 

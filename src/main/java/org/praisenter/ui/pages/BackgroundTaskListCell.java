@@ -4,29 +4,20 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 
 import org.praisenter.async.ReadOnlyBackgroundTask;
+import org.praisenter.ui.Icons;
 
 import javafx.beans.binding.Bindings;
 import javafx.scene.Node;
 import javafx.scene.control.ListCell;
-import javafx.scene.layout.Region;
 
 final class BackgroundTaskListCell extends ListCell<ReadOnlyBackgroundTask> {
 	private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT, FormatStyle.SHORT);
+
+	private final Node pendingIcon = Icons.getIcon(Icons.PENDING);
+	private final Node errorIcon = Icons.getIcon(Icons.ERROR);
+	private final Node successIcon = Icons.getIcon(Icons.SUCCESS);
 	
-	private static final String STATUS_ICON_CLASS = "p-tasklist-status-icon";
-	private static final String STATUS_ICON_ERROR_CLASS = "p-tasklist-status-icon-error";
-	private static final String STATUS_ICON_PENDING_CLASS = "p-tasklist-status-icon-pending";
-	private static final String STATUS_ICON_SUCCESS_CLASS = "p-tasklist-status-icon-success";
-	
-	private final Node pendingIcon = new Region();
-	private final Node errorIcon = new Region();
-	private final Node successIcon = new Region();
-	
-	public BackgroundTaskListCell() {
-		pendingIcon.getStyleClass().addAll(STATUS_ICON_CLASS, STATUS_ICON_PENDING_CLASS);
-		errorIcon.getStyleClass().addAll(STATUS_ICON_CLASS, STATUS_ICON_ERROR_CLASS);
-		successIcon.getStyleClass().addAll(STATUS_ICON_CLASS, STATUS_ICON_SUCCESS_CLASS);
-	}
+	public BackgroundTaskListCell() {}
 	
     @Override
     public void updateItem(ReadOnlyBackgroundTask item, boolean empty) {

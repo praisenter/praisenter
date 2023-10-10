@@ -32,7 +32,6 @@ import org.praisenter.data.slide.text.TextPlaceholderComponent;
 import org.praisenter.data.slide.text.VerticalTextAlignment;
 import org.praisenter.data.workspace.Resolution;
 import org.praisenter.ui.GlobalContext;
-import org.praisenter.ui.Glyphs;
 import org.praisenter.ui.Icons;
 import org.praisenter.ui.MappedList;
 import org.praisenter.ui.Option;
@@ -611,10 +610,10 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 		cbComponentFontScaleType.setMaxWidth(Double.MAX_VALUE);
 		BindingHelper.bindBidirectional(cbComponentFontScaleType.valueProperty(), this.componentFontScaleType);
 		
-		ToggleButton tglHAlignLeft = new ToggleButton("", Icons.getIcon(Icons.HORIZONTAL_ALIGN_LEFT));// Glyphs.HALIGN_LEFT.duplicate());
-		ToggleButton tglHAlignRight = new ToggleButton("", Icons.getIcon(Icons.HORIZONTAL_ALIGN_RIGHT));// Glyphs.HALIGN_RIGHT.duplicate());
-		ToggleButton tglHAlignCenter = new ToggleButton("", Icons.getIcon(Icons.HORIZONTAL_ALIGN_CENTER));// Glyphs.HALIGN_CENTER.duplicate());
-		ToggleButton tglHAlignJustify = new ToggleButton("", Icons.getIcon(Icons.HORIZONTAL_ALIGN_JUSTIFY));// Glyphs.HALIGN_JUSTIFY.duplicate());
+		ToggleButton tglHAlignLeft = new ToggleButton("", Icons.getIcon(Icons.HORIZONTAL_ALIGN_LEFT));
+		ToggleButton tglHAlignRight = new ToggleButton("", Icons.getIcon(Icons.HORIZONTAL_ALIGN_RIGHT));
+		ToggleButton tglHAlignCenter = new ToggleButton("", Icons.getIcon(Icons.HORIZONTAL_ALIGN_CENTER));
+		ToggleButton tglHAlignJustify = new ToggleButton("", Icons.getIcon(Icons.HORIZONTAL_ALIGN_JUSTIFY));
 		BindingHelper.bindBidirectional(this.componentHorizontalTextAlignment, tglHAlignLeft.selectedProperty(), HorizontalTextAlignment.LEFT);
 		BindingHelper.bindBidirectional(this.componentHorizontalTextAlignment, tglHAlignRight.selectedProperty(), HorizontalTextAlignment.RIGHT);
 		BindingHelper.bindBidirectional(this.componentHorizontalTextAlignment, tglHAlignCenter.selectedProperty(), HorizontalTextAlignment.CENTER);
@@ -623,9 +622,9 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 //		SegmentedButton segComponentHAlignment = new SegmentedButton(tglHAlignLeft, tglHAlignCenter, tglHAlignRight, tglHAlignJustify);
 		HBox segComponentHAlignment = new HBox(1, tglHAlignLeft, tglHAlignCenter, tglHAlignRight, tglHAlignJustify);
 
-		ToggleButton tglVAlignTop = new ToggleButton("", Icons.getIcon(Icons.VERTICAL_ALIGN_TOP));// Glyphs.VALIGN_TOP.duplicate());
-		ToggleButton tglVAlignCenter = new ToggleButton("", Icons.getIcon(Icons.VERTICAL_ALIGN_CENTER));// Glyphs.VALIGN_CENTER.duplicate());
-		ToggleButton tglVAlignBottom = new ToggleButton("", Icons.getIcon(Icons.VERTICAL_ALIGN_BOTTOM));// Glyphs.VALIGN_BOTTOM.duplicate());
+		ToggleButton tglVAlignTop = new ToggleButton("", Icons.getIcon(Icons.VERTICAL_ALIGN_TOP));
+		ToggleButton tglVAlignCenter = new ToggleButton("", Icons.getIcon(Icons.VERTICAL_ALIGN_CENTER));
+		ToggleButton tglVAlignBottom = new ToggleButton("", Icons.getIcon(Icons.VERTICAL_ALIGN_BOTTOM));
 		BindingHelper.bindBidirectional(this.componentVerticalTextAlignment, tglVAlignTop.selectedProperty(), VerticalTextAlignment.TOP);
 		BindingHelper.bindBidirectional(this.componentVerticalTextAlignment, tglVAlignCenter.selectedProperty(), VerticalTextAlignment.CENTER);
 		BindingHelper.bindBidirectional(this.componentVerticalTextAlignment, tglVAlignBottom.selectedProperty(), VerticalTextAlignment.BOTTOM);

@@ -32,6 +32,7 @@ import org.praisenter.ui.slide.SlideView;
 import org.praisenter.ui.translations.Translations;
 import org.praisenter.utility.Formatter;
 
+import atlantafx.base.theme.Styles;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
@@ -47,6 +48,7 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
 import javafx.collections.SetChangeListener;
+import javafx.geometry.HPos;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
@@ -54,7 +56,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.VBox;
 import javafx.scene.media.MediaPlayer;
-import javafx.scene.text.Font;
 
 final class LibraryItemDetails extends VBox {
 	private static final String LIBRARY_ITEM_DETAILS_CSS = "p-library-item-details";
@@ -244,7 +245,7 @@ final class LibraryItemDetails extends VBox {
 		Label lblSongKeywordsValue = new Label();
 		
 		lblNameValue.textProperty().bind(this.name);
-		lblNameValue.setFont(Font.font(lblNameValue.getFont().getFamily(), lblNameValue.getFont().getSize() + 5));
+		lblNameValue.getStyleClass().add(Styles.TITLE_4);
 		
 		lblModifiedValue.textProperty().bind(Bindings.createStringBinding(() -> {
 			Instant dt = this.modified.get();
@@ -315,7 +316,7 @@ final class LibraryItemDetails extends VBox {
 		}, this.item));
 		image.setPreserveRatio(true);
 		image.fitWidthProperty().bind(Bindings.createDoubleBinding(() -> {
-			double tw = this.widthProperty().get() - 25;
+			double tw = this.widthProperty().get();
 			Image img = image.imageProperty().get();
 			if (img != null) {
 				double iw = img.getWidth();
@@ -329,7 +330,7 @@ final class LibraryItemDetails extends VBox {
 		// media player for audio/video
 		MediaPreview player = new MediaPreview();
 		player.setMinWidth(0);
-		player.prefWidthProperty().bind(this.widthProperty().subtract(25));
+		player.prefWidthProperty().bind(this.widthProperty());
 		player.managedProperty().bind(player.visibleProperty());
 		player.setVisible(false);
 		player.mediaPlayerProperty().bind(Bindings.createObjectBinding(() -> {
@@ -393,6 +394,7 @@ final class LibraryItemDetails extends VBox {
 		cc1.setPercentWidth(50);
 		ColumnConstraints cc2 = new ColumnConstraints();
 		cc2.setPercentWidth(50);
+		cc2.setHalignment(HPos.RIGHT);
 		labels.getColumnConstraints().addAll(cc1, cc2);
 		labels.setMaxWidth(Double.MAX_VALUE);
 		

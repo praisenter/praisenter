@@ -1,7 +1,5 @@
 package org.praisenter.ui.controls;
 
-import org.praisenter.ui.Glyphs;
-
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;

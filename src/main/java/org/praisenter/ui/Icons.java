@@ -1,6 +1,5 @@
 package org.praisenter.ui;
 
-import javafx.scene.Node;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 
@@ -9,10 +8,18 @@ public final class Icons {
 	public static final String ERROR = "p-icon-error";
 	public static final String SUCCESS = "p-icon-success";
 	public static final String PENDING = "p-icon-pending";
+	public static final String BIBLE = "p-icon-bible";
+	public static final String BIBLE_ADD = "p-icon-bible-add";
 	public static final String BOOK = "p-icon-book";
+	public static final String BOOK_ADD = "p-icon-book-add";
 	public static final String BOOKMARK = "p-icon-bookmark";
-	public static final String MUSIC = "p-icon-music";
+	public static final String BOOKMARK_ADD = "p-icon-bookmark-add";
+	public static final String SONG = "p-icon-song";
+	public static final String SONG_ADD = "p-icon-song-add";
+	public static final String LYRICS = "p-icon-lyrics";
+	public static final String LYRICS_ADD = "p-icon-lyrics-add";
 	public static final String USER = "p-icon-user";
+	public static final String USER_ADD = "p-icon-user-add";
 	public static final String TAG = "p-icon-tag";
 	public static final String TEXT_SIZE = "p-icon-textsize";
 	public static final String TEXT_FORMAT = "p-icon-textformat";
@@ -48,18 +55,26 @@ public final class Icons {
 	public static final String VOLUME = "p-icon-volume";
 	public static final String SEARCH = "p-icon-search";
 	public static final String DESKTOP = "p-icon-desktop";
+	public static final String DESKTOP_ADD = "p-icon-desktop-add";
 	public static final String LAYERS = "p-icon-layers";
 	public static final String PENCIL = "p-icon-pencil";
 	public static final String GEAR = "p-icon-gear";
 	public static final String TIMER = "p-icon-timer";
+	public static final String TIMER_ADD = "p-icon-timer-add";
 	public static final String CALENDAR = "p-icon-calendar";
+	public static final String CALENDAR_ADD = "p-icon-calendar-add";
 	public static final String MEDIA = "p-icon-media";
+	public static final String MEDIA_ADD = "p-icon-media-add";
 	public static final String TEXT = "p-icon-text";
+	public static final String TEXT_ADD = "p-icon-text-add";
 	public static final String PLACEHOLDER = "p-icon-placeholder";
+	public static final String PLACEHOLDER_ADD = "p-icon-placeholder-add";
 	public static final String HISTORY = "p-icon-history";
 	public static final String VERSE = "p-icon-verse";
+	public static final String VERSE_ADD = "p-icon-verse-add";
 	public static final String UPDATE = "p-icon-update";
 	public static final String INFO = "p-icon-info";
+	public static final String NEW = "p-icon-new";
 	
 
 	public static final Region getIcon(String icon) {

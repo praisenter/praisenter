@@ -76,9 +76,20 @@ public final class TaskListPage extends BorderPane {
 			txtTaskStack.setText(null);
 			txtTaskStatus.pseudoClassStateChanged(Styles.STATE_DANGER, false);
 			txtTaskStatus.pseudoClassStateChanged(Styles.STATE_SUCCESS, false);
+			txtTaskStatus.pseudoClassStateChanged(Styles.STATE_WARNING, false);
 			
 			if (nv != null) {
-				if (nv.isComplete() && !nv.isSuccess()) {
+				if (!nv.isComplete()) {
+					txtTaskStatus.setText(Translations.get("task.status.pending"));
+					txtTaskName.setText(nv.getName());
+					txtTaskDetail.setText(nv.getMessage());
+					txtTaskStatus.pseudoClassStateChanged(Styles.STATE_WARNING, true);
+				} else if (nv.isSuccess()) { 
+					txtTaskStatus.setText(Translations.get("task.status.success"));
+					txtTaskName.setText(nv.getName());
+					txtTaskDetail.setText(nv.getMessage());
+					txtTaskStatus.pseudoClassStateChanged(Styles.STATE_SUCCESS, true);
+				} else {
 					Throwable t = nv.getException();
 					if (t != null) {
 						StringWriter sw = new StringWriter();
@@ -92,11 +103,6 @@ public final class TaskListPage extends BorderPane {
 					txtTaskStatus.setText(Translations.get("task.status.failed"));
 					txtTaskName.setText(nv.getName());
 					txtTaskStatus.pseudoClassStateChanged(Styles.STATE_DANGER, true);
-				} else {
-					txtTaskStatus.setText(Translations.get("task.status.success"));
-					txtTaskName.setText(nv.getName());
-					txtTaskDetail.setText(nv.getMessage());
-					txtTaskStatus.pseudoClassStateChanged(Styles.STATE_SUCCESS, true);
 				}
 			}
 		});

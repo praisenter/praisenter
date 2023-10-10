@@ -13,6 +13,22 @@
 /********************************************************************************/
 /********************************************************************************/
 /********************************************************************************/
+/** tree cell drag n drop styles */
+.tree-cell:drag-over-parent {
+	-fx-background-color: -color-neutral-muted !important;
+}
+.tree-cell:drag-over-sibling-top {
+	-fx-border-color: -color-border-default;
+    -fx-border-style: solid;
+    -fx-border-width: 1 0 0 0;
+}
+.tree-cell:drag-over-sibling-bottom {
+	-fx-border-color: -color-border-default;
+    -fx-border-style: solid;
+    -fx-border-width: 0 0 1 0;
+}
+
+/** tree/list cell hover/selected styles */
 .tree-view .tree-cell:hover,
 .list-view .list-cell:hover {
 	-fx-background-color: -color-neutral-subtle;
@@ -27,7 +43,7 @@
 }
 
 .menu-item > .graphic-container {
-    -fx-padding: 0em 0.4em 0em 0em;
+    -fx-padding: 0em 0.6em 0em 0em;
 }
 
 /********************************************************************************/
@@ -39,10 +55,6 @@
 /********************************************************************************/
 /********************************************************************************/
 /********************************************************************************/
-
-.glyph-font {
-	-fx-text-fill: -color-fg-default;
-}
 
 /* SUPPORTED APPLICATION FONT SIZES */
 .p-fs8  { -fx-font-size: 8px; }
@@ -96,17 +108,6 @@
 	-fx-fill: -color-accent-emphasis;
 }
 
-.button:disabled .p-save-all-adder {
-	-fx-opacity: 0.4;
-}
-.p-save-all-adder {
-	-fx-fill: -color-fg-default;
-}
-.p-new-adder {
-	-fx-background-color: new-adder-background-color;
-	-fx-text-fill: -color-fg-emphasis !important;
-}
-
 /* the verse number in the bible tree editor UI */
 .tree-cell .p-verse-number,
 .tree-cell .p-section-name {
@@ -117,36 +118,251 @@
 	-fx-text-fill: -color-accent-fg;
 }
 
-.tree-cell .p-book-icon {
-	-fx-text-fill: -color-accent-fg;
+.tree-cell .p-icon-book {
+	-fx-background-color: -color-accent-emphasis;
 }
-.tree-cell .p-chapter-icon {
-	-fx-text-fill: -color-accent-emphasis;
+.tree-cell .p-icon-bookmark {
+	-fx-background-color: -color-accent-emphasis;
 }
-.tree-cell .p-songbook-icon {
-	-fx-text-fill: -color-accent-emphasis;
+.tree-cell .p-icon-lyrics {
+	-fx-background-color: -color-accent-emphasis;
 }
-.tree-cell .p-lyrics-icon {
-	-fx-text-fill: -color-accent-fg;
-}
-.tree-cell .p-author-icon {
-	-fx-text-fill: -color-accent-emphasis;
+.tree-cell .p-icon-user {
+	-fx-background-color: -color-accent-emphasis;
 }
 
-/** tree cell drag n drop styles */
-.tree-cell:drag-over-parent {
-	-fx-background-color: -color-neutral-muted !important;
+/********************************************************************************/
+/********************************************************************************/
+/********************************************************************************/
+/********************************************************************************/
+/* MAIN LAYOUT */
+/********************************************************************************/
+/********************************************************************************/
+/********************************************************************************/
+/********************************************************************************/
+
+/* MAINMENU */
+.p-main-menu {}
+
+/* FOOTER */
+.p-footer {
+	-fx-background-color: -color-accent-emphasis;
+	-fx-padding: 0.2em 1em;
 }
-.tree-cell:drag-over-sibling-top {
-	-fx-border-color: -color-border-default;
-    -fx-border-style: solid;
-    -fx-border-width: 1 0 0 0;
+.p-footer .separator:vertical .line {
+	-fx-border-width: 0;
+	-fx-background-insets: 0;
 }
-.tree-cell:drag-over-sibling-bottom {
-	-fx-border-color: -color-border-default;
-    -fx-border-style: solid;
-    -fx-border-width: 0 0 1 0;
+.p-footer .label {
+	-fx-text-fill: -color-fg-emphasis;
 }
+.p-footer .track {
+	-fx-background-color: -color-bg-default;
+}
+.p-footer .bar {
+	-fx-background-color: -color-neutral-muted;
+}
+
+/* ACTION BAR */
+.p-action-bar {}
+
+
+/********************************************************************************/
+/********************************************************************************/
+/********************************************************************************/
+/********************************************************************************/
+/* PAGES */
+/********************************************************************************/
+/********************************************************************************/
+/********************************************************************************/
+/********************************************************************************/
+
+/* SETTINGS PAGE */
+.p-settings-page {}
+.p-settings-page .p-settings-page-scroll {}
+.p-settings-page .p-settings-page-scroll .p-settings-page-flow {}
+.p-settings-page .p-settings-page-scroll .p-settings-page-flow .p-settings-page-group {
+	-fx-padding: 2em;
+	-fx-max-width: 550;
+	-fx-pref-width: 550;
+	-fx-min-width: 550;
+}
+
+/* TASKLIST PAGE */
+.p-tasklist-page {
+	-fx-padding: 2em 2em 0 2em;
+}
+.p-tasklist-page .p-tasklist-title {
+	-fx-padding: 0 0 0.55em 0;
+}
+.p-tasklist-page .p-tasklist-split {
+	-fx-padding: 0 0 0 0;
+	-fx-border-width: 1 0 0 0;
+	-fx-border-color: -color-border-muted;
+}
+.p-tasklist-page .p-tasklist-split .p-tasklist-page-list {
+	-fx-padding: 0 0 0 0;
+}
+.p-tasklist-page .p-tasklist-split .p-tasklist-page-list .p-icon-container {
+	-fx-max-width: 2em;
+	-fx-pref-width: 2em;
+	-fx-min-width: 2em;
+}
+.p-tasklist-page .p-tasklist-split .p-tasklist-page-list .p-icon-error {
+	-fx-shape: -icon-error;
+	-fx-background-color: -color-danger-fg;
+}
+.p-tasklist-page .p-tasklist-split .p-tasklist-page-list .p-icon-pending {
+	-fx-shape: -icon-pending;
+	-fx-background-color: -color-warning-fg;
+}
+.p-tasklist-page .p-tasklist-split .p-tasklist-page-list .p-icon-success {
+	-fx-shape: -icon-success;
+	-fx-background-color: -color-success-fg;
+}
+.p-tasklist-page .p-tasklist-split .p-tasklist-page-fields {
+	-fx-padding: 2em 0 2em 2em;
+	-fx-spacing: 0.5em;
+}
+
+/* LIBRARY PAGE */
+.p-library-page {}
+
+
+/********************************************************************************/
+/********************************************************************************/
+/********************************************************************************/
+/********************************************************************************/
+/* CONTROLS */
+/********************************************************************************/
+/********************************************************************************/
+/********************************************************************************/
+/********************************************************************************/
+
+/** FLOW LIST */
+.p-flow-list-view {}
+.p-flow-list-view-tiles {
+	-fx-padding: 0.5em;
+	-fx-vgap: 0.5em;
+	-fx-hgap: 0.5em;
+}
+.p-flow-list-view-cell {
+	-fx-padding: 0.25em;
+	-fx-alignment: top-center;
+}
+.p-flow-list-view-cell:hover { 
+	-fx-background-color: -color-neutral-subtle;
+}
+.p-flow-list-view-cell:selected {
+	-fx-background-color: -color-neutral-muted;
+	-fx-text-fill: -color-fg-default;
+}
+.p-flow-list-view-drag-selection-area {
+	-fx-fill: -color-neutral-subtle;
+	-fx-stroke: -color-border-default;
+	-fx-smooth: false;
+	-fx-stroke-width: 1;
+}
+
+/** LIBRARY LIST */
+.p-library-list {}
+.p-library-list .p-flow-list-view .viewport {}
+.p-library-list .p-flow-list-view-tiles {}
+.p-library-list-right {
+	-fx-padding: 1.5em;
+}
+.p-library-list-filter-bar {
+	-fx-vgap: 0.5em;
+	-fx-hgap: 0.5em;
+	-fx-padding: 0.5em;
+}
+.p-library-list-filter-bar .custom-text-field .p-icon-container {
+	-fx-max-width: 2em;
+	-fx-pref-width: 1.5em;
+}
+.p-library-list-cell {
+	-fx-alignment: top-center;
+	-fx-pref-width: 110;
+}
+.p-library-list-cell-graphic {
+	-fx-alignment: bottom-center;
+	-fx-pref-height: 100;
+	-fx-max-height: 100;
+	-fx-min-height: 100;
+}
+.p-library-list-cell-bible > .p-library-list-cell-thumbnail {
+	-fx-image: url("/org/praisenter/images/bible-icon.png");
+}
+.p-library-list-cell-song > .p-library-list-cell-thumbnail {
+	-fx-image: url("/org/praisenter/images/song-lyrics-icon.png");
+}
+.p-library-list-cell-slide,
+.p-library-list-cell-image,
+.p-library-list-cell-bible,
+.p-library-list-cell-song,
+.p-library-list-cell-audio {
+	-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.25), 2, 0, 2, 2);
+}
+.p-library-list-cell-slide {
+	-fx-background-image: url("/org/praisenter/images/transparent.png");
+	-fx-background-repeat: repeat;
+}
+.p-library-list-cell-label {
+	-fx-text-alignment: center;
+	-fx-padding: 0.5em 0 0 0;
+}
+
+/* LIBRARY LIST DETAIL */
+.p-library-item-details {
+	-fx-spacing: 0.5em;
+}
+.p-library-item-details-value-list {
+	-fx-hgap: 0.5em;
+	-fx-vgap: 0.5em;
+}
+
+/** MEDIA PREVIEW */
+.p-media-preview {}
+.p-media-preview-controls {
+	-fx-spacing: 1em;
+	-fx-alignment: CENTER;
+	-fx-padding: 0.2em 0 0 0;
+}
+
+/** TAG LIST VIEW */
+.p-tag-list-view {}
+.p-tag-list-view-tags {
+	-fx-padding: 0.3em 0 0 0;
+	-fx-vgap: 0.2em;
+	-fx-hgap: 0.2em;
+}
+.p-tag-list-view .p-icon-container {
+	-fx-max-width: 2em;
+	-fx-pref-width: 2em;
+}
+.p-tag-list-view-tag {}
+.p-tag-list-view-tag-x {
+	-fx-stroke: -color-fg-default;
+}
+.p-tag-list-view-tag:hover .p-tag-list-view-tag-x {
+	-fx-stroke: -color-fg-default;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /* WORKSPACE SELECTION PANE */
 .p-workspace-selection-pane {
@@ -227,58 +443,6 @@
 	/* -fx-padding: 0em; */
 }
 
-/* SETTINGS PAGE */
-.p-settings-page {}
-.p-settings-page .p-settings-page-scroll {}
-.p-settings-page .p-settings-page-scroll .p-settings-page-flow {}
-.p-settings-page .p-settings-page-scroll .p-settings-page-flow .p-settings-page-group {
-	-fx-padding: 2em;
-	-fx-max-width: 550;
-	-fx-pref-width: 550;
-	-fx-min-width: 550;
-}
-
-/* TASKLIST PAGE */
-.p-tasklist-page {
-	-fx-padding: 2em 2em 0 2em;
-}
-.p-tasklist-page .p-tasklist-title {
-	-fx-padding: 0 0 0.55em 0;
-}
-.p-tasklist-page .p-tasklist-split {
-	-fx-padding: 0 0 0 0;
-	-fx-border-width: 1 0 0 0;
-	-fx-border-color: -color-border-muted;
-}
-.p-tasklist-page .p-tasklist-split .p-tasklist-page-list {
-	-fx-padding: 0 0 0 0;
-}
-.p-tasklist-page .p-tasklist-split .p-tasklist-page-list .p-tasklist-status-icon {
-	-size: 1em;
-    -fx-max-height: -size;
-    -fx-max-width: -size;
-    -fx-min-height: -size;
-    -fx-min-width: -size;
-    -fx-pref-height: -size;
-    -fx-pref-width: -size;
-}
-.p-tasklist-page .p-tasklist-split .p-tasklist-page-list .p-tasklist-status-icon.p-tasklist-status-icon-error {
-	-fx-shape: -icon-error;
-	-fx-background-color: -color-danger-fg;
-}
-.p-tasklist-page .p-tasklist-split .p-tasklist-page-list .p-tasklist-status-icon.p-tasklist-status-icon-pending {
-	-fx-shape: -icon-pending;
-	-fx-background-color: -color-warning-fg;
-}
-.p-tasklist-page .p-tasklist-split .p-tasklist-page-list .p-tasklist-status-icon.p-tasklist-status-icon-success {
-	-fx-shape: -icon-success;
-	-fx-background-color: -color-success-fg;
-}
-.p-tasklist-page .p-tasklist-split .p-tasklist-page-fields {
-	-fx-padding: 2em 0 2em 2em;
-	-fx-spacing: 0.5em;
-}
-
 /* TAB NAVIGATION */
 .p-tab-navigation {}
 .p-tab-navigation > .tab-header-area {
@@ -354,31 +518,6 @@
 	-fx-shape: -icon-pencil;
 }
 
-/* MAINMENU */
-.p-main-menu {}
-
-/* FOOTER */
-.p-footer {
-	-fx-background-color: -color-accent-emphasis;
-	-fx-padding: 0.2em 1em;
-}
-.p-footer .separator:vertical .line {
-	-fx-border-width: 0;
-	-fx-background-insets: 0;
-}
-.p-footer .label {
-	-fx-text-fill: -color-fg-emphasis;
-}
-.p-footer .track {
-	-fx-background-color: -color-bg-default;
-}
-.p-footer .bar {
-	-fx-background-color: -color-neutral-muted;
-}
-
-/* ACTION BAR */
-.p-action-bar {}
-
 /* SLIDE LIST */
 .p-slide-list {
 	-fx-pref-width: 17em; /* ~200px */
@@ -447,6 +586,9 @@
 .p-bible-nav {
 	-fx-hgap: 0.5em;
 	-fx-vgap: 0.5em;
+}
+.p-bible-nav .p-icon-error {
+	-fx-background-color: -color-danger-fg;
 }
 
 /* SONG NAVIGATION (CONTROLLER) */
@@ -540,54 +682,7 @@
 	/* -fx-padding: 0.2em; */
 }
 
-.p-flow-list-view {}
-.p-flow-list-view-tiles {
-	-fx-padding: 0.5em;
-	-fx-vgap: 0.5em;
-	-fx-hgap: 0.5em;
-}
-.p-flow-list-view-cell {
-	-fx-padding: 0.25em;
-	-fx-alignment: top-center;
-}
-.p-flow-list-view-cell:hover { 
-	-fx-background-color: -color-neutral-subtle;
-}
-.p-flow-list-view-cell:selected {
-	-fx-background-color: -color-neutral-muted;
-	-fx-text-fill: -color-fg-default;
-}
-/* .p-flow-list-view-cell:hover .label,
-.p-flow-list-view-cell:selected .label {
-	-fx-text-fill: library-list-selected-font-color; 
-} */
-.p-flow-list-view-drag-selection-area {
-	-fx-fill: -color-neutral-subtle;
-	-fx-stroke: -color-border-default;
-	-fx-smooth: false;
-	-fx-stroke-width: 1;
-}
 
-.p-tag-list-view {}
-.p-tag-list-view-tags {
-	-fx-padding: 0.3em 0 0 0;
-	-fx-vgap: 0.2em;
-	-fx-hgap: 0.2em;
-}
-.p-tag-list-view-tag {}
-.p-tag-list-view-tag-x {
-	-fx-stroke: -color-fg-default;
-}
-.p-tag-list-view-tag:hover .p-tag-list-view-tag-x {
-	-fx-stroke: -color-fg-default;
-}
-
-.p-media-preview {}
-.p-media-preview-controls {
-	-fx-spacing: 0.2em;
-	-fx-alignment: CENTER;
-	-fx-padding: 0.2em 0 0 0;
-}
 
 .p-progress-overlay {
 	/* -fx-background-color: progress-overlay-background-color; */
@@ -597,14 +692,6 @@
 }
 .p-progress-overlay-indicator {}
 
-.p-library-item-details {
-	-fx-spacing: 0.5em;
-	-fx-padding: 0.5em;
-}
-.p-library-item-details-value-list {
-	-fx-hgap: 0.5em;
-	-fx-vgap: 0.5em;
-}
 
 
 
@@ -613,83 +700,6 @@
 	-fx-border-width: 0;
 }
 
-.p-library-list {
-	-fx-padding: 1em 0 0 0;
-}
-.p-library-list .p-flow-list-view .viewport {
-	/* -fx-background-color: sunken; */
-}
-.p-library-list .p-flow-list-view-tiles {
-	/* -fx-background-color: library-list-background-color; */
-}
-.p-library-list-right {
-	/* -fx-min-width: 200; */
-	-fx-padding: 2em;
-}
-.p-library-list-filter-bar {
-	-fx-vgap: 0.5em;
-	-fx-hgap: 0.5em;
-	-fx-padding: 0.5em;
-}
-.p-library-list-cell {
-	-fx-alignment: top-center;
-	-fx-pref-width: 110;
-}
-.p-library-list-cell-graphic {
-	-fx-alignment: bottom-center;
-	-fx-pref-height: 100;
-	-fx-max-height: 100;
-	-fx-min-height: 100;
-}
-.p-library-list-cell-bible > .p-library-list-cell-thumbnail {
-	-fx-image: url("/org/praisenter/images/bible-icon.png");
-}
-.p-library-list-cell-song > .p-library-list-cell-thumbnail {
-	-fx-image: url("/org/praisenter/images/song-lyrics-icon.png");
-}
-.p-library-list-cell-slide,
-.p-library-list-cell-image,
-.p-library-list-cell-bible,
-.p-library-list-cell-song,
-.p-library-list-cell-audio {
-	-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.25), 2, 0, 2, 2);
-}
-.p-library-list-cell-slide {
-	-fx-background-image: url("/org/praisenter/images/transparent.png");
-	-fx-background-repeat: repeat;
-}
-.p-library-list-cell-label {
-	-fx-text-alignment: center;
-	-fx-padding: 0.5em 0 0 0;
-}
-
-.p-library-list-sort-direction .p-library-list-sort-direction-icon {
-	-size: 1em;
-	-fx-background-color: -color-fg-default;
-    -fx-max-height: -size;
-    -fx-max-width: -size;
-    -fx-min-height: -size;
-    -fx-min-width: -size;
-    -fx-pref-height: -size;
-    -fx-pref-width: -size;
-	-fx-shape: -icon-sortdesc;
-}
-.p-library-list-sort-direction:selected .p-library-list-sort-direction-icon {
-	-fx-shape: -icon-sortasc;
-	
-}
-.p-library-list .p-library-list-search-icon {
-	-size: 1.25em;
-	/* -fx-padding: 0.25em; */
-	-fx-background-color: -color-fg-default;
-    -fx-max-height: -size;
-    -fx-max-width: -size;
-    -fx-min-height: -size;
-    -fx-min-width: -size;
-    -fx-pref-height: -size;
-    -fx-pref-width: -size;
-	-fx-shape: -icon-search;
-}
 
 .p-slide-template-list-cell {}
 .p-slide-template-list-cell-graphic {
