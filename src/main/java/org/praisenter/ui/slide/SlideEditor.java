@@ -192,10 +192,10 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 		ContextMenu menu = new ContextMenu();
 		menu.getItems().addAll(
 			this.createMenuItem(Action.NEW_SLIDE_TEXT_COMPONENT),
-			this.createMenuItem(Action.NEW_SLIDE_MEDIA_COMPONENT),
 			this.createMenuItem(Action.NEW_SLIDE_PLACEHOLDER_COMPONENT),
 			this.createMenuItem(Action.NEW_SLIDE_DATETIME_COMPONENT),
 			this.createMenuItem(Action.NEW_SLIDE_COUNTDOWN_COMPONENT),
+			this.createMenuItem(Action.NEW_SLIDE_MEDIA_COMPONENT),
 			new SeparatorMenuItem(),
 			this.createMenuItem(Action.COPY),
 			this.createMenuItem(Action.CUT),

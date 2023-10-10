@@ -2,35 +2,26 @@ package org.praisenter.ui;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.praisenter.Version;
 import org.praisenter.async.AsyncHelper;
-import org.praisenter.async.ReadOnlyBackgroundTask;
 import org.praisenter.data.Persistable;
 import org.praisenter.ui.controls.Dialogs;
 import org.praisenter.ui.display.DisplaysController;
 import org.praisenter.ui.document.DocumentsPane;
 import org.praisenter.ui.library.LibraryList;
 import org.praisenter.ui.library.LibraryListType;
+import org.praisenter.ui.pages.LibraryPage;
 import org.praisenter.ui.pages.SettingsPage;
 import org.praisenter.ui.pages.TaskListPage;
 import org.praisenter.ui.translations.Translations;
 
-import atlantafx.base.theme.Tweaks;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
-import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Side;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
-import javafx.scene.control.ProgressBar;
-import javafx.scene.control.Separator;
-import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.Tooltip;
@@ -38,11 +29,9 @@ import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
-import javafx.util.Callback;
 import javafx.util.Duration;
 
 final class PraisenterPane extends BorderPane {
@@ -59,7 +48,6 @@ final class PraisenterPane extends BorderPane {
 	private static final String TAB_NAVIGATION_ICON_TASKS_CLASS = "p-tab-navigation-tasks-icon";
 
 	private final GlobalContext context;
-	private final ObservableList<Persistable> items;
 	
 	public PraisenterPane(GlobalContext context) {
 		this.context = context;
@@ -69,13 +57,6 @@ final class PraisenterPane extends BorderPane {
 		MainMenu mainMenu = new MainMenu(context);
 		ActionBar actionBar = new ActionBar(context);
 		DocumentsPane documentsPane = new DocumentsPane(context);
-		
-		this.items = new FilteredList<>(context.getWorkspaceManager().getItemsUnmodifiable(), (i) -> {
-			return true;
-		});
-		
-		LibraryList itemListing = new LibraryList(context, Orientation.HORIZONTAL, LibraryListType.values());
-		Bindings.bindContent(itemListing.getItems(), this.items);
 		
 		DisplaysController displayControllers = new DisplaysController(context);
 		
@@ -95,7 +76,7 @@ final class PraisenterPane extends BorderPane {
 		presentTab.setTooltip(this.createTabTooltip(Translations.get("area.present")));
 		presentTab.setClosable(false);
 		
-		Tab libraryTab = new Tab(null, itemListing);
+		Tab libraryTab = new Tab(null, new LibraryPage(context));
 		libraryTab.setGraphic(this.createTabGraphic(TAB_NAVIGATION_ICON_LIBRARY_CLASS));
 		libraryTab.setTooltip(this.createTabTooltip(Translations.get("area.manage")));
 		libraryTab.setClosable(false);

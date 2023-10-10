@@ -62,7 +62,7 @@ import javafx.util.Callback;
  * @version 3.0.0
  * @param <T> the item type
  */
-public class FlowListView<T> extends ScrollPane {
+public class FlowListView<T> extends FastScrollPane {
 	private static final String FLOW_LIST_VIEW_CSS = "p-flow-list-view";
 	private static final String FLOW_LIST_VIEW_DRAG_SELECTION_AREA_CSS = "p-flow-list-view-drag-selection-area";
 	private static final String FLOW_LIST_VIEW_TILES_CSS = "p-flow-list-view-tiles";
@@ -119,6 +119,8 @@ public class FlowListView<T> extends ScrollPane {
 	 * @param cellFactory the cell factory
 	 */
 	public FlowListView(Orientation orientation, Callback<T, ? extends FlowListCell<T>> cellFactory) {
+		super(2.0);
+		
 		this.getStyleClass().add(FLOW_LIST_VIEW_CSS);
 		
 		this.cellFactory = cellFactory;
@@ -145,6 +147,7 @@ public class FlowListView<T> extends ScrollPane {
         
         StackPane stack = new StackPane(this.layout, this.dragRect);
         this.setContent(stack);
+        this.setupFasterScrolling();
         
         this.layout.getStyleClass().add(FLOW_LIST_VIEW_TILES_CSS);
         this.layout.setOrientation(orientation);

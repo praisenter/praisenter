@@ -1,12 +1,10 @@
 package org.praisenter.ui.song;
 
-import org.controlsfx.glyphfont.Glyph;
 import org.praisenter.data.song.Author;
 import org.praisenter.data.song.Lyrics;
 import org.praisenter.data.song.Section;
 import org.praisenter.data.song.Song;
 import org.praisenter.data.song.SongBook;
-import org.praisenter.ui.Glyphs;
 import org.praisenter.ui.Icons;
 
 import javafx.beans.binding.Bindings;
@@ -21,9 +19,9 @@ final class SongTreeCell extends TreeCell<Object> {
 	private final Label graphic;
 	
 	public SongTreeCell() {
-		this.songbook = Icons.getIcon(Icons.BOOK);// Glyphs.NEW_SONGBOOK.duplicate();
-		this.lyrics = Icons.getIcon(Icons.MUSIC);//Glyphs.NEW_LYRICS.duplicate();
-		this.author = Icons.getIcon(Icons.USER);//Glyphs.NEW_AUTHOR.duplicate();
+		this.songbook = Icons.getIcon(Icons.BOOK);
+		this.lyrics = Icons.getIcon(Icons.LYRICS);
+		this.author = Icons.getIcon(Icons.USER);
 		
 		this.songbook.getStyleClass().addAll("p-songbook-icon");
 		this.lyrics.getStyleClass().addAll("p-lyrics-icon");

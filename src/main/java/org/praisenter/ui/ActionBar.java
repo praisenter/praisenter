@@ -27,18 +27,18 @@ public final class ActionBar extends ToolBar {
 		
 		this.setOrientation(Orientation.HORIZONTAL);
 		this.getItems().addAll(
+			this.createButton(Action.NEW_SLIDE),
 			this.createButton(Action.NEW_BIBLE),
 			this.createButton(Action.NEW_SONG),
-			this.createButton(Action.NEW_SLIDE),
 			this.createSeparatorForGroup(Action.NEW_BOOK, Action.NEW_CHAPTER, Action.NEW_VERSE),
 			this.createButton(Action.NEW_BOOK),
 			this.createButton(Action.NEW_CHAPTER),
 			this.createButton(Action.NEW_VERSE),
 			this.createSeparatorForGroup(Action.NEW_LYRICS, Action.NEW_SECTION, Action.NEW_AUTHOR, Action.NEW_SONGBOOK),
 			this.createButton(Action.NEW_LYRICS),
-			this.createButton(Action.NEW_SECTION),
 			this.createButton(Action.NEW_AUTHOR),
 			this.createButton(Action.NEW_SONGBOOK),
+			this.createButton(Action.NEW_SECTION),
 			this.createSeparatorForGroup(Action.NEW_SLIDE_TEXT_COMPONENT, Action.NEW_SLIDE_PLACEHOLDER_COMPONENT, Action.NEW_SLIDE_DATETIME_COMPONENT, Action.NEW_SLIDE_COUNTDOWN_COMPONENT, Action.NEW_SLIDE_MEDIA_COMPONENT),
 			this.createButton(Action.NEW_SLIDE_TEXT_COMPONENT),
 			this.createButton(Action.NEW_SLIDE_PLACEHOLDER_COMPONENT),

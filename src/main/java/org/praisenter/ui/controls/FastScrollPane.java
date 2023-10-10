@@ -7,23 +7,21 @@ public class FastScrollPane extends ScrollPane {
 
 	private final double speed;
 	
-	public FastScrollPane() {
-		this(1.0);
+	protected FastScrollPane() {
+		this.speed = 1.0;
 	}
 	
-	public FastScrollPane(double speed) {
-		super();
+	protected FastScrollPane(double speed) {
 		this.speed = speed;
-		setupFasterScrolling();
 	}
-
+	
 	public FastScrollPane(Node content, double speed) {
 		super(content);
 		this.speed = speed;
 		setupFasterScrolling();
 	}
 
-	private void setupFasterScrolling() {
+	protected void setupFasterScrolling() {
 		this.getContent().setOnScroll(scrollEvent -> {
 		    double deltaY = scrollEvent.getDeltaY() * this.speed;
 		    double contentHeight = this.getContent().getBoundsInLocal().getHeight();

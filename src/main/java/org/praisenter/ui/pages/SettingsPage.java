@@ -26,7 +26,6 @@ import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.css.Stylesheet;
 import javafx.geometry.Orientation;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -74,9 +73,6 @@ public class SettingsPage extends BorderPane {
 		Button btnReloadCss = new Button(Translations.get("settings.theme.reload"));
 		btnReloadCss.setOnAction(e -> {
 			StyleSheets.reapply(context.getStage().getScene());
-//			String url = org.praisenter.ui.themes.Styles.getTheme("default").getCss();
-//			context.getStage().getScene().getStylesheets().remove(url);
-//			context.getStage().getScene().getStylesheets().add(url);
 		});
 		
 		// language
