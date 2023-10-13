@@ -51,8 +51,8 @@ public final class Dialogs {
 		Alert alert = new Alert(AlertType.ERROR);
 		if (owner != null) {
 			alert.initOwner(owner);
-			alert.getDialogPane().getScene().getStylesheets().addAll(owner.getScene().getStylesheets());
-			alert.getDialogPane().getScene().getRoot().getStyleClass().addAll(owner.getScene().getRoot().getStyleClass());
+			WindowHelper.inheritStylesheets(alert.getDialogPane().getScene(), owner);
+    		WindowHelper.inheritPseudoStates(alert.getDialogPane().getScene().getRoot(), owner);
 		}
 		alert.initModality(Modality.APPLICATION_MODAL);
 		alert.setTitle(title == null ? Translations.get("error.title") : title);
@@ -119,8 +119,8 @@ public final class Dialogs {
 		
 		if (owner != null) {
 			alert.initOwner(owner);
-			alert.getDialogPane().getScene().getStylesheets().addAll(owner.getScene().getStylesheets());
-			alert.getDialogPane().getScene().getRoot().getStyleClass().addAll(owner.getScene().getRoot().getStyleClass());
+			WindowHelper.inheritStylesheets(alert.getDialogPane().getScene(), owner);
+    		WindowHelper.inheritPseudoStates(alert.getDialogPane().getScene().getRoot(), owner);
 		}
 		if (modality != null) {
 			alert.initModality(modality);
@@ -162,8 +162,8 @@ public final class Dialogs {
 		
 		if (owner != null) {
 			alert.initOwner(owner);
-			alert.getDialogPane().getScene().getStylesheets().addAll(owner.getScene().getStylesheets());
-			alert.getDialogPane().getScene().getRoot().getStyleClass().addAll(owner.getScene().getRoot().getStyleClass());
+			WindowHelper.inheritStylesheets(alert.getDialogPane().getScene(), owner);
+    		WindowHelper.inheritPseudoStates(alert.getDialogPane().getScene().getRoot(), owner);
 
 		}
 		if (modality != null) {
@@ -187,8 +187,8 @@ public final class Dialogs {
 		
 		if (owner != null) {
 			alert.initOwner(owner);
-			alert.getDialogPane().getScene().getStylesheets().addAll(owner.getScene().getStylesheets());
-			alert.getDialogPane().getScene().getRoot().getStyleClass().addAll(owner.getScene().getRoot().getStyleClass());
+			WindowHelper.inheritStylesheets(alert.getDialogPane().getScene(), owner);
+    		WindowHelper.inheritPseudoStates(alert.getDialogPane().getScene().getRoot(), owner);
 		}
 		if (modality != null) {
 			alert.initModality(modality);
@@ -215,8 +215,8 @@ public final class Dialogs {
 		
 		if (owner != null) {
 			alert.initOwner(owner);
-			alert.getDialogPane().getScene().getStylesheets().addAll(owner.getScene().getStylesheets());
-			alert.getDialogPane().getScene().getRoot().getStyleClass().addAll(owner.getScene().getRoot().getStyleClass());
+			WindowHelper.inheritStylesheets(alert.getDialogPane().getScene(), owner);
+    		WindowHelper.inheritPseudoStates(alert.getDialogPane().getScene().getRoot(), owner);
 		}
 		if (modality != null) {
 			alert.initModality(modality);
@@ -237,8 +237,8 @@ public final class Dialogs {
     	
     	if (owner != null) {
     		prompt.initOwner(owner);
-			prompt.getDialogPane().getScene().getStylesheets().addAll(owner.getScene().getStylesheets());
-			prompt.getDialogPane().getScene().getRoot().getStyleClass().addAll(owner.getScene().getRoot().getStyleClass());
+    		WindowHelper.inheritStylesheets(prompt.getDialogPane().getScene(), owner);
+    		WindowHelper.inheritPseudoStates(prompt.getDialogPane().getScene().getRoot(), owner);
 		}
 		if (modality != null) {
 			prompt.initModality(modality);

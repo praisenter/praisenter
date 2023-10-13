@@ -28,8 +28,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.stream.Collectors;
 
-import org.controlsfx.control.textfield.AutoCompletionBinding.ISuggestionRequest;
-import org.controlsfx.control.textfield.TextFields;
+//import org.controlsfx.control.textfield.AutoCompletionBinding.ISuggestionRequest;
+//import org.controlsfx.control.textfield.TextFields;
 import org.praisenter.data.Tag;
 import org.praisenter.ui.Icons;
 import org.praisenter.ui.translations.Translations;
@@ -116,30 +116,32 @@ public final class TagListView extends BorderPane {
 		TextInputFieldEventFilter.applyTextInputFieldEventFilter(this.textField);
 		
 		// apply the auto completion binding
-		TextFields.bindAutoCompletion(
-        		this.textField,
-                new Callback<ISuggestionRequest, Collection<Tag>>() {
-					@Override
-					public Collection<Tag> call(ISuggestionRequest request) {
-						String name = request.getUserText().toLowerCase();
-						if (name == null || name.length() == 0) {
-							return Collections.emptyList();
-						}
-						return all.stream().filter(t -> t.getName().toLowerCase().startsWith(name)).collect(Collectors.toList());
-					}
-                },
-                new StringConverter<Tag>() {
-					@Override
-					public Tag fromString(String name) {
-						if (name == null || name.length() == 0) return null;
-						return new Tag(name);
-					}
-					@Override
-					public String toString(Tag tag) {
-						if (tag == null) return null;
-						return tag.getName();
-					}
-                });
+		// TODO replace this with something else
+		// TODO update to latest JavaFX (and jmods)
+//		TextFields.bindAutoCompletion(
+//        		this.textField,
+//                new Callback<ISuggestionRequest, Collection<Tag>>() {
+//					@Override
+//					public Collection<Tag> call(ISuggestionRequest request) {
+//						String name = request.getUserText().toLowerCase();
+//						if (name == null || name.length() == 0) {
+//							return Collections.emptyList();
+//						}
+//						return all.stream().filter(t -> t.getName().toLowerCase().startsWith(name)).collect(Collectors.toList());
+//					}
+//                },
+//                new StringConverter<Tag>() {
+//					@Override
+//					public Tag fromString(String name) {
+//						if (name == null || name.length() == 0) return null;
+//						return new Tag(name);
+//					}
+//					@Override
+//					public String toString(Tag tag) {
+//						if (tag == null) return null;
+//						return tag.getName();
+//					}
+//                });
         
         
         // when the user hits enter add the tag

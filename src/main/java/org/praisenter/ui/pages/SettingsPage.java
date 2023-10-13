@@ -8,25 +8,31 @@ import org.apache.logging.log4j.Logger;
 import org.praisenter.data.workspace.PlaceholderTransitionBehavior;
 import org.praisenter.data.workspace.WorkspaceConfiguration;
 import org.praisenter.ui.GlobalContext;
+import org.praisenter.ui.Icons;
+import org.praisenter.ui.MappedList;
 import org.praisenter.ui.Option;
 import org.praisenter.ui.controls.FastScrollPane;
 import org.praisenter.ui.controls.LastValueNumberStringConverter;
+import org.praisenter.ui.themes.Accent;
+import org.praisenter.ui.themes.AtlantaFXTheme;
 import org.praisenter.ui.themes.StyleSheets;
 import org.praisenter.ui.themes.ThemeListCell;
-import org.praisenter.ui.themes.Themes;
+import org.praisenter.ui.themes.Theming;
 import org.praisenter.ui.translations.Translations;
 import org.praisenter.utility.StringManipulator;
 
 import atlantafx.base.controls.Tile;
 import atlantafx.base.controls.ToggleSwitch;
 import atlantafx.base.theme.Styles;
-import atlantafx.base.theme.Theme;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
+import javafx.css.PseudoClass;
 import javafx.geometry.Orientation;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -35,9 +41,11 @@ import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.Separator;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
 public class SettingsPage extends BorderPane {
@@ -48,28 +56,84 @@ public class SettingsPage extends BorderPane {
 	private static final String SETTINGS_PAGE_GROUP_CLASS = "p-settings-page-group";
 	private static final String SETTINGS_PAGE_FLOW_CLASS = "p-settings-page-flow";
 	
-	private final ObservableList<Theme> themes = FXCollections.observableArrayList(Themes.THEMES);
+	private final ObservableList<AtlantaFXTheme> themes;
+	private final MappedList<Node, Accent> accents;
 	private final ObservableList<Locale> locales;
 	
 	public SettingsPage(GlobalContext context) {
 		WorkspaceConfiguration configuration = context.getWorkspaceConfiguration();
 		
 		// theme
-		ComboBox<Theme> cmbTheme = new ComboBox<>();
+		AtlantaFXTheme currentTheme = Theming.getTheme(configuration.getThemeName());
+		this.themes = FXCollections.observableArrayList(Theming.THEMES);
+		ComboBox<AtlantaFXTheme> cmbTheme = new ComboBox<>();
 		cmbTheme.setCellFactory((view) -> {
 			return new ThemeListCell();
 		});
 		cmbTheme.setButtonCell(new ThemeListCell());
-		cmbTheme.setValue(Themes.getTheme(configuration.getThemeName()));
+		cmbTheme.setValue(currentTheme);
 		Bindings.bindContent(cmbTheme.getItems(), this.themes);
 		
 		cmbTheme.valueProperty().addListener((obs, ov, nv) -> {
 			if (nv != null) {
-				configuration.setThemeName(nv.getUserAgentStylesheet());
-				Application.setUserAgentStylesheet(nv.getUserAgentStylesheet());
+				LOGGER.info("Switching theme from '" + (ov != null ? ov.getTheme().getName() : "") + "' to '" + nv.getTheme().getName() + "'");
+				
+				var theme = nv.getTheme();
+				configuration.setThemeName(theme.getUserAgentStylesheet());
+				configuration.setAccentName(null);
+				
+				// each theme has a different accent color based on their type (light vs dark)
+				// some of the theme accent colors have super low saturation or some (Dracula)
+				// have a very specific accent color
+				
+				// so just clear the custom accent
+				for (Accent accent : Theming.ACCENTS) {
+					context.getStage().getScene().getRoot().pseudoClassStateChanged(accent.getPseudoClass(), false);	
+				}
+				
+				// then switch the theme
+				Application.setUserAgentStylesheet(theme.getUserAgentStylesheet());
 			}
 		});
 		
+		FilteredList<Accent> filteredAccents = new FilteredList<Accent>(FXCollections.observableArrayList(Theming.ACCENTS), a -> {
+			return a.getThemeType() == currentTheme.getType();
+		});
+		configuration.themeNameProperty().addListener((obs, ov, nv) -> {
+			AtlantaFXTheme theme = Theming.getTheme(configuration.getThemeName());
+			filteredAccents.setPredicate(a -> {
+				return a.getThemeType() == theme.getType();
+			});
+		});
+		this.accents = new MappedList<>(filteredAccents, (Accent item) -> {
+			String accent = item.getPseudoClass().getPseudoClassName();
+			
+			Button btnAccent = new Button();
+			Region r;
+			if (accent.startsWith("p-color-accent-default")) {
+				r = Icons.getIcon(Icons.CLOSE);
+				btnAccent.setTooltip(new Tooltip(Translations.get("settings.accent.reset")));
+			} else {
+				r = new Region();
+				r.getStyleClass().addAll(accent, "p-color-accent-block");
+			}
+			
+			btnAccent.setGraphic(r);
+			btnAccent.getStyleClass().addAll(Styles.BUTTON_ICON, Styles.FLAT);
+			btnAccent.setOnAction(e -> {
+				LOGGER.info("Switching accent color to '" + accent + "'");
+				configuration.setAccentName(accent);
+				for (Accent acc : Theming.ACCENTS) {
+					context.getStage().getScene().getRoot().pseudoClassStateChanged(acc.getPseudoClass(), false);
+				}
+				context.getStage().getScene().getRoot().pseudoClassStateChanged(PseudoClass.getPseudoClass(accent), true);
+			});
+			return btnAccent;
+ 		});
+		
+		HBox a = new HBox(2);
+		Bindings.bindContent(a.getChildren(), this.accents);
+
 		Button btnReloadCss = new Button(Translations.get("settings.theme.reload"));
 		btnReloadCss.setOnAction(e -> {
 			StyleSheets.reapply(context.getStage().getScene());
@@ -218,13 +282,16 @@ public class SettingsPage extends BorderPane {
 		Tile tleTheme = new Tile(Translations.get("settings.theme"), Translations.get("settings.theme.description"));
 		tleTheme.setAction(new HBox(5, cmbTheme, btnReloadCss));
 		tleTheme.setActionHandler(cmbTheme::requestFocus);
+		Tile tleAccent = new Tile(Translations.get("settings.accent"), Translations.get("settings.accent.description"));
+		tleAccent.setAction(new HBox(5, a));
+//		tleAccent.setActionHandler(cmbColor::requestFocus);
 		Tile tleLocale = new Tile(Translations.get("settings.locale"), Translations.get("settings.locale.description"));
 		tleLocale.setAction(new HBox(5, cmbLocales, btnRefreshLocales));
 		tleLocale.setActionHandler(cmbLocales::requestFocus);
 		Tile tleDebug = new Tile(Translations.get("settings.debug"), Translations.get("settings.debug.description"));
 		tleDebug.setAction(tglDebugMode);
 		tleDebug.setActionHandler(tglDebugMode::fire);
-		VBox boxGeneral = new VBox(lblGeneral, new Separator(Orientation.HORIZONTAL), tleTheme, tleLocale, tleDebug);
+		VBox boxGeneral = new VBox(lblGeneral, new Separator(Orientation.HORIZONTAL), tleTheme, tleAccent, tleLocale, tleDebug);
 
 		Label lblSlide = new Label(Translations.get("settings.slide"));
 		lblSlide.getStyleClass().add(Styles.TITLE_3);

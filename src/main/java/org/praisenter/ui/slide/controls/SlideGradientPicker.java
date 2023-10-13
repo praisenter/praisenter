@@ -27,7 +27,6 @@ import javafx.scene.Cursor;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.control.Slider;
-import javafx.scene.image.Image;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
@@ -48,7 +47,6 @@ public final class SlideGradientPicker extends FormFieldSection {
 	private static final String GRADIENT_PREVIEW_CSS = "p-gradient-preview";
 	private static final String GRADIENT_PREVIEW_BACKGROUND_CSS = "p-gradient-preview-background";
 	
-	private static final Image TRANSPARENT_PATTERN = new Image(SlideGradientPicker.class.getResourceAsStream("/org/praisenter/images/transparent.png"));
 	private static final double WIDTH = 125;
 	private static final double HEIGHT = 125;
 	

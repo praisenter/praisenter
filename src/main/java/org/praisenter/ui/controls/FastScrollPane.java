@@ -20,7 +20,7 @@ public class FastScrollPane extends ScrollPane {
 		this.speed = speed;
 		setupFasterScrolling();
 	}
-
+	
 	protected void setupFasterScrolling() {
 		this.getContent().setOnScroll(scrollEvent -> {
 		    double deltaY = scrollEvent.getDeltaY() * this.speed;

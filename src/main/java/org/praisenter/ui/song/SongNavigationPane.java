@@ -209,8 +209,8 @@ public final class SongNavigationPane extends VBox {
 				this.searchDialog.setTitle(Translations.get("song.search.title"));
 				this.searchDialog.initModality(Modality.NONE);
 				this.searchDialog.initStyle(StageStyle.DECORATED);
-				this.searchDialog.setWidth(800);
-				this.searchDialog.setHeight(450);
+				this.searchDialog.setWidth(1000);
+				this.searchDialog.setHeight(600);
 				this.searchDialog.setResizable(true);
 				this.searchDialog.setScene(WindowHelper.createSceneWithOwnerCss(pneSearch, owner));
 				this.searchDialog.setOnShown(we -> {
@@ -218,6 +218,7 @@ public final class SongNavigationPane extends VBox {
 				});
 				WindowHelper.setIcons(this.searchDialog);
 				context.attachZoomHandler(this.searchDialog.getScene());
+				context.attachAccentHandler(this.searchDialog.getScene());
 			}
 			
 			this.searchDialog.show();

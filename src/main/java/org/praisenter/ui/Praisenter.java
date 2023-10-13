@@ -4,7 +4,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
 
-import atlantafx.base.theme.PrimerDark;
 import atlantafx.base.theme.PrimerLight;
 import javafx.application.Application;
 import javafx.stage.Stage;
@@ -26,7 +25,12 @@ public final class Praisenter extends Application {
     @Override
     public void start(Stage stage) throws Exception {
     	// the default style of the app
-    	Application.setUserAgentStylesheet(new PrimerDark().getUserAgentStylesheet());
+    	
+    	// NOTE: we choose light here because doing so removed console errors when switching themes
+    	// it seems to be due to a JavaFX bug reported below and doesn't seem to have any noticeable
+    	// effect on the UI.  For whatever reason setting it to PrimerLight prevents the errors (:o)
+    	// JAVABUG (L) 10/11/23 [workaround] https://bugs.openjdk.org/browse/JDK-8268657?jql=project%20%3D%20JDK%20AND%20component%20%3D%20javafx%20AND%20text%20~%20%22ClassCastException%20calculateValue%22
+    	Application.setUserAgentStylesheet(new PrimerLight().getUserAgentStylesheet());
     	
     	Parameters params = this.getParameters();
     	Map<String, String> named = params.getNamed();

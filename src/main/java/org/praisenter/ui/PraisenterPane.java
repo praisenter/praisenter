@@ -3,22 +3,15 @@ package org.praisenter.ui;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.async.AsyncHelper;
-import org.praisenter.data.Persistable;
 import org.praisenter.ui.controls.Dialogs;
 import org.praisenter.ui.display.DisplaysController;
 import org.praisenter.ui.document.DocumentsPane;
-import org.praisenter.ui.library.LibraryList;
-import org.praisenter.ui.library.LibraryListType;
 import org.praisenter.ui.pages.LibraryPage;
 import org.praisenter.ui.pages.SettingsPage;
 import org.praisenter.ui.pages.TaskListPage;
 import org.praisenter.ui.translations.Translations;
 
 import javafx.application.Platform;
-import javafx.beans.binding.Bindings;
-import javafx.collections.ObservableList;
-import javafx.collections.transformation.FilteredList;
-import javafx.geometry.Orientation;
 import javafx.geometry.Side;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
@@ -100,7 +93,7 @@ final class PraisenterPane extends BorderPane {
 		
 		context.currentDocumentProperty().addListener((obs, ov, nv) -> {
 			if (nv != null) {
-				// then make sure we are on the library tab
+				// then make sure we are on the editor tab
 				tabs.getSelectionModel().select(editorTab);
 			}
 		});

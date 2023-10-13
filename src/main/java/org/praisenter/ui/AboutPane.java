@@ -77,6 +77,9 @@ final class AboutPane extends BorderPane {
 			}
 		});
 		
+		tc1.setPrefWidth(150);
+		tc2.setPrefWidth(200);
+		
 		tv.getColumns().add(tc1);
 		tv.getColumns().add(tc2);
 		

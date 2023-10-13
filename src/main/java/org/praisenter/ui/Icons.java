@@ -75,11 +75,18 @@ public final class Icons {
 	public static final String UPDATE = "p-icon-update";
 	public static final String INFO = "p-icon-info";
 	public static final String NEW = "p-icon-new";
+	public static final String FORWARD = "p-icon-forward";
+	public static final String BACKWARD = "p-icon-backward";
+	public static final String TO_BACK = "p-icon-to-back";
+	public static final String TO_FRONT = "p-icon-to-front";
+	public static final String CLOSE = "p-icon-close";
 	
-
 	public static final Region getIcon(String icon) {
 		Region node = new Region();
-		node.getStyleClass().add(icon);
+		// NOTE: "font-icon" is here to inherit the color from font-icon in the atlantafx themes
+		// this is done so that -fx-fill can be used as the -fx-background-color since the themes
+		// aren't consistent with the hover/focused text colorings
+		node.getStyleClass().addAll("p-icon", "font-icon", icon);
 		StackPane sp = new StackPane(node);
 		sp.getStyleClass().add("p-icon-container");
 		return sp;

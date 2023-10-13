@@ -86,6 +86,7 @@ public final class LibraryList extends BorderPane implements ActionPane {
 	private static final String LIBRARY_LIST_FILTER_BAR_CSS = "p-library-list-filter-bar";
 	private static final String LIBRARY_LIST_ITEMS_CSS = "p-library-list-items";
 	private static final String LIBRARY_LIST_RIGHT_CSS = "p-library-list-right";
+	private static final String LIBRARY_LIST_SEARCH_CSS = "p-library-list-search";
 	
 	private static final Logger LOGGER = LogManager.getLogger();
 	private static final Collator COLLATOR = Collator.getInstance();
@@ -108,7 +109,9 @@ public final class LibraryList extends BorderPane implements ActionPane {
 	private final FlowListView<Persistable> view;
 	
 	private final BooleanProperty detailsPaneVisible;
-	private final BooleanProperty typeFilterVisible;
+	private final BooleanProperty filterVisible;
+	private final BooleanProperty searchVisible;
+	private final BooleanProperty sortVisible;
 	
 	public LibraryList(GlobalContext context, Orientation orientation, LibraryListType... filterTypes) {
 		this.getStyleClass().add(LIBRARY_LIST_CSS);
@@ -121,7 +124,9 @@ public final class LibraryList extends BorderPane implements ActionPane {
 		this.sortAscending = new SimpleBooleanProperty(true);
 		
 		this.detailsPaneVisible = new SimpleBooleanProperty(true);
-		this.typeFilterVisible = new SimpleBooleanProperty(true);
+		this.filterVisible = new SimpleBooleanProperty(true);
+		this.searchVisible = new SimpleBooleanProperty(true);
+		this.sortVisible = new SimpleBooleanProperty(true);
 		
 		this.view = new FlowListView<>(orientation, (item) -> {
 			LibraryListCell cell = new LibraryListCell(item);
@@ -191,12 +196,16 @@ public final class LibraryList extends BorderPane implements ActionPane {
 						return false;
 					}
 				}
+				
 				// single name search (more complex searching will be handled elsewhere)
 				if (!StringManipulator.isNullOrEmpty(search)) {
-					if (!i.getName().toLowerCase().contains(term)) {
+					boolean matchesName = i.getName().toLowerCase().contains(term);
+					boolean matchesAnyTag = i.getTags().stream().anyMatch(t -> t.getName().toLowerCase().contains(term));
+					if (!matchesAnyTag && !matchesName) {
 						return false;
 					}
 				}
+				
 				return true;
 			});
 		};
@@ -282,40 +291,60 @@ public final class LibraryList extends BorderPane implements ActionPane {
         		.collect(Collectors.toList()));
         
         Label lblFilter = new Label(Translations.get("list.filter.type"));
-        ChoiceBox<Option<LibraryListType>> cbTypes = new ChoiceBox<Option<LibraryListType>>(typeFilters);
-        cbTypes.setValue(new Option<>());
-        cbTypes.valueProperty().bindBidirectional(this.typeFilter);
-        lblFilter.visibleProperty().bind(this.typeFilterVisible);
-        lblFilter.managedProperty().bind(cbTypes.visibleProperty());
-        cbTypes.visibleProperty().bind(this.typeFilterVisible);
-        cbTypes.managedProperty().bind(cbTypes.visibleProperty());
+        Separator sepFilter = new Separator(Orientation.VERTICAL);
+        ChoiceBox<Option<LibraryListType>> cbFilterType = new ChoiceBox<Option<LibraryListType>>(typeFilters);
+        cbFilterType.setValue(new Option<>());
+        cbFilterType.valueProperty().bindBidirectional(this.typeFilter);
+        lblFilter.visibleProperty().bind(this.filterVisible);
+        lblFilter.managedProperty().bind(lblFilter.visibleProperty());
+        cbFilterType.visibleProperty().bind(this.filterVisible);
+        cbFilterType.managedProperty().bind(cbFilterType.visibleProperty());
+        sepFilter.visibleProperty().bind(this.filterVisible);
+        sepFilter.managedProperty().bind(sepFilter.visibleProperty());
 		
         Label lblSort = new Label(Translations.get("list.sort.field"));
-        ChoiceBox<Option<LibraryListSortField>> cbSort = new ChoiceBox<Option<LibraryListSortField>>(sortFields);
-        cbSort.valueProperty().bindBidirectional(this.sortField);
-        ToggleButton tgl = new ToggleButton(null, this.sortAsc);
-        tgl.selectedProperty().bindBidirectional(this.sortAscending);
-        tgl.selectedProperty().addListener((obs, ov, nv) -> {
+        Separator sepSort = new Separator(Orientation.VERTICAL);
+        ChoiceBox<Option<LibraryListSortField>> cbSortType = new ChoiceBox<Option<LibraryListSortField>>(sortFields);
+        cbSortType.valueProperty().bindBidirectional(this.sortField);
+        ToggleButton tglSortDirection = new ToggleButton(null, this.sortAsc);
+        tglSortDirection.selectedProperty().bindBidirectional(this.sortAscending);
+        tglSortDirection.selectedProperty().addListener((obs, ov, nv) -> {
         	if (nv) {
-        		tgl.setGraphic(this.sortAsc);
+        		tglSortDirection.setGraphic(this.sortAsc);
         	} else {
-        		tgl.setGraphic(this.sortDesc);
+        		tglSortDirection.setGraphic(this.sortDesc);
         	}
         });
+        lblSort.visibleProperty().bind(this.sortVisible);
+        lblSort.managedProperty().bind(lblSort.visibleProperty());
+        cbSortType.visibleProperty().bind(this.sortVisible);
+        cbSortType.managedProperty().bind(cbSortType.visibleProperty());
+        tglSortDirection.visibleProperty().bind(this.sortVisible);
+        tglSortDirection.managedProperty().bind(tglSortDirection.visibleProperty());
+        sepSort.visibleProperty().bind(this.sortVisible);
+        sepSort.managedProperty().bind(sepSort.visibleProperty());
         
         CustomTextField txtSearch = new CustomTextField();
         txtSearch.setPromptText(Translations.get("list.filter.search"));
         txtSearch.textProperty().bindBidirectional(this.textFilter);
         txtSearch.setLeft(this.search);
-        txtSearch.setPrefWidth(300);
+        txtSearch.visibleProperty().bind(this.searchVisible);
+        txtSearch.managedProperty().bind(txtSearch.visibleProperty());
+        txtSearch.getStyleClass().add(LIBRARY_LIST_SEARCH_CSS);
         
-        ToolBar top = new ToolBar(
+        ToolBar toolbar = new ToolBar(
         		txtSearch,
-        		new Separator(Orientation.VERTICAL),
-        		lblFilter, cbTypes,
-        		new Separator(Orientation.VERTICAL),
-        		lblSort, cbSort, tgl);
-        top.getStyleClass().add(LIBRARY_LIST_FILTER_BAR_CSS);
+        		sepFilter,
+        		lblFilter, cbFilterType,
+        		sepSort,
+        		lblSort, cbSortType, tglSortDirection);
+        toolbar.getStyleClass().add(LIBRARY_LIST_FILTER_BAR_CSS);
+        toolbar.visibleProperty().bind(Bindings.createBooleanBinding(() -> {
+        	return this.searchVisible.get() ||
+        		   this.filterVisible.get() ||
+        		   this.sortVisible.get();
+        }, this.searchVisible, this.filterVisible, this.sortVisible));
+        toolbar.managedProperty().bind(toolbar.visibleProperty());
         
         LibraryItemDetails details = new LibraryItemDetails(context);
         details.setMinWidth(0);
@@ -327,15 +356,6 @@ public final class LibraryList extends BorderPane implements ActionPane {
 		detailsScroller.setHbarPolicy(ScrollBarPolicy.NEVER);
 		detailsScroller.getStyleClass().add(LIBRARY_LIST_RIGHT_CSS);
 		details.prefWidthProperty().bind(detailsScroller.widthProperty());
-		
-		// JAVABUG (L) [workaround] FlowPane+ScrollPane doesn't work properly with the setFitToWidth method
-//		detailsScroller.viewportBoundsProperty().addListener((obs, ov, nv) -> {
-////			details.setPrefWrapLength(nv.getWidth());
-//			details.setPrefWidth(nv.getWidth());
-//			details.setMaxWidth(nv.getWidth());
-//			details.setMinWidth(nv.getWidth());
-//			details.requestLayout();
-//		});
 		
 		ContextMenu menu = new ContextMenu();
 		menu.getItems().addAll(
@@ -369,7 +389,7 @@ public final class LibraryList extends BorderPane implements ActionPane {
 			}
 		});
 
-		this.setTop(top);
+		this.setTop(toolbar);
 		this.setCenter(split);
 	}
 
@@ -828,15 +848,39 @@ public final class LibraryList extends BorderPane implements ActionPane {
 		return this.detailsPaneVisible;
 	}
 	
-	public boolean isTypeFilterVisible() {
-		return this.typeFilterVisible.get();
+	public boolean isFilterVisible() {
+		return this.filterVisible.get();
 	}
 	
-	public void setTypeFilterVisible(boolean enabled) {
-		this.typeFilterVisible.set(enabled);
+	public void setFilterVisible(boolean enabled) {
+		this.filterVisible.set(enabled);
 	}
 	
-	public BooleanProperty typeFilterVisibleProperty() {
-		return this.typeFilterVisible;
+	public BooleanProperty filterVisibleProperty() {
+		return this.filterVisible;
+	}
+	
+	public boolean isSortVisible() {
+		return this.sortVisible.get();
+	}
+	
+	public void setSortVisible(boolean enabled) {
+		this.sortVisible.set(enabled);
+	}
+	
+	public BooleanProperty sortVisibleProperty() {
+		return this.sortVisible;
+	}
+
+	public boolean isSearchVisible() {
+		return this.searchVisible.get();
+	}
+	
+	public void setSearchVisible(boolean enabled) {
+		this.searchVisible.set(enabled);
+	}
+	
+	public BooleanProperty searchVisibleProperty() {
+		return this.searchVisible;
 	}
 }

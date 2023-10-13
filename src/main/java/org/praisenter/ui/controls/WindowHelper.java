@@ -20,6 +20,18 @@ public final class WindowHelper {
 		return scene;
 	}
 	
+	public static final void inheritStylesheets(Scene scene, Window owner) {
+		if (owner != null) {
+			scene.getStylesheets().addAll(owner.getScene().getStylesheets());
+		}
+	}
+	
+	public static final void inheritPseudoStates(Parent root, Window owner) {
+		for (var pseudo : owner.getScene().getRoot().getPseudoClassStates()) {
+			root.pseudoClassStateChanged(pseudo, true);
+		}
+	}
+	
 	public static final void setIcons(Stage stage) {
     	stage.getIcons().add(new Image(Praisenter.class.getResourceAsStream("/org/praisenter/logo/icon16x16alt.png"), 16, 16, true, true));
     	stage.getIcons().add(new Image(Praisenter.class.getResourceAsStream("/org/praisenter/logo/icon32x32.png")));

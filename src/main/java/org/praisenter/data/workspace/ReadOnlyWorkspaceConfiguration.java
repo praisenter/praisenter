@@ -20,6 +20,7 @@ public interface ReadOnlyWorkspaceConfiguration extends MediaConfiguration, Slid
 	
 	public String getLanguageTag();
 	public String getThemeName();
+	public String getAccentName();
 	public double getApplicationX();
 	public double getApplicationY();
 	public double getApplicationWidth();
@@ -51,6 +52,7 @@ public interface ReadOnlyWorkspaceConfiguration extends MediaConfiguration, Slid
 	
 	public ReadOnlyStringProperty languageTagProperty();
 	public ReadOnlyStringProperty themeNameProperty();
+	public ReadOnlyStringProperty accentNameProperty();
 	public ReadOnlyDoubleProperty applicationXProperty();
 	public ReadOnlyDoubleProperty applicationYProperty();
 	public ReadOnlyDoubleProperty applicationWidthProperty();

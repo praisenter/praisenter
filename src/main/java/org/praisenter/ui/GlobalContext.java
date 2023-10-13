@@ -41,6 +41,8 @@ import org.praisenter.ui.display.DisplayManager;
 import org.praisenter.ui.display.DisplayTarget;
 import org.praisenter.ui.document.DocumentContext;
 import org.praisenter.ui.events.ActionStateChangedEvent;
+import org.praisenter.ui.themes.Accent;
+import org.praisenter.ui.themes.Theming;
 import org.praisenter.ui.translations.Translations;
 
 import javafx.application.Application;
@@ -122,6 +124,7 @@ public final class GlobalContext {
 	private final ChangeListener<? super Boolean> textSelectedListener;
 	private final InvalidationListener screensListener;
 	private final List<ChangeListener<Number>> fontSizeListeners;
+	private final List<ChangeListener<String>> accentListeners;
 	
 	public GlobalContext(
 			Application application, 
@@ -169,6 +172,7 @@ public final class GlobalContext {
 		this.latestVersion = new SimpleObjectProperty<Version>(Version.VERSION);
 		
 		this.fontSizeListeners = new ArrayList<>();
+		this.accentListeners = new ArrayList<>();
 		
 		// bindings
 		
@@ -343,6 +347,9 @@ public final class GlobalContext {
 		for (ChangeListener<Number> listener : this.fontSizeListeners) {
 			this.workspaceManager.getWorkspaceConfiguration().applicationFontSizeProperty().removeListener(listener);
 		}
+		for (ChangeListener<String> listener : this.accentListeners) {
+			this.workspaceManager.getWorkspaceConfiguration().accentNameProperty().removeListener(listener);
+		}
 		
 		// remove bindings
 		this.backgroundTaskExecuting.unbind();
@@ -428,7 +435,7 @@ public final class GlobalContext {
 			case INCREASE_FONT_SIZE:
 				return this.workspaceManager.getWorkspaceConfiguration().getApplicationFontSize() < 22;
 			case DECREASE_FONT_SIZE:
-				return this.workspaceManager.getWorkspaceConfiguration().getApplicationFontSize() > 8;
+				return this.workspaceManager.getWorkspaceConfiguration().getApplicationFontSize() > 10;
 			default:
 				break;
 		}
@@ -591,7 +598,7 @@ public final class GlobalContext {
 
 	private CompletableFuture<Void> resetApplicationFontSize() {
 		this.workspaceManager.getWorkspaceConfiguration().setApplicationFontSize(14);
-		this.onActionStateChanged("FONT_SIZE_CHANGED=12.0");
+		this.onActionStateChanged("FONT_SIZE_CHANGED=14.0");
 		return CompletableFuture.completedFuture(null);
 	}
 	
@@ -869,6 +876,29 @@ public final class GlobalContext {
 		};
 		this.fontSizeListeners.add(listener);
 		this.workspaceManager.getWorkspaceConfiguration().applicationFontSizeProperty().addListener(listener);
+	}
+	
+	public void attachAccentHandler(Scene scene) {
+		Node root = scene.getRoot();
+		// set the initial accent color
+		{
+			Accent accent = Theming.getAccent(this.getWorkspaceConfiguration().getAccentName());
+			if (accent != null) {
+				root.pseudoClassStateChanged(accent.getPseudoClass(), true);
+			}
+		}
+		// then setup listener for accent color changes
+		ChangeListener<String> listener = (obs, ov, nv) -> {
+			for (Accent accent : Theming.ACCENTS) {
+				root.pseudoClassStateChanged(accent.getPseudoClass(), false);
+			}
+			Accent accent = Theming.getAccent(nv);
+			if (accent != null) {
+				root.pseudoClassStateChanged(accent.getPseudoClass(), true);
+			}
+		};
+		this.accentListeners.add(listener);
+		this.workspaceManager.getWorkspaceConfiguration().accentNameProperty().addListener(listener);
 	}
 	
 	public Application getApplication() {

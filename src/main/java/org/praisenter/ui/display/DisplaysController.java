@@ -12,11 +12,13 @@ import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
+import javafx.scene.control.Separator;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 
@@ -35,7 +37,9 @@ public final class DisplaysController extends BorderPane {
 
 		// create an observable list that listens to the active property of the elements
 		this.displayTargets = FXCollections.observableList(new ArrayList<DisplayTarget>(), target -> {
-			return new Observable[] { target.getDisplayConfiguration().activeProperty() };
+			return new Observable[] { 
+				target.getDisplayConfiguration().activeProperty() 
+			};
 		});
 		
 		// then bind the list content to the set of display targets available
@@ -67,7 +71,10 @@ public final class DisplaysController extends BorderPane {
 			DisplayController dc = new DisplayController(context, target);
 			dc.visibleProperty().bind(target.getDisplayConfiguration().activeProperty());
 			dc.managedProperty().bind(dc.visibleProperty());
-			return dc;
+			BorderPane bp = new BorderPane();
+			bp.setCenter(dc);
+			bp.setRight(new Separator(Orientation.VERTICAL));
+			return bp;
 		});
 		
 		HBox controllers = new HBox();

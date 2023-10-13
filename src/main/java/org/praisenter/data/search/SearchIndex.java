@@ -15,6 +15,7 @@ import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
+import org.apache.lucene.index.StoredFields;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
@@ -100,9 +101,10 @@ public final class SearchIndex {
 			
 			QueryScorer scorer = new QueryScorer(query);
 			Highlighter highlighter = new Highlighter(scorer);
+			StoredFields storedFields = searcher.storedFields();
 			
 			for (ScoreDoc doc : docs) {
-				Document document = searcher.doc(doc.doc);
+				Document document = storedFields.document(doc.doc);
 				
 				// get the text
 				String text = document.get(Indexable.FIELD_TEXT);
