@@ -8,25 +8,29 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.index.Term;
+import org.apache.lucene.queries.spans.SpanMultiTermQueryWrapper;
+import org.apache.lucene.queries.spans.SpanNearQuery;
+import org.apache.lucene.queries.spans.SpanQuery;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.FuzzyQuery;
+import org.apache.lucene.search.PhraseQuery;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.BooleanClause.Occur;
-import org.apache.lucene.search.spans.SpanMultiTermQueryWrapper;
-import org.apache.lucene.search.spans.SpanNearQuery;
-import org.apache.lucene.search.spans.SpanQuery;
 
 public class SearchCriteria {
 	private final String field;
 	private final String terms;
 	private final SearchType type;
 	private final int maxResults;
+	private final boolean fuzzy;
 	
-	public SearchCriteria(String field, String terms, SearchType type, int maxResults) {
+	public SearchCriteria(String field, String terms, SearchType type, boolean fuzzy, int maxResults) {
 		this.field = field;
 		this.terms = terms;
 		this.type = type;
 		this.maxResults = maxResults;
+		this.fuzzy = fuzzy;
 	}
 	
 	public String getField() {
@@ -39,6 +43,10 @@ public class SearchCriteria {
 	
 	public SearchType getType() {
 		return this.type;
+	}
+	
+	public boolean isFuzzy() {
+		return this.fuzzy;
 	}
 	
 	public int getMaxResults() {
@@ -80,29 +88,42 @@ public class SearchCriteria {
 		if (tokens.size() == 1) {
 			// single term, just do a fuzzy query on it with a larger max edit distance
 			String token = tokens.get(0);
-			query = new FuzzyQuery(new Term(this.field, token));
+			query = convertTermToQuery(token);//new FuzzyQuery(new Term(this.field, token));
 		// PHRASE
 		} else if (this.type == SearchType.PHRASE) {
-			// for phrase, do a span-near-fuzzy query since we 
-			// care if the words are close to each other
-			SpanQuery[] sqs = new SpanQuery[tokens.size()];
-			for (int i = 0; i < tokens.size(); i++) {
-				sqs[i] = new SpanMultiTermQueryWrapper<FuzzyQuery>(new FuzzyQuery(new Term(this.field, tokens.get(i))));
+			if (this.fuzzy) {
+				// for phrase, do a span-near-fuzzy query since we 
+				// care if the words are close to each other
+				SpanQuery[] sqs = new SpanQuery[tokens.size()];
+				for (int i = 0; i < tokens.size(); i++) {
+					sqs[i] = new SpanMultiTermQueryWrapper<FuzzyQuery>(new FuzzyQuery(new Term(this.field, tokens.get(i))));
+				}
+				// the terms should be within 3 terms of each other
+				query = new SpanNearQuery(sqs, 3, false);
+			} else {
+				query = new PhraseQuery(3, this.field, tokens.toArray(new String[0]));
 			}
-			// the terms should be within 3 terms of each other
-			query = new SpanNearQuery(sqs, 3, false);
 		// ALL_WORDS, ANY_WORD
 		} else {
 			// do an and/or combination of fuzzy queries
 			BooleanQuery.Builder builder = new BooleanQuery.Builder();
 			for (String token : tokens) {
-				builder.add(new FuzzyQuery(new Term(this.field, token)), this.type == SearchType.ALL_WORDS ? Occur.MUST : Occur.SHOULD);
+				builder.add(convertTermToQuery(token), this.type == SearchType.ALL_WORDS ? Occur.MUST : Occur.SHOULD);
 			}
 			query = builder.build();
 		}
 		// ALL_WILDCARD, ANY_WILDCARD (not available as an option)
 		
 		return query;
+	}
+	
+	private Query convertTermToQuery(String token) {
+		Term term = new Term(this.field, token);
+		if (this.fuzzy) {
+			return new FuzzyQuery(term);
+		} else {
+			return new TermQuery(term);
+		}
 	}
 	
 	public Query createQuery(Analyzer analyzer) throws IOException {

@@ -22,6 +22,7 @@ import org.praisenter.ui.controls.Dialogs;
 import org.praisenter.ui.controls.WindowHelper;
 import org.praisenter.ui.translations.Translations;
 import org.praisenter.ui.upgrade.UpgradeChecker;
+import org.praisenter.utility.RuntimeProperties;
 
 import javafx.application.Platform;
 import javafx.scene.Node;
@@ -30,7 +31,9 @@ import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCombination;
+import javafx.scene.input.KeyEvent;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -171,6 +174,19 @@ final class MainMenu extends MenuBar {
 				this.createMenuItem(Action.ABOUT));
 		
 		this.getMenus().addAll(mnuFile, mnuEdit, mnuWindow, mnuHelp);
+		
+		// on windows when focus returns after the user alt-tabbing to another application
+		// the alt status stays in place and if the user types anything it steals what they
+		// type if there's a matching mnemonic
+		// https://stackoverflow.com/questions/73383089/javafx-menu-bar-steals-focus
+		// JAVABUG (L) 10/12/23 [workaround] https://bugs.openjdk.org/browse/JDK-8238731
+		if (RuntimeProperties.IS_WINDOWS_OS) {
+			context.windowFocusedProperty().addListener((obs, ov, nv) -> {
+				if (nv) {
+					this.fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.ESCAPE, false, false, false, false));
+				}
+			});
+		}
 	}
 
 	private MenuItem createMenuItem(Action action) {
@@ -376,6 +392,7 @@ final class MainMenu extends MenuBar {
 			this.aboutDialog.setResizable(true);
 			this.aboutDialog.setScene(WindowHelper.createSceneWithOwnerCss(pneAbout, owner));
 			this.context.attachZoomHandler(this.aboutDialog.getScene());
+			this.context.attachAccentHandler(this.aboutDialog.getScene());
 			WindowHelper.setIcons(this.aboutDialog);
 		}
 		

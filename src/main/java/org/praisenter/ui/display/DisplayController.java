@@ -32,16 +32,17 @@ import org.praisenter.ui.song.SongNavigationPane;
 import org.praisenter.ui.translations.Translations;
 import org.praisenter.utility.StringManipulator;
 
+import atlantafx.base.theme.Styles;
 import javafx.animation.PauseTransition;
 import javafx.animation.Transition;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.DoubleBinding;
-import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
+import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
@@ -85,7 +86,7 @@ public final class DisplayController extends BorderPane {
 	private final GlobalContext context;
 	private final DisplayTarget target;
 	
-	private final DoubleProperty leftMaxWidth;
+	private final DoubleBinding leftMaxWidth;
 	private final DoubleBinding slidePreviewMaxHeight;
 	
 	private final ObservableList<Slide> slides;
@@ -195,11 +196,16 @@ public final class DisplayController extends BorderPane {
 		VBox right = new VBox();
 		right.getStyleClass().add(DISPLAY_CONTROLLER_RIGHT_CSS);
 		
-		this.leftMaxWidth = right.maxWidthProperty();
+		this.leftMaxWidth = Bindings.createDoubleBinding(() -> {
+			// NOTE: the "-1" here is to account for rounding errors when showing the image view
+			return Math.floor(right.getMaxWidth()) - 1;
+		}, right.maxWidthProperty());
+//		this.leftMaxWidth = right.maxWidthProperty();
 		this.slidePreviewMaxHeight = this.leftMaxWidth.divide(configuration.widthProperty()).multiply(configuration.heightProperty());
 		
 		ImageView screen = new ImageView(image);
 		screen.fitWidthProperty().bind(this.leftMaxWidth);
+		screen.fitHeightProperty().bind(this.slidePreviewMaxHeight);
 		screen.setPreserveRatio(true);
 		
 		SlideView slideView = new SlideView(context);
@@ -355,6 +361,7 @@ public final class DisplayController extends BorderPane {
 		});
 
 		StackPane stkSlideView = new StackPane(screen, slideView, notificationView);
+		stkSlideView.setAlignment(Pos.TOP_LEFT);
 		
 		GridPane layout = new GridPane();
 		layout.getStyleClass().add(DISPLAY_CONTROLLER_BTN_GRID_CSS);
@@ -392,11 +399,6 @@ public final class DisplayController extends BorderPane {
 		VBox.setVgrow(lstSlideQueue, Priority.ALWAYS);
 		VBox.setVgrow(tabs, Priority.ALWAYS);
 		
-//		right.visibleProperty().bind(target.getDisplay().activeProperty());
-//		right.managedProperty().bind(right.visibleProperty());
-//		left.visibleProperty().bind(target.getDisplay().activeProperty());
-//		left.managedProperty().bind(lstSlideQueue.visibleProperty());
-		
 		// HEADER layout
 		
 		Label lblHeader = new Label();
@@ -407,16 +409,15 @@ public final class DisplayController extends BorderPane {
 			return name;
 		}, configuration.nameProperty(), configuration.defaultNameProperty()));
 		
-		lblHeader.getStyleClass().add(DISPLAY_CONTROLLER_NAME_CSS);
+		lblHeader.getStyleClass().addAll(Styles.TITLE_3, DISPLAY_CONTROLLER_NAME_CSS);
 		
 		HBox spacer = new HBox();
 		spacer.setMaxWidth(Double.MAX_VALUE);
-		HBox headerBtns = new HBox(lblHeader, spacer, mnuActions);
-		headerBtns.getStyleClass().add(DISPLAY_CONTROLLER_HEADER_CSS);
+		HBox header = new HBox(lblHeader, spacer, mnuActions);
+		header.getStyleClass().add(DISPLAY_CONTROLLER_HEADER_CSS);
 		HBox.setHgrow(spacer, Priority.ALWAYS);
-//		HBox.setHgrow(mnuDisplayRole, Priority.NEVER);
 		
-		this.setTop(headerBtns);
+		this.setTop(header);
 		this.setCenter(body);
 
 		configuration.activeProperty().addListener((obs, ov, nv) -> {

@@ -134,6 +134,11 @@ public final class Constants {
 	/** The path to the icon styles file on the classpath */
 	public static final String STYLES_ICONS_ON_CLASSPATH = "/org/praisenter/styles/" + Constants.STYLES_ICONS_FILENAME;
 	
+	/** The accent styles file name */
+	public static final String STYLES_ACCENT_FILENAME = "accent.css";
+	
+	/** The path to the accent styles file on the classpath */
+	public static final String STYLES_ACCENT_ON_CLASSPATH = "/org/praisenter/styles/" + Constants.STYLES_ACCENT_FILENAME;
 	
 	///////////////////////////
 	// OTHER

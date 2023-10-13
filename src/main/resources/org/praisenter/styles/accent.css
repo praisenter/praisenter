@@ -1,0 +1,195 @@
+.root:p-color-accent-purple {
+    -color-accent-0: #fbefff;
+    -color-accent-1: #ecd8ff;
+    -color-accent-2: #d8b9ff;
+    -color-accent-3: #c297ff;
+    -color-accent-4: #a475f9;
+    -color-accent-5: #8250df;
+    -color-accent-6: #6639ba;
+    -color-accent-7: #512a97;
+    -color-accent-8: #3e1f79;
+    -color-accent-9: #2e1461;
+    -color-accent-fg: #8250df;
+    -color-accent-emphasis: #8250df;
+    -color-accent-muted: rgba(194, 151, 255, 0.4);/*#c297ff; $alpha: 0.4);*/
+    -color-accent-subtle: #fbefff;
+}
+
+.root:p-color-accent-pink {
+    -color-accent-0: #ffeff7;
+    -color-accent-1: #ffd3eb;
+    -color-accent-2: #ffadda;
+    -color-accent-3: #ff80c8;
+    -color-accent-4: #e85aad;
+    -color-accent-5: #bf3989;
+    -color-accent-6: #99286e;
+    -color-accent-7: #772057;
+    -color-accent-8: #611347;
+    -color-accent-9: #4d0336;
+    -color-accent-fg:       #bf3989;
+    -color-accent-emphasis: #bf3989;
+    -color-accent-muted:    rgba(255, 128, 200, 0.4); /*#ff80c8;, $alpha: 0.4);*/
+    -color-accent-subtle:   #ffeff7;
+}
+
+.root:p-color-accent-coral {
+    -color-accent-0: #fff0eb;
+  -color-accent-1: #ffd6cc;
+  -color-accent-2: #ffb4a1;
+  -color-accent-3: #fd8c73;
+  -color-accent-4: #ec6547;
+  -color-accent-5: #c4432b;
+  -color-accent-6: #9e2f1c;
+  -color-accent-7: #801f0f;
+  -color-accent-8: #691105;
+  -color-accent-9: #510901;
+  -color-accent-fg:       #c4432b;
+  -color-accent-emphasis: #c4432b;
+  -color-accent-muted:    rgba(253, 140, 115, 0.4);/*#fd8c73;, $alpha: 0.4);*/
+  -color-accent-subtle:   #fff0eb;
+}
+
+.root:p-color-accent-green {
+    -color-accent-0: #eafaed;
+    -color-accent-1: #c3f2ce;
+    -color-accent-2: #90e6a7;
+    -color-accent-3: #43d979;
+    -color-accent-4: #00cc41;
+    -color-accent-5: #00a11e;
+    -color-accent-6: #007a14;
+    -color-accent-7: #005d0d;
+    -color-accent-8: #004508;
+    -color-accent-9: #003004;
+    -color-accent-fg: #00a11e;
+    -color-accent-emphasis: #00a11e;
+    -color-accent-muted: rgba(26, 85, 47, 0.4);
+    -color-accent-subtle: #eafaed;
+}
+
+.root:p-color-accent-gold {
+    -color-accent-0: #ffef8b;
+    -color-accent-1: #ffeb6a;
+    -color-accent-2: #ffe541;
+    -color-accent-3: #ffdf12;
+    -color-accent-4: #e0c200;
+    -color-accent-5: #a89100;
+    -color-accent-6: #806f00;
+    -color-accent-7: #625500;
+    -color-accent-8: #4b4100;
+    -color-accent-9: #372f00;
+    -color-accent-fg: #a89100;
+    -color-accent-emphasis: #a89100;
+    -color-accent-muted: rgba(66, 57, 0, 0.4);/*#c297ff; $alpha: 0.4);*/
+    -color-accent-subtle: #fffadf;
+}
+
+.root:p-color-accent-purple-dark {
+    -color-accent-0: #eddeff;
+    -color-accent-1: #e2c5ff;
+    -color-accent-2: #d2a8ff;
+    -color-accent-3: #bc8cff;
+    -color-accent-4: #a371f7;
+    -color-accent-5: #8957e5;
+    -color-accent-6: #6e40c9;
+    -color-accent-7: #553098;
+    -color-accent-8: #3c1e70;
+    -color-accent-9: #271052;
+    -color-accent-fg:       #bc8cff;
+    -color-accent-emphasis: #8957e5;
+    -color-accent-muted:    rgba(163, 113, 247, 0.4);/*#a371f7, $alpha: 0.4);*/
+    -color-accent-subtle:   rgba(163, 113, 247, 0.15);/*#a371f7, $alpha: 0.15);*/
+}
+
+.root:p-color-accent-pink-dark {
+    -color-accent-0: #ffdaec;
+    -color-accent-1: #ffbedd;
+    -color-accent-2: #ff9bce;
+    -color-accent-3: #f778ba;
+    -color-accent-4: #db61a2;
+    -color-accent-5: #bf4b8a;
+    -color-accent-6: #9e3670;
+    -color-accent-7: #7d2457;
+    -color-accent-8: #5e103e;
+    -color-accent-9: #42062a;
+    -color-accent-fg:       #f778ba;
+    -color-accent-emphasis: #bf4b8a;
+    -color-accent-muted:    rgba(219, 97, 162, 0.4);/*#db61a2, $alpha: 0.4);*/
+    -color-accent-subtle:   rgba(219, 97, 162, 0.15);/*#db61a2, $alpha: 0.15);*/
+}
+
+.root:p-color-accent-coral-dark {
+    -color-accent-0: #ffddd2;
+  -color-accent-1: #ffc2b2;
+  -color-accent-2: #ffa28b;
+  -color-accent-3: #f78166;
+  -color-accent-4: #ea6045;
+  -color-accent-5: #cf462d;
+  -color-accent-6: #ac3220;
+  -color-accent-7: #872012;
+  -color-accent-8: #640d04;
+  -color-accent-9: #460701;
+  -color-accent-fg:       #f78166;
+  -color-accent-emphasis: #cf462d;
+  -color-accent-muted:    rgba(234, 96, 69, 0.4); /*#ea6045 $alpha: 0.4);*/
+  -color-accent-subtle:   rgba(234, 96, 69, 0.15);/*#ea6045, $alpha: 0.15);*/
+}
+
+.root:p-color-accent-green-dark {
+    -color-accent-0: #ccf3d6;
+    -color-accent-1: #a5ebb7;
+    -color-accent-2: #72e092;
+    -color-accent-3: #1ad569;
+    -color-accent-4: #00ca3a;
+    -color-accent-5: #00ac21;
+    -color-accent-6: #008716;
+    -color-accent-7: #00660f;
+    -color-accent-8: #004307;
+    -color-accent-9: #002602;
+    -color-accent-fg: #1ad569;
+    -color-accent-emphasis: #00ac21;
+    -color-accent-muted: rgba(0, 79, 23, 0.4);
+    -color-accent-subtle: rgba(0, 79, 23, 0.5);
+}
+
+.root:p-color-accent-gold-dark {
+    -color-accent-0: #ffec72;
+    -color-accent-1: #ffe851;
+    -color-accent-2: #ffe22b;
+    -color-accent-3: #ffdd04;
+    -color-accent-4: #dbbd00;
+    -color-accent-5: #b39b00;
+    -color-accent-6: #8c7900;
+    -color-accent-7: #6b5c00;
+    -color-accent-8: #483f00;
+    -color-accent-9: #2d2700;
+    -color-accent-fg: #ffdd04;
+    -color-accent-emphasis: #b39b00;
+    -color-accent-muted: rgba(70, 61, 0, 0.4);
+    -color-accent-subtle: rgba(70, 61, 0, 0.6);
+}
+
+.p-color-accent-blue { -color-accent: #0969da; }
+.p-color-accent-purple { -color-accent: #8250df; }
+.p-color-accent-pink { -color-accent: #bf3989; }
+.p-color-accent-coral { -color-accent: #c4432b; } 
+.p-color-accent-green { -color-accent: #00a11e; }
+.p-color-accent-gold { -color-accent: #a89100; }
+
+.p-color-accent-blue-dark { -color-accent: #1f6feb; }
+.p-color-accent-purple-dark { -color-accent: #8957e5; }
+.p-color-accent-pink-dark { -color-accent: #bf4b8a; }
+.p-color-accent-coral-dark { -color-accent: #cf462d; }
+.p-color-accent-green-dark { -color-accent: #00ac21; }
+.p-color-accent-gold-dark { -color-accent: #b39b00; }
+
+.p-color-accent-block {
+    -w: 1em;
+    -h: 1em;
+    -fx-background-color: -color-accent;
+    -fx-min-width: -w;
+    -fx-max-width: -w;
+    -fx-pref-width: -w;
+    -fx-min-height: -h;
+    -fx-max-height: -h;
+    -fx-pref-height: -h;
+}

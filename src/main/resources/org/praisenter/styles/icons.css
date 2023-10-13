@@ -136,6 +136,16 @@
 	-icon-info: "M460-300h40v-220h-40v220Zm20-276.923q10.462 0 17.539-7.077 7.076-7.077 7.076-17.539 0-10.461-7.076-17.538-7.077-7.077-17.539-7.077-10.462 0-17.539 7.077-7.076 7.077-7.076 17.538 0 10.462 7.076 17.539 7.077 7.077 17.539 7.077ZM480.134-120q-74.673 0-140.41-28.339-65.737-28.34-114.365-76.922-48.627-48.582-76.993-114.257Q120-405.194 120-479.866q0-74.673 28.339-140.41 28.34-65.737 76.922-114.365 48.582-48.627 114.257-76.993Q405.194-840 479.866-840q74.673 0 140.41 28.339 65.737 28.34 114.365 76.922 48.627 48.582 76.993 114.257Q840-554.806 840-480.134q0 74.673-28.339 140.41-28.34 65.737-76.922 114.365-48.582 48.627-114.257 76.993Q554.806-120 480.134-120ZM480-160q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z";
 	/*https://fonts.google.com/icons?selected=Material%20Symbols%20Outlined%3Aadd%3AFILL%400%3Bwght%40200%3BGRAD%400%3Bopsz%4024*/
 	-icon-new: "M421-421H206v-118h215v-215h118v215h215v118H539v215H421v-215Z";
+	/*https://github.com/Templarian/MaterialDesign/blob/master/svg/arrange-bring-forward.svg*/
+	-icon-forward: "M2,2H16V16H2V2M22,8V22H8V18H10V20H20V10H18V8H22Z";
+	/*https://github.com/Templarian/MaterialDesign/blob/master/svg/arrange-send-backward.svg*/
+	-icon-backward: "M2,2H16V16H2V2M22,8V22H8V18H18V8H22M4,4V14H14V4H4Z";
+	/*https://github.com/Templarian/MaterialDesign/blob/master/svg/arrange-bring-to-front.svg*/
+	-icon-to-front: "M2,2H11V6H9V4H4V9H6V11H2V2M22,13V22H13V18H15V20H20V15H18V13H22M8,8H16V16H8V8Z";
+	/*https://github.com/Templarian/MaterialDesign/blob/master/svg/arrange-send-to-back.svg*/
+	-icon-to-back: "M2,2H11V11H2V2M9,4H4V9H9V4M22,13V22H13V13H22M15,20H20V15H15V20M16,8V11H13V8H16M11,16H8V13H11V16Z";
+	/*https://fonts.google.com/icons?selected=Material%20Symbols%20Outlined%3Aclose%3AFILL%400%3Bwght%40200%3BGRAD%400%3Bopsz%4024*/
+	-icon-close: "M256-227.692 227.692-256l224-224-224-224L256-732.308l224 224 224-224L732.308-704l-224 224 224 224L704-227.692l-224-224-224 224Z";
 }
 
 .p-icon-container {
@@ -223,77 +233,22 @@
 .p-icon-verse-add { -fx-shape: -icon-verse-add; }
 .p-icon-update { -fx-shape: -icon-update; }
 .p-icon-info { -fx-shape: -icon-info; }
+.p-icon-forward { -fx-shape: -icon-forward; }
+.p-icon-backward { -fx-shape: -icon-backward; }
+.p-icon-to-front { -fx-shape: -icon-to-front; }
+.p-icon-to-back { -fx-shape: -icon-to-back; }
+.p-icon-close { -fx-shape: -icon-close; }
 
-.p-icon-error,
-.p-icon-success,
-.p-icon-pending,
-.p-icon-bible,
-.p-icon-bible-add,
-.p-icon-book,
-.p-icon-book-add,
-.p-icon-bookmark,
-.p-icon-bookmark-add,
-.p-icon-song,
-.p-icon-song-add,
-.p-icon-lyrics,
-.p-icon-lyrics-add,
-.p-icon-user,
-.p-icon-user-add,
-.p-icon-tag,
-.p-icon-textsize,
-.p-icon-textformat,
-.p-icon-halignleft,
-.p-icon-halignright,
-.p-icon-haligncenter,
-.p-icon-halignjustify,
-.p-icon-valigntop,
-.p-icon-valigncenter,
-.p-icon-valignbottom,
-.p-icon-save,
-.p-icon-saveall,
-.p-icon-rename,
-.p-icon-delete,
-.p-icon-copy,
-.p-icon-cut,
-.p-icon-paste,
-.p-icon-undo,
-.p-icon-redo,
-.p-icon-import,
-.p-icon-export,
-.p-icon-sortasc,
-.p-icon-sortdesc,
-.p-icon-renumber,
-.p-icon-reorder,
-.p-icon-selectall,
-.p-icon-selectnone,
-.p-icon-selectinvert,
-.p-icon-play,
-.p-icon-pause,
-.p-icon-stop,
-.p-icon-mute,
-.p-icon-volume,
-.p-icon-search,
-.p-icon-desktop,
-.p-icon-desktop-add,
-.p-icon-layers,
-.p-icon-pencil,
-.p-icon-gear,
-.p-icon-timer,
-.p-icon-timer-add,
-.p-icon-calendar,
-.p-icon-calendar-add,
-.p-icon-media,
-.p-icon-media-add,
-.p-icon-text,
-.p-icon-text-add,
-.p-icon-placeholder,
-.p-icon-placeholder-add,
-.p-icon-history,
-.p-icon-verse,
-.p-icon-verse-add,
-.p-icon-update,
-.p-icon-info {
+.p-icon {
 	-fx-background-color: -color-fg-default;
+}
+.menu-item:hover .p-icon {
+	/** This works by taking the fill color from .font-icon */
+	-fx-background-color: -fx-fill;
+}
+.menu-item:focused .p-icon {
+	/** This works by taking the fill color from .font-icon */
+	-fx-background-color: -fx-fill;
 }
 
 /*
@@ -765,6 +720,25 @@
 .p-icon-update {
 	-w: 1.137928571428571em; 
 	-h: 1.142857142857143em;
+    -fx-max-height: -h; -fx-min-height: -h; -fx-pref-height: -h;
+    -fx-pref-width: -w; -fx-min-width: -w; -fx-max-width: -w;
+}
+
+/** w:20, h:20 */
+.p-icon-forward,
+.p-icon-backward,
+.p-icon-to-front,
+.p-icon-to-back {
+	-w: 1.428571428571429em; 
+	-h: 1.428571428571429em;
+    -fx-max-height: -h; -fx-min-height: -h; -fx-pref-height: -h;
+    -fx-pref-width: -w; -fx-min-width: -w; -fx-max-width: -w;
+}
+
+/** w:12.615, h:12.615 */
+.p-icon-close {
+	-w: 0.9010714285714286em; 
+	-h: 0.9010714285714286em;
     -fx-max-height: -h; -fx-min-height: -h; -fx-pref-height: -h;
     -fx-pref-width: -w; -fx-min-width: -w; -fx-max-width: -w;
 }

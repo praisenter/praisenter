@@ -18,20 +18,20 @@ public final class BibleTextSearchCriteria extends SearchCriteria {
 	private final UUID bibleId;
 	private final int bookNumber;
 	
-	public BibleTextSearchCriteria(String terms, SearchType type, int maxResults) {
-		this(terms, type, maxResults, null, -1);
+	public BibleTextSearchCriteria(String terms, SearchType type, boolean fuzzy, int maxResults) {
+		this(terms, type, fuzzy, maxResults, null, -1);
 	}
 	
-	public BibleTextSearchCriteria(String terms, SearchType type, int maxResults, int bookNumber) {
-		this(terms, type, maxResults, null, bookNumber);
+	public BibleTextSearchCriteria(String terms, SearchType type, boolean fuzzy, int maxResults, int bookNumber) {
+		this(terms, type, fuzzy, maxResults, null, bookNumber);
 	}
 	
-	public BibleTextSearchCriteria(String terms, SearchType type, int maxResults, UUID bibleId) {
-		this(terms, type, maxResults, bibleId, -1);
+	public BibleTextSearchCriteria(String terms, SearchType type, boolean fuzzy, int maxResults, UUID bibleId) {
+		this(terms, type, fuzzy, maxResults, bibleId, -1);
 	}
 	
-	public BibleTextSearchCriteria(String terms, SearchType type, int maxResults, UUID bibleId, int bookNumber) {
-		super(Indexable.FIELD_TEXT, terms, type, maxResults);
+	public BibleTextSearchCriteria(String terms, SearchType type, boolean fuzzy, int maxResults, UUID bibleId, int bookNumber) {
+		super(Indexable.FIELD_TEXT, terms, type, fuzzy, maxResults);
 		this.bibleId = bibleId;
 		this.bookNumber = bookNumber;
 	}

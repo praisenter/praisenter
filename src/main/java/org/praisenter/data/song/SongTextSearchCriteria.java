@@ -13,8 +13,8 @@ import org.praisenter.data.search.SearchCriteria;
 import org.praisenter.data.search.SearchType;
 
 public final class SongTextSearchCriteria extends SearchCriteria {
-	public SongTextSearchCriteria(String terms, SearchType type, int maxResults) {
-		super(Indexable.FIELD_TEXT, terms, type, maxResults);
+	public SongTextSearchCriteria(String terms, SearchType type, boolean fuzzy, int maxResults) {
+		super(Indexable.FIELD_TEXT, terms, type, fuzzy, maxResults);
 	}
 	
 	@Override

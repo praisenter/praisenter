@@ -28,20 +28,6 @@
     -fx-border-width: 0 0 1 0;
 }
 
-/** tree/list cell hover/selected styles */
-.tree-view .tree-cell:hover,
-.list-view .list-cell:hover {
-	-fx-background-color: -color-neutral-subtle;
-}
-.tree-view .tree-cell:selected,
-.list-view .list-cell:selected {
-	-fx-background-color: -color-neutral-muted;
-}
-.tree-view .tree-cell:empty:hover,
-.list-view .list-cell:empty:hover {
-	-fx-background-color: null;
-}
-
 .menu-item > .graphic-container {
     -fx-padding: 0em 0.6em 0em 0em;
 }
@@ -105,7 +91,7 @@
 .p-search-highlight {
 	-fx-font-weight: bold;
 	-fx-underline: true;
-	-fx-fill: -color-accent-emphasis;
+	-fx-fill: -color-accent-fg;
 }
 
 /* the verse number in the bible tree editor UI */
@@ -266,6 +252,9 @@
 
 /** LIBRARY LIST */
 .p-library-list {}
+.p-library-list .p-library-list-search {
+	-fx-pref-width: 300;
+}
 .p-library-list .p-flow-list-view .viewport {}
 .p-library-list .p-flow-list-view-tiles {}
 .p-library-list-right {
@@ -280,9 +269,10 @@
 	-fx-max-width: 2em;
 	-fx-pref-width: 1.5em;
 }
+/* NOTE: static widths here was better even with font-size based zoom */
 .p-library-list-cell {
 	-fx-alignment: top-center;
-	-fx-pref-width: 110;
+	-fx-pref-width: 130;
 }
 .p-library-list-cell-graphic {
 	-fx-alignment: bottom-center;
@@ -348,7 +338,109 @@
 	-fx-stroke: -color-fg-default;
 }
 
+/* DISPLAY CONTROLLER */
+.p-display-controllers {
+	-fx-spacing: 0.8em;
+	-fx-padding: 0.8em;
+}
+.p-display-controllers-add-container {
+	-fx-padding: 1.3em 0em;
+}
 
+.p-display-controller {
+	-fx-min-width: 52em;
+	-fx-padding: 0;
+}
+.p-display-controller-header {
+	-fx-spacing: 0.5em;
+	-fx-padding: 0.5em;
+}
+.p-display-controller-name {}
+.p-display-controller-left,
+.p-display-controller-right {
+	-fx-spacing: 0.5em;
+}
+.p-display-controller-right {
+	-fx-max-width: 34em;
+}
+.p-display-controller-chk-row {
+	-fx-spacing: 0.5em;
+}
+.p-display-controller-btn-grid {
+	-fx-vgap: 0.5em;
+	-fx-hgap: 0.5em;
+}
+.p-display-controller-tabs {}
+.p-display-controller-tab {
+	-fx-padding: 0.5em 0 0 0;
+	-fx-spacing: 0.5em;
+}
+/* override the seach text bar length on the display controller */
+.p-display-controller .p-library-list .p-library-list-search {
+	-w: 32em;
+	-fx-pref-width: -w;
+	-fx-min-width: -w;
+	-fx-max-width: -w;
+}
+
+/* SLIDE LIST */
+.p-slide-list {
+	-fx-pref-width: 17em; /* ~200px */
+}
+.p-slide-list-cell {
+	-fx-alignment: CENTER;
+	-fx-padding: 0.5em 0 0.8em 0;
+	-fx-pref-width: 14em;
+	-fx-cell-size: null;
+}
+.p-slide-list-cell-slide-view {
+	-fx-pref-width: 14.45em; /* ~170px */
+	-fx-pref-height: 7.65em; /* ~90px */
+}
+
+/* BIBLE NAVIGATION (CONTROLLER) */
+.p-bible-nav {
+	-fx-hgap: 0.5em;
+	-fx-vgap: 0.5em;
+}
+.p-bible-nav .p-icon-error {
+	-fx-background-color: -color-danger-fg;
+}
+
+/* SONG NAVIGATION (CONTROLLER) */
+.p-song-nav {
+	-fx-spacing: 2em;
+}
+.p-song-nav-lyric-selection {
+	-fx-hgap: 0.5em;
+	-fx-vgap: 0.5em;
+}
+.p-song-nav-sections {
+	-fx-hgap: 0.5em;
+	-fx-vgap: 0.5em;
+}
+
+/* SEARCH MODALS */
+.p-bible-search,
+.p-song-search {
+	-fx-spacing: 0.5em;
+	-fx-padding: 0.5em;
+}
+.p-bible-search-criteria,
+.p-song-search-criteria {
+	-fx-spacing: 0.5em;
+	-fx-hgap: 0.5em;
+	-fx-vgap: 0.5em;
+}
+.p-bible-search .p-bible-search-card,
+.p-song-search .p-song-search-card {
+	-fx-padding: 0.5em 1em;
+}
+.p-bible-search .p-bible-search-card-selected,
+.p-song-search .p-song-search-card-selected {
+	-fx-border-color: -color-accent-emphasis;
+	-fx-border-width: 0 3 0 0;
+}
 
 
 
@@ -478,7 +570,7 @@
     -fx-border-insets: 0;
     -fx-border-radius: 0;
 }
-.p-tab-navigation .tab-content-area {
+.p-tab-navigation > .tab-content-area {
 	-fx-border-width: 0 0 0 1;
 	-fx-border-color: -color-border-muted;
 	-fx-min-width: 0;
@@ -518,104 +610,6 @@
 	-fx-shape: -icon-pencil;
 }
 
-/* SLIDE LIST */
-.p-slide-list {
-	-fx-pref-width: 17em; /* ~200px */
-}
-.p-slide-list-cell {
-	-fx-alignment: CENTER;
-	-fx-padding: 0.5em 0 0.8em 0;
-	-fx-pref-width: 14em;
-	-fx-cell-size: null;
-}
-.p-slide-list-cell-slide-view {
-	-fx-pref-width: 14.45em; /* ~170px */
-	-fx-pref-height: 7.65em; /* ~90px */
-}
-
-/* DISPLAY CONTROLLER */
-.p-display-controllers {
-	-fx-spacing: 0.8em;
-	-fx-padding: 0.8em;
-}
-.p-display-controllers-add-container {
-	-fx-padding: 1.3em 0.5em;
-}
-
-.p-display-controller {
-	-fx-min-width: 48em;
-	-fx-padding: 0;
-}
-.p-display-controller-header {
-	-fx-spacing: 0.5em;
-	-fx-padding: 0.5em;
-}
-.p-display-controller-name {
-	-fx-font-size: 1.5em;
-}
-.p-display-controller-left,
-.p-display-controller-right {
-	-fx-spacing: 0.5em;
-}
-.p-display-controller-right {
-	-fx-max-width: 30em;
-}
-.p-display-controller-chk-row {
-	-fx-spacing: 0.5em;
-}
-.p-display-controller-btn-grid {
-	-fx-vgap: 0.5em;
-	-fx-hgap: 0.5em;
-	-fx-padding: 0 0 0 0.5em;
-}
-.p-display-controller-tabs {
-	-fx-padding: 0 0 0 0.5em;
-}
-.p-display-controller-tabs > .tab-header-area {
-	-fx-padding: 0.5em 0 0 0;
-}
-.p-display-controller-tabs > .tab-header-area > .headers-region > .tab {
-	-fx-padding: 0.25em 1.5em;
-}
-.p-display-controller-tab {
-	-fx-padding: 0.5em 0 0 0;
-	-fx-spacing: 0.5em;
-}
-
-/* BIBLE NAVIGATION (CONTROLLER) */
-.p-bible-nav {
-	-fx-hgap: 0.5em;
-	-fx-vgap: 0.5em;
-}
-.p-bible-nav .p-icon-error {
-	-fx-background-color: -color-danger-fg;
-}
-
-/* SONG NAVIGATION (CONTROLLER) */
-.p-song-nav {
-	-fx-spacing: 2em;
-}
-.p-song-nav-lyric-selection {
-	-fx-hgap: 0.5em;
-	-fx-vgap: 0.5em;
-}
-.p-song-nav-sections {
-	-fx-hgap: 0.5em;
-	-fx-vgap: 0.5em;
-}
-
-/* SEARCH MODALS */
-.p-bible-search,
-.p-song-search {
-	-fx-spacing: 0.5em;
-	-fx-padding: 0.5em;
-}
-.p-bible-search-criteria,
-.p-song-search-criteria {
-	-fx-spacing: 0.5em;
-	-fx-hgap: 0.5em;
-	-fx-vgap: 0.5em;
-}
 
 /* SELECTION EDITOR */
 .p-selection-editor {

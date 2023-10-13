@@ -18,8 +18,6 @@ import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.config.LoggerConfig;
 import org.apache.logging.log4j.core.config.xml.XmlConfigurationFactory;
-import org.controlsfx.glyphfont.FontAwesome;
-import org.controlsfx.glyphfont.GlyphFontRegistry;
 import org.praisenter.Constants;
 import org.praisenter.Version;
 import org.praisenter.async.AsyncHelper;
@@ -29,14 +27,14 @@ import org.praisenter.data.workspace.WorkspaceManager;
 import org.praisenter.data.workspace.Workspaces;
 import org.praisenter.ui.controls.Dialogs;
 import org.praisenter.ui.controls.WindowHelper;
-import org.praisenter.ui.fonts.OpenIconic;
 import org.praisenter.ui.themes.StyleSheets;
-import org.praisenter.ui.themes.Themes;
+import org.praisenter.ui.themes.Theming;
 import org.praisenter.ui.translations.Translations;
 import org.praisenter.ui.upgrade.InstallUpgradeHandler;
 import org.praisenter.ui.upgrade.UpgradeChecker;
 import org.praisenter.utility.RuntimeProperties;
 
+import atlantafx.base.theme.PrimerDark;
 import javafx.animation.Animation;
 import javafx.animation.FadeTransition;
 import javafx.animation.PauseTransition;
@@ -166,11 +164,6 @@ public final class LifecycleHandler {
     	
     	// icons
     	WindowHelper.setIcons(stage);
-    	
-		// load fonts
-    	LOGGER.info("Loading glyph fonts.");
-    	GlyphFontRegistry.register(new FontAwesome(Praisenter.class.getResourceAsStream("/org/praisenter/fonts/fontawesome-webfont.ttf")));
-		GlyphFontRegistry.register(new OpenIconic(Praisenter.class.getResourceAsStream("/org/praisenter/fonts/open-iconic.ttf")));
 
 		// load the workspaces file
 		LOGGER.info("Reading workspaces file.");
@@ -372,18 +365,31 @@ public final class LifecycleHandler {
     		// build the loading UI
     		LoadingPane loadingPane = new LoadingPane(context, installer);
     		StackPane layout = new StackPane(loadingPane);
-    		
-    		// set the theme
-    		var theme = Themes.getTheme(configuration.getThemeName());
-    		if (theme != null) {
-    			Application.setUserAgentStylesheet(theme.getUserAgentStylesheet());
-    		}
-    		
     		Scene mainScene = new Scene(layout);
     		
+    		// default the theme
+    		LOGGER.info("Setting up the current theme");
+    		var theme = Theming.getTheme(configuration.getThemeName());
+    		if (theme != null) {
+    			LOGGER.info("Setting theme to '" + theme.getTheme().getName() + "'");
+    			Application.setUserAgentStylesheet(theme.getTheme().getUserAgentStylesheet());
+    		} else {
+    			// default to PrimerDark
+    			Application.setUserAgentStylesheet(new PrimerDark().getUserAgentStylesheet());
+    		}
+
     		// use the styles
+    		LOGGER.info("Loading custom stylesheets");
 			StyleSheets.apply(mainScene);
 			
+    		// set the accent color
+			LOGGER.info("Setting up the current accent color");
+    		var accent = Theming.getAccent(configuration.getAccentName());
+    		if (accent != null && !accent.getPseudoClass().getPseudoClassName().startsWith("p-color-accent-default")) {
+    			LOGGER.info("Setting accent colors to '" + accent.getPseudoClass().getPseudoClassName() + "'");
+    			layout.pseudoClassStateChanged(accent.getPseudoClass(), true);
+    		}
+    		
     		stage.setScene(mainScene);
     		stage.show();
     		

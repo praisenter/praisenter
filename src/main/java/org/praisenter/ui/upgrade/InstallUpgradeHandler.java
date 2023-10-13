@@ -143,6 +143,11 @@ public final class InstallUpgradeHandler {
 				Constants.STYLES_ICONS_FILENAME, 
 				Constants.STYLES_ICONS_ON_CLASSPATH,
 				isUpgrade);
+		this.installOrUpgradeClasspathFile(
+				Constants.STYLES_ABSOLUTE_PATH, 
+				Constants.STYLES_ACCENT_FILENAME, 
+				Constants.STYLES_ACCENT_ON_CLASSPATH,
+				isUpgrade);
 	}
 	
 	private void installOrUpgradeClasspathFile(String filePath, String fileName, String classpathPath, boolean isUpgrade) {
