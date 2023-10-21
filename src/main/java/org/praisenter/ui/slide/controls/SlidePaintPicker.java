@@ -14,7 +14,8 @@ import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.Option;
 import org.praisenter.ui.bind.BindingHelper;
 import org.praisenter.ui.bind.ObjectConverter;
-import org.praisenter.ui.controls.FormFieldSection;
+import org.praisenter.ui.controls.EditorField;
+import org.praisenter.ui.controls.EditorFieldGroup;
 import org.praisenter.ui.slide.convert.PaintConverter;
 import org.praisenter.ui.translations.Translations;
 
@@ -26,7 +27,7 @@ import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.paint.Color;
 
-public final class SlidePaintPicker extends FormFieldSection {
+public final class SlidePaintPicker extends EditorFieldGroup {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
 	private final ObjectProperty<SlidePaint> value;
@@ -44,7 +45,6 @@ public final class SlidePaintPicker extends FormFieldSection {
 			boolean allowImage,
 			boolean allowVideo,
 			String label) {
-		super(null);
 		this.value = new SimpleObjectProperty<>();
 		
 		this.type = new SimpleObjectProperty<>(PaintType.NONE);
@@ -82,29 +82,36 @@ public final class SlidePaintPicker extends FormFieldSection {
 			allowed = new MediaType[] { MediaType.VIDEO };
 		}
 		
-		int fIndex = this.addField(label, cbType);
-		this.addField(Translations.get("slide.paint." + PaintType.COLOR), pkrColor);
-		this.addSubSection(pkrGradient);
+		EditorField fldType = new EditorField(label, cbType);
+		
+		EditorField fldColor = new EditorField(Translations.get("slide.paint." + PaintType.COLOR), pkrColor);
+		fldColor.visibleProperty().bind(cbType.valueProperty().isEqualTo(new Option<PaintType>(null, PaintType.COLOR)));
+		fldColor.managedProperty().bind(fldColor.visibleProperty());
+		
+		EditorField fldGradient = new EditorField(pkrGradient);
+		fldGradient.visibleProperty().bind(cbType.valueProperty().isEqualTo(new Option<PaintType>(null, PaintType.GRADIENT)));
+		fldGradient.managedProperty().bind(fldGradient.visibleProperty());
 		
 		if (allowImage || allowVideo) {
 			MediaObjectPicker pkrMedia = new MediaObjectPicker(context, allowed);
 			pkrMedia.valueProperty().bindBidirectional(this.media);
-			this.addSubSection(pkrMedia);
+			
+			EditorField fldMedia = new EditorField(pkrMedia);
+			fldMedia.visibleProperty().bind(cbType.valueProperty().isEqualTo(new Option<PaintType>(null, PaintType.MEDIA)));
+			fldMedia.managedProperty().bind(fldMedia.visibleProperty());
+
+			this.getChildren().addAll(
+					fldType,
+					fldColor,
+					fldGradient,
+					fldMedia);
+			
+		} else {
+			this.getChildren().addAll(
+					fldType,
+					fldColor,
+					fldGradient);
 		}
-		
-		this.showRowsOnly(fIndex);
-		
-		this.type.addListener((obs, ov, nv) -> {
-			if (nv == null || nv == PaintType.NONE) {
-				this.showRowsOnly(fIndex);
-			} else if (nv == PaintType.COLOR) {
-				this.showRowsOnly(fIndex, fIndex + 1);
-			} else if (nv == PaintType.GRADIENT) {
-				this.showRowsOnly(fIndex, fIndex + 2);
-			} else if (nv == PaintType.MEDIA) {
-				this.showRowsOnly(fIndex, fIndex + 3);
-			}
-		});
 		
 		BindingHelper.bindBidirectional(this.type, this.value, new ObjectConverter<PaintType, SlidePaint>() {
 			@Override

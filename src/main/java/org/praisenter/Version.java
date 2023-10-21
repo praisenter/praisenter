@@ -2,7 +2,7 @@ package org.praisenter;
 
 public final class Version implements Comparable<Version> {
 	private static final int MAJOR = 3;
-	private static final int MINOR = 0;
+	private static final int MINOR = 1;
 	private static final int REVISION = 0;
 	
 	public static final Version VERSION = new Version(MAJOR, MINOR, REVISION);

@@ -1,8 +1,5 @@
 package org.praisenter.ui.pages;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-
 import org.praisenter.async.ReadOnlyBackgroundTask;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.translations.Translations;
@@ -14,9 +11,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SplitPane;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Callback;
 
@@ -41,88 +37,35 @@ public final class TaskListPage extends BorderPane {
             }
         });
 		taskList.setPlaceholder(new Label(Translations.get("task.empty")));
-		taskList.getStyleClass().addAll(TASKLIST_PAGE_LIST_CLASS, Tweaks.EDGE_TO_EDGE);//, Styles.STRIPED);
+		taskList.getStyleClass().addAll(TASKLIST_PAGE_LIST_CLASS, Tweaks.EDGE_TO_EDGE, Styles.STRIPED);
 		
 		Label lblTasks = new Label(Translations.get("task.page"));
 		lblTasks.getStyleClass().addAll(Styles.TITLE_3, TASKLIST_PAGE_TITLE_CLASS);
 		
-		Label lblTaskName = new Label(Translations.get("task.name"));
-		TextField txtTaskName = new TextField();
-		txtTaskName.setEditable(false);
-		txtTaskName.setPromptText(Translations.get("task.name"));
+		BackgroundTaskDetailPane taskDetail = new BackgroundTaskDetailPane();
 		
-		Label lblTaskStatus = new Label(Translations.get("task.status"));
-		TextField txtTaskStatus = new TextField();
-		txtTaskStatus.setEditable(false);
-		txtTaskStatus.setPromptText(Translations.get("task.status"));
-		
-		Label lblTaskDetail = new Label(Translations.get("task.detail"));
-		TextArea txtTaskDetail = new TextArea();
-		txtTaskDetail.setPromptText(Translations.get("task.detail"));
-		txtTaskDetail.setMinHeight(100);
-		txtTaskDetail.setPrefHeight(200);
-		txtTaskDetail.setEditable(false);
-		txtTaskDetail.setWrapText(true);
-		
-		Label lblTaskStack = new Label(Translations.get("task.stack"));
-		TextArea txtTaskStack = new TextArea();
-		txtTaskStack.setPromptText(Translations.get("task.stack"));
-		txtTaskStack.setEditable(false);
+		VBox right = new VBox(taskDetail);
+		right.getStyleClass().add(TASKLIST_PAGE_FIELDS_CLASS);
+		right.visibleProperty().bind(taskList.getSelectionModel().selectedItemProperty().isNotNull());
+		right.managedProperty().bind(right.visibleProperty());
 		
 		taskList.getSelectionModel().selectedItemProperty().addListener((obs, ov, nv) -> {
-			txtTaskName.setText(null);
-			txtTaskStatus.setText(null);
-			txtTaskDetail.setText(null);
-			txtTaskStack.setText(null);
-			txtTaskStatus.pseudoClassStateChanged(Styles.STATE_DANGER, false);
-			txtTaskStatus.pseudoClassStateChanged(Styles.STATE_SUCCESS, false);
-			txtTaskStatus.pseudoClassStateChanged(Styles.STATE_WARNING, false);
-			
-			if (nv != null) {
-				if (!nv.isComplete()) {
-					txtTaskStatus.setText(Translations.get("task.status.pending"));
-					txtTaskName.setText(nv.getName());
-					txtTaskDetail.setText(nv.getMessage());
-					txtTaskStatus.pseudoClassStateChanged(Styles.STATE_WARNING, true);
-				} else if (nv.isSuccess()) { 
-					txtTaskStatus.setText(Translations.get("task.status.success"));
-					txtTaskName.setText(nv.getName());
-					txtTaskDetail.setText(nv.getMessage());
-					txtTaskStatus.pseudoClassStateChanged(Styles.STATE_SUCCESS, true);
-				} else {
-					Throwable t = nv.getException();
-					if (t != null) {
-						StringWriter sw = new StringWriter();
-						PrintWriter pw = new PrintWriter(sw);
-						t.printStackTrace(pw);
-						txtTaskStack.setText(sw.toString());
-						txtTaskDetail.setText(t.getMessage());
-					} else {
-						txtTaskDetail.setText(nv.getMessage());
-					}
-					txtTaskStatus.setText(Translations.get("task.status.failed"));
-					txtTaskName.setText(nv.getName());
-					txtTaskStatus.pseudoClassStateChanged(Styles.STATE_DANGER, true);
-				}
-			}
+			taskDetail.setBackgroundTask(nv);
 		});
 		
 		// layout
 		
-		VBox right = new VBox(
-				lblTaskName, txtTaskName,
-				lblTaskStatus, txtTaskStatus,
-				lblTaskDetail, txtTaskDetail,
-				lblTaskStack, txtTaskStack);
-		right.getStyleClass().add(TASKLIST_PAGE_FIELDS_CLASS);
+		Label lblSelectTask = new Label(Translations.get("task.select"));
+		lblSelectTask.visibleProperty().bind(taskList.getSelectionModel().selectedItemProperty().isNull());
+		lblSelectTask.managedProperty().bind(lblSelectTask.visibleProperty());
+		lblSelectTask.setWrapText(true);
 		
-//		VBox top = new VBox(
-//				lblTasks, new Separator());
+		StackPane stackRight = new StackPane(lblSelectTask, right);
 		
-		SplitPane split = new SplitPane(taskList, right);
+		SplitPane split = new SplitPane(taskList, stackRight);
 		split.getStyleClass().add(TASKLIST_PAGE_SPLIT_CLASS);
-		split.setDividerPositions(0.60);
-		SplitPane.setResizableWithParent(right, false);
+		split.setDividerPositions(0.70);
+		SplitPane.setResizableWithParent(stackRight, false);
 		
 		this.setTop(lblTasks);
 		this.setCenter(split);

@@ -1,8 +1,6 @@
 package org.praisenter.ui.library;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.nio.file.Path;
 import java.text.Collator;
 import java.time.Instant;
@@ -15,15 +13,11 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
-import java.util.zip.ZipOutputStream;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.Constants;
 import org.praisenter.Editable;
-import org.praisenter.async.AsyncHelper;
-import org.praisenter.async.BackgroundTask;
-import org.praisenter.data.KnownFormat;
 import org.praisenter.data.Persistable;
 import org.praisenter.data.media.Media;
 import org.praisenter.ui.Action;
@@ -37,7 +31,6 @@ import org.praisenter.ui.controls.FastScrollPane;
 import org.praisenter.ui.controls.FlowListCell;
 import org.praisenter.ui.controls.FlowListSelectionModel;
 import org.praisenter.ui.controls.FlowListView;
-import org.praisenter.ui.document.DocumentContext;
 import org.praisenter.ui.events.ActionStateChangedEvent;
 import org.praisenter.ui.events.FlowListViewSelectionEvent;
 import org.praisenter.ui.translations.Translations;
@@ -539,44 +532,22 @@ public final class LibraryList extends BorderPane implements ActionPane {
 					Translations.get("action.confirm.delete"));
 			Optional<ButtonType> result = alert.showAndWait();
 			if (result.isPresent() && result.get() == ButtonType.OK) {
-				CompletableFuture<?>[] futures = new CompletableFuture<?>[n];
-				int i = 0;
-				for (Persistable item : items) {
-					
-					BackgroundTask task = new BackgroundTask();
-					task.setName(item.getName());
-					task.setMessage(Translations.get("action.delete.task", item.getName()));
-					this.context.addBackgroundTask(task);
-					
-					futures[i++] = this.context.getWorkspaceManager().delete(item).thenRun(() -> {
-						task.setProgress(1.0);
-					}).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
-						// close the document if its open
-						this.context.closeDocument(item);
-					})).exceptionally((t) -> {
-						LOGGER.error("Failed to delete item '" + item.getName() + "': " + t.getMessage(), t);
-						task.setException(t);
-						throw new CompletionException(t);
-					});
-				}
-				
-				
-				return CompletableFuture.allOf(futures).exceptionally((t) -> {
-					// log the exception
-					LOGGER.error("Failed to delete one or more items (see prior error logs for details)");
-					
-					// get the root exceptions from the futures
-					List<Throwable> exceptions = AsyncHelper.getExceptions(futures);
-					
-					// present them to the user
+				return this.context.delete(items).thenAccept((exceptions) -> {
+					if (exceptions != null && exceptions.size() > 0) {
+						Platform.runLater(() -> {
+							Alert errorAlert = Dialogs.exception(
+									this.context.getStage(), 
+									null, null,	null, 
+									exceptions);
+							errorAlert.show();
+						});
+					}
+				}).exceptionally((t) -> {
+					LOGGER.error("The bulk delete of the items failed: ", t);
 					Platform.runLater(() -> {
-						Alert errorAlert = Dialogs.exception(
-								this.context.getStage(), 
-								null, null,	null, 
-								exceptions);
+						Alert errorAlert = Dialogs.exception(this.context.getStage(), t);
 						errorAlert.show();
 					});
-					
 					return null;
 				});
 			}
@@ -599,52 +570,13 @@ public final class LibraryList extends BorderPane implements ActionPane {
 	    	if (result.isPresent()) {
 	    		String newName = result.get();
 	    		if (!Objects.equals(oldName, newName)) {
-	    			final Persistable copy = item.copy();
-	    			
-	    			// go ahead and set the name
-	    			item.setName(newName);
-	    			
-	    			// then attempt to save the renamed item
-	    			copy.setName(newName);
-	    			copy.setModifiedDate(Instant.now());
-	    			
-	    			BackgroundTask task = new BackgroundTask();
-					task.setName(newName);
-					task.setMessage(Translations.get("action.rename.task", oldName, newName));
-					
-					this.context.addBackgroundTask(task);
-					return this.context.getWorkspaceManager().update(copy).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
-		    			// is it open as a document?
-		    			DocumentContext<? extends Persistable> document = this.context.getOpenDocument(item);
-		    			if (document != null) {
-		    				// if its open, then set the name of the open document (it should be a copy always)
-		    				document.getDocument().setName(newName);
-		    			}
-					})).thenRun(() -> {
-						task.setProgress(1.0);
-					}).exceptionally((t) -> {
-						if (t instanceof CompletionException) {
-							t = t.getCause();
-						}
-						
-						// log the error
-						LOGGER.error("Failed to rename item", t);
-						
-						// update the task
-						task.setException(t);
-						
-						// show the user the exception
-						final Throwable ex = t;
-						Platform.runLater(() -> {
-							// reset the name back in the case of an exception
-							item.setName(oldName);
-							
-							Alert alert = Dialogs.exception(this.context.getStage(), ex);
+	    			return this.context.rename(item, newName).exceptionally(t -> {
+	    				Platform.runLater(() -> {
+	    					Alert alert = Dialogs.exception(this.context.getStage(), t);
 							alert.show();
-						});
-						
-						return null;
-					});
+	    				});
+	    				return null;
+	    			});
 	    		}
 	    	}
 		}
@@ -727,41 +659,22 @@ public final class LibraryList extends BorderPane implements ActionPane {
 					});
 				}
 				
-				int i = 0;
-				final CompletableFuture<?>[] futures = new CompletableFuture<?>[items.size()];
-				for (Persistable item : items) {
-
-					BackgroundTask task = new BackgroundTask();
-					task.setName(Translations.get("action.paste.task", items.size()));
-					task.setMessage(Translations.get("action.paste.task", items.size()));
-					this.context.addBackgroundTask(task);
-					
-					futures[i++] = this.context.getWorkspaceManager().create(item).thenRun(() -> {
-						task.setProgress(1.0);
-					}).exceptionally(t -> {
-						LOGGER.error("Failed to paste item '" + item.getName() + "' due to: " + t.getMessage(), t);
-						task.setException(t);
-						throw new CompletionException(t);
-					});
-				}
-				
-				
-				return CompletableFuture.allOf(futures).exceptionally((t) -> {
-					// log the exception
-					LOGGER.error("Failed to paste items (see prior error logs for details)");
-					
-					// get the root exceptions from the futures
-					List<Throwable> exceptions = AsyncHelper.getExceptions(futures);
-					
-					// present them to the user
+				return this.context.saveAll(items).thenAccept((exceptions) -> {
+					if (exceptions != null && exceptions.size() > 0) {
+						Platform.runLater(() -> {
+							Alert errorAlert = Dialogs.exception(
+									this.context.getStage(), 
+									null, null,	null, 
+									exceptions);
+							errorAlert.show();
+						});
+					}
+				}).exceptionally((t) -> {
+					LOGGER.error("The bulk copy/paste of items failed: ", t);
 					Platform.runLater(() -> {
-						Alert errorAlert = Dialogs.exception(
-								this.context.getStage(), 
-								null, null,	null, 
-								exceptions);
+						Alert errorAlert = Dialogs.exception(this.context.getStage(), t);
 						errorAlert.show();
 					});
-					
 					return null;
 				});
 			}
@@ -781,37 +694,14 @@ public final class LibraryList extends BorderPane implements ActionPane {
 	    	File file = chooser.showSaveDialog(this.context.getStage());
 	    	// check for cancellation
 	    	if (file != null) {
-	    		
-	    		BackgroundTask task = new BackgroundTask();
-	    		task.setName(Translations.get("action.export.task", items.size()));
-	    		task.setMessage(Translations.get("action.export.task", items.size()));
-	    		this.context.addBackgroundTask(task);
-	    		
-	    		return CompletableFuture.runAsync(() -> {
-					try(FileOutputStream fos = new FileOutputStream(file);
-						BufferedOutputStream bos = new BufferedOutputStream(fos);
-			    		ZipOutputStream zos = new ZipOutputStream(bos);) {
-						
-						this.context.getWorkspaceManager().exportData(KnownFormat.PRAISENTER3, zos, items);
-					} catch (Exception ex) {
-						throw new CompletionException(ex);
-					}
-	    		}).thenRun(() -> {
-	    			task.setProgress(1.0);
-	    		}).exceptionally(t -> {
+	    		return this.context.export(items, file).exceptionally(t -> {
 	    			// get the root exception
 	    			if (t instanceof CompletionException) {
 	    				t = t.getCause();
 	    			}
 	    			
-					// log the exception
-					LOGGER.error("Failed to export the selected items: " + t.getMessage(), t);
-					
-					// update the task
-					task.setException(t);
-					
 					// show it to the user
-					final Throwable ex = t;
+	    			final Throwable ex = t;
 					Platform.runLater(() -> {
 						Dialogs.exception(this.context.getStage(), ex).show();
 					});

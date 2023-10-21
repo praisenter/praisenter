@@ -9,6 +9,7 @@ import org.praisenter.ui.Option;
 
 import javafx.beans.Observable;
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.Property;
 import javafx.beans.value.ChangeListener;
@@ -81,6 +82,47 @@ public final class BindingHelper {
 				if (isOperating.get()) return;
 				isOperating.set(true);
 				from.setValue(mapper.convertTo(newValue));
+				isOperating.set(false);
+			}
+		});
+	}
+	
+	/**
+	 * Sets up a bidirectional binding between the given properties and uses the given mapper to convert between the
+	 * property types.
+	 * @param from
+	 * @param to
+	 * @param mapper
+	 */
+	public static final <T, E> void bindBidirectional(DoubleProperty from, DoubleProperty to, ObjectConverter<Double, Double> mapper) {
+		final Reference<Boolean> isOperating = new Reference<>(false);
+		// set the value of the to property to the current value of the from property
+		to.setValue(mapper.convertFrom(from.getValue()));
+		from.addListener((obs, ov, nv) -> {
+			
+		});
+		// NOTE: use weak references to the properties so we don't leak memory by never allowing these to get GC-ed
+		from.addListener(new ChangeListener<Number>() {
+			final WeakReference<DoubleProperty> propRef = new WeakReference<DoubleProperty>(to);
+			@Override
+			public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+				DoubleProperty to = propRef.get();
+				if (to == null) return;
+				if (isOperating.get()) return;
+				isOperating.set(true);
+				to.setValue(mapper.convertFrom(newValue.doubleValue()));
+				isOperating.set(false);
+			}
+		});
+		to.addListener(new ChangeListener<Number>() {
+			final WeakReference<DoubleProperty> propRef = new WeakReference<DoubleProperty>(from);
+			@Override
+			public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+				DoubleProperty from = propRef.get();
+				if (from == null) return;
+				if (isOperating.get()) return;
+				isOperating.set(true);
+				from.setValue(mapper.convertTo(newValue.doubleValue()));
 				isOperating.set(false);
 			}
 		});

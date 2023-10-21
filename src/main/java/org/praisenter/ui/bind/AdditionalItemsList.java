@@ -1,4 +1,4 @@
-package org.praisenter.ui;
+package org.praisenter.ui.bind;
 
 import java.util.ArrayList;
 import java.util.Arrays;

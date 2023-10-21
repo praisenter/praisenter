@@ -1,20 +1,27 @@
 package org.praisenter.ui;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
+import java.util.zip.ZipOutputStream;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -22,6 +29,7 @@ import org.praisenter.Version;
 import org.praisenter.async.AsyncHelper;
 import org.praisenter.async.BackgroundTask;
 import org.praisenter.async.ReadOnlyBackgroundTask;
+import org.praisenter.data.KnownFormat;
 import org.praisenter.data.Persistable;
 import org.praisenter.data.bible.Bible;
 import org.praisenter.data.bible.Book;
@@ -44,8 +52,10 @@ import org.praisenter.ui.events.ActionStateChangedEvent;
 import org.praisenter.ui.themes.Accent;
 import org.praisenter.ui.themes.Theming;
 import org.praisenter.ui.translations.Translations;
+import org.praisenter.utility.MimeType;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
@@ -703,6 +713,8 @@ public final class GlobalContext {
 			BackgroundTask task = new BackgroundTask();
 			task.setName(copy.getName());
 			task.setMessage(Translations.get("task.saving", copy.getName()));
+			task.setOperation(Translations.get("save"));
+			task.setType(this.getFriendlyItemType(copy));
 			this.addBackgroundTask(task);
 			
 			return context.getSaveExecutionManager().execute(() -> {
@@ -746,7 +758,9 @@ public final class GlobalContext {
 	public CompletableFuture<Void> reindex() {
 		BackgroundTask task = new BackgroundTask();
 		task.setName(Translations.get("task.reindex"));
-		task.setMessage(Translations.get("task.reindex"));
+		task.setMessage(Translations.get("task.reindex.description"));
+		task.setOperation(Translations.get("task.reindex"));
+		task.setType("lucene/index");
 		this.addBackgroundTask(task);
 		
 		return this.workspaceManager.reindex().thenRun(() -> {
@@ -779,6 +793,105 @@ public final class GlobalContext {
 		return CompletableFuture.allOf(futures);
 	}
 	
+	public CompletableFuture<List<Throwable>> saveAll(Collection<Persistable> items) {
+		int i = 0;
+		final CompletableFuture<?>[] futures = new CompletableFuture<?>[items.size()];
+		for (Persistable item : items) {
+
+			BackgroundTask task = new BackgroundTask();
+			task.setName(item.getName());
+			task.setMessage(Translations.get("action.paste.task", item.getName()));
+			task.setOperation(Translations.get("action.paste"));
+			task.setType(this.getFriendlyItemType(item));
+			this.addBackgroundTask(task);
+			
+			futures[i++] = this.workspaceManager.create(item).thenRun(() -> {
+				task.setProgress(1.0);
+			}).exceptionally(t -> {
+				LOGGER.error("Failed to paste item '" + item.getName() + "' due to: " + t.getMessage(), t);
+				task.setException(t);
+				throw new CompletionException(t);
+			});
+		}
+		
+		return CompletableFuture.allOf(futures).thenApply((a) -> {
+			List<Throwable> r = new ArrayList<Throwable>();
+			return r;
+		}).exceptionally((t) -> {
+			// log the exception
+			LOGGER.error("Failed to save one or more items (see prior error logs for details)");
+			// get the root exceptions from the futures
+			return AsyncHelper.getExceptions(futures);
+		});
+	}
+
+	public CompletableFuture<Void> saveTags(Persistable p) {
+		BackgroundTask task = new BackgroundTask();
+		task.setName(p.getName());
+		task.setMessage(Translations.get("task.saving.tags", p.getName()));
+		task.setOperation(Translations.get("task.tag.change"));
+		task.setType(MimeType.get(this.workspaceManager.getFilePath(p)));
+		this.addBackgroundTask(task);
+		
+		return this.workspaceManager.update(p).thenRun(() -> {
+			// complete the task
+			task.setProgress(1.0);
+		}).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
+			// update any open document that matches this document (on the UI thread)
+			List<DocumentContext<?>> docs = this.getOpenDocumentsUnmodifiable();
+			for (DocumentContext<?> ctx : docs) {
+				if (ctx.getDocument().identityEquals(p)) {
+					ctx.getDocument().setTags(p.getTags());
+				}
+			}
+		})).exceptionally((t) -> {
+			// handle any error
+			LOGGER.error("Failed to add/remove tag: " + t.getMessage(), t);
+			task.setException(t);
+			if (t instanceof CompletionException) 
+				throw (CompletionException)t;
+			
+			// rethrow for the caller
+			throw new CompletionException(t);
+		});
+	}
+	
+	public CompletableFuture<List<Throwable>> delete(Collection<Persistable> items) {
+		int n = items.size();
+		
+		CompletableFuture<?>[] futures = new CompletableFuture<?>[n];
+		int i = 0;
+		for (Persistable item : items) {
+			BackgroundTask task = new BackgroundTask();
+			task.setName(item.getName());
+			task.setMessage(Translations.get("action.delete.task", item.getName()));
+			task.setOperation(Translations.get("action.delete"));
+			task.setType(this.getFriendlyItemType(item));
+			this.addBackgroundTask(task);
+			
+			futures[i++] = this.workspaceManager.delete(item).thenRun(() -> {
+				task.setProgress(1.0);
+			}).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
+				// close the document if its open
+				this.closeDocument(item);
+			})).exceptionally((t) -> {
+				LOGGER.error("Failed to delete item '" + item.getName() + "': " + t.getMessage(), t);
+				task.setException(t);
+				throw new CompletionException(t);
+			});
+		}
+		
+		return CompletableFuture.allOf(futures).thenApply((a) -> {
+			List<Throwable> r = new ArrayList<Throwable>();
+			return r;
+		}).exceptionally((t) -> {
+			// log the exception
+			LOGGER.error("Failed to delete one or more items (see prior error logs for details)");
+			// get the root exceptions from the futures
+			return AsyncHelper.getExceptions(futures);
+		});
+	}
+	
 	public CompletableFuture<Void> importFiles(List<File> files) {
 		if (files == null || files.isEmpty()) {
 			return CompletableFuture.completedFuture(null);
@@ -788,8 +901,10 @@ public final class GlobalContext {
 		
 		for (File file : files) {
 			final BackgroundTask bt = new BackgroundTask();
-			bt.setName(file.getName());
+			bt.setName(file.getAbsolutePath());
 			bt.setMessage(Translations.get("action.import.task", file.getName()));
+			bt.setOperation(Translations.get("action.import"));
+			bt.setType(MimeType.get(file.toPath()));
 			this.addBackgroundTask(bt);
 			
 			LOGGER.info("Beginning import of '{}'", file.toPath().toAbsolutePath().toString());
@@ -808,6 +923,113 @@ public final class GlobalContext {
 		}
 		
 		return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
+	}
+	
+	public CompletableFuture<Void> export(List<Persistable> items, File file) {
+		BackgroundTask task = new BackgroundTask();
+		task.setName(Translations.get("action.export.task", items.size()));
+		task.setMessage(Translations.get("action.export.task", items.size()));
+		task.setOperation(Translations.get("action.export"));
+		task.setType("application/zip");
+		this.addBackgroundTask(task);
+
+		// get all dependent items
+		Set<UUID> dependencies = new HashSet<>();
+		for (Persistable item : items) {
+			dependencies.addAll(item.getDependencies());
+		}
+		
+		// export the dependencies
+		List<Persistable> dependentItems = dependencies.stream()
+				.map(id -> this.workspaceManager.getPersistableById(id))
+				.collect(Collectors.toList());
+		
+		return CompletableFuture.runAsync(() -> {
+			try(FileOutputStream fos = new FileOutputStream(file);
+				BufferedOutputStream bos = new BufferedOutputStream(fos);
+	    		ZipOutputStream zos = new ZipOutputStream(bos);) {
+				
+				// export the items selected
+				this.workspaceManager.exportData(KnownFormat.PRAISENTER3, zos, items);
+				this.workspaceManager.exportData(KnownFormat.PRAISENTER3, zos, dependentItems);
+			} catch (Exception ex) {
+				throw new CompletionException(ex);
+			}
+		}).thenRun(() -> {
+			task.setProgress(1.0);
+		}).exceptionally(t -> {
+			// get the root exception
+			Throwable ex = t;
+			if (t instanceof CompletionException) {
+				ex = ex.getCause();
+			}
+			
+			// log the exception
+			LOGGER.error("Failed to export the selected items: " + ex.getMessage(), ex);
+			
+			// update the task
+			task.setException(ex);
+
+			// rethrow
+			if (ex == t) {
+				throw new CompletionException(t);
+			} else {
+				throw (CompletionException)t;
+			}
+		});
+	}
+	
+	public CompletableFuture<Void> rename(Persistable item, String newName) {
+		final String oldName = item.getName();
+		final Persistable copy = item.copy();
+		
+		// go ahead and set the name
+		item.setName(newName);
+		
+		// then attempt to save the renamed item
+		copy.setName(newName);
+		copy.setModifiedDate(Instant.now());
+		
+		BackgroundTask task = new BackgroundTask();
+		task.setName(newName);
+		task.setMessage(Translations.get("action.rename.task", oldName, newName));
+		task.setOperation(Translations.get("action.rename"));
+		task.setType(this.getFriendlyItemType(item));
+		this.addBackgroundTask(task);
+		
+		return this.workspaceManager.update(copy).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
+			// is it open as a document?
+			DocumentContext<? extends Persistable> document = this.getOpenDocument(item);
+			if (document != null) {
+				// if its open, then set the name of the open document (it should be a copy always)
+				document.getDocument().setName(newName);
+			}
+		})).thenRun(() -> {
+			task.setProgress(1.0);
+		}).exceptionally((t) -> {
+			// reset the name back in the case of an exception
+			Platform.runLater(() -> {
+				item.setName(oldName);
+			});
+			
+			Throwable ex = t;
+			if (ex instanceof CompletionException) {
+				ex = t.getCause();
+			}
+			
+			// log the error
+			LOGGER.error("Failed to rename item", ex);
+			
+			// update the task
+			task.setException(ex);
+			
+			// rethrow
+			if (ex == t) {
+				throw new CompletionException(t);
+			} else {
+				throw (CompletionException)t;
+			}
+		});
 	}
 	
 	private CompletableFuture<Void> createNewBibleAndOpen() {
@@ -1133,5 +1355,23 @@ public final class GlobalContext {
 	
 	public ObjectProperty<Version> latestVersionProperty() {
 		return this.latestVersion;
+	}
+	
+	public <T extends Persistable> String getFriendlyItemType(T item) {
+		if (item == null)
+			return null;
+		
+		if (item instanceof Bible) {
+			return Translations.get("bible");
+		} else if (item instanceof Song) {
+			return Translations.get("song");
+		} else if (item instanceof Slide) {
+			return Translations.get("slide");
+		} else if (item instanceof Media) {
+			Media m = (Media)item;
+			return m.getMimeType();
+		}
+		
+		return MimeType.get(this.workspaceManager.getFilePath(item));
 	}
 }

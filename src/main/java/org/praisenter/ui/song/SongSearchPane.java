@@ -26,10 +26,12 @@ import org.praisenter.ui.Option;
 import org.praisenter.ui.controls.Dialogs;
 import org.praisenter.ui.controls.FastScrollPane;
 import org.praisenter.ui.controls.ProgressOverlay;
+import org.praisenter.ui.controls.SimpleSplitPaneSkin;
 import org.praisenter.ui.translations.Translations;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 
+import atlantafx.base.controls.CustomTextField;
 import atlantafx.base.theme.Styles;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
@@ -46,6 +48,7 @@ import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
@@ -60,7 +63,6 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.layout.HBox;
@@ -68,12 +70,13 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
+import javafx.scene.text.TextAlignment;
 
 // FEATURE (M-M) add searching to the song editor for finding and editing easily
 
 public final class SongSearchPane extends VBox {
 	private static final String SONG_SEARCH_CSS = "p-song-search";
-	private static final String SONG_SEARCH_CRITERIA_CSS = "p-song-search-criteria";
+	private static final String SONG_SEARCH_FILTERS_CSS = "p-song-search-filters";
 	private static final String SONG_SEARCH_CARD_CSS = "p-song-search-card";
 	
 	private static final Logger LOGGER = LogManager.getLogger();
@@ -113,9 +116,10 @@ public final class SongSearchPane extends VBox {
 		types.add(new Option<SearchType>(Translations.get("search.type.anyword"), SearchType.ANY_WORD));
 		this.searchType.setValue(types.get(0));
 		
-		TextField txtSearch = new TextField();
+		CustomTextField txtSearch = new CustomTextField();
 		txtSearch.setPromptText(Translations.get("search.terms.placeholder"));
 		txtSearch.textProperty().bindBidirectional(this.terms);
+		txtSearch.setLeft(Icons.getIcon(Icons.SEARCH));
 		
 		ChoiceBox<Option<SearchType>> cbSearchType = new ChoiceBox<Option<SearchType>>(types);
 		cbSearchType.setValue(types.get(0));
@@ -135,10 +139,12 @@ public final class SongSearchPane extends VBox {
 		
 		HBox top = new HBox(2,
 				txtSearch,
-				cbSearchType,
-				cbMatchType,
+				new VBox(0, new Label(Translations.get("search.search.type")), cbSearchType),
+				new VBox(0, new Label(Translations.get("search.match.type")), cbMatchType),
 				btnSearch);
-		top.setAlignment(Pos.CENTER_LEFT);
+		top.setAlignment(Pos.BOTTOM_LEFT);
+		top.getStyleClass().add(SONG_SEARCH_FILTERS_CSS);
+		
 		HBox.setHgrow(txtSearch, Priority.ALWAYS);
 		
 		cbSearchType.setPrefWidth(125);
@@ -147,16 +153,20 @@ public final class SongSearchPane extends VBox {
 		cbMatchType.setPrefWidth(125);
 		cbMatchType.setMaxWidth(125);
 		cbMatchType.setMinWidth(125);
-		
-		top.getStyleClass().add(SONG_SEARCH_CRITERIA_CSS);
 
 		Label lblResultPlaceholder = new Label(Translations.get("song.search.results.placeholder"));
+		lblResultPlaceholder.setWrapText(true);
+		lblResultPlaceholder.setTextAlignment(TextAlignment.CENTER);
+		lblResultPlaceholder.setPadding(new Insets(10));
+		lblResultPlaceholder.setMinWidth(0);
+		lblResultPlaceholder.setMaxWidth(200);
 		
 		VBox right = new VBox();
 		FastScrollPane scrSong = new FastScrollPane(right, 2.0);
 		scrSong.setFitToWidth(true);
 		scrSong.setHbarPolicy(ScrollBarPolicy.NEVER);
-		scrSong.setMinWidth(300);
+		scrSong.setMinWidth(200);
+		scrSong.setPrefWidth(300);
 
 		///////////////////////////
 
@@ -241,9 +251,9 @@ public final class SongSearchPane extends VBox {
 			}
 		});
 		
-		score.setPrefWidth(75);
-		song.setPrefWidth(150);
-		sectionText.setPrefWidth(680);
+		score.prefWidthProperty().bind(table.widthProperty().multiply(0.15));
+		song.prefWidthProperty().bind(table.widthProperty().multiply(0.20));
+		sectionText.prefWidthProperty().bind(table.widthProperty().multiply(0.60));
 		
 		table.getColumns().add(score);
 		table.getColumns().add(song);
@@ -332,13 +342,19 @@ public final class SongSearchPane extends VBox {
 		Label lblResults = new Label();
 		
 		SplitPane splt = new SplitPane(leftStack, rightStack);
+		splt.setSkin(new SimpleSplitPaneSkin(splt));
 		splt.setOrientation(Orientation.HORIZONTAL);
 		splt.setDividerPosition(0, 0.7);
 		SplitPane.setResizableWithParent(scrSong, false);
 		
 		VBox.setVgrow(splt, Priority.ALWAYS);
 		
-		this.getChildren().addAll(top, splt, lblResults);
+		Label lblSearch = new Label(Translations.get("song.search.title"));
+		lblSearch.getStyleClass().add(Styles.TITLE_3);
+		Separator sepTitle = new Separator(Orientation.HORIZONTAL);
+		sepTitle.getStyleClass().add(Styles.SMALL);
+		
+		this.getChildren().addAll(lblSearch, sepTitle, top, splt, lblResults);
 		
 		this.search = () -> {
 			String text = this.terms.get();

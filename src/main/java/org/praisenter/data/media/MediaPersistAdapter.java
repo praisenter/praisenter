@@ -322,7 +322,7 @@ public final class MediaPersistAdapter implements PersistAdapter<Media> {
 
 		for (Media media : metadata) {
 			// get the export paths for the media
-			String dep = FilenameUtils.separatorsToUnix(this.pathResolver.getExportPath(media).toString()); 		// /{exportPath}/media/{id}.json
+			String dep = FilenameUtils.separatorsToUnix(this.pathResolver.getExportPath(media).toString()); 	 // /{exportPath}/media/{id}.json
 			String mep = FilenameUtils.separatorsToUnix(this.pathResolver.getExportMediaPath(media).toString()); // /{exportPath}/media/media/{id}.{ext}
 			String iep = FilenameUtils.separatorsToUnix(this.pathResolver.getExportImagePath(media).toString()); // /{exportPath}/media/images/{id}.jpg
 			String tep = FilenameUtils.separatorsToUnix(this.pathResolver.getExportThumbPath(media).toString()); // /{exportPath}/media/thumbs/{id}.png
@@ -356,6 +356,7 @@ public final class MediaPersistAdapter implements PersistAdapter<Media> {
 					boolean update = Files.exists(this.pathResolver.getPath(media));
 					
 					if (update) {
+						LOGGER.warn("Found exiting media with a matching id '" + media.getId() + "', backing up current data.");
 						try {
 							if (Files.exists(dp)) Files.move(dp, bdp, StandardCopyOption.REPLACE_EXISTING);
 							if (Files.exists(mp)) Files.move(mp, bmp, StandardCopyOption.REPLACE_EXISTING);

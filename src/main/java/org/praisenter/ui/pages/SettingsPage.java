@@ -9,8 +9,8 @@ import org.praisenter.data.workspace.PlaceholderTransitionBehavior;
 import org.praisenter.data.workspace.WorkspaceConfiguration;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.Icons;
-import org.praisenter.ui.MappedList;
 import org.praisenter.ui.Option;
+import org.praisenter.ui.bind.MappedList;
 import org.praisenter.ui.controls.FastScrollPane;
 import org.praisenter.ui.controls.LastValueNumberStringConverter;
 import org.praisenter.ui.themes.Accent;
@@ -48,7 +48,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
-public class SettingsPage extends BorderPane {
+public final class SettingsPage extends BorderPane {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
 	private static final String SETTINGS_PAGE_CLASS = "p-settings-page";
@@ -92,6 +92,7 @@ public class SettingsPage extends BorderPane {
 				}
 				
 				// then switch the theme
+		    	// JAVABUG (L) 10/11/23 [workaround] errors are sometimes emitted here, but they don't seem to matter https://bugs.openjdk.org/browse/JDK-8268657?jql=project%20%3D%20JDK%20AND%20component%20%3D%20javafx%20AND%20text%20~%20%22ClassCastException%20calculateValue%22
 				Application.setUserAgentStylesheet(theme.getUserAgentStylesheet());
 			}
 		});

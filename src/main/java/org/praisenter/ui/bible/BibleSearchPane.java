@@ -32,10 +32,12 @@ import org.praisenter.ui.controls.AutoCompleteComboBox;
 import org.praisenter.ui.controls.Dialogs;
 import org.praisenter.ui.controls.FastScrollPane;
 import org.praisenter.ui.controls.ProgressOverlay;
+import org.praisenter.ui.controls.SimpleSplitPaneSkin;
 import org.praisenter.ui.translations.Translations;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 
+import atlantafx.base.controls.CustomTextField;
 import atlantafx.base.theme.Styles;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
@@ -54,6 +56,7 @@ import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
@@ -69,20 +72,22 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
+import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
+import javafx.scene.text.TextAlignment;
 
 // FEATURE (M-M) add searching to the bible editor for finding and editing easily
 
 public final class BibleSearchPane extends VBox {
 	private static final String BIBLE_SEARCH_CSS = "p-bible-search";
-	private static final String BIBLE_SEARCH_CRITERIA_CSS = "p-bible-search-criteria";
+	private static final String BIBLE_SEARCH_FILTERS_CSS = "p-bible-search-filters";
 	private static final String BIBLE_SEARCH_CARD_CSS = "p-bible-search-card";
 	private static final String BIBLE_SEARCH_CARD_SELECTED_CSS = "p-bible-search-card-selected";
 	
@@ -108,7 +113,7 @@ public final class BibleSearchPane extends VBox {
 	
 	// nodes
 	
-	private final TextField txtSearch;
+	private final CustomTextField txtSearch;
 	
 	public BibleSearchPane(GlobalContext context, BibleConfiguration configuration) {
 		this.getStyleClass().add(BIBLE_SEARCH_CSS);
@@ -167,9 +172,10 @@ public final class BibleSearchPane extends VBox {
 		
 		this.bible.set(primaryBible);
 		
-		this.txtSearch = new TextField();
+		this.txtSearch = new CustomTextField();
 		this.txtSearch.setPromptText(Translations.get("search.terms.placeholder"));
 		this.txtSearch.textProperty().bindBidirectional(this.terms);
+		this.txtSearch.setLeft(Icons.getIcon(Icons.SEARCH));
 		
 		ChoiceBox<Option<SearchType>> cbSearchType = new ChoiceBox<Option<SearchType>>(searchTypes);
 		cbSearchType.setValue(searchTypes.get(0));
@@ -201,39 +207,43 @@ public final class BibleSearchPane extends VBox {
 		btnSearch.setDefaultButton(true);
 
 		cmbBible.setMaxWidth(Double.MAX_VALUE);
-		cmbBible.setMinWidth(0);
 		cmbBook.setMaxWidth(Double.MAX_VALUE);
-		cmbBook.setMinWidth(0);
-		cbSearchType.setPrefWidth(125);
-		cbSearchType.setMaxWidth(125);
-		cbSearchType.setMinWidth(125);
-		cbMatchType.setPrefWidth(125);
-		cbMatchType.setMaxWidth(125);
-		cbMatchType.setMinWidth(125);
-
-		HBox layoutFilters = new HBox(5,
-				cmbBible,
-				cmbBook,
-				cbSearchType,
-				cbMatchType);
-		HBox.setHgrow(cmbBible, Priority.ALWAYS);
-		HBox.setHgrow(cmbBook, Priority.ALWAYS);
+		cbSearchType.setMaxWidth(Double.MAX_VALUE);
+		cbMatchType.setMaxWidth(Double.MAX_VALUE);
+		
+		GridPane grid = new GridPane();
+		grid.add(new VBox(0, new Label(Translations.get("bible")), cmbBible), 0, 0);
+		grid.add(new VBox(0, new Label(Translations.get("bible.book")), cmbBook), 1, 0);
+		grid.add(new VBox(0, new Label(Translations.get("search.search.type")), cbSearchType), 2, 0);
+		grid.add(new VBox(0, new Label(Translations.get("search.match.type")), cbMatchType), 3, 0);
+		int[] sizes = new int[] { 30, 30, 20, 20 };
+		for (int i = 0; i < sizes.length; i++) {
+			ColumnConstraints cc = new ColumnConstraints();
+			cc.setPercentWidth(sizes[i]);
+			grid.getColumnConstraints().add(cc);
+		}
+		grid.getStyleClass().add(BIBLE_SEARCH_FILTERS_CSS);
 
 		HBox layoutSearch = new HBox(5,
 				this.txtSearch, btnSearch);
 		layoutSearch.setAlignment(Pos.CENTER_LEFT);
 		HBox.setHgrow(this.txtSearch, Priority.ALWAYS);
+		layoutSearch.getStyleClass().add(BIBLE_SEARCH_FILTERS_CSS);
 		
-		layoutFilters.getStyleClass().add(BIBLE_SEARCH_CRITERIA_CSS);
-
 		Label lblResultPlaceholder = new Label(Translations.get("bible.search.results.placeholder"));
+		lblResultPlaceholder.setWrapText(true);
+		lblResultPlaceholder.setTextAlignment(TextAlignment.CENTER);
+		lblResultPlaceholder.setPadding(new Insets(10));
+		lblResultPlaceholder.setMinWidth(0);
+		lblResultPlaceholder.setMaxWidth(200);
 		
 		VBox right = new VBox();
 		FastScrollPane scrChapter = new FastScrollPane(right, 2.0);
 		scrChapter.setFitToWidth(true);
 		scrChapter.setHbarPolicy(ScrollBarPolicy.NEVER);
-		scrChapter.setMinWidth(300);
-
+		scrChapter.setMinWidth(200);
+		scrChapter.setPrefWidth(300);
+		
 		///////////////////////////
 		
 		TableView<BibleSearchResult> table = new TableView<BibleSearchResult>();
@@ -323,9 +333,9 @@ public final class BibleSearchPane extends VBox {
 			}
 		});
 		
-		score.setPrefWidth(75);
-		reference.setPrefWidth(150);
-		verseText.setPrefWidth(680);
+		score.prefWidthProperty().bind(table.widthProperty().multiply(0.15));
+		reference.prefWidthProperty().bind(table.widthProperty().multiply(0.20));
+		verseText.prefWidthProperty().bind(table.widthProperty().multiply(0.60));
 		
 		table.getColumns().add(score);
 		table.getColumns().add(reference);
@@ -422,13 +432,19 @@ public final class BibleSearchPane extends VBox {
 		Label lblResults = new Label();
 
 		SplitPane splt = new SplitPane(leftStack, rightStack);
+		splt.setSkin(new SimpleSplitPaneSkin(splt));
 		splt.setOrientation(Orientation.HORIZONTAL);
 		splt.setDividerPosition(0, 0.7);
 		SplitPane.setResizableWithParent(scrChapter, false);
 		
 		VBox.setVgrow(splt, Priority.ALWAYS);
-
-		this.getChildren().addAll(layoutFilters, layoutSearch, splt, lblResults);
+		
+		Label lblSearch = new Label(Translations.get("bible.search.title"));
+		lblSearch.getStyleClass().add(Styles.TITLE_3);
+		Separator sepTitle = new Separator(Orientation.HORIZONTAL);
+		sepTitle.getStyleClass().add(Styles.SMALL);
+		
+		this.getChildren().addAll(lblSearch, sepTitle, grid, layoutSearch, splt, lblResults);
 		
 		EventHandler<ActionEvent> handler = e -> {
 			Bible bible = this.bible.get();

@@ -10,8 +10,8 @@ import org.praisenter.data.bible.Bible;
 import org.praisenter.data.slide.Slide;
 import org.praisenter.data.song.Song;
 import org.praisenter.ui.GlobalContext;
-import org.praisenter.ui.MappedList;
 import org.praisenter.ui.bible.BibleSelectionEditor;
+import org.praisenter.ui.bind.MappedList;
 import org.praisenter.ui.slide.SlideSelectionEditor;
 import org.praisenter.ui.song.SongSelectionEditor;
 

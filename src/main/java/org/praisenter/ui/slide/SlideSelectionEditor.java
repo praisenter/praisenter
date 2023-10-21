@@ -33,13 +33,16 @@ import org.praisenter.data.slide.text.VerticalTextAlignment;
 import org.praisenter.data.workspace.Resolution;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.Icons;
-import org.praisenter.ui.MappedList;
 import org.praisenter.ui.Option;
 import org.praisenter.ui.bind.BindingHelper;
+import org.praisenter.ui.bind.MappedList;
 import org.praisenter.ui.bind.ObjectConverter;
 import org.praisenter.ui.controls.DateTimePicker;
-import org.praisenter.ui.controls.FormFieldGroup;
-import org.praisenter.ui.controls.FormFieldSection;
+import org.praisenter.ui.controls.EditorDivider;
+import org.praisenter.ui.controls.EditorField;
+import org.praisenter.ui.controls.EditorFieldGroup;
+import org.praisenter.ui.controls.EditorTitledPane;
+import org.praisenter.ui.controls.IntegerSliderField;
 import org.praisenter.ui.controls.LastValueNumberStringConverter;
 import org.praisenter.ui.controls.LongSpinnerValueFactory;
 import org.praisenter.ui.controls.SimpleDateFormatConverter;
@@ -54,13 +57,15 @@ import org.praisenter.ui.slide.controls.SlideFontPicker;
 import org.praisenter.ui.slide.controls.SlidePaddingPicker;
 import org.praisenter.ui.slide.controls.SlidePaintPicker;
 import org.praisenter.ui.slide.controls.SlideShadowPicker;
+import org.praisenter.ui.slide.controls.SlideSizePicker;
 import org.praisenter.ui.slide.controls.SlideStrokePicker;
 import org.praisenter.ui.slide.convert.TimeFormatConverter;
 import org.praisenter.ui.translations.Translations;
 import org.praisenter.ui.undo.UndoManager;
 
 import atlantafx.base.controls.ProgressSliderSkin;
-import atlantafx.base.controls.Tile;
+import atlantafx.base.controls.ToggleSwitch;
+import atlantafx.base.layout.InputGroup;
 import atlantafx.base.theme.Styles;
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
@@ -79,12 +84,12 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableSet;
+import javafx.geometry.Pos;
 import javafx.geometry.Rectangle2D;
-import javafx.scene.control.CheckBox;
+import javafx.scene.Node;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.Separator;
 import javafx.scene.control.Slider;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.TextArea;
@@ -92,6 +97,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Screen;
 
@@ -110,8 +116,6 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 	private final StringProperty name;
 	private final DoubleProperty width;
 	private final DoubleProperty height;
-	private final ObjectProperty<Double> widthAsObject;
-	private final ObjectProperty<Double> heightAsObject;
 	private final LongProperty time;
 	private final ObjectProperty<SlideAnimation> transition;
 	private final ObjectProperty<Long> timeAsObject;
@@ -183,8 +187,6 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 		this.name = new SimpleStringProperty();
 		this.width = new SimpleDoubleProperty();
 		this.height = new SimpleDoubleProperty();
-		this.widthAsObject = this.width.asObject();
-		this.heightAsObject = this.height.asObject();
 		this.time = new SimpleLongProperty();
 		this.timeAsObject = this.time.asObject();
 		this.transition = new SimpleObjectProperty<>();
@@ -503,36 +505,9 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 			}
 		});
 		
-		ObjectConverter<Integer, Double> intToDoubleConverter = new ObjectConverter<Integer, Double>() {
-			@Override
-			public Double convertFrom(Integer t) {
-				if (t == null) return 0.0;
-				return t.doubleValue();
-			}
-			@Override
-			public Integer convertTo(Double e) {
-				if (e == null) return 0;
-				return e.intValue();
-			}
-		};
-		
-		TextField txtWidth = new TextField();
-		TextFormatter<Integer> tfWidth = new TextFormatter<Integer>(LastValueNumberStringConverter.forInteger(originalValueText -> {
-			Platform.runLater(() -> {
-				txtWidth.setText(originalValueText);
-			});
-		}));
-		txtWidth.setTextFormatter(tfWidth);
-		BindingHelper.bindBidirectional(tfWidth.valueProperty(), this.widthAsObject, intToDoubleConverter);
-
-		TextField txtHeight = new TextField();
-		TextFormatter<Integer> tfHeight = new TextFormatter<Integer>(LastValueNumberStringConverter.forInteger(originalValueText -> {
-			Platform.runLater(() -> {
-				txtHeight.setText(originalValueText);
-			});
-		}));
-		txtHeight.setTextFormatter(tfHeight);
-		BindingHelper.bindBidirectional(tfHeight.valueProperty(), this.heightAsObject, intToDoubleConverter);
+		SlideSizePicker pkrSlideSize = new SlideSizePicker();
+		pkrSlideSize.slideWidthProperty().bindBidirectional(this.width);
+		pkrSlideSize.slideHeightProperty().bindBidirectional(this.height);
 		
 		Spinner<Long> spnTime = new Spinner<>(0, Long.MAX_VALUE, 0, 5);
 		spnTime.setEditable(true);
@@ -545,10 +520,8 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 		spnTime.setValueFactory(spnTimeVF);
 		spnTime.getValueFactory().valueProperty().bindBidirectional(this.timeAsObject);
 		
-		Slider sldOpacity = new Slider(0, 1, 1);
-		sldOpacity.getStyleClass().add(Styles.SMALL);
-		sldOpacity.setSkin(new ProgressSliderSkin(sldOpacity));
-		sldOpacity.valueProperty().bindBidirectional(this.opacity);
+		IntegerSliderField pkrOpacity = new IntegerSliderField(0, 1, 1, 100);
+		pkrOpacity.valueProperty().bindBidirectional(this.opacity);
 		
 		SlidePaintPicker pkrBackground = new SlidePaintPicker(context, true, true, true, true, true, Translations.get("slide.background"));
 		pkrBackground.valueProperty().bindBidirectional(this.background);
@@ -618,9 +591,12 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 		BindingHelper.bindBidirectional(this.componentHorizontalTextAlignment, tglHAlignRight.selectedProperty(), HorizontalTextAlignment.RIGHT);
 		BindingHelper.bindBidirectional(this.componentHorizontalTextAlignment, tglHAlignCenter.selectedProperty(), HorizontalTextAlignment.CENTER);
 		BindingHelper.bindBidirectional(this.componentHorizontalTextAlignment, tglHAlignJustify.selectedProperty(), HorizontalTextAlignment.JUSTIFY);
-		// NOTE: SegmentedButton has an issue when running on Java 9+, the Controls FX 9.0.0 version printed a nasty error about reflecting on com.sun code (but worked)
-//		SegmentedButton segComponentHAlignment = new SegmentedButton(tglHAlignLeft, tglHAlignCenter, tglHAlignRight, tglHAlignJustify);
-		HBox segComponentHAlignment = new HBox(1, tglHAlignLeft, tglHAlignCenter, tglHAlignRight, tglHAlignJustify);
+		tglHAlignLeft.getStyleClass().add(Styles.LEFT_PILL);
+		tglHAlignCenter.getStyleClass().add(Styles.CENTER_PILL);
+		tglHAlignRight.getStyleClass().add(Styles.CENTER_PILL);
+		tglHAlignJustify.getStyleClass().add(Styles.RIGHT_PILL);
+		HBox segComponentHAlignment = new HBox(tglHAlignLeft, tglHAlignCenter, tglHAlignRight, tglHAlignJustify);
+		segComponentHAlignment.setAlignment(Pos.CENTER_RIGHT);
 
 		ToggleButton tglVAlignTop = new ToggleButton("", Icons.getIcon(Icons.VERTICAL_ALIGN_TOP));
 		ToggleButton tglVAlignCenter = new ToggleButton("", Icons.getIcon(Icons.VERTICAL_ALIGN_CENTER));
@@ -628,10 +604,11 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 		BindingHelper.bindBidirectional(this.componentVerticalTextAlignment, tglVAlignTop.selectedProperty(), VerticalTextAlignment.TOP);
 		BindingHelper.bindBidirectional(this.componentVerticalTextAlignment, tglVAlignCenter.selectedProperty(), VerticalTextAlignment.CENTER);
 		BindingHelper.bindBidirectional(this.componentVerticalTextAlignment, tglVAlignBottom.selectedProperty(), VerticalTextAlignment.BOTTOM);
-		HBox segComponentVAlignment = new HBox(1, tglVAlignTop, tglVAlignCenter, tglVAlignBottom);
-		
-		SlidePaddingPicker pkrComponentPadding = new SlidePaddingPicker();
-		pkrComponentPadding.valueProperty().bindBidirectional(this.componentPadding);
+		tglVAlignTop.getStyleClass().add(Styles.LEFT_PILL);
+		tglVAlignCenter.getStyleClass().add(Styles.CENTER_PILL);
+		tglVAlignBottom.getStyleClass().add(Styles.RIGHT_PILL);
+		HBox segComponentVAlignment = new HBox(tglVAlignTop, tglVAlignCenter, tglVAlignBottom);
+		segComponentVAlignment.setAlignment(Pos.CENTER_RIGHT);
 		
 		TextField txtLineSpacing = new TextField();
 		TextFormatter<Double> tfLineSpacing = new TextFormatter<Double>(LastValueNumberStringConverter.forDouble(originalValueText -> {
@@ -641,9 +618,18 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 		}));
 		txtLineSpacing.setTextFormatter(tfLineSpacing);
 		tfLineSpacing.valueProperty().bindBidirectional(this.componentLineSpacingAsObject);
+		Label lblLineSpacingAdder = new Label(Translations.get("slide.measure.pixels.abbreviation"));
+		lblLineSpacingAdder.setAlignment(Pos.CENTER);
+		InputGroup grpLineSpacing = new InputGroup(txtLineSpacing, lblLineSpacingAdder);
+		HBox.setHgrow(txtLineSpacing, Priority.ALWAYS);
 
-		CheckBox chkComponentTextWrapping = new CheckBox();
-		chkComponentTextWrapping.selectedProperty().bindBidirectional(this.componentTextWrapping);
+		ToggleSwitch tglTextWrapping = new ToggleSwitch();
+		tglTextWrapping.selectedProperty().bindBidirectional(this.componentTextWrapping);
+		HBox boxTextWrapping = new HBox(tglTextWrapping);
+		boxTextWrapping.setAlignment(Pos.CENTER_RIGHT);
+
+		SlidePaddingPicker pkrComponentPadding = new SlidePaddingPicker();
+		pkrComponentPadding.valueProperty().bindBidirectional(this.componentPadding);
 		
 		SlideShadowPicker pkrComponentTextShadow = new SlideShadowPicker(Translations.get("slide.text.shadow"));
 		pkrComponentTextShadow.valueProperty().bindBidirectional(this.componentTextShadow);
@@ -710,8 +696,10 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 			}
 		});
 		
-		CheckBox chkComponentCountdownTimeOnly = new CheckBox();
-		chkComponentCountdownTimeOnly.selectedProperty().bindBidirectional(this.componentCountdownTimeOnly);
+		ToggleSwitch tglComponentCountdownTimeOnly = new ToggleSwitch();
+		tglComponentCountdownTimeOnly.selectedProperty().bindBidirectional(this.componentCountdownTimeOnly);
+		HBox boxComponentCountdownTimeOnly = new HBox(tglComponentCountdownTimeOnly);
+		boxComponentCountdownTimeOnly.setAlignment(Pos.CENTER_RIGHT);
 		
 		TextInputFieldEventFilter.applyTextInputFieldEventFilter(
 				txtName,
@@ -719,91 +707,116 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 				txtComponentText,
 				txtLineSpacing);
 		
-//		FormFieldSection sctGeneral = new FormFieldSection();
-//		sctGeneral.addField(Translations.get("item.name"), txtName);
-//		sctGeneral.addField(Translations.get("slide.target"), cmbTargetSize);
-//		sctGeneral.addField(Translations.get("slide.width"), txtWidth);
-//		sctGeneral.addField(Translations.get("slide.height"), txtHeight);
-//		sctGeneral.addField(Translations.get("slide.time"), spnTime);
-//		sctGeneral.addField(Translations.get("slide.opacity"), sldOpacity);
-//		sctGeneral.addField(Translations.get("tags"), viewTags);
+		// Layout
+		
+		EditorField fldName = new EditorField(Translations.get("slide.name"), txtName);
+		EditorField fldTarget = new EditorField(Translations.get("slide.target"), Translations.get("slide.target.description"), cmbTargetSize);
+		EditorField fldSize = new EditorField(Translations.get("slide.size"), pkrSlideSize);
+		EditorField fldTime = new EditorField(Translations.get("slide.time"), Translations.get("slide.time.description"), spnTime);
+		EditorField fldOpacity = new EditorField(Translations.get("slide.opacity"), Translations.get("slide.opacity.description"), pkrOpacity);
+		EditorField fldTags = new EditorField(Translations.get("tags"), viewTags, EditorField.LAYOUT_VERTICAL);
+		
+		EditorFieldGroup grpSlide = new EditorFieldGroup(
+				fldName, 
+				fldTime, 
+				fldOpacity, 
+				new EditorDivider(Translations.get("slide.size")),
+				fldSize,
+				fldTarget, 
+				fldTags);
+		
+		EditorTitledPane ttlSlide = new EditorTitledPane(Translations.get("slide"), grpSlide);
+		EditorTitledPane ttlSlideBackground = new EditorTitledPane(Translations.get("slide.slide.background"), pkrBackground);
+		EditorTitledPane ttlSlideBorder = new EditorTitledPane(Translations.get("slide.slide.border"), pkrBorder);
+		EditorTitledPane ttlSlideTransition = new EditorTitledPane(Translations.get("slide.slide.transition"), pkrTransition);
 
-		Label ttlGeneral = new Label(Translations.get("slide")); ttlGeneral.getStyleClass().add(Styles.TITLE_4);
-		Tile tleName = new Tile(Translations.get("item.name"), Translations.get("item.name")); tleName.setAction(txtName); tleName.setActionHandler(txtName::requestFocus);
-		Tile tleTarget = new Tile(Translations.get("slide.target"), Translations.get("slide.target")); tleTarget.setAction(cmbTargetSize); tleTarget.setActionHandler(cmbTargetSize::requestFocus);
-		Tile tleWidth = new Tile(Translations.get("slide.width"), Translations.get("slide.width")); tleWidth.setAction(txtWidth); tleWidth.setActionHandler(txtWidth::requestFocus);
-		Tile tleHeight = new Tile(Translations.get("slide.height"), Translations.get("slide.height")); tleHeight.setAction(txtHeight); tleHeight.setActionHandler(txtHeight::requestFocus);
-		Tile tleTime = new Tile(Translations.get("slide.time"), Translations.get("slide.time")); tleTime.setAction(spnTime); tleTime.setActionHandler(spnTime::requestFocus);
-		Tile tleOpacity = new Tile(Translations.get("slide.opacity"), Translations.get("slide.opacity")); tleOpacity.setAction(sldOpacity);
-		VBox vGeneral = new VBox(ttlGeneral, new Separator(), tleName, tleTarget, tleWidth, tleHeight, tleTime, tleOpacity, viewTags);
+		EditorFieldGroup grpTextComponentGeneral = new EditorFieldGroup(
+				new EditorField(pkrComponentFont),
+				new EditorField(Translations.get("slide.font.scale"), Translations.get("slide.font.scale.description"), cbComponentFontScaleType),
+				new EditorDivider(Translations.get("slide.text.multiline")),
+				new EditorField(Translations.get("slide.text.linespacing"), grpLineSpacing),
+				new EditorField(Translations.get("slide.text.wrapping"), boxTextWrapping),
+				new EditorDivider(Translations.get("slide.text.alignment")),
+				new EditorField(Translations.get("slide.text.halignment"), segComponentHAlignment),
+				new EditorField(Translations.get("slide.text.valignment"), segComponentVAlignment));
 		
-//		FormFieldGroup ttlSlide = new FormFieldGroup(Translations.get("slide"), sctGeneral);
-		FormFieldGroup ttlSlideBackground = new FormFieldGroup(Translations.get("slide.slide.background"), pkrBackground);
-		FormFieldGroup ttlSlideBorder = new FormFieldGroup(Translations.get("slide.slide.border"), pkrBorder);
-		FormFieldGroup ttlSlideTransition = new FormFieldGroup(Translations.get("slide.slide.transition"), pkrTransition);
-
-		FormFieldSection sctTextComponentGeneral = new FormFieldSection();
-		sctTextComponentGeneral.addSubSection(pkrComponentFont);
-		sctTextComponentGeneral.addField(Translations.get("slide.font.scale"), cbComponentFontScaleType);
-		sctTextComponentGeneral.addField(Translations.get("slide.text.halignment"), segComponentHAlignment);
-		sctTextComponentGeneral.addField(Translations.get("slide.text.valignment"), segComponentVAlignment);
-		sctTextComponentGeneral.addField(Translations.get("slide.text.linespacing"), txtLineSpacing);
-		sctTextComponentGeneral.addField(Translations.get("slide.text.wrapping"), chkComponentTextWrapping);
+		EditorField fldComponentOpacity = new EditorField(Translations.get("slide.opacity"), sldComponentOpacity);
+		EditorField fldText = new EditorField(Translations.get("slide.text"), txtComponentText, EditorField.LAYOUT_VERTICAL);
+		EditorField fldPlaceholderType = new EditorField(Translations.get("slide.placeholder.type"), Translations.get("slide.placeholder.type.description"), cbComponentTextType);
+		EditorField fldPlaceholderVariant = new EditorField(Translations.get("slide.placeholder.variant"), Translations.get("slide.placeholder.variant.description"), cbComponentTextVariant);
+		EditorField fldDateTimeFormat = new EditorField(Translations.get("slide.datetime.format"), cmbComponentDateTimeFormat);
+		EditorField fldCountdownTarget = new EditorField(Translations.get("slide.countdown.target"), Translations.get("slide.countdown.target.description"), pkrComponentCountdownTarget);
+		EditorField fldCountdownFormat = new EditorField(Translations.get("slide.countdown.format"), cmbComponentCountdownFormat);
+		EditorField fldCountdownTimeOnly = new EditorField(Translations.get("slide.countdown.timeonly"), Translations.get("slide.countdown.timeonly.description"), boxComponentCountdownTimeOnly);
 		
-		FormFieldSection sctTextComponentBasic = new FormFieldSection();
-		sctTextComponentBasic.addField(Translations.get("slide.text"), txtComponentText);
+		fldText.managedProperty().bind(fldText.visibleProperty());
+		fldPlaceholderType.managedProperty().bind(fldPlaceholderType.visibleProperty());
+		fldPlaceholderVariant.managedProperty().bind(fldPlaceholderVariant.visibleProperty());
+		fldDateTimeFormat.managedProperty().bind(fldDateTimeFormat.visibleProperty());
+		fldCountdownTarget.managedProperty().bind(fldCountdownTarget.visibleProperty());
+		fldCountdownFormat.managedProperty().bind(fldCountdownFormat.visibleProperty());
+		fldCountdownTimeOnly.managedProperty().bind(fldCountdownTimeOnly.visibleProperty());
+		pkrComponentMedia.managedProperty().bind(pkrComponentMedia.visibleProperty());
 		
-		FormFieldSection sctTextComponentPlaceholder = new FormFieldSection();
-		sctTextComponentPlaceholder.addField(Translations.get("slide.placeholder.type"), cbComponentTextType);
-		sctTextComponentPlaceholder.addField(Translations.get("slide.placeholder.variant"), cbComponentTextVariant);
+		EditorFieldGroup grpComponent = new EditorFieldGroup(
+				fldComponentOpacity,
+				fldText,
+				fldPlaceholderType,
+				fldPlaceholderVariant,
+				fldDateTimeFormat,
+				fldCountdownTarget,
+				fldCountdownFormat,
+				fldCountdownTimeOnly,
+				pkrComponentMedia);
 		
-		FormFieldSection sctTextComponentDateTime = new FormFieldSection();
-		sctTextComponentDateTime.addField(Translations.get("slide.datetime.format"), cmbComponentDateTimeFormat);
-		
-		FormFieldSection sctTextComponentCountdown = new FormFieldSection();
-		sctTextComponentCountdown.addField(Translations.get("slide.countdown.target"), pkrComponentCountdownTarget);
-		sctTextComponentCountdown.addField(Translations.get("slide.countdown.format"), cmbComponentCountdownFormat);
-		sctTextComponentCountdown.addField(Translations.get("slide.countdown.timeonly"), chkComponentCountdownTimeOnly);
-
-		FormFieldSection sctComponentGeneral = new FormFieldSection();
-		sctComponentGeneral.addField(Translations.get("slide.opacity"), sldComponentOpacity);
-		sctComponentGeneral.addSubSection(sctTextComponentPlaceholder);
-		sctComponentGeneral.addSubSection(sctTextComponentDateTime);
-		sctComponentGeneral.addSubSection(sctTextComponentCountdown);
-		sctComponentGeneral.addSubSection(sctTextComponentBasic);
-		sctComponentGeneral.addSubSection(pkrComponentMedia);
+		Node[] componentTypeFields = new Node[] {
+			fldText,
+			fldPlaceholderType,
+			fldPlaceholderVariant,
+			fldDateTimeFormat,
+			fldCountdownTarget,
+			fldCountdownFormat,
+			fldCountdownTimeOnly,
+			pkrComponentMedia
+		};
 		
 		this.selectedComponent.addListener((obs, ov, nv) -> {
+			for (Node field : componentTypeFields) {
+				field.setVisible(false);
+			}
+			
 			if (nv != null) {
 				if (nv instanceof TextPlaceholderComponent) {
-					sctComponentGeneral.showRowsOnly(0,1);
+					fldPlaceholderType.setVisible(true);
+					fldPlaceholderVariant.setVisible(true);
 				} else if (nv instanceof DateTimeComponent) {
-					sctComponentGeneral.showRowsOnly(0,2);
+					fldDateTimeFormat.setVisible(true);
 				} else if (nv instanceof CountdownComponent) {
-					sctComponentGeneral.showRowsOnly(0,3);
+					fldCountdownTarget.setVisible(true);
+					fldCountdownFormat.setVisible(true);
+					fldCountdownTimeOnly.setVisible(true);
 				} else if (nv instanceof TextComponent) {
-					sctComponentGeneral.showRowsOnly(0,4);
+					fldText.setVisible(true);
 				} else if (nv instanceof MediaComponent) {
-					sctComponentGeneral.showRowsOnly(0,5);
+					pkrComponentMedia.setVisible(true);
 				} else {
-					sctComponentGeneral.showRow(0);
 					LOGGER.warn("Unsupported component type: '" + nv.getClass().getName() + "'");
 				}
 			}
 		});
 		
-		FormFieldGroup ttlComponent = new FormFieldGroup(Translations.get("slide.component"), sctComponentGeneral);
-		FormFieldGroup ttlComponentBackground = new FormFieldGroup(Translations.get("slide.component.background"), pkrComponentBackground);
-		FormFieldGroup ttlComponentBorder = new FormFieldGroup(Translations.get("slide.component.border"), pkrComponentBorder);
-		FormFieldGroup ttlComponentShadow = new FormFieldGroup(Translations.get("slide.component.shadow"), pkrComponentShadow);
-		FormFieldGroup ttlComponentGlow = new FormFieldGroup(Translations.get("slide.component.glow"), pkrComponentGlow);
+		EditorTitledPane ttlComponent = new EditorTitledPane(Translations.get("slide.component"), grpComponent);
+		EditorTitledPane ttlComponentBackground = new EditorTitledPane(Translations.get("slide.component.background"), pkrComponentBackground);
+		EditorTitledPane ttlComponentBorder = new EditorTitledPane(Translations.get("slide.component.border"), pkrComponentBorder);
+		EditorTitledPane ttlComponentShadow = new EditorTitledPane(Translations.get("slide.component.shadow"), pkrComponentShadow);
+		EditorTitledPane ttlComponentGlow = new EditorTitledPane(Translations.get("slide.component.glow"), pkrComponentGlow);
 		
-		FormFieldGroup ttlComponentTextFont = new FormFieldGroup(Translations.get("slide.component.text.font"), sctTextComponentGeneral);
-		FormFieldGroup ttlComponentTextPadding = new FormFieldGroup(Translations.get("slide.component.text.padding"), pkrComponentPadding);
-		FormFieldGroup ttlComponentTextFill = new FormFieldGroup(Translations.get("slide.component.text.fill"), pkrComponentTextPaint);
-		FormFieldGroup ttlComponentTextBorder = new FormFieldGroup(Translations.get("slide.component.text.border"), pkrComponentTextBorder);
-		FormFieldGroup ttlComponentTextShadow = new FormFieldGroup(Translations.get("slide.component.text.shadow"), pkrComponentTextShadow);
-		FormFieldGroup ttlComponentTextGlow = new FormFieldGroup(Translations.get("slide.component.text.glow"), pkrComponentTextGlow);
+		EditorTitledPane ttlComponentTextFont = new EditorTitledPane(Translations.get("slide.component.text.font"), grpTextComponentGeneral);
+		EditorTitledPane ttlComponentTextPadding = new EditorTitledPane(Translations.get("slide.component.text.padding"), pkrComponentPadding);
+		EditorTitledPane ttlComponentTextFill = new EditorTitledPane(Translations.get("slide.component.text.fill"), pkrComponentTextPaint);
+		EditorTitledPane ttlComponentTextBorder = new EditorTitledPane(Translations.get("slide.component.text.border"), pkrComponentTextBorder);
+		EditorTitledPane ttlComponentTextShadow = new EditorTitledPane(Translations.get("slide.component.text.shadow"), pkrComponentTextShadow);
+		EditorTitledPane ttlComponentTextGlow = new EditorTitledPane(Translations.get("slide.component.text.glow"), pkrComponentTextGlow);
 		
 		ttlComponent.textProperty().bind(Bindings.createStringBinding(() -> {
 			SlideComponent sc = this.selectedComponent.get();
@@ -824,7 +837,7 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 			}
 		}, this.selectedComponent));
 		
-		FormFieldGroup[] componentGroups = new FormFieldGroup[] {
+		EditorTitledPane[] componentGroups = new EditorTitledPane[] {
 			ttlComponent,
 			ttlComponentBackground,
 			ttlComponentBorder,
@@ -832,7 +845,7 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 			ttlComponentGlow
 		};
 		
-		FormFieldGroup[] textComponentGroups = new FormFieldGroup[] {
+		EditorTitledPane[] textComponentGroups = new EditorTitledPane[] {
 			ttlComponentTextFont,
 			ttlComponentTextPadding,
 			ttlComponentTextFill,
@@ -841,17 +854,17 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 			ttlComponentTextGlow
 		};
 		
-		for (FormFieldGroup group : componentGroups) {
+		for (EditorTitledPane group : componentGroups) {
 			group.visibleProperty().bind(componentSelected);
 			group.managedProperty().bind(group.visibleProperty());
 		}
 		
-		for (FormFieldGroup group : textComponentGroups) {
+		for (EditorTitledPane group : textComponentGroups) {
 			group.visibleProperty().bind(textComponentSelected);
 			group.managedProperty().bind(group.visibleProperty());
 		}
 		
-		FormFieldGroup[] collapsedByDefault = new FormFieldGroup[] {
+		EditorTitledPane[] collapsedByDefault = new EditorTitledPane[] {
 			ttlSlideBackground,
 			ttlSlideBorder,
 			ttlSlideTransition,
@@ -867,12 +880,12 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 			ttlComponentTextGlow
 		};
 		
-		for (FormFieldGroup group : collapsedByDefault) {
+		for (EditorTitledPane group : collapsedByDefault) {
 			group.setExpanded(false);
 		}
 		
 		this.getChildren().addAll(
-				vGeneral,
+				ttlSlide,
 				ttlSlideBackground,
 				ttlSlideBorder,
 				ttlSlideTransition,

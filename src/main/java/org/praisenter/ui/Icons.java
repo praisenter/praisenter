@@ -80,6 +80,8 @@ public final class Icons {
 	public static final String TO_BACK = "p-icon-to-back";
 	public static final String TO_FRONT = "p-icon-to-front";
 	public static final String CLOSE = "p-icon-close";
+	public static final String ZOOM_IN = "p-icon-zoom-in";
+	public static final String ZOOM_OUT = "p-icon-zoom-out";
 	
 	public static final Region getIcon(String icon) {
 		Region node = new Region();

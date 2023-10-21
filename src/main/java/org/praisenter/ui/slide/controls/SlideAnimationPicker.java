@@ -11,12 +11,15 @@ import org.praisenter.data.slide.animation.SlideAnimation;
 import org.praisenter.ui.Option;
 import org.praisenter.ui.bind.BindingHelper;
 import org.praisenter.ui.bind.ObjectConverter;
-import org.praisenter.ui.controls.FormFieldSection;
+import org.praisenter.ui.controls.EditorField;
+import org.praisenter.ui.controls.EditorFieldGroup;
 import org.praisenter.ui.controls.LastValueNumberStringConverter;
 import org.praisenter.ui.controls.LongSpinnerValueFactory;
 import org.praisenter.ui.translations.Translations;
 
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -27,7 +30,7 @@ import javafx.scene.control.Spinner;
 
 // FEATURE (L-H) expand to allow edit of animation fields, allow toggle of Transition vs. Animation fields
 
-public final class SlideAnimationPicker extends FormFieldSection {
+public final class SlideAnimationPicker extends EditorFieldGroup {
 	
 	private final ObjectProperty<AnimationFunction> animationFunction;
 	private final ObjectProperty<Long> duration;
@@ -41,16 +44,23 @@ public final class SlideAnimationPicker extends FormFieldSection {
 	
 	private final ObjectProperty<SlideAnimation> value;
 	
+	private final BooleanBinding showDurationAndEasing;
+	private final BooleanBinding showDirection;
+	private final BooleanBinding showOperation;
+	private final BooleanBinding showOrientation;
+	private final BooleanBinding showShapeType;
+	private final BooleanBinding showBlindCount;
+	
 	public SlideAnimationPicker() {
-		this.animationFunction = new SimpleObjectProperty<AnimationFunction>();
-		this.duration = new SimpleObjectProperty<Long>(0l);
-		this.easingFunction = new SimpleObjectProperty<AnimationEasingFunction>();
-		this.easingType = new SimpleObjectProperty<AnimationEasingType>();
-		this.orientation = new SimpleObjectProperty<AnimationOrientation>();
-		this.operation = new SimpleObjectProperty<AnimationOperation>();
-		this.direction = new SimpleObjectProperty<AnimationDirection>();
-		this.shapeType = new SimpleObjectProperty<AnimationShapeType>();
-		this.blindCount = new SimpleObjectProperty<Integer>(0);
+		this.animationFunction = new SimpleObjectProperty<AnimationFunction>(AnimationFunction.SWAP);
+		this.duration = new SimpleObjectProperty<Long>(300l);
+		this.easingFunction = new SimpleObjectProperty<AnimationEasingFunction>(AnimationEasingFunction.LINEAR);
+		this.easingType = new SimpleObjectProperty<AnimationEasingType>(AnimationEasingType.IN);
+		this.orientation = new SimpleObjectProperty<AnimationOrientation>(AnimationOrientation.VERTICAL);
+		this.operation = new SimpleObjectProperty<AnimationOperation>(AnimationOperation.EXPAND);
+		this.direction = new SimpleObjectProperty<AnimationDirection>(AnimationDirection.LEFT);
+		this.shapeType = new SimpleObjectProperty<AnimationShapeType>(AnimationShapeType.CIRCLE);
+		this.blindCount = new SimpleObjectProperty<Integer>(10);
 		
 		this.value = new SimpleObjectProperty<SlideAnimation>();
 		
@@ -66,7 +76,8 @@ public final class SlideAnimationPicker extends FormFieldSection {
 		
 		Spinner<Long> spnDuration = new Spinner<>(0, Long.MAX_VALUE, 400, 100);
 		spnDuration.setEditable(true);
-		spnDuration.setValueFactory(new LongSpinnerValueFactory(0, Long.MAX_VALUE));
+		spnDuration.setValueFactory(new LongSpinnerValueFactory(0, Long.MAX_VALUE, 400, 100));
+		spnDuration.getStyleClass().add(Spinner.STYLE_CLASS_SPLIT_ARROWS_HORIZONTAL);
 		spnDuration.getValueFactory().setConverter(LastValueNumberStringConverter.forLong((originalValueText) -> {
 			Platform.runLater(() -> {
 				spnDuration.getEditor().setText(originalValueText);
@@ -125,6 +136,7 @@ public final class SlideAnimationPicker extends FormFieldSection {
 		
 		Spinner<Integer> spnBlindCount = new Spinner<>(1, Integer.MAX_VALUE, 5, 1);
 		spnBlindCount.setEditable(true);
+		spnBlindCount.getStyleClass().add(Spinner.STYLE_CLASS_SPLIT_ARROWS_HORIZONTAL);
 		spnBlindCount.getValueFactory().setConverter(LastValueNumberStringConverter.forInteger((originalValueText) -> {
 			Platform.runLater(() -> {
 				spnBlindCount.getEditor().setText(originalValueText);
@@ -132,34 +144,104 @@ public final class SlideAnimationPicker extends FormFieldSection {
 		}));
 		spnBlindCount.getValueFactory().valueProperty().bindBidirectional(this.blindCount);
 		
+		this.showDurationAndEasing = Bindings.createBooleanBinding(() -> {
+			if (this.animationFunction.get() == AnimationFunction.SWAP) {
+				return false;
+			}
+			return true;
+		}, this.animationFunction);
+		
+		this.showDirection = Bindings.createBooleanBinding(() -> {
+			AnimationFunction fn = this.animationFunction.get();
+			if (fn == AnimationFunction.SWIPE || fn == AnimationFunction.PUSH) {
+				return true;
+			}
+			return false;
+		}, this.animationFunction);
+		
+		this.showOrientation = Bindings.createBooleanBinding(() -> {
+			AnimationFunction fn = this.animationFunction.get();
+			if (fn == AnimationFunction.SPLIT || fn == AnimationFunction.BLINDS) {
+				return true;
+			}
+			return false;
+		}, this.animationFunction);
+		
+		this.showOperation = Bindings.createBooleanBinding(() -> {
+			AnimationFunction fn = this.animationFunction.get();
+			if (fn == AnimationFunction.SHAPE || fn == AnimationFunction.SPLIT) {
+				return true;
+			}
+			return false;
+		}, this.animationFunction);
+		
+		this.showShapeType = Bindings.createBooleanBinding(() -> {
+			AnimationFunction fn = this.animationFunction.get();
+			if (fn == AnimationFunction.SHAPE) {
+				return true;
+			}
+			return false;
+		}, this.animationFunction);
+		
+		this.showBlindCount = Bindings.createBooleanBinding(() -> {
+			AnimationFunction fn = this.animationFunction.get();
+			if (fn == AnimationFunction.BLINDS) {
+				return true;
+			}
+			return false;
+		}, this.animationFunction);
+		
 		// layout
 		
-        this.addField(Translations.get("slide.transition.type"), cmbAnimationFunction);
-        this.addField(Translations.get("slide.transition.duration"), spnDuration);
-        this.addField(Translations.get("slide.transition.easing.function"), cmbEasingFunction);
-        this.addField(Translations.get("slide.transition.easing.type"), cmbEasingType);
-        this.addField(Translations.get("slide.transition.direction"), cmbDirections);
-        this.addField(Translations.get("slide.transition.operation"), cmbOperations);
-        this.addField(Translations.get("slide.transition.orientation"), cmbOrientations);
-        this.addField(Translations.get("slide.transition.shape.type"), cmbShapeTypes);
-        this.addField(Translations.get("slide.transition.blind.count"), spnBlindCount);
-        this.showRowsOnly(0);
+		EditorField fldAnimation = new EditorField(Translations.get("slide.transition.type"), Translations.get("slide.transition.type.description"), cmbAnimationFunction);
+		EditorField fldDuration = new EditorField(Translations.get("slide.transition.duration"), Translations.get("slide.transition.duration.description"), spnDuration);
+		EditorField fldEasing = new EditorField(Translations.get("slide.transition.easing.function"), Translations.get("slide.transition.easing.function.description"), cmbEasingFunction);
+		EditorField fldEasingType = new EditorField(Translations.get("slide.transition.easing.type"), Translations.get("slide.transition.easing.type.description"), cmbEasingType);
+		EditorField fldDirection = new EditorField(Translations.get("slide.transition.direction"), cmbDirections);
+		EditorField fldOperation = new EditorField(Translations.get("slide.transition.operation"), cmbOperations);
+		EditorField fldOrientation = new EditorField(Translations.get("slide.transition.orientation"), cmbOrientations);
+		EditorField fldShapeType = new EditorField(Translations.get("slide.transition.shape.type"), cmbShapeTypes);
+		EditorField fldBlindCount = new EditorField(Translations.get("slide.transition.blind.count"), Translations.get("slide.transition.blind.count.description"), spnBlindCount);
+
+		fldDuration.visibleProperty().bind(this.showDurationAndEasing);
+		fldDuration.managedProperty().bind(fldDuration.visibleProperty());
+		fldEasing.visibleProperty().bind(this.showDurationAndEasing);
+		fldEasing.managedProperty().bind(fldEasing.visibleProperty());
+		fldEasingType.visibleProperty().bind(this.showDurationAndEasing);
+		fldEasingType.managedProperty().bind(fldEasingType.visibleProperty());
+		fldDirection.visibleProperty().bind(this.showDirection);
+		fldDirection.managedProperty().bind(fldDirection.visibleProperty());
+		fldOperation.visibleProperty().bind(this.showOperation);
+		fldOperation.managedProperty().bind(fldOperation.visibleProperty());
+		fldOrientation.visibleProperty().bind(this.showOrientation);
+		fldOrientation.managedProperty().bind(fldOrientation.visibleProperty());
+		fldShapeType.visibleProperty().bind(this.showShapeType);
+		fldShapeType.managedProperty().bind(fldShapeType.visibleProperty());
+		fldBlindCount.visibleProperty().bind(this.showBlindCount);
+		fldBlindCount.managedProperty().bind(fldBlindCount.visibleProperty());
+		
+		this.getChildren().addAll(
+				fldAnimation,
+				fldDuration,
+				fldEasing,
+				fldEasingType,
+				fldDirection,
+				fldOperation,
+				fldOrientation,
+				fldShapeType,
+				fldBlindCount);
         
         this.animationFunction.addListener((obs, ov, nv) -> {
         	if (nv == null) {
-        		this.showRowsOnly(0);
         		return;
         	}
         	
         	switch (nv) {
         		case BLINDS: 
-        			this.showRowsOnly(0,1,2,3,6,8); 
         			break;
         		case FADE: 
-        			this.showRowsOnly(0,1,2,3); 
     				break;
         		case PUSH: 
-        			this.showRowsOnly(0,1,2,3,4);
         			filteredDirections.setPredicate(d -> 
         				d.getValue() == AnimationDirection.UP || 
     					d.getValue() == AnimationDirection.DOWN || 
@@ -167,23 +249,17 @@ public final class SlideAnimationPicker extends FormFieldSection {
     					d.getValue() == AnimationDirection.RIGHT);
         			break;
         		case SHAPE: 
-        			this.showRowsOnly(0,1,2,3,5,7); 
         			break;
         		case SPLIT: 
-        			this.showRowsOnly(0,1,2,3,5,6); 
         			break;
         		case SWAP: 
-        			this.showRowsOnly(0); 
         			break;
         		case SWIPE: 
-        			this.showRowsOnly(0,1,2,3,4);
         			filteredDirections.setPredicate(d -> true);
         			break;
         		case ZOOM: 
-        			this.showRowsOnly(0,1,2,3); 
         			break;
         		default: 
-        			this.showRowsOnly(0); 
         			break;	
         	}
         });

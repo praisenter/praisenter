@@ -1,7 +1,9 @@
-package org.praisenter.ui;
+package org.praisenter.ui.document;
 
 import java.util.function.Supplier;
 
+import org.praisenter.ui.Action;
+import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.translations.Translations;
 
 import javafx.beans.binding.Bindings;
@@ -15,12 +17,12 @@ import javafx.scene.control.ToolBar;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.KeyCombination;
 
-public final class ActionBar extends ToolBar {
+public final class DocumentsToolbar extends ToolBar {
 	private static final String ACTION_BAR_CSS = "p-action-bar";
 	
 	private final GlobalContext context;
 	
-	public ActionBar(GlobalContext context) {
+	public DocumentsToolbar(GlobalContext context) {
 		this.getStyleClass().add(ACTION_BAR_CSS);
 		
 		this.context = context;

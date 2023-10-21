@@ -31,7 +31,7 @@ import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
-import org.praisenter.ui.MappedList;
+import org.praisenter.ui.bind.MappedList;
 import org.praisenter.ui.events.FlowListViewSelectionEvent;
 
 import javafx.application.Platform;
@@ -531,7 +531,11 @@ public final class FlowListSelectionModel<T> {
 				// select from the currently selected cell to the this cell
 				if (this.first != null) {
 					// select from last to this cell
-					start = this.view.getLayoutChildren().indexOf(this.first);
+					int first = this.view.getLayoutChildren().indexOf(this.first);
+					// if first is null or an element no longer in the list
+					if (first >= 0) {
+						start = first;
+					}
 				}
 				if (end < start) {
 					int temp = end;

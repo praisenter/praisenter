@@ -1,12 +1,10 @@
 package org.praisenter.ui;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.praisenter.async.AsyncHelper;
 import org.praisenter.ui.controls.Dialogs;
-import org.praisenter.ui.display.DisplaysController;
-import org.praisenter.ui.document.DocumentsPane;
+import org.praisenter.ui.pages.EditorPage;
 import org.praisenter.ui.pages.LibraryPage;
+import org.praisenter.ui.pages.PresentPage;
 import org.praisenter.ui.pages.SettingsPage;
 import org.praisenter.ui.pages.TaskListPage;
 import org.praisenter.ui.translations.Translations;
@@ -22,90 +20,77 @@ import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
-import javafx.scene.layout.VBox;
-import javafx.util.Duration;
 
 final class PraisenterPane extends BorderPane {
-	private static final Logger LOGGER = LogManager.getLogger();
+	// TODO background striping or something to split the screen controllers apart visually
+	// TODO flicker on update of tags on library list
 	
-	// TODO rename to left navigation
-	private static final String TAB_NAVIGATION_CLASS = "p-tab-navigation";
-	private static final String TAB_NAVIGATION_ICON_CLASS = "p-tab-navigation-icon";
-	// TODO fix sizing on the icons to match aspect ratio of the source SVG
-	private static final String TAB_NAVIGATION_ICON_PRESENT_CLASS = "p-tab-navigation-present-icon";
-	private static final String TAB_NAVIGATION_ICON_LIBRARY_CLASS = "p-tab-navigation-library-icon";
-	private static final String TAB_NAVIGATION_ICON_EDITOR_CLASS = "p-tab-navigation-editor-icon";
-	private static final String TAB_NAVIGATION_ICON_SETTINGS_CLASS = "p-tab-navigation-settings-icon";
-	private static final String TAB_NAVIGATION_ICON_TASKS_CLASS = "p-tab-navigation-tasks-icon";
+	private static final String LEFT_NAVIGATION_CLASS = "p-left-navigation";
+	private static final String LEFT_NAVIGATION_ICON_CLASS = "p-left-navigation-icon";
+	private static final String LEFT_NAVIGATION_ICON_PRESENT_CLASS = "p-left-navigation-present-icon";
+	private static final String LEFT_NAVIGATION_ICON_LIBRARY_CLASS = "p-left-navigation-library-icon";
+	private static final String LEFT_NAVIGATION_ICON_EDITOR_CLASS = "p-left-navigation-editor-icon";
+	private static final String LEFT_NAVIGATION_ICON_SETTINGS_CLASS = "p-left-navigation-settings-icon";
+	private static final String LEFT_NAVIGATION_ICON_TASKS_CLASS = "p-left-navigation-tasks-icon";
 
 	private final GlobalContext context;
 	
 	public PraisenterPane(GlobalContext context) {
 		this.context = context;
 		
-		// main content area
-		
+		// menu
 		MainMenu mainMenu = new MainMenu(context);
-		ActionBar actionBar = new ActionBar(context);
-		DocumentsPane documentsPane = new DocumentsPane(context);
+		FooterPane footer = new FooterPane(context);
 		
-		DisplaysController displayControllers = new DisplaysController(context);
+		// content area
+		TabPane body = new TabPane();
+		body.getStyleClass().add(LEFT_NAVIGATION_CLASS);
+		body.setSide(Side.LEFT);
+		body.setTabMaxHeight(Double.MAX_VALUE);
+		body.setTabMaxWidth(Double.MAX_VALUE);
 		
-		BorderPane editor = new BorderPane();
-		editor.setTop(actionBar);
-		editor.setCenter(documentsPane);
-		// TODO show a message to create new or edit an item in the library
-		
-		TabPane tabs = new TabPane();
-		tabs.getStyleClass().add(TAB_NAVIGATION_CLASS);
-		tabs.setSide(Side.LEFT);
-		tabs.setTabMaxHeight(Double.MAX_VALUE);
-		tabs.setTabMaxWidth(Double.MAX_VALUE);
-		
-		Tab presentTab = new Tab(null, displayControllers);
-		presentTab.setGraphic(this.createTabGraphic(TAB_NAVIGATION_ICON_PRESENT_CLASS));
+		Tab presentTab = new Tab(null, new PresentPage(context));
+		presentTab.setGraphic(this.createTabGraphic(LEFT_NAVIGATION_ICON_PRESENT_CLASS));
 		presentTab.setTooltip(this.createTabTooltip(Translations.get("area.present")));
 		presentTab.setClosable(false);
 		
 		Tab libraryTab = new Tab(null, new LibraryPage(context));
-		libraryTab.setGraphic(this.createTabGraphic(TAB_NAVIGATION_ICON_LIBRARY_CLASS));
+		libraryTab.setGraphic(this.createTabGraphic(LEFT_NAVIGATION_ICON_LIBRARY_CLASS));
 		libraryTab.setTooltip(this.createTabTooltip(Translations.get("area.manage")));
 		libraryTab.setClosable(false);
 		
-		Tab editorTab = new Tab(null, editor);
-		editorTab.setGraphic(this.createTabGraphic(TAB_NAVIGATION_ICON_EDITOR_CLASS));
+		Tab editorTab = new Tab(null, new EditorPage(context));
+		editorTab.setGraphic(this.createTabGraphic(LEFT_NAVIGATION_ICON_EDITOR_CLASS));
 		editorTab.setTooltip(this.createTabTooltip(Translations.get("area.editor")));
 		editorTab.setClosable(false);
 
 		Tab settingsTab = new Tab(null, new SettingsPage(context));
-		settingsTab.setGraphic(this.createTabGraphic(TAB_NAVIGATION_ICON_SETTINGS_CLASS));
+		settingsTab.setGraphic(this.createTabGraphic(LEFT_NAVIGATION_ICON_SETTINGS_CLASS));
 		settingsTab.setTooltip(this.createTabTooltip(Translations.get("area.settings")));
 		settingsTab.setClosable(false);
 		
 		Tab taskHistoryTab = new Tab(null, new TaskListPage(context));
-		taskHistoryTab.setGraphic(this.createTabGraphic(TAB_NAVIGATION_ICON_TASKS_CLASS));
+		taskHistoryTab.setGraphic(this.createTabGraphic(LEFT_NAVIGATION_ICON_TASKS_CLASS));
 		taskHistoryTab.setTooltip(this.createTabTooltip(Translations.get("area.tasks")));
 		taskHistoryTab.setClosable(false);
 		
-		tabs.getTabs().addAll(presentTab, libraryTab, editorTab, settingsTab, taskHistoryTab);
+		body.getTabs().addAll(presentTab, libraryTab, editorTab, settingsTab, taskHistoryTab);
 		
+		// when the current document is changed (because the user chose to edit it)
+		// then select the editor tab
 		context.currentDocumentProperty().addListener((obs, ov, nv) -> {
 			if (nv != null) {
 				// then make sure we are on the editor tab
-				tabs.getSelectionModel().select(editorTab);
+				body.getSelectionModel().select(editorTab);
 			}
 		});
 		
+		// layout
+		
 		this.setTop(mainMenu);
-		this.setCenter(tabs);
-		
-		VBox.setVgrow(documentsPane, Priority.ALWAYS);
-
-		// bottom
-		
-		this.setBottom(new FooterPane(context));
+		this.setCenter(body);
+		this.setBottom(footer);
 		
 		// drag-drop handlers
 		
@@ -140,14 +125,12 @@ final class PraisenterPane extends BorderPane {
 	
 	private Tooltip createTabTooltip(String text) {
 		Tooltip tooltip = new Tooltip(text);
-		tooltip.setShowDelay(new Duration(300));
-		tooltip.setForceIntegerRenderScale(true);
 		return tooltip;
 	}
 	
 	private Node createTabGraphic(String iconCssClass) {
 		Region icon = new Region();
-		icon.getStyleClass().addAll(TAB_NAVIGATION_ICON_CLASS, iconCssClass);
+		icon.getStyleClass().addAll(LEFT_NAVIGATION_ICON_CLASS, iconCssClass);
 		return icon;
 	}
 }

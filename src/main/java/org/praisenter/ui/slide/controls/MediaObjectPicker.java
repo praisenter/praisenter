@@ -12,13 +12,16 @@ import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.Option;
 import org.praisenter.ui.bind.BindingHelper;
 import org.praisenter.ui.bind.ObjectConverter;
-import org.praisenter.ui.controls.FormFieldSection;
+import org.praisenter.ui.controls.EditorField;
+import org.praisenter.ui.controls.EditorFieldGroup;
 import org.praisenter.ui.controls.WindowHelper;
 import org.praisenter.ui.library.LibraryList;
 import org.praisenter.ui.library.LibraryListType;
 import org.praisenter.ui.translations.Translations;
 
+import atlantafx.base.controls.ToggleSwitch;
 import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -30,13 +33,13 @@ import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
-import javafx.scene.control.CheckBox;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Dialog;
+import javafx.scene.layout.HBox;
 import javafx.stage.Modality;
 import javafx.stage.StageStyle;
 
-public final class MediaObjectPicker extends FormFieldSection {
+public final class MediaObjectPicker extends EditorFieldGroup {
 	private static final String MEDIA_DIALOG_CSS = "p-media-dialog";
 	
 	private final ObjectProperty<MediaObject> value;
@@ -51,18 +54,12 @@ public final class MediaObjectPicker extends FormFieldSection {
 	
 	private Media originalMedia;
 	
-	public MediaObjectPicker(
-			GlobalContext context,
-			MediaType... allowedTypes) {
-		this(null, context, allowedTypes);
-	}
+	private final BooleanBinding hasAudio;
+	private final BooleanBinding hasVideo;
 	
 	public MediaObjectPicker(
-			String label,
 			GlobalContext context,
 			MediaType... allowedTypes) {
-		super(label);
-		
 		this.value = new SimpleObjectProperty<>();
 		
 		this.media = new SimpleObjectProperty<>();
@@ -84,13 +81,14 @@ public final class MediaObjectPicker extends FormFieldSection {
 		
 		LibraryList lstMedia = new LibraryList(context, Orientation.HORIZONTAL, types);
 		lstMedia.setMultiSelectEnabled(false);
+
 		FilteredList<Media> filtered = new FilteredList<>(context.getWorkspaceManager().getItemsUnmodifiable(Media.class));
 		filtered.setPredicate(m -> {
 			MediaType type = m.getMediaType();
 			return Stream.of(allowedTypes).anyMatch(t -> t == type);
 		});
 		this.mediaList = filtered;
-		Bindings.bindContent(lstMedia.getItems(), this.mediaList); 
+		Bindings.bindContent(lstMedia.getItems(), this.mediaList);
 		
 		Dialog<Media> dlgMedia = new Dialog<>();
 		dlgMedia.setTitle(Translations.get("media"));
@@ -122,10 +120,19 @@ public final class MediaObjectPicker extends FormFieldSection {
 			WindowHelper.centerOnParent(this.getScene().getWindow(), dlgMedia);
 		});
 		
-		CheckBox chkLoop = new CheckBox();
-		chkLoop.selectedProperty().bindBidirectional(this.loopEnabled);
-		CheckBox chkMute = new CheckBox();
-		chkMute.selectedProperty().bindBidirectional(this.mute);
+//		CheckBox chkLoop = new CheckBox();
+//		chkLoop.selectedProperty().bindBidirectional(this.loopEnabled);
+		ToggleSwitch tglLoop = new ToggleSwitch();
+		tglLoop.selectedProperty().bindBidirectional(this.loopEnabled);
+		HBox boxLoop = new HBox(tglLoop);
+		boxLoop.setAlignment(Pos.CENTER_RIGHT);
+		
+//		CheckBox chkMute = new CheckBox();
+//		chkMute.selectedProperty().bindBidirectional(this.mute);
+		ToggleSwitch tglMute = new ToggleSwitch();
+		tglMute.selectedProperty().bindBidirectional(this.mute);
+		HBox boxMute = new HBox(tglMute);
+		boxMute.setAlignment(Pos.CENTER_RIGHT);
 		
 		ObservableList<Option<ScaleType>> scaleTypes = FXCollections.observableArrayList();
 		scaleTypes.add(new Option<>(Translations.get("slide.media.scale." + ScaleType.NONE), ScaleType.NONE));
@@ -136,25 +143,48 @@ public final class MediaObjectPicker extends FormFieldSection {
 		
 		SlideColorAdjustPicker pkrColorAdjust = new SlideColorAdjustPicker();
 		pkrColorAdjust.valueProperty().bindBidirectional(this.colorAdjust);
+
+		EditorField fldMedia = new EditorField(Translations.get("media"), btnMedia);
+		EditorField fldLoop = new EditorField(Translations.get("slide.media.loop"), boxLoop);
+		EditorField fldMute = new EditorField(Translations.get("slide.media.mute"), boxMute);
+		EditorField fldScaleType = new EditorField(Translations.get("slide.media.scale.type"), cbScaleType);
+		EditorField fldColorAdjust = new EditorField(pkrColorAdjust);
 		
-		int fIndex = this.addField(Translations.get("media"), btnMedia);
-		this.addField(Translations.get("slide.media.loop"), chkLoop);
-		this.addField(Translations.get("slide.media.mute"), chkMute);
-		this.addField(Translations.get("slide.media.scale.type"), cbScaleType);
-		this.addSubSection(pkrColorAdjust);
-		this.showRowsOnly(fIndex);
-		
-		this.media.addListener((obs, ov, nv) -> {
-			if (nv == null) {
-				this.showRowsOnly(fIndex);
-			} else if (nv.getMediaType() == MediaType.AUDIO) {
-				this.showRowsOnly(fIndex, fIndex + 1, fIndex + 2);
-			} else if (nv.getMediaType() == MediaType.IMAGE) {
-				this.showRowsOnly(fIndex, fIndex + 3, fIndex + 4);
-			} else if (nv.getMediaType() == MediaType.VIDEO) {
-				this.showRowsOnly(fIndex, fIndex + 1, fIndex + 2, fIndex + 3, fIndex + 4);
+		this.hasAudio = Bindings.createBooleanBinding(() -> {
+			Media media = this.media.get();
+			if (media == null) {
+				return false;
 			}
-		});
+			
+			MediaType type = media.getMediaType();
+			return type == MediaType.VIDEO || type == MediaType.AUDIO;
+		}, this.media);
+		
+		this.hasVideo = Bindings.createBooleanBinding(() -> {
+			Media media = this.media.get();
+			if (media == null) {
+				return false;
+			}
+			
+			MediaType type = media.getMediaType();
+			return type == MediaType.VIDEO || type == MediaType.IMAGE;
+		}, this.media);
+		
+		fldLoop.visibleProperty().bind(this.hasAudio);
+		fldLoop.managedProperty().bind(fldLoop.visibleProperty());
+		fldMute.visibleProperty().bind(this.hasAudio);
+		fldMute.managedProperty().bind(fldMute.visibleProperty());
+		fldScaleType.visibleProperty().bind(this.hasVideo);
+		fldScaleType.managedProperty().bind(fldScaleType.visibleProperty());
+		fldColorAdjust.visibleProperty().bind(this.hasVideo);
+		fldColorAdjust.managedProperty().bind(fldColorAdjust.visibleProperty());
+		
+		this.getChildren().addAll(
+				fldMedia,
+				fldLoop,
+				fldMute,
+				fldScaleType,
+				fldColorAdjust);
 		
 		BindingHelper.bindBidirectional(cbScaleType.valueProperty(), this.scaleType);
 		BindingHelper.bindBidirectional(this.scaleType, this.value, new ObjectConverter<ScaleType, MediaObject>() {

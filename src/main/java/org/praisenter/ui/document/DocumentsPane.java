@@ -9,7 +9,7 @@ import org.praisenter.data.Persistable;
 import org.praisenter.ui.Action;
 import org.praisenter.ui.ActionPane;
 import org.praisenter.ui.GlobalContext;
-import org.praisenter.ui.MappedList;
+import org.praisenter.ui.bind.MappedList;
 
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
