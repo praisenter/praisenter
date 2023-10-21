@@ -7,12 +7,10 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.HashSet;
-import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.async.AsyncHelper;
-import org.praisenter.async.BackgroundTask;
 import org.praisenter.data.Persistable;
 import org.praisenter.data.Tag;
 import org.praisenter.data.bible.Bible;
@@ -26,7 +24,6 @@ import org.praisenter.ui.controls.Dialogs;
 import org.praisenter.ui.controls.MediaPreview;
 import org.praisenter.ui.controls.RowVisGridPane;
 import org.praisenter.ui.controls.TagListView;
-import org.praisenter.ui.document.DocumentContext;
 import org.praisenter.ui.slide.SlideMode;
 import org.praisenter.ui.slide.SlideView;
 import org.praisenter.ui.translations.Translations;
@@ -486,27 +483,7 @@ final class LibraryItemDetails extends VBox {
 	}
 	
 	private void onTagsChanged(Persistable p) {
-		BackgroundTask task = new BackgroundTask();
-		task.setName(p.getName());
-		task.setMessage(Translations.get("task.saving", p.getName()));
-		this.context.addBackgroundTask(task);
-		
-		this.context.getWorkspaceManager().update(p).thenRun(() -> {
-			// complete the task
-			task.setProgress(1.0);
-		}).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
-			// update any open document that matches this document (on the UI thread)
-			List<DocumentContext<?>> docs = this.context.getOpenDocumentsUnmodifiable();
-			for (DocumentContext<?> ctx : docs) {
-				if (ctx.getDocument().identityEquals(p)) {
-					ctx.getDocument().setTags(p.getTags());
-				}
-			}
-		})).exceptionally((t) -> {
-			// handle any error
-			task.setException(t);
-			LOGGER.error("Failed to add/remove tag: " + t.getMessage(), t);
-			
+		this.context.saveTags(p).exceptionally((t) -> {
 			// present them to the user
 			Platform.runLater(() -> {
 				Alert errorAlert = Dialogs.exception(
@@ -514,7 +491,6 @@ final class LibraryItemDetails extends VBox {
 						t);
 				errorAlert.show();
 			});
-			
 			return null;
 		});
 	}

@@ -38,14 +38,17 @@ public final class InstallUpgradeHandler {
 	
 	public void initialize() {
 		// ensure folders exist
+		logger.debug("Making sure all application folders exist");
 		this.buildFolders();
 		
 		// make sure these files exist
+		logger.debug("Making sure all application files exist");
 		this.installOrUpgradeLog4jConfiguration(false);
 		this.installOrUpgradeDefaultLocale(false);
 		this.installOrUpgradeDefaultStyles(false);
 		
 		// check for existing version file
+		logger.debug("Checking if version file exits");
 		Path path = Paths.get(Constants.UPGRADE_ABSOLUTE_PATH, Constants.UPGRADE_VERSION_FILENAME);
 		if (!Files.exists(path)) {
 			logger.info("Initial install detected, setting up log4j, the default locale, and default theme.");
@@ -55,6 +58,7 @@ public final class InstallUpgradeHandler {
 		}
 		
 		// if it's exists, then try to read it
+		logger.debug("Reading the version file");
 		Version currentVersion = this.readVersionFile(path);
 		if (currentVersion == null) {
 			// the file wasn't found, was empty or in the wrong format
@@ -62,23 +66,26 @@ public final class InstallUpgradeHandler {
 			throw new RuntimeException("Failed to read the '" + path.toAbsolutePath() + "' file which determines whether Praisenter should perform install or upgrade steps. Try to run the application again to confirm it's not an intermittent issue. Make sure the file is in the correct format MAJOR.MINOR.REVISION where each component is an integer.");
 		}
 		
+		logger.debug("Current installed version is: '" + currentVersion + "' runtime version is: '" + Version.VERSION + "'");
 		Version runtimeVersion = Version.VERSION;
 		
 		// does the runtime version match the last runtime version?
 		if (currentVersion.equals(runtimeVersion)) {
+			logger.info("Versions match, so no upgrade/install steps required");
 			// the versions are the same, so no upgrade/install steps needed
 			return;
 		}
 		
 		// is the runtime version lower than the last runtime version?
 		if (currentVersion.isGreaterThan(runtimeVersion)) {
+			logger.warn("The current version is greater than the runtime version. USE AT YOUR OWN RISK.");
 			// this should never happen, but could if someone upgrades
 			// then tries to down grade.  The behavior would be unknown
 			// but we'll allow it for now
 			return;
 		}
 		
-		logger.info("Performing upgrade steps for runtime version '" + runtimeVersion + "' from last runtime version '" + currentVersion + "'");
+		logger.info("Performing upgrade steps for runtime version: '" + runtimeVersion + "' from current version: '" + currentVersion + "'");
 
 		// otherwise, perform any upgrade steps
 		this.installOrUpgradeLog4jConfiguration(true);
@@ -153,11 +160,15 @@ public final class InstallUpgradeHandler {
 	private void installOrUpgradeClasspathFile(String filePath, String fileName, String classpathPath, boolean isUpgrade) {
 		Path path = Paths.get(filePath, fileName);
 		if (Files.exists(path)) {
+			logger.debug("The file '" + fileName + "' exits.");
 			try {
 				if (isUpgrade && !this.isFileContentIdentical(path, classpathPath)) {
+					logger.debug("The file '" + fileName + "' exits, we're doing an upgrade, and the file content is different.");
+					logger.debug("Archiving file '" + fileName + "'.");
 					// archive off the file
 					this.archiveFile(path);
 					// delete the current file
+					logger.debug("Replacing file '" + fileName + "' with version from the jar.");
 					Files.delete(path);
 					// then replace the version
 					ClasspathLoader.copy(classpathPath, path);
@@ -166,7 +177,7 @@ public final class InstallUpgradeHandler {
 				// shouldn't happen, we should only use
 				// algos that exist within the deployed
 				// JVM
-				logger.fatal("Failed to check the '" + fileName + "' file hashes because MD5 wasn't a support digest.");
+				logger.fatal("Failed to check the '" + fileName + "' file hashes because SHA-256 wasn't a support digest.");
 				throw new RuntimeException(e);
 			} catch (FileNotFoundException e) {
 				// shouldn't happen since the existing
@@ -183,6 +194,7 @@ public final class InstallUpgradeHandler {
 			}
 		} else {
 			try {
+				logger.debug("The file '" + fileName + "' does not exist. Copying file from jar.");
 				ClasspathLoader.copy(classpathPath, path);
 			} catch (FileAlreadyExistsException e) {
 				// shouldn't happen because we already
@@ -210,6 +222,7 @@ public final class InstallUpgradeHandler {
 		try (FileReader reader = new FileReader(path.toFile(), Charset.forName("UTF-8"));
 			 BufferedReader br = new BufferedReader(reader)) {
 			String text = br.readLine();
+			logger.debug("Version file read with content '" + text + "'. Parsing...");
 			return Version.parse(text);
 		} catch (FileNotFoundException e) {
 			logger.fatal("Version file '" + path.toAbsolutePath() + "' was not found.");
@@ -227,12 +240,15 @@ public final class InstallUpgradeHandler {
 	private void writeVersionFile() {
 		Path path = Paths.get(Constants.UPGRADE_ABSOLUTE_PATH, Constants.UPGRADE_VERSION_FILENAME);
 		try {
+			logger.debug("Removing version file if it exits...");
 			Files.deleteIfExists(path);
+			logger.debug("Writing version file...");
 			try (FileWriter fw = new FileWriter(path.toFile(), Charset.forName("UTF-8"));
 				 BufferedWriter bw = new BufferedWriter(fw)) {
 				bw.write(Version.STRING);
 				bw.newLine();
 			}
+			logger.debug("Version file created successfully.");
 		} catch (IOException e) {
 			logger.fatal("Failed to write version file '" + path.toAbsolutePath() + "'");
 			throw new RuntimeException(e);
@@ -255,8 +271,8 @@ public final class InstallUpgradeHandler {
 	
 	private boolean isFileContentIdentical(InputStream is1, InputStream is2) throws IOException, NoSuchAlgorithmException {
 		// get a hash of the file
-		String hash1 = hash(is1, "MD5");
-		String hash2 = hash(is2, "MD5");
+		String hash1 = hash(is1, "SHA-256");
+		String hash2 = hash(is2, "SHA-256");
 		return hash1.equals(hash2);
 	}
 	

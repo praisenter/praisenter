@@ -41,8 +41,8 @@ public enum Action {
 	
 	REINDEX("action.workspace.reindex"),
 	ABOUT("action.about", getGraphicSupplier(Icons.INFO)),
-	INCREASE_FONT_SIZE("action.font.increase", new KeyCodeCombination(KeyCode.EQUALS, KeyCombination.SHORTCUT_DOWN)),
-	DECREASE_FONT_SIZE("action.font.decrease", new KeyCodeCombination(KeyCode.MINUS, KeyCombination.SHORTCUT_DOWN)),
+	INCREASE_FONT_SIZE("action.font.increase", new KeyCodeCombination(KeyCode.EQUALS, KeyCombination.SHORTCUT_DOWN), getGraphicSupplier(Icons.ZOOM_IN)),
+	DECREASE_FONT_SIZE("action.font.decrease", new KeyCodeCombination(KeyCode.MINUS, KeyCombination.SHORTCUT_DOWN), getGraphicSupplier(Icons.ZOOM_OUT)),
 	RESET_FONT_SIZE("action.font.reset", new KeyCodeCombination(KeyCode.NUMPAD0, KeyCombination.SHORTCUT_DOWN)),
 	APPLICATION_LOGS("action.application.logs"),
 	WORKSPACE_LOGS("action.workspace.logs"),

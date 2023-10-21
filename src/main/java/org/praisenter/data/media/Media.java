@@ -27,6 +27,7 @@ package org.praisenter.data.media;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -530,5 +531,10 @@ public final class Media implements ReadOnlyMedia, Indexable, Persistable, Copya
 	@Override
 	public ReadOnlyObjectProperty<Path> mediaThumbnailPathProperty() {
 		return this.mediaThumbnailPath;
+	}
+
+	@Override
+	public Set<UUID> getDependencies() {
+		return Collections.emptySet();
 	}
 }

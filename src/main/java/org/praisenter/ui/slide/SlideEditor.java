@@ -27,7 +27,7 @@ import org.praisenter.data.slide.text.TextPlaceholderComponent;
 import org.praisenter.ui.Action;
 import org.praisenter.ui.DataFormats;
 import org.praisenter.ui.GlobalContext;
-import org.praisenter.ui.MappedList;
+import org.praisenter.ui.bind.MappedList;
 import org.praisenter.ui.document.DocumentContext;
 import org.praisenter.ui.document.DocumentEditor;
 import org.praisenter.ui.events.ActionStateChangedEvent;

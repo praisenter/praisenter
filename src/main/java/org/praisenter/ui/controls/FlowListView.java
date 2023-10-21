@@ -28,7 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.praisenter.ui.MappedList;
+import org.praisenter.ui.bind.MappedList;
 
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
@@ -364,7 +364,7 @@ public class FlowListView<T> extends FastScrollPane {
 		} else {
 			this.startCell = null;
 		}
-
+		
 		// get the number of items
 		int size = this.getLayoutChildren().size();
 		if (this.currentCell == null) {
@@ -481,8 +481,8 @@ public class FlowListView<T> extends FastScrollPane {
 		// determine the tile layout and compute the index of the desired item
 		double th = this.layout.getTileHeight() + this.layout.getVgap();
 		double tw = this.layout.getTileWidth() + this.layout.getHgap();
-		double h = this.layout.getHeight();
-		double w = this.layout.getWidth();
+		double h = this.layout.getHeight() - this.layout.getPadding().getTop() - this.layout.getPadding().getBottom();
+		double w = this.layout.getWidth() - this.layout.getPadding().getLeft() - this.layout.getPadding().getRight();
 
 		int npr = (int) Math.floor(w / tw);
 		int npc = (int) Math.floor(h / th);

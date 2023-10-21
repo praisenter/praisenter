@@ -11,9 +11,7 @@ import javafx.collections.transformation.FilteredList;
 import javafx.geometry.Orientation;
 import javafx.scene.layout.BorderPane;
 
-public class LibraryPage extends BorderPane {
-//	private static final Logger LOGGER = LogManager.getLogger();
-	
+public final class LibraryPage extends BorderPane {
 	private static final String LIBRARY_PAGE_CLASS = "p-library-page";
 	
 	private final ObservableList<Persistable> items;

@@ -5,7 +5,7 @@ import org.praisenter.data.song.Lyrics;
 import org.praisenter.data.song.Section;
 import org.praisenter.data.song.Song;
 import org.praisenter.data.song.SongBook;
-import org.praisenter.ui.MappedList;
+import org.praisenter.ui.bind.MappedList;
 import org.praisenter.ui.translations.Translations;
 
 import javafx.beans.binding.Bindings;

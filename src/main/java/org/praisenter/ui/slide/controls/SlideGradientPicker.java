@@ -6,13 +6,14 @@ import org.praisenter.data.slide.graphics.SlideGradientType;
 import org.praisenter.ui.Option;
 import org.praisenter.ui.bind.BindingHelper;
 import org.praisenter.ui.bind.ObjectConverter;
-import org.praisenter.ui.controls.FormFieldSection;
+import org.praisenter.ui.controls.EditorDivider;
+import org.praisenter.ui.controls.EditorField;
+import org.praisenter.ui.controls.EditorFieldGroup;
+import org.praisenter.ui.controls.IntegerSliderField;
 import org.praisenter.ui.slide.convert.PaintConverter;
 import org.praisenter.ui.translations.Translations;
 import org.praisenter.utility.Numbers;
 
-import atlantafx.base.controls.ProgressSliderSkin;
-import atlantafx.base.theme.Styles;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
@@ -26,7 +27,6 @@ import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ColorPicker;
-import javafx.scene.control.Slider;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
@@ -42,8 +42,7 @@ import javafx.scene.shape.Shape;
 // FEATURE (L-L) Add ability to configure any number of gradient stops
 // JAVABUG (L) 06/14/17 [workaround] Color picker in context menu (or other dialog) doesn't work if you click the "Custom Color" link https://bugs.openjdk.java.net/browse/JDK-8175803
 
-// FIXME replace color pickers with custom one
-public final class SlideGradientPicker extends FormFieldSection {
+public final class SlideGradientPicker extends EditorFieldGroup {
 	private static final String GRADIENT_PREVIEW_CSS = "p-gradient-preview";
 	private static final String GRADIENT_PREVIEW_BACKGROUND_CSS = "p-gradient-preview-background";
 	
@@ -66,14 +65,8 @@ public final class SlideGradientPicker extends FormFieldSection {
 	private final DoubleProperty handle1Y;
 	private final DoubleProperty handle2X;
 	private final DoubleProperty handle2Y;
-	
+
     public SlideGradientPicker() {
-    	this(null);
-    }
-	
-    public SlideGradientPicker(String label) {
-    	super(label);
-    	
     	this.value = new SimpleObjectProperty<SlideGradient>();
     	this.type = new SimpleObjectProperty<>(SlideGradientType.LINEAR);
     	this.cycleType = new SimpleObjectProperty<>(SlideGradientCycleType.NONE);
@@ -102,10 +95,8 @@ public final class SlideGradientPicker extends FormFieldSection {
         cbCycleType.setMaxWidth(Double.MAX_VALUE);
         
         // stop 1 offset slider
-        Slider sldStop1 = new Slider(0, 1, 0);
-        sldStop1.getStyleClass().add(Styles.SMALL);
-        sldStop1.setSkin(new ProgressSliderSkin(sldStop1));
-        sldStop1.valueProperty().bindBidirectional(this.stop1Offset);
+        IntegerSliderField pkrStopOffset1 = new IntegerSliderField(0, 1, 0, 100);
+        pkrStopOffset1.valueProperty().bindBidirectional(this.stop1Offset);
         
         // stop 1 color
         ColorPicker pkrStop1 = new ColorPicker(Color.BLACK);
@@ -113,10 +104,8 @@ public final class SlideGradientPicker extends FormFieldSection {
         pkrStop1.setMaxWidth(Double.MAX_VALUE);
         
         // stop 2 offset slider
-        Slider sldStop2 = new Slider(0, 1, 1);
-        sldStop2.getStyleClass().add(Styles.SMALL);
-        sldStop2.setSkin(new ProgressSliderSkin(sldStop2));
-        sldStop2.valueProperty().bindBidirectional(this.stop2Offset);
+        IntegerSliderField pkrStopOffset2 = new IntegerSliderField(0, 1, 1, 100);
+        pkrStopOffset2.valueProperty().bindBidirectional(this.stop2Offset);
         
         // stop 2 color
         ColorPicker pkrStop2 = new ColorPicker(Color.WHITE);
@@ -221,20 +210,28 @@ public final class SlideGradientPicker extends FormFieldSection {
         handle1.setCursor(Cursor.HAND);
         
         HBox pp = new HBox(previewStack);
-        pp.setAlignment(Pos.CENTER);
-        pp.setPadding(new Insets(10, 0, 10, 0));
+        pp.setAlignment(Pos.CENTER_LEFT);
         
         // build the layout
+        
+        EditorField fldPreview = new EditorField("", pp);
+        EditorField fldType = new EditorField(Translations.get("slide.gradient.type"), cbType);
+        EditorField fldStop1Color = new EditorField(Translations.get("slide.gradient.stop1.color"), pkrStop1);
+        EditorField fldStop1Stop = new EditorField(Translations.get("slide.gradient.stop1.offset"), pkrStopOffset1);
+        EditorField fldStop2Color = new EditorField(Translations.get("slide.gradient.stop2.color"), pkrStop2);
+        EditorField fldStop2Stop = new EditorField(Translations.get("slide.gradient.stop2.offset"), pkrStopOffset2);
+        EditorField fldCycleType = new EditorField(Translations.get("slide.gradient.cycle"), cbCycleType);
 
-	    int fIndex = this.addField(null, pp);
-	    this.addField(Translations.get("slide.gradient.type"), cbType);
-	    this.addField(Translations.get("slide.gradient.stop1.color"), pkrStop1);
-	    this.addField(Translations.get("slide.gradient.stop1.offset"), sldStop1);
-	    this.addField(Translations.get("slide.gradient.stop2.color"), pkrStop2);
-	    this.addField(Translations.get("slide.gradient.stop2.offset"), sldStop2);
-	    this.addField(Translations.get("slide.gradient.cycle"), cbCycleType);
-        this.hideRow(fIndex);
-        this.showRow(fIndex);
+        this.getChildren().addAll(
+        		fldPreview,
+        		fldType,
+        		fldCycleType,
+        		new EditorDivider(Translations.get("slide.gradient.stop1")),
+        		fldStop1Color,
+        		fldStop1Stop,
+        		new EditorDivider(Translations.get("slide.gradient.stop2")),
+        		fldStop2Color,
+        		fldStop2Stop);
         
 		// bindings
 		
@@ -272,7 +269,7 @@ public final class SlideGradientPicker extends FormFieldSection {
 			}
 			@Override
 			public Number convertTo(SlideGradient e) {
-				if (e == null) return sldStop1.getValue();
+				if (e == null) return pkrStopOffset1.getValue();
 				return e.getStops().get(0).getOffset();
 			}
 		});
@@ -284,7 +281,7 @@ public final class SlideGradientPicker extends FormFieldSection {
 			}
 			@Override
 			public Number convertTo(SlideGradient e) {
-				if (e == null) return sldStop2.getValue();
+				if (e == null) return pkrStopOffset2.getValue();
 				return e.getStops().get(1).getOffset();
 			}
 		});

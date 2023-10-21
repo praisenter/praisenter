@@ -2,6 +2,7 @@ package org.praisenter.data;
 
 import java.time.Instant;
 import java.util.Set;
+import java.util.UUID;
 
 import org.praisenter.data.search.Indexable;
 
@@ -30,6 +31,8 @@ public interface Persistable extends Indexable, Identifiable, Copyable {
 	public ObservableSet<Tag> getTags();
 	public void setTags(Set<Tag> tags);
 	public ObservableSet<Tag> getTagsUnmodifiable();
+	
+	public Set<UUID> getDependencies();
 	
 	public Persistable copy();
 }

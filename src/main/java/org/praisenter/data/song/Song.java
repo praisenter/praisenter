@@ -2,6 +2,7 @@ package org.praisenter.data.song;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -656,5 +657,10 @@ public final class Song implements ReadOnlySong, Indexable, Persistable, Copyabl
 	@Override
 	public ObservableSet<Tag> getTagsUnmodifiable() {
 		return this.tagsReadOnly;
+	}
+
+	@Override
+	public Set<UUID> getDependencies() {
+		return Collections.emptySet();
 	}
 }

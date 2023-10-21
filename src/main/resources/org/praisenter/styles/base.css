@@ -1,7 +1,5 @@
 .root {
-	tab-unsaved-font-color: rgb(204, 167, 0);
-	error-font-color: red;
-	new-adder-background-color: rgb(83, 172, 83);
+	
 }
 
 /********************************************************************************/
@@ -61,31 +59,15 @@
 
 /* UNSAVED CHANGES */
 .p-unsaved-document > .tab-container > .tab-label {
-	-fx-text-fill: tab-unsaved-font-color;
+	-fx-text-fill: -color-warning-fg;
 }
+
+.p-icon-error   { -fx-background-color: -color-danger-fg; }
+.p-icon-pending { -fx-background-color: -color-warning-fg; }
+.p-icon-success { -fx-background-color: -color-success-fg; }
 
 .p-error-label {
-	-fx-text-fill: error-font-color;
-}
-
-/* the square in the middle of the 4 text boxes when editing the padding for text component */
-.p-padding-box {
-	-fx-fill: transparent;
-	-fx-stroke: -color-accent-emphasis;
-	-fx-stroke-type: outside;
-	-fx-stroke-line-cap: butt;
-	-fx-stroke-line-join: miter;
-	-fx-stroke-miter-limit: 10;
-	-fx-stroke-width: 1;
-}
-
-.p-gradient-preview {
-	-fx-border-width: 1;
-	-fx-border-color: -color-border-default;
-}
-.p-gradient-preview-background {
-	-fx-background-image: url("/org/praisenter/images/transparent.png");
-	-fx-background-repeat: repeat;
+	-fx-text-fill: -color-danger-fg;
 }
 
 .p-search-highlight {
@@ -152,6 +134,75 @@
 /* ACTION BAR */
 .p-action-bar {}
 
+/* LEFT NAVIGATION */
+.p-left-navigation {}
+.p-left-navigation > .tab-header-area {
+	-fx-padding: 0;
+}
+.p-left-navigation > .tab-header-area > .tab-header-background {
+	-fx-background-insets: 0;
+}
+.p-left-navigation > .tab-header-area > .headers-region > .tab {
+	-fx-border-radius: 0;
+	-fx-background-radius: 0;
+	-fx-background-insets: 0;
+	-fx-border-width: 0;
+	-fx-padding: 0.083333em 0.5em 0.0769em 0.5em;
+}
+.p-left-navigation > .tab-header-area > .headers-region > .tab:hover {
+	-fx-border-width: 3 0 0 0;
+	-fx-border-color: -color-accent-emphasis;
+}
+.p-left-navigation > .tab-header-area > .headers-region > .tab:selected {
+	-fx-border-width: 3 0 0 0;
+	-fx-border-color: -color-accent-emphasis;
+	-fx-border-radius: 0;
+	-fx-background-radius: 0;
+	-fx-background-insets: 0;
+}
+.p-left-navigation > .tab-header-area > .headers-region > .tab:selected .focus-indicator {
+	-fx-border-width: 0;
+    -fx-border-insets: 0;
+    -fx-border-radius: 0;
+}
+.p-left-navigation > .tab-content-area {
+	-fx-border-width: 0 0 0 1;
+	-fx-border-color: -color-border-muted;
+	-fx-min-width: 0;
+}
+.p-left-navigation > .tab-header-area > .headers-region > .tab > .tab-container > .tab-label {
+	-fx-padding: 1.5em 1.1em;
+}
+.p-left-navigation-icon {
+    -fx-background-color: -color-fg-default;
+    -size: 2em;
+    -fx-max-height: -size;
+    -fx-max-width: -size;
+    -fx-min-height: -size;
+    -fx-min-width: -size;
+    -fx-pref-height: -size;
+    -fx-pref-width: -size;
+}
+.p-left-navigation > .tab-header-area > .headers-region > .tab:hover .p-left-navigation-icon,
+.p-left-navigation > .tab-header-area > .headers-region > .tab:selected .p-left-navigation-icon {
+	/* -fx-background-color: left-navigation-hover-font-color; */
+}
+
+.p-left-navigation-present-icon {
+	-fx-shape: -icon-desktop;
+}
+.p-left-navigation-library-icon {
+	-fx-shape: -icon-layers;
+}
+.p-left-navigation-settings-icon {
+	-fx-shape: -icon-gear;
+}
+.p-left-navigation-tasks-icon {
+	-fx-shape: -icon-history;
+}
+.p-left-navigation-editor-icon {
+	-fx-shape: -icon-pencil;
+}
 
 /********************************************************************************/
 /********************************************************************************/
@@ -168,7 +219,7 @@
 .p-settings-page .p-settings-page-scroll {}
 .p-settings-page .p-settings-page-scroll .p-settings-page-flow {}
 .p-settings-page .p-settings-page-scroll .p-settings-page-flow .p-settings-page-group {
-	-fx-padding: 2em;
+	-fx-padding: 1em;
 	-fx-max-width: 550;
 	-fx-pref-width: 550;
 	-fx-min-width: 550;
@@ -176,7 +227,7 @@
 
 /* TASKLIST PAGE */
 .p-tasklist-page {
-	-fx-padding: 2em 2em 0 2em;
+	-fx-padding: 1em;
 }
 .p-tasklist-page .p-tasklist-title {
 	-fx-padding: 0 0 0.55em 0;
@@ -196,23 +247,30 @@
 }
 .p-tasklist-page .p-tasklist-split .p-tasklist-page-list .p-icon-error {
 	-fx-shape: -icon-error;
-	-fx-background-color: -color-danger-fg;
 }
 .p-tasklist-page .p-tasklist-split .p-tasklist-page-list .p-icon-pending {
 	-fx-shape: -icon-pending;
-	-fx-background-color: -color-warning-fg;
 }
 .p-tasklist-page .p-tasklist-split .p-tasklist-page-list .p-icon-success {
 	-fx-shape: -icon-success;
-	-fx-background-color: -color-success-fg;
 }
 .p-tasklist-page .p-tasklist-split .p-tasklist-page-fields {
-	-fx-padding: 2em 0 2em 2em;
+	-fx-padding: 1em 0 1em 1em;
 	-fx-spacing: 0.5em;
 }
 
 /* LIBRARY PAGE */
 .p-library-page {}
+
+/* PRESENT PAGE */
+.p-present-page {}
+.p-present-page .p-present-page-controller-list {
+	-fx-padding: 0 1em 0 0;
+}
+.p-present-page .p-present-page-controller-add {
+	-fx-padding: 1em 1em 0 0;
+}
+.p-present-page .p-present-page-controller {}
 
 
 /********************************************************************************/
@@ -272,7 +330,7 @@
 /* NOTE: static widths here was better even with font-size based zoom */
 .p-library-list-cell {
 	-fx-alignment: top-center;
-	-fx-pref-width: 130;
+	-fx-pref-width: 120;
 }
 .p-library-list-cell-graphic {
 	-fx-alignment: bottom-center;
@@ -322,7 +380,7 @@
 /** TAG LIST VIEW */
 .p-tag-list-view {}
 .p-tag-list-view-tags {
-	-fx-padding: 0.3em 0 0 0;
+	-fx-padding: 0.5em 0 0 0;
 	-fx-vgap: 0.2em;
 	-fx-hgap: 0.2em;
 }
@@ -339,21 +397,13 @@
 }
 
 /* DISPLAY CONTROLLER */
-.p-display-controllers {
-	-fx-spacing: 0.8em;
-	-fx-padding: 0.8em;
-}
-.p-display-controllers-add-container {
-	-fx-padding: 1.3em 0em;
-}
-
 .p-display-controller {
 	-fx-min-width: 52em;
-	-fx-padding: 0;
+	-fx-padding: 1em;
 }
 .p-display-controller-header {
 	-fx-spacing: 0.5em;
-	-fx-padding: 0.5em;
+	-fx-padding: 0 0 0.5em 0 0;
 }
 .p-display-controller-name {}
 .p-display-controller-left,
@@ -362,6 +412,7 @@
 }
 .p-display-controller-right {
 	-fx-max-width: 34em;
+	-fx-padding: 0 0 0 0.5em;
 }
 .p-display-controller-chk-row {
 	-fx-spacing: 0.5em;
@@ -403,9 +454,6 @@
 	-fx-hgap: 0.5em;
 	-fx-vgap: 0.5em;
 }
-.p-bible-nav .p-icon-error {
-	-fx-background-color: -color-danger-fg;
-}
 
 /* SONG NAVIGATION (CONTROLLER) */
 .p-song-nav {
@@ -419,18 +467,27 @@
 	-fx-hgap: 0.5em;
 	-fx-vgap: 0.5em;
 }
+.p-song-nav .custom-text-field .p-icon-container {
+	-fx-max-width: 2em;
+	-fx-pref-width: 1.5em;
+}
 
 /* SEARCH MODALS */
 .p-bible-search,
 .p-song-search {
 	-fx-spacing: 0.5em;
-	-fx-padding: 0.5em;
+	-fx-padding: 1em;
 }
-.p-bible-search-criteria,
-.p-song-search-criteria {
+.p-bible-search-filters,
+.p-song-search-filters {
 	-fx-spacing: 0.5em;
 	-fx-hgap: 0.5em;
 	-fx-vgap: 0.5em;
+}
+.p-bible-search-filters .custom-text-field .p-icon-container,
+.p-song-search-filters .custom-text-field .p-icon-container {
+	-fx-max-width: 2em;
+	-fx-pref-width: 1.5em;
 }
 .p-bible-search .p-bible-search-card,
 .p-song-search .p-song-search-card {
@@ -442,8 +499,89 @@
 	-fx-border-width: 0 3 0 0;
 }
 
+/* SLIDER+FIELD */
+.p-slider-field {
+	-fx-spacing: 0.5em;
+}
+.p-slider-field Slider {}
+.p-slider-field TextField {
+	-fx-pref-width: 4.5em;
+	-fx-max-width: 4.5em;
+	-fx-min-width: 4.5em;
+}
 
+/* EDITOR FIELDS */
+.p-editor-divider {
+	-fx-spacing: 5;
+}
+.p-editor-field-group {
+	-fx-spacing: 7;
+}
+.p-editor-field-container {
+	-fx-spacing: 0.2em;
+	/* -fx-padding: 2 0; */
+	/* -fx-min-height: 3em; */
+	/* -fx-border-color: red;
+	-fx-border-width: 1; */
+}
+.p-editor-field-label {
+	/* -fx-border-color: green;
+	-fx-border-width: 1; */
+	/* from modena css and adjusted */
+	-fx-padding: 0.416666em 0; /* 5 0 */
+}
+.p-editor-field {
+	-fx-min-width: 0;
+	/* -fx-border-color: yellow;
+	-fx-border-width: 1; */
+	/* -fx-pref-width: 250;
+	-fx-max-width: 250; */
+}
+.p-editor-field-description {
+	/* -fx-padding: 0 0 0 0; */
+	/* -fx-max-width: 250; */
+}
 
+/* the square in the middle of the 4 text boxes when editing the padding for text component */
+.p-padding-box {
+	-fx-fill: transparent;
+	-fx-stroke: -color-accent-emphasis;
+	-fx-stroke-type: outside;
+	-fx-stroke-line-cap: butt;
+	-fx-stroke-line-join: miter;
+	-fx-stroke-miter-limit: 10;
+	-fx-stroke-width: 1;
+}
+
+/* GRADIENT PREVIEW */
+.p-gradient-preview {
+	-fx-border-width: 1;
+	-fx-border-color: -color-border-default;
+}
+.p-gradient-preview-background {
+	-fx-background-image: url("/org/praisenter/images/transparent.png");
+	-fx-background-repeat: repeat;
+}
+
+/* MEDIA SELECTION DIALOG */
+.p-media-dialog > .content {
+	-fx-padding: 0;
+	/* NOTE: only setting the minwidth worked... */
+	-fx-min-width: 1000;
+	-fx-pref-width: 1000;
+	-fx-pref-height: 600;
+	-fx-min-height: 600;
+}
+
+.p-media-dialog .button-bar {
+	-fx-border-width: 1 0 0 0;
+	-fx-border-color: -color-border-muted;
+}
+
+/* This fixes excessive padding-top on the buttons */
+.p-media-dialog > .button-bar > .container {
+	-fx-padding: 1em;
+}
 
 
 
@@ -535,80 +673,6 @@
 	/* -fx-padding: 0em; */
 }
 
-/* TAB NAVIGATION */
-.p-tab-navigation {}
-.p-tab-navigation > .tab-header-area {
-	-fx-padding: 0;
-}
-.p-tab-navigation > .tab-header-area > .tab-header-background {
-	/* -fx-background-color: ; */
-	-fx-background-insets: 0;
-}
-.p-tab-navigation > .tab-header-area > .headers-region > .tab {
-	/* -fx-background-color: left-navigation-background-color; */
-	-fx-border-radius: 0;
-	-fx-background-radius: 0;
-	-fx-background-insets: 0;
-	-fx-border-width: 0;
-	-fx-padding: 0.083333em 0.5em 0.0769em 0.5em;
-}
-.p-tab-navigation > .tab-header-area > .headers-region > .tab:hover {
-	/* -fx-background-color: left-navigation-hover-background-color; */
-	-fx-border-width: 3 0 0 0;
-	-fx-border-color: -color-accent-emphasis;
-}
-.p-tab-navigation > .tab-header-area > .headers-region > .tab:selected {
-	-fx-border-width: 3 0 0 0;
-	-fx-border-color: -color-accent-emphasis;
-	-fx-border-radius: 0;
-	/* -fx-background-color: left-navigation-hover-background-color; */
-	-fx-background-radius: 0;
-	-fx-background-insets: 0;
-}
-.p-tab-navigation > .tab-header-area > .headers-region > .tab:selected .focus-indicator {
-	-fx-border-width: 0;
-    -fx-border-insets: 0;
-    -fx-border-radius: 0;
-}
-.p-tab-navigation > .tab-content-area {
-	-fx-border-width: 0 0 0 1;
-	-fx-border-color: -color-border-muted;
-	-fx-min-width: 0;
-}
-.p-tab-navigation > .tab-header-area > .headers-region > .tab > .tab-container > .tab-label {
-	-fx-padding: 1.5em 1.1em;
-}
-.p-tab-navigation-icon {
-    -fx-background-color: -color-fg-default;
-    -size: 2em;
-    -fx-max-height: -size;
-    -fx-max-width: -size;
-    -fx-min-height: -size;
-    -fx-min-width: -size;
-    -fx-pref-height: -size;
-    -fx-pref-width: -size;
-}
-.p-tab-navigation > .tab-header-area > .headers-region > .tab:hover .p-tab-navigation-icon,
-.p-tab-navigation > .tab-header-area > .headers-region > .tab:selected .p-tab-navigation-icon {
-	/* -fx-background-color: left-navigation-hover-font-color; */
-}
-
-/* https://linearicons.com/ */
-.p-tab-navigation-present-icon {
-	-fx-shape: -icon-desktop;
-}
-.p-tab-navigation-library-icon {
-	-fx-shape: -icon-layers;
-}
-.p-tab-navigation-settings-icon {
-	-fx-shape: -icon-gear;
-}
-.p-tab-navigation-tasks-icon {
-	-fx-shape: -icon-history;
-}
-.p-tab-navigation-editor-icon {
-	-fx-shape: -icon-pencil;
-}
 
 
 /* SELECTION EDITOR */
@@ -665,11 +729,7 @@
 	-fx-border-width: 0;
 }
 
-.p-media-dialog > .content {
-	-fx-padding: 0;
-	-fx-pref-width: 900;
-	-fx-pref-height: 450;
-}
+
 
 /* CONTROLS */
 .p-datetime-picker {

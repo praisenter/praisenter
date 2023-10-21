@@ -5,29 +5,34 @@ import org.praisenter.data.slide.effects.SlideShadow;
 import org.praisenter.ui.Option;
 import org.praisenter.ui.bind.BindingHelper;
 import org.praisenter.ui.bind.ObjectConverter;
-import org.praisenter.ui.controls.FormFieldSection;
+import org.praisenter.ui.controls.EditorDivider;
+import org.praisenter.ui.controls.EditorField;
+import org.praisenter.ui.controls.EditorFieldGroup;
+import org.praisenter.ui.controls.IntegerSliderField;
 import org.praisenter.ui.controls.LastValueNumberStringConverter;
 import org.praisenter.ui.controls.TextInputFieldEventFilter;
 import org.praisenter.ui.slide.convert.PaintConverter;
 import org.praisenter.ui.translations.Translations;
 
-import atlantafx.base.controls.ProgressSliderSkin;
-import atlantafx.base.theme.Styles;
+import atlantafx.base.layout.InputGroup;
+import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.geometry.Pos;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ColorPicker;
-import javafx.scene.control.Slider;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.paint.Color;
 
-// FIXME replace color pickers with custom one
-public final class SlideShadowPicker extends FormFieldSection {
+public final class SlideShadowPicker extends EditorFieldGroup {
 	private static final Color DEFAULT_COLOR = new Color(0.0, 0.0, 0.0, 0.8);
 	
 	private final ObjectProperty<SlideShadow> value;
@@ -38,6 +43,8 @@ public final class SlideShadowPicker extends FormFieldSection {
 	private final ObjectProperty<Double> y;
 	private final DoubleProperty radius;
 	private final DoubleProperty spread;
+	
+	private final BooleanBinding isSelected;
 		
 	public SlideShadowPicker(String label) {
 		this.value = new SimpleObjectProperty<>();
@@ -46,8 +53,10 @@ public final class SlideShadowPicker extends FormFieldSection {
 		this.color = new SimpleObjectProperty<>(DEFAULT_COLOR);
 		this.x = new SimpleObjectProperty<>(0.0);
 		this.y = new SimpleObjectProperty<>(0.0);
-		this.radius = new SimpleDoubleProperty(5.0);
-		this.spread = new SimpleDoubleProperty(0.8);
+		this.radius = new SimpleDoubleProperty(10.0);
+		this.spread = new SimpleDoubleProperty(0.0);
+		
+		this.isSelected = this.value.isNotNull();
 		
 		ObservableList<Option<ShadowType>> types = FXCollections.observableArrayList();
 		types.add(new Option<ShadowType>(Translations.get("slide.shadow.type.NONE"), null));
@@ -74,14 +83,10 @@ public final class SlideShadowPicker extends FormFieldSection {
 		tfY.valueProperty().bindBidirectional(this.y);
 		
 		// max-mins based on JavaFX max-min for DropShadow and InnerGlow
-		Slider sldRadius = new Slider(0.0, 127.0, 10.0);
-		sldRadius.getStyleClass().add(Styles.SMALL);
-		sldRadius.setSkin(new ProgressSliderSkin(sldRadius));
+		IntegerSliderField sldRadius = new IntegerSliderField(0, 127, 10, 1);
 		sldRadius.valueProperty().bindBidirectional(this.radius);
 		
-		Slider sldSpread = new Slider(0.0, 1.0, 0.0);
-		sldSpread.getStyleClass().add(Styles.SMALL);
-		sldSpread.setSkin(new ProgressSliderSkin(sldSpread));
+		IntegerSliderField sldSpread = new IntegerSliderField(0, 1, 0, 100);
 		sldSpread.valueProperty().bindBidirectional(this.spread);
 
 		// bindings
@@ -164,22 +169,49 @@ public final class SlideShadowPicker extends FormFieldSection {
 		
 		// layout
 		
-		int fIndex = this.addField(Translations.get("slide.shadow.type"), cbType);
-		this.addField(Translations.get("slide.shadow.color"), pkrColor);
-		this.addField(Translations.get("slide.shadow.offset.x"), txtX);
-		this.addField(Translations.get("slide.shadow.offset.y"), txtY);
-		this.addField(Translations.get("slide.shadow.radius"), sldRadius);
-		this.addField(Translations.get("slide.shadow.spread"), sldSpread);
+		Label lblXAdder = new Label(Translations.get("slide.measure.pixels.abbreviation"));
+		lblXAdder.setAlignment(Pos.CENTER);
+		Label lblYAdder = new Label(Translations.get("slide.measure.pixels.abbreviation"));
+		lblYAdder.setAlignment(Pos.CENTER);
+		InputGroup grpX = new InputGroup(txtX, lblXAdder);
+		InputGroup grpY = new InputGroup(txtY, lblYAdder);
 		
-		this.showRowsOnly(fIndex);
+		HBox.setHgrow(txtX, Priority.ALWAYS);
+		HBox.setHgrow(txtY, Priority.ALWAYS);
 		
-		this.type.addListener((obs, ov, nv) -> {
-			if (nv == null) {
-				this.showRowsOnly(fIndex);
-			} else {
-				this.showRowsOnly(fIndex, fIndex + 1, fIndex + 2, fIndex + 3, fIndex + 4, fIndex + 5);
-			}
-		});
+		EditorField fldType = new EditorField(Translations.get("slide.shadow.type"), cbType);
+		EditorField fldColor = new EditorField(Translations.get("slide.shadow.color"), pkrColor);
+		EditorDivider divOffset = new EditorDivider(Translations.get("slide.shadow.offset"));
+		EditorField fldOffsetX = new EditorField(Translations.get("slide.shadow.offset.x"), grpX);
+		EditorField fldOffsetY = new EditorField(Translations.get("slide.shadow.offset.y"), grpY);
+		EditorDivider divBlur = new EditorDivider(Translations.get("slide.shadow.blur"));
+		EditorField fldRadius = new EditorField(Translations.get("slide.shadow.radius"), sldRadius);
+		EditorField fldSpread = new EditorField(Translations.get("slide.shadow.spread"), Translations.get("slide.shadow.spread.description"), sldSpread);
+		
+		fldColor.visibleProperty().bind(this.isSelected);
+		fldColor.managedProperty().bind(fldColor.visibleProperty());
+		divOffset.visibleProperty().bind(this.isSelected);
+		divOffset.managedProperty().bind(divOffset.visibleProperty());
+		fldOffsetX.visibleProperty().bind(this.isSelected);
+		fldOffsetX.managedProperty().bind(fldOffsetX.visibleProperty());
+		fldOffsetY.visibleProperty().bind(this.isSelected);
+		fldOffsetY.managedProperty().bind(fldOffsetY.visibleProperty());
+		divBlur.visibleProperty().bind(this.isSelected);
+		divBlur.managedProperty().bind(divBlur.visibleProperty());
+		fldRadius.visibleProperty().bind(this.isSelected);
+		fldRadius.managedProperty().bind(fldRadius.visibleProperty());
+		fldSpread.visibleProperty().bind(this.isSelected);
+		fldSpread.managedProperty().bind(fldSpread.visibleProperty());
+		
+		this.getChildren().addAll(
+				fldType,
+				fldColor,
+				divOffset,
+				fldOffsetX,
+				fldOffsetY,
+				divBlur,
+				fldRadius,
+				fldSpread);
 	}
 
 	private SlideShadow getCurrentValue() {

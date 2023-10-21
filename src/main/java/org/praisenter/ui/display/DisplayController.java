@@ -20,8 +20,8 @@ import org.praisenter.data.song.SongReferenceTextStore;
 import org.praisenter.data.workspace.DisplayConfiguration;
 import org.praisenter.data.workspace.PlaceholderTransitionBehavior;
 import org.praisenter.ui.GlobalContext;
-import org.praisenter.ui.MappedList;
 import org.praisenter.ui.bible.BibleNavigationPane;
+import org.praisenter.ui.bind.MappedList;
 import org.praisenter.ui.controls.Dialogs;
 import org.praisenter.ui.slide.SlideList;
 import org.praisenter.ui.slide.SlideMode;
@@ -405,15 +405,28 @@ public final class DisplayController extends BorderPane {
 		lblHeader.textProperty().bind(Bindings.createStringBinding(() -> {
 			String name = configuration.getName();
 			String defaultName = configuration.getDefaultName();
-			if (name == null || name.isBlank()) return defaultName;
-			return name;
+			if (name == null || name.isBlank()) {
+				return defaultName;
+			} else {
+				return "# " + name;				
+			}
 		}, configuration.nameProperty(), configuration.defaultNameProperty()));
-		
 		lblHeader.getStyleClass().addAll(Styles.TITLE_3, DISPLAY_CONTROLLER_NAME_CSS);
+		
+		Label lblDefaultName = new Label();
+		lblDefaultName.textProperty().bind(Bindings.createStringBinding(() -> {
+			String name = configuration.getName();
+			String defaultName = configuration.getDefaultName();
+			if (name == null || name.isBlank()) {
+				return "";
+			}
+			return defaultName;
+		}, configuration.nameProperty(), configuration.defaultNameProperty()));
 		
 		HBox spacer = new HBox();
 		spacer.setMaxWidth(Double.MAX_VALUE);
-		HBox header = new HBox(lblHeader, spacer, mnuActions);
+		HBox header = new HBox(lblHeader, lblDefaultName, spacer, mnuActions);
+		header.setAlignment(Pos.BASELINE_LEFT);
 		header.getStyleClass().add(DISPLAY_CONTROLLER_HEADER_CSS);
 		HBox.setHgrow(spacer, Priority.ALWAYS);
 		

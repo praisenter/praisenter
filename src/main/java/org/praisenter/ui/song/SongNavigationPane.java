@@ -9,12 +9,14 @@ import org.praisenter.data.song.ReadOnlySong;
 import org.praisenter.data.song.Song;
 import org.praisenter.data.song.SongReferenceTextStore;
 import org.praisenter.data.song.SongReferenceVerse;
-import org.praisenter.ui.EmptyItemList;
 import org.praisenter.ui.GlobalContext;
-import org.praisenter.ui.MappedList;
+import org.praisenter.ui.Icons;
+import org.praisenter.ui.bind.EmptyItemList;
+import org.praisenter.ui.bind.MappedList;
 import org.praisenter.ui.controls.WindowHelper;
 import org.praisenter.ui.translations.Translations;
 
+import atlantafx.base.controls.CustomTextField;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
@@ -30,7 +32,6 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
@@ -225,10 +226,11 @@ public final class SongNavigationPane extends VBox {
 			WindowHelper.centerOnParent(this.getScene().getWindow(), this.searchDialog);
 		};
 		
-		TextField txtSearch = new TextField();
+		CustomTextField txtSearch = new CustomTextField();
 		txtSearch.textProperty().bindBidirectional(this.searchTerms);
 		txtSearch.setPromptText(Translations.get("search.terms.placeholder"));
 		txtSearch.setOnAction(onSearchAction);
+		txtSearch.setLeft(Icons.getIcon(Icons.SEARCH));
 		
 		Button btnSearch = new Button(Translations.get("search"));
 		btnSearch.setOnAction(onSearchAction);
