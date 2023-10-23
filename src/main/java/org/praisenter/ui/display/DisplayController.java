@@ -84,6 +84,8 @@ public final class DisplayController extends BorderPane {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
 	private final GlobalContext context;
+	
+	@SuppressWarnings("unused")
 	private final DisplayTarget target;
 	
 	private final DoubleBinding leftMaxWidth;

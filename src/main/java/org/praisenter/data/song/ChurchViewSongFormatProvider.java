@@ -326,6 +326,7 @@ final class ChurchViewSongFormatProvider implements DataFormatProvider<Song> {
 		 * @param name the font size tag name
 		 * @return List&lt;{@link Verse}&gt;
 		 */
+		@SuppressWarnings("unused")
 		private final Section getVerseForSize(String name) {
 			if ("FontSize".equalsIgnoreCase(name)) {
 				return null;
