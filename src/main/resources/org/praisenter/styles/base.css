@@ -30,6 +30,12 @@
     -fx-padding: 0em 0.6em 0em 0em;
 }
 
+.input-group TextField {
+	-fx-min-width: 0;
+	/* This allows the text box to be sized small then grow allowing the label to be sized properly */
+	-fx-pref-width: 50;
+}
+
 /********************************************************************************/
 /********************************************************************************/
 /********************************************************************************/
@@ -130,9 +136,6 @@
 .p-footer .bar {
 	-fx-background-color: -color-neutral-muted;
 }
-
-/* ACTION BAR */
-.p-action-bar {}
 
 /* LEFT NAVIGATION */
 .p-left-navigation {}
@@ -271,6 +274,14 @@
 	-fx-padding: 1em 1em 0 0;
 }
 .p-present-page .p-present-page-controller {}
+
+/* ABOUT DIALOG */
+.p-about {}
+.p-about-left,
+.p-about-right {
+	-fx-padding: 1em;
+	-fx-spacing: 1em;
+}
 
 
 /********************************************************************************/
@@ -433,6 +444,11 @@
 	-fx-min-width: -w;
 	-fx-max-width: -w;
 }
+.p-slide-template-list-cell {}
+.p-slide-template-list-cell-graphic {
+	-fx-background-image: url("/org/praisenter/images/transparent.png");
+	-fx-background-repeat: repeat;
+}
 
 /* SLIDE LIST */
 .p-slide-list {
@@ -498,6 +514,9 @@
 	-fx-border-color: -color-accent-emphasis;
 	-fx-border-width: 0 3 0 0;
 }
+.p-progress-overlay {}
+.p-progress-overlay .spinner {}
+.p-progress-overlay-indicator {}
 
 /* SLIDER+FIELD */
 .p-slider-field {
@@ -510,7 +529,37 @@
 	-fx-min-width: 4.5em;
 }
 
+/* DOCUMENTS TOOLBAR */
+.p-documents-toolbar {}
+
+/* DOCUMENTS SELECTION EDITOR */
+.p-documents-pane-selection-editor {
+	-fx-min-width: 350;
+	-fx-pref-width: 350;
+}
+
 /* EDITOR FIELDS */
+.p-editor-titled-pane {
+	/* -fx-border-width: 0;
+	-fx-background-insets: 0; */
+}
+.p-editor-titled-pane > .title,
+.p-editor-titled-pane:collapsed > .title,
+.p-editor-titled-pane:expanded > .title {
+	/* -fx-border-width: 0 0 1 0; */
+	-fx-background-color: -color-bg-default, -color-neutral-subtle;
+	-fx-background-insets: 0, 0 0 2 0;
+	-fx-border-width: 0, 0;
+	-fx-border-radius: 0, 0;
+	-fx-background-radius: 0, 0;
+}
+.p-editor-titled-pane > .content {
+	-fx-padding: 1em;
+	-fx-border-width: 0;
+	-fx-border-radius: 0;
+	-fx-background-insets: 0;
+	-fx-background-radius: 0;
+}
 .p-editor-divider {
 	-fx-spacing: 5;
 }
@@ -519,30 +568,30 @@
 }
 .p-editor-field-container {
 	-fx-spacing: 0.2em;
-	/* -fx-padding: 2 0; */
-	/* -fx-min-height: 3em; */
-	/* -fx-border-color: red;
-	-fx-border-width: 1; */
 }
 .p-editor-field-label {
-	/* -fx-border-color: green;
-	-fx-border-width: 1; */
-	/* from modena css and adjusted */
 	-fx-padding: 0.416666em 0; /* 5 0 */
 }
 .p-editor-field {
 	-fx-min-width: 0;
-	/* -fx-border-color: yellow;
-	-fx-border-width: 1; */
-	/* -fx-pref-width: 250;
-	-fx-max-width: 250; */
 }
-.p-editor-field-description {
-	/* -fx-padding: 0 0 0 0; */
-	/* -fx-max-width: 250; */
+.p-editor-field-description {}
+
+/* STROKE PICKER */
+.p-slide-stroke-picker .p-slide-dash-pattern {
+	-fx-stroke: -color-fg-default;
 }
 
 /* the square in the middle of the 4 text boxes when editing the padding for text component */
+.p-slide-padding-picker {}
+.p-slide-padding-picker-top,
+.p-slide-padding-picker-bottom { 
+	-fx-max-width: 150; 
+}
+.p-slide-padding-picker-left,
+.p-slide-padding-picker-right { 
+	-fx-min-width: 100; 
+}
 .p-padding-box {
 	-fx-fill: transparent;
 	-fx-stroke: -color-accent-emphasis;
@@ -582,6 +631,48 @@
 .p-media-dialog > .button-bar > .container {
 	-fx-padding: 1em;
 }
+
+/* BIBLE/SONG/SLIDE EDITOR */
+.p-bible-editor,
+.p-song-editor {
+	-fx-padding: 0;
+}
+.p-bible-editor .tree-view,
+.p-song-editor .tree-view {
+	-fx-padding: 0;
+	-fx-border-width: 0;
+	/* -fx-background-color: sunken; */
+}
+.p-bible-editor .tree-view .tree-cell,
+.p-song-editor .tree-view .tree-cell {
+	/* -fx-background-color: sunken; */
+}
+.p-bible-editor-bulk,
+.p-song-editor-bulk {
+	-fx-spacing: 0.5em;
+	-fx-padding: 0.5em;
+}
+.p-bible-editor-bulk-buttons,
+.p-song-editor-bulk-buttons {
+	-fx-spacing: 0.5em;
+}
+.p-bible-editor-bulk-buttons > .button,
+.p-song-editor-bulk-buttons > .button {
+	-fx-pref-width: 5em;
+}
+.p-slide-editor {
+	-fx-padding: 2em;
+	-fx-border-width: 0;
+}
+
+
+
+
+
+
+
+
+
 
 
 
@@ -623,151 +714,3 @@
 	-fx-spacing: 0.5em;
 }
 
-/* FORM FIELD */
-.p-form-field {
-	/* -fx-padding: 0.8em;
-	-fx-spacing: 0.5em; */
-}
-.p-form-field:hover {}
-.p-form-field-label {
-	/* -fx-font-weight: bold; */
-}
-.p-form-field-value {
-	/* -fx-spacing: 0.5em; */
-}
-.p-form-field-help {}
-
-/* FORM FIELD GROUP */
-.p-form-field-group > .title {
-	/* -fx-background-color: field-group-title-background-color; */
-	/* -fx-background-insets: 0, 0 0 1 0;
-	-fx-background-radius: 0;
-	-fx-font-size: 1.3em; */
-}
-.p-form-field-group > .title > .arrow-button > .arrow {
-    /* -fx-background-color: base-font-color; */
-    /* -fx-background-insets: 0;
-    -fx-effect: null;
-	-fx-font-size: 1em; */
-}
-.p-form-field-group > *.content {
-	/* -fx-border-width: 0;
-    -fx-border-insets: 0;
-    -fx-background-color: null; */
-}
-.p-form-field-group > .content > * {
-	/* -fx-padding: 0.5em 0 0 0; */
-}
-
-/* FORM FIELD SECTION */
-.p-form-field-section {
-	/* -fx-hgap: 0.3em;
-	-fx-vgap: 0.3em; */
-}
-.p-form-field-group > .content .p-form-field-section {
-	/* -fx-padding: 0.8em; */
-}
-.p-form-field-group > .content .p-form-field-section .p-form-field-section,
-.p-form-field-group > .content .p-form-field-section .p-form-field-section .p-form-field-section,
-.p-form-field-group > .content .p-form-field-section .p-form-field-section .p-form-field-section .p-form-field-section {
-	/* -fx-padding: 0em; */
-}
-
-
-
-/* SELECTION EDITOR */
-.p-selection-editor {
-	-fx-spacing: 0.3em;
-}
-.p-selection-editor .p-form-field-group > .title {
-	-fx-font-size: 1.2em;
-}
-
-/* BIBLE/SONG/SLIDE EDITOR */
-.p-bible-editor,
-.p-song-editor {
-	-fx-padding: 0;
-}
-.p-bible-editor .tree-view,
-.p-song-editor .tree-view {
-	-fx-padding: 0;
-	-fx-border-width: 0;
-	/* -fx-background-color: sunken; */
-}
-.p-bible-editor .tree-view .tree-cell,
-.p-song-editor .tree-view .tree-cell {
-	/* -fx-background-color: sunken; */
-}
-/* .p-bible-editor .tree-view .tree-cell:hover,
-.p-song-editor .tree-view .tree-cell:hover {
-	-fx-background-color: -color-neutral-subtle;
-}
-.p-bible-editor .tree-view .tree-cell:selected,
-.p-song-editor .tree-view .tree-cell:selected {
-	-fx-background-color: -color-neutral-muted;
-}
-.p-bible-editor .tree-view .tree-cell:empty:hover,
-.p-song-editor .tree-view .tree-cell:empty:hover {
-	-fx-background-color: null;
-} */
-.p-bible-editor-bulk,
-.p-song-editor-bulk {
-	-fx-spacing: 0.5em;
-	-fx-padding: 0.5em;
-}
-.p-bible-editor-bulk-buttons,
-.p-song-editor-bulk-buttons {
-	-fx-spacing: 0.5em;
-}
-.p-bible-editor-bulk-buttons > .button,
-.p-song-editor-bulk-buttons > .button {
-	-fx-pref-width: 5em;
-}
-.p-slide-editor {
-	-fx-padding: 2em;
-	/* -fx-background-color: sunken; */
-	-fx-border-width: 0;
-}
-
-
-
-/* CONTROLS */
-.p-datetime-picker {
-	/* -fx-padding: 0.2em; */
-}
-
-
-
-.p-progress-overlay {
-	/* -fx-background-color: progress-overlay-background-color; */
-}
-.p-progress-overlay .spinner {
-	/* -fx-background-color: transparent; */
-}
-.p-progress-overlay-indicator {}
-
-
-
-
-.p-documents-pane-scroller {}
-.p-documents-pane-tabs .tab-content-area {
-	-fx-border-width: 0;
-}
-
-
-.p-slide-template-list-cell {}
-.p-slide-template-list-cell-graphic {
-	-fx-background-image: url("/org/praisenter/images/transparent.png");
-	-fx-background-repeat: repeat;
-}
-
-.p-slide-dash-pattern {
-	/* -fx-stroke: base-font-color; */
-}
-
-.p-about {}
-.p-about-left,
-.p-about-right {
-	-fx-padding: 1em;
-	-fx-spacing: 1em;
-}

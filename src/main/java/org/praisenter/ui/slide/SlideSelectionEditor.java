@@ -63,7 +63,6 @@ import org.praisenter.ui.slide.convert.TimeFormatConverter;
 import org.praisenter.ui.translations.Translations;
 import org.praisenter.ui.undo.UndoManager;
 
-import atlantafx.base.controls.ProgressSliderSkin;
 import atlantafx.base.controls.ToggleSwitch;
 import atlantafx.base.layout.InputGroup;
 import atlantafx.base.theme.Styles;
@@ -90,7 +89,6 @@ import javafx.scene.Node;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.Slider;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
@@ -104,7 +102,7 @@ import javafx.stage.Screen;
 public final class SlideSelectionEditor extends VBox implements DocumentSelectionEditor<Slide> {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
-	private static final String SELECTION_EDITOR_CSS = "p-selection-editor";
+	private static final String SELECTION_EDITOR_CSS = "p-slide-selection-editor";
 	
 	private final GlobalContext context;
 	private final ObjectProperty<DocumentContext<Slide>> documentContext;
@@ -543,9 +541,7 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 		SlideStrokePicker pkrComponentBorder = new SlideStrokePicker(SlideStrokeType.CENTERED, Translations.get("slide.border"), true);
 		pkrComponentBorder.valueProperty().bindBidirectional(this.componentBorder);
 		
-		Slider sldComponentOpacity = new Slider(0, 1, 1);
-		sldComponentOpacity.getStyleClass().add(Styles.SMALL);
-		sldComponentOpacity.setSkin(new ProgressSliderSkin(sldComponentOpacity));
+		IntegerSliderField sldComponentOpacity = new IntegerSliderField(0, 1, 1, 100);
 		sldComponentOpacity.valueProperty().bindBidirectional(this.componentOpacity);
 		
 		SlideShadowPicker pkrComponentShadow = new SlideShadowPicker(Translations.get("slide.shadow"));
@@ -734,8 +730,8 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 				new EditorField(pkrComponentFont),
 				new EditorField(Translations.get("slide.font.scale"), Translations.get("slide.font.scale.description"), cbComponentFontScaleType),
 				new EditorDivider(Translations.get("slide.text.multiline")),
-				new EditorField(Translations.get("slide.text.linespacing"), grpLineSpacing),
 				new EditorField(Translations.get("slide.text.wrapping"), boxTextWrapping),
+				new EditorField(Translations.get("slide.text.linespacing"), grpLineSpacing),
 				new EditorDivider(Translations.get("slide.text.alignment")),
 				new EditorField(Translations.get("slide.text.halignment"), segComponentHAlignment),
 				new EditorField(Translations.get("slide.text.valignment"), segComponentVAlignment));
@@ -745,7 +741,7 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 		EditorField fldPlaceholderType = new EditorField(Translations.get("slide.placeholder.type"), Translations.get("slide.placeholder.type.description"), cbComponentTextType);
 		EditorField fldPlaceholderVariant = new EditorField(Translations.get("slide.placeholder.variant"), Translations.get("slide.placeholder.variant.description"), cbComponentTextVariant);
 		EditorField fldDateTimeFormat = new EditorField(Translations.get("slide.datetime.format"), cmbComponentDateTimeFormat);
-		EditorField fldCountdownTarget = new EditorField(Translations.get("slide.countdown.target"), Translations.get("slide.countdown.target.description"), pkrComponentCountdownTarget);
+//		EditorField fldCountdownTarget = new EditorField(pkrComponentCountdownTarget);
 		EditorField fldCountdownFormat = new EditorField(Translations.get("slide.countdown.format"), cmbComponentCountdownFormat);
 		EditorField fldCountdownTimeOnly = new EditorField(Translations.get("slide.countdown.timeonly"), Translations.get("slide.countdown.timeonly.description"), boxComponentCountdownTimeOnly);
 		
@@ -753,7 +749,7 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 		fldPlaceholderType.managedProperty().bind(fldPlaceholderType.visibleProperty());
 		fldPlaceholderVariant.managedProperty().bind(fldPlaceholderVariant.visibleProperty());
 		fldDateTimeFormat.managedProperty().bind(fldDateTimeFormat.visibleProperty());
-		fldCountdownTarget.managedProperty().bind(fldCountdownTarget.visibleProperty());
+		pkrComponentCountdownTarget.managedProperty().bind(pkrComponentCountdownTarget.visibleProperty());
 		fldCountdownFormat.managedProperty().bind(fldCountdownFormat.visibleProperty());
 		fldCountdownTimeOnly.managedProperty().bind(fldCountdownTimeOnly.visibleProperty());
 		pkrComponentMedia.managedProperty().bind(pkrComponentMedia.visibleProperty());
@@ -764,7 +760,7 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 				fldPlaceholderType,
 				fldPlaceholderVariant,
 				fldDateTimeFormat,
-				fldCountdownTarget,
+				pkrComponentCountdownTarget,
 				fldCountdownFormat,
 				fldCountdownTimeOnly,
 				pkrComponentMedia);
@@ -774,7 +770,7 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 			fldPlaceholderType,
 			fldPlaceholderVariant,
 			fldDateTimeFormat,
-			fldCountdownTarget,
+			pkrComponentCountdownTarget,
 			fldCountdownFormat,
 			fldCountdownTimeOnly,
 			pkrComponentMedia
@@ -792,7 +788,7 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 				} else if (nv instanceof DateTimeComponent) {
 					fldDateTimeFormat.setVisible(true);
 				} else if (nv instanceof CountdownComponent) {
-					fldCountdownTarget.setVisible(true);
+					pkrComponentCountdownTarget.setVisible(true);
 					fldCountdownFormat.setVisible(true);
 					fldCountdownTimeOnly.setVisible(true);
 				} else if (nv instanceof TextComponent) {
