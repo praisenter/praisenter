@@ -1,22 +1,14 @@
 package org.praisenter.ui.song;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.tika.Tika;
-import org.apache.tika.exception.TikaException;
 import org.praisenter.Constants;
-import org.praisenter.async.AsyncHelper;
-import org.praisenter.async.BackgroundTask;
-import org.praisenter.data.DataImportResult;
 import org.praisenter.data.json.JsonIO;
 import org.praisenter.data.song.Author;
 import org.praisenter.data.song.Lyrics;
@@ -33,7 +25,6 @@ import org.praisenter.ui.document.DocumentEditor;
 import org.praisenter.ui.events.ActionStateChangedEvent;
 import org.praisenter.ui.translations.Translations;
 import org.praisenter.ui.undo.UndoManager;
-import org.praisenter.utility.MimeType;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -61,7 +52,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.stage.FileChooser;
 
 //FEATURE (L-L) Implement import from PDF for song lyrics
 //JAVABUG (L) 11/03/16 Dragging to the edge of a scrollable window doesn't scroll it and there's no good way to scroll it manually
@@ -79,6 +69,7 @@ public final class SongEditor extends BorderPane implements DocumentEditor<Song>
 	
 	// data
 	
+	@SuppressWarnings("unused")
 	private final GlobalContext context;
 	private final DocumentContext<Song> document;
 
