@@ -18,7 +18,7 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.input.KeyCombination;
 
 public final class DocumentsToolbar extends ToolBar {
-	private static final String ACTION_BAR_CSS = "p-action-bar";
+	private static final String ACTION_BAR_CSS = "p-documents-toolbar";
 	
 	private final GlobalContext context;
 	
