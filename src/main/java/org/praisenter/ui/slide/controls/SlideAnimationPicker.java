@@ -28,8 +28,6 @@ import javafx.collections.transformation.FilteredList;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Spinner;
 
-// FEATURE (L-H) expand to allow edit of animation fields, allow toggle of Transition vs. Animation fields
-
 public final class SlideAnimationPicker extends EditorFieldGroup {
 	
 	private final ObjectProperty<AnimationFunction> animationFunction;

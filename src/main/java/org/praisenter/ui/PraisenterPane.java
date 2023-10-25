@@ -13,6 +13,7 @@ import javafx.application.Platform;
 import javafx.geometry.Side;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
+import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.Tooltip;
@@ -77,13 +78,43 @@ final class PraisenterPane extends BorderPane {
 		
 		body.getTabs().addAll(presentTab, libraryTab, editorTab, settingsTab, taskHistoryTab);
 		
-		// when the current document is changed (because the user chose to edit it)
-		// then select the editor tab
-		context.currentDocumentProperty().addListener((obs, ov, nv) -> {
+		context.currentPageProperty().addListener((obs, ov, nv) -> {
+			// get the current page index
+			int targetIndex = 0;
 			if (nv != null) {
-				// then make sure we are on the editor tab
-				body.getSelectionModel().select(editorTab);
+				targetIndex = nv.getPageIndex();
 			}
+			
+			// is it different than what we have selected already?
+			SingleSelectionModel<Tab> sm = body.getSelectionModel();
+			if (targetIndex == sm.getSelectedIndex()) {
+				return;
+			}
+			
+			// it's different, so set the value
+			sm.select(targetIndex);
+		});
+		
+		body.getSelectionModel().selectedIndexProperty().addListener((obs, ov, nv) -> {
+			// get the index selected by the user
+			int targetIndex = 0;
+			if (nv != null) {
+				targetIndex = nv.intValue();
+			}
+			
+			// get the page for the index
+			Page page = Page.getPageForIndex(targetIndex);
+			if (page == null) {
+				page = Page.getPageForIndex(0);
+			}
+			
+			// is it different than what is currently selected?
+			if (page == context.getCurrentPage()) {
+				return;
+			}
+			
+			// it's different, so set it
+			context.setCurrentPage(page);
 		});
 		
 		// layout

@@ -150,6 +150,14 @@
 	-icon-zoom-in: "M779.385-153.846 528.923-404.307q-30 25.538-69 39.538-39 14-78.385 14-96.1 0-162.665-66.529-66.566-66.529-66.566-162.577t66.529-162.702q66.529-66.654 162.577-66.654 96.049 0 162.702 66.565Q610.769-676.101 610.769-580q0 41.692-14.769 80.692-14.769 39-38.769 66.693l250.462 250.461-28.308 28.308ZM381.538-390.769q79.616 0 134.423-54.808Q570.769-500.385 570.769-580q0-79.615-54.808-134.423-54.807-54.808-134.423-54.808-79.615 0-134.423 54.808Q192.308-659.615 192.308-580q0 79.615 54.807 134.423 54.808 54.808 134.423 54.808Zm-20-93.846V-560h-75.384v-40h75.384v-75.385h40.001V-600h75.384v40h-75.384v75.385h-40.001Z";
 	/*https://fonts.google.com/icons?selected=Material%20Symbols%20Outlined%3Azoom_out%3AFILL%400%3Bwght%40200%3BGRAD%400%3Bopsz%4024*/
 	-icon-zoom-out: "M779.385-153.846 528.923-404.307q-30 25.538-69 39.538-39 14-78.385 14-96.1 0-162.665-66.529-66.566-66.529-66.566-162.577t66.529-162.702q66.529-66.654 162.577-66.654 96.049 0 162.702 66.565Q610.769-676.101 610.769-580q0 41.692-14.769 80.692-14.769 39-38.769 66.693l250.462 250.461-28.308 28.308ZM381.538-390.769q79.616 0 134.423-54.808Q570.769-500.385 570.769-580q0-79.615-54.808-134.423-54.807-54.808-134.423-54.808-79.615 0-134.423 54.808Q192.308-659.615 192.308-580q0 79.615 54.807 134.423 54.808 54.808 134.423 54.808ZM290.769-560v-40h181.539v40H290.769Z";
+	/*https://fonts.google.com/icons?selected=Material%20Symbols%20Outlined%3Agrid_4x4%3AFILL%400%3Bwght%40200%3BGRAD%400%3Bopsz%4024*/
+	-icon-snap-grid: "M260-140v-120H140v-40h120v-160H140v-40h120v-160H140v-40h120v-120h40v120h160v-120h40v120h160v-120h40v120h120v40H700v160h120v40H700v160h120v40H700v120h-40v-120H500v120h-40v-120H300v120h-40Zm40-160h160v-160H300v160Zm200 0h160v-160H500v160ZM300-500h160v-160H300v160Zm200 0h160v-160H500v160Z";
+	/*https://fonts.google.com/icons?selected=Material%20Symbols%20Outlined%3Afolder%3AFILL%400%3Bwght%40200%3BGRAD%400%3Bopsz%4024*/
+	-icon-folder: "M184.615-200Q157-200 138.5-218.5 120-237 120-264.615v-430.77Q120-723 138.5-741.5 157-760 184.615-760h199.231l80 80h311.539Q803-680 821.5-661.5 840-643 840-615.385v350.77Q840-237 821.5-218.5 803-200 775.385-200h-590.77Zm0-40h590.77q10.769 0 17.692-6.923T800-264.615v-350.77q0-10.769-6.923-17.692T775.385-640H447.769l-80-80H184.615q-10.769 0-17.692 6.923T160-695.385v430.77q0 10.769 6.923 17.692T184.615-240ZM160-240v-480 480Z";
+	/*https://fonts.google.com/icons?selected=Material%20Symbols%20Outlined%3Awarning%3AFILL%400%3Bwght%40200%3BGRAD%400%3Bopsz%4024*/
+	-icon-warn: "M109.23-160 480-800l370.77 640H109.23ZM178-200h604L480-720 178-200Zm302-55.385q10.462 0 17.539-7.076 7.076-7.077 7.076-17.539 0-10.462-7.076-17.539-7.077-7.076-17.539-7.076-10.462 0-17.539 7.076-7.076 7.077-7.076 17.539 0 10.462 7.076 17.539 7.077 7.076 17.539 7.076Zm-20-89.23h40v-200h-40v200ZM480-460Z";
+	/*https://fonts.google.com/icons?selected=Material%20Symbols%20Outlined%3Adone%3AFILL%400%3Bwght%40200%3BGRAD%400%3Bopsz%4024*/
+	-icon-check: "m382-267.692-198.769-198.77L211.769-495 382-324.769 748.231-691l28.538 28.538L382-267.692Z";
 }
 
 .p-icon-container {
@@ -244,6 +252,10 @@
 .p-icon-close { -fx-shape: -icon-close; }
 .p-icon-zoom-in { -fx-shape: -icon-zoom-in; }
 .p-icon-zoom-out { -fx-shape: -icon-zoom-out; }
+.p-icon-snap-grid { -fx-shape: -icon-snap-grid; }
+.p-icon-folder { -fx-shape: -icon-folder; }
+.p-icon-warn { -fx-shape: -icon-warn; }
+.p-icon-check { -fx-shape: -icon-check; }
 
 .p-icon {
 	-fx-background-color: -color-fg-default;
@@ -256,6 +268,11 @@
 	/** This works by taking the fill color from .font-icon */
 	-fx-background-color: -fx-fill;
 }
+
+.p-icon-color-warn { -fx-background-color: -color-warning-fg; }
+.p-icon-color-danger { -fx-background-color: -color-danger-fg; }
+.p-icon-color-success { -fx-background-color: -color-success-fg; }
+.p-icon-color-folder { -fx-background-color: #ffcb24; }
 
 /*
 * Icons are all different sizes so we need to size each one separately
@@ -761,6 +778,38 @@
 .p-icon-zoom-out {
 	-w: 1.170357142857143em; 
 	-h: 1.170357142857143em;
+    -fx-max-height: -h; -fx-min-height: -h; -fx-pref-height: -h;
+    -fx-pref-width: -w; -fx-min-width: -w; -fx-max-width: -w;
+}
+
+/** w:17, h:17 */
+.p-icon-snap-grid {
+	-w: 1.214285714285714em; 
+	-h: 1.214285714285714em;
+    -fx-max-height: -h; -fx-min-height: -h; -fx-pref-height: -h;
+    -fx-pref-width: -w; -fx-min-width: -w; -fx-max-width: -w;
+}
+
+/** w:18, h:14 */
+.p-icon-folder {
+	-w: 1.285714285714286em; 
+	-h: 1em;
+    -fx-max-height: -h; -fx-min-height: -h; -fx-pref-height: -h;
+    -fx-pref-width: -w; -fx-min-width: -w; -fx-max-width: -w;
+}
+
+/** w:18.538, h:16 */
+.p-icon-warn {
+	-w: 1.324142857142857em; 
+	-h: 1.142857142857143em;
+    -fx-max-height: -h; -fx-min-height: -h; -fx-pref-height: -h;
+    -fx-pref-width: -w; -fx-min-width: -w; -fx-max-width: -w;
+}
+
+/** w:14.838, h:10.583 */
+.p-icon-check {
+	-w: 1.059857142857143em; 
+	-h: 0.7559285714285714em;
     -fx-max-height: -h; -fx-min-height: -h; -fx-pref-height: -h;
     -fx-pref-width: -w; -fx-min-width: -w; -fx-max-width: -w;
 }

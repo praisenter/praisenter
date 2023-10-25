@@ -283,6 +283,35 @@
 	-fx-spacing: 1em;
 }
 
+/* WORKSPACE SELECTION PANE */
+.p-workspace-selection-pane {
+	-fx-pref-width: 600;
+	-fx-pref-height: 380;
+	-fx-spacing: 0.2em;
+}
+.p-workspace-selection-pane-title {
+	-fx-font-weight: bold;
+}
+.p-workspace-selection-pane-description {}
+.p-workspace-selection-pane-overview {
+	-fx-padding: 0.8em;
+	-fx-background-color: -color-neutral-subtle;
+	-fx-spacing: 0.5em;
+}
+.p-workspace-selection-pane-selection {
+	-fx-padding: 0.8em 0.8em 0.5em 0.8em;
+	-fx-spacing: 0.5em;
+}
+.p-workspace-selection-pane-buttons {
+	-fx-padding: 1.4em 0.8em 0.8em 0.8em;
+	-fx-spacing: 0.5em;
+}
+.p-workspace-selection-pane-launch-button {
+	-fx-font-weight: bold;
+}
+.p-workspace-selection-pane-warning {
+	-fx-padding: 0em 0.8em;
+}
 
 /********************************************************************************/
 /********************************************************************************/
@@ -657,60 +686,8 @@
 	-fx-spacing: 0.5em;
 }
 .p-bible-editor-bulk-buttons > .button,
-.p-song-editor-bulk-buttons > .button {
-	-fx-pref-width: 5em;
-}
+.p-song-editor-bulk-buttons > .button {}
 .p-slide-editor {
 	-fx-padding: 2em;
 	-fx-border-width: 0;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* WORKSPACE SELECTION PANE */
-.p-workspace-selection-pane {
-	-fx-pref-width: 600;
-}
-.p-workspace-selection-pane-title {
-	-fx-font-weight: bold;
-}
-.p-workspace-selection-pane-description {}
-.p-workspace-selection-pane-overview {
-	-fx-padding: 0.8em;
-	/* -fx-background-color: L1H; */
-	-fx-spacing: 0.5em;
-}
-.p-workspace-selection-pane-selection {
-	-fx-padding: 0.8em 0.8em 0.5em 0.8em;
-	-fx-spacing: 0.5em;
-}
-.p-workspace-selection-pane-buttons {
-	-fx-padding: 1.4em 0.8em 0.8em 0.8em;
-	-fx-spacing: 0.5em;
-}
-.p-workspace-selection-pane-launch-button {
-	-fx-font-weight: bold;
-}
-.p-workspace-selection-pane-warning {
-	-fx-padding: 0.5em 2em 0 2em;
-	-fx-spacing: 0.5em;
-}
-

@@ -37,6 +37,7 @@ import org.praisenter.utility.Scaling;
 
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -45,6 +46,7 @@ import javafx.event.EventTarget;
 import javafx.event.EventType;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
@@ -60,7 +62,6 @@ import javafx.scene.layout.StackPane;
 // FEATURE (L-M) Allow multi select of components for moving or other actions
 // FEATURE (L-M) Allow grouping of components
 //		UUID group property on each slide component, when grouped sizing and moving work on the group, can't select individual when grouped; or grouped at selection level only
-// FEATURE (L-M) Add grid snaping to sizing/moving of components
 public final class SlideEditor extends BorderPane implements DocumentEditor<Slide> {
 	private static final String SLIDE_EDITOR_CSS = "p-slide-editor";
 	
@@ -112,6 +113,7 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 		this.componentMapping = new MappedList<>(this.components, (c) -> {
 			EditNode n = new EditNode(document, c);
 			n.scaleProperty().bind(this.slideView.viewScaleFactorProperty());
+			n.snapToGridEnabledProperty().bind(context.snapToGridEnabledProperty());
 			// restore selection (this happens when nodes are rearranged
 			// in the source list - since they have to be removed then
 			// re-added)
@@ -200,6 +202,8 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 			this.createMenuItem(Action.COPY),
 			this.createMenuItem(Action.CUT),
 			this.createMenuItem(Action.PASTE),
+			new SeparatorMenuItem(),
+			this.createToggleMenuItem(Action.SLIDE_COMPONENT_SNAP_TO_GRID, context.snapToGridEnabledProperty()),
 			new SeparatorMenuItem(),
 			this.createMenuItem(Action.SLIDE_COMPONENT_MOVE_UP),
 			this.createMenuItem(Action.SLIDE_COMPONENT_MOVE_DOWN),
@@ -298,6 +302,19 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 		// NOTE: due to bug in JavaFX, we don't apply the accelerator here
 		//mnu.setAccelerator(value);
 		mnu.setOnAction(e -> this.executeAction(action));
+		mnu.disableProperty().bind(this.context.getActionEnabledProperty(action).not());
+		mnu.setUserData(action);
+		return mnu;
+	}
+	
+	private MenuItem createToggleMenuItem(Action action, BooleanProperty target) {
+		CheckMenuItem mnu = new CheckMenuItem(Translations.get(action.getMessageKey()));
+		mnu.selectedProperty().bindBidirectional(target);
+		if (action.getGraphicSupplier() != null) {
+			mnu.setGraphic(action.getGraphicSupplier().get());
+		}
+		// NOTE: due to bug in JavaFX, we don't apply the accelerator here
+		//mnu.setAccelerator(value);
 		mnu.disableProperty().bind(this.context.getActionEnabledProperty(action).not());
 		mnu.setUserData(action);
 		return mnu;
@@ -406,6 +423,8 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 				return ctx.getUndoManager().isRedoAvailable();
 			case UNDO:
 				return ctx.getUndoManager().isUndoAvailable();
+			case SLIDE_COMPONENT_SNAP_TO_GRID:
+				return true;
 			case SLIDE_COMPONENT_MOVE_BACK:
 			case SLIDE_COMPONENT_MOVE_FRONT:
 			case SLIDE_COMPONENT_MOVE_DOWN:
@@ -429,6 +448,7 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 			case SLIDE_COMPONENT_MOVE_FRONT:
 			case SLIDE_COMPONENT_MOVE_DOWN:
 			case SLIDE_COMPONENT_MOVE_UP:
+			case SLIDE_COMPONENT_SNAP_TO_GRID:
 				return true;
 			default:
 				return false;

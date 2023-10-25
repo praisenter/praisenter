@@ -7,12 +7,14 @@ import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.translations.Translations;
 
 import javafx.beans.binding.Bindings;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Labeled;
 import javafx.scene.control.Separator;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToolBar;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.KeyCombination;
@@ -65,6 +67,8 @@ public final class DocumentsToolbar extends ToolBar {
 			this.createSeparatorForGroup(Action.RENUMBER, Action.REORDER),
 			this.createButton(Action.RENUMBER),
 			this.createButton(Action.REORDER),
+			this.createSeparatorForGroup(Action.SLIDE_COMPONENT_SNAP_TO_GRID),
+			this.createToggleButton(Action.SLIDE_COMPONENT_SNAP_TO_GRID, context.snapToGridEnabledProperty()),
 			this.createSeparatorForGroup(Action.SLIDE_COMPONENT_MOVE_UP, Action.SLIDE_COMPONENT_MOVE_DOWN, Action.SLIDE_COMPONENT_MOVE_FRONT, Action.SLIDE_COMPONENT_MOVE_BACK),
 			this.createButton(Action.SLIDE_COMPONENT_MOVE_UP),
 			this.createButton(Action.SLIDE_COMPONENT_MOVE_DOWN),
@@ -77,6 +81,13 @@ public final class DocumentsToolbar extends ToolBar {
 		Button button = new Button();
 		this.setButtonProperties(button, action);
 		button.setOnAction(e -> this.executeAction(action));
+		return button;
+	}
+	
+	private ToggleButton createToggleButton(Action action, BooleanProperty binder) {
+		ToggleButton button = new ToggleButton();
+		button.selectedProperty().bindBidirectional(binder);
+		this.setButtonProperties(button, action);
 		return button;
 	}
 

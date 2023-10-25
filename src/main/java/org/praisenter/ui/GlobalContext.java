@@ -104,12 +104,14 @@ public final class GlobalContext {
 	private final BooleanProperty textSelected;
 	private final Map<Action, BooleanProperty> isActionEnabled;
 	private final Map<Action, BooleanProperty> isActionVisible;
+	private final ObjectProperty<Page> currentPage;
 	
 	// document editing
 	
 	private final ObjectProperty<DocumentContext<? extends Persistable>> currentDocument;
 	private final ObservableList<DocumentContext<? extends Persistable>> openDocuments;
 	private final ObservableList<DocumentContext<? extends Persistable>> openDocumentsReadOnly;
+	private final BooleanProperty snapToGridEnabled;
 	
 	// background task tracking
 	
@@ -155,10 +157,12 @@ public final class GlobalContext {
 		
 		this.selectedText = new SimpleStringProperty();
 		this.textSelected = new SimpleBooleanProperty();
+		this.currentPage = new SimpleObjectProperty<>(Page.PRESENT);
 		
 		this.currentDocument = new SimpleObjectProperty<>();
 		this.openDocuments = FXCollections.observableArrayList();
 		this.openDocumentsReadOnly = FXCollections.unmodifiableObservableList(this.openDocuments);
+		this.snapToGridEnabled = new SimpleBooleanProperty(false);
 		
 		this.isActionEnabled = new HashMap<>();
 		this.isActionVisible = new HashMap<>();
@@ -530,6 +534,7 @@ public final class GlobalContext {
 			case SLIDE_COMPONENT_MOVE_DOWN:
 			case SLIDE_COMPONENT_MOVE_FRONT:
 			case SLIDE_COMPONENT_MOVE_UP:
+			case SLIDE_COMPONENT_SNAP_TO_GRID:
 				return ap != null && ap.isActionVisible(action);
 			default:
 				return true;
@@ -556,6 +561,9 @@ public final class GlobalContext {
 				return this.createNewSlideAndOpen();
 			case NEW_SONG:
 				return this.createNewSongAndOpen();
+			case SLIDE_COMPONENT_SNAP_TO_GRID:
+				this.snapToGridEnabled.set(!this.snapToGridEnabled.get());
+				return CompletableFuture.completedFuture(null);
 			default:
 				break;
 		}
@@ -1240,6 +1248,7 @@ public final class GlobalContext {
 		// set it to the current document
 		final DocumentContext<? extends Persistable> ctx = context;
 		this.currentDocument.set(ctx);
+		this.currentPage.set(Page.EDITOR);
 	}
 	
 	/**
@@ -1355,6 +1364,30 @@ public final class GlobalContext {
 	
 	public ObjectProperty<Version> latestVersionProperty() {
 		return this.latestVersion;
+	}
+	
+	public Page getCurrentPage() {
+		return this.currentPage.get();
+	}
+	
+	public void setCurrentPage(Page page) {
+		this.currentPage.set(page);
+	}
+	
+	public ObjectProperty<Page> currentPageProperty() {
+		return this.currentPage;
+	}
+
+	public boolean isSnapToGridEnabled() {
+		return this.snapToGridEnabled.get();
+	}
+	
+	public void setSnapToGridEnabled(boolean flag) {
+		this.snapToGridEnabled.set(flag);
+	}
+	
+	public BooleanProperty snapToGridEnabledProperty() {
+		return this.snapToGridEnabled;
 	}
 	
 	public <T extends Persistable> String getFriendlyItemType(T item) {
