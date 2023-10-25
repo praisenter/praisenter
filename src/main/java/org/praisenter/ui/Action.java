@@ -73,6 +73,8 @@ public enum Action {
 	SLIDE_COMPONENT_MOVE_UP("action.stacking.up", new KeyCodeCombination(KeyCode.OPEN_BRACKET, KeyCombination.SHORTCUT_DOWN), getGraphicSupplier(Icons.FORWARD)),
 	SLIDE_COMPONENT_MOVE_DOWN("action.stacking.down", new KeyCodeCombination(KeyCode.CLOSE_BRACKET, KeyCombination.SHORTCUT_DOWN), getGraphicSupplier(Icons.BACKWARD)),
 	
+	SLIDE_COMPONENT_SNAP_TO_GRID("action.grid.snap", null, getGraphicSupplier(Icons.SNAP_GRID)),
+	
 	// song
 	
 	NEW_SONG("action.new.song", new KeyCodeCombination(KeyCode.L, KeyCombination.SHORTCUT_DOWN, KeyCombination.ALT_DOWN), getGraphicSupplier(Icons.SONG_ADD)),

@@ -25,8 +25,10 @@ import org.praisenter.ui.upgrade.UpgradeChecker;
 import org.praisenter.utility.RuntimeProperties;
 
 import javafx.application.Platform;
+import javafx.beans.property.BooleanProperty;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
+import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
@@ -138,6 +140,8 @@ final class MainMenu extends MenuBar {
 				this.createMenuItem(Action.RENUMBER),
 				this.createMenuItem(Action.REORDER),
 				new SeparatorMenuItem(),
+				this.createToggleMenuItem(Action.SLIDE_COMPONENT_SNAP_TO_GRID, context.snapToGridEnabledProperty()),
+				new SeparatorMenuItem(),
 				this.createMenuItem(Action.SLIDE_COMPONENT_MOVE_BACK),
 				this.createMenuItem(Action.SLIDE_COMPONENT_MOVE_DOWN),
 				this.createMenuItem(Action.SLIDE_COMPONENT_MOVE_UP),
@@ -192,6 +196,13 @@ final class MainMenu extends MenuBar {
 	private MenuItem createMenuItem(Action action) {
 		MenuItem item = new MenuItem();
 		item.setOnAction(e -> this.executeAction(action));
+		this.setMenuItemProperties(item, action);
+		return item;
+	}
+	
+	private MenuItem createToggleMenuItem(Action action, BooleanProperty target) {
+		CheckMenuItem item = new CheckMenuItem();
+		item.selectedProperty().bindBidirectional(target);
 		this.setMenuItemProperties(item, action);
 		return item;
 	}

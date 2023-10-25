@@ -135,7 +135,7 @@ public final class SettingsPage extends BorderPane {
 		HBox a = new HBox(2);
 		Bindings.bindContent(a.getChildren(), this.accents);
 
-		Button btnReloadCss = new Button(Translations.get("settings.theme.reload"));
+		Button btnReloadCss = new Button(Translations.get("settings.styles.reload"));
 		btnReloadCss.setOnAction(e -> {
 			StyleSheets.reapply(context.getStage().getScene());
 		});

@@ -82,13 +82,24 @@ public final class Icons {
 	public static final String CLOSE = "p-icon-close";
 	public static final String ZOOM_IN = "p-icon-zoom-in";
 	public static final String ZOOM_OUT = "p-icon-zoom-out";
+	public static final String SNAP_GRID = "p-icon-snap-grid";
+	public static final String FOLDER = "p-icon-folder";
+	public static final String WARN = "p-icon-warn";
+	public static final String CHECK = "p-icon-check";
 	
-	public static final Region getIcon(String icon) {
+	public static final String COLOR_WARN = "p-icon-color-warn";
+	public static final String COLOR_DANGER = "p-icon-color-danger";
+	public static final String COLOR_SUCCESS = "p-icon-color-success";
+	public static final String COLOR_FOLDER = "p-icon-color-folder";
+	
+	public static final Region getIcon(String icon, String... modifiers) {
 		Region node = new Region();
 		// NOTE: "font-icon" is here to inherit the color from font-icon in the atlantafx themes
 		// this is done so that -fx-fill can be used as the -fx-background-color since the themes
 		// aren't consistent with the hover/focused text colorings
 		node.getStyleClass().addAll("p-icon", "font-icon", icon);
+		if (modifiers != null)
+			node.getStyleClass().addAll(modifiers);
 		StackPane sp = new StackPane(node);
 		sp.getStyleClass().add("p-icon-container");
 		return sp;

@@ -332,7 +332,7 @@ public final class DisplayController extends BorderPane {
 						for (Slide s : this.slides) {
 							if (p.getId().equals(s.getId())) {
 								// then it was updated
-								Slide s1 = (Slide)p;
+								Slide s1 = (Slide)p.copy();
 								s1.setPlaceholderData(s.getPlaceholderData());
 								toReplace.put(i, s1);
 								break;
