@@ -22,7 +22,6 @@ import org.praisenter.ui.controls.Dialogs;
 import org.praisenter.ui.controls.WindowHelper;
 import org.praisenter.ui.translations.Translations;
 import org.praisenter.ui.upgrade.UpgradeChecker;
-import org.praisenter.utility.RuntimeProperties;
 
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
@@ -33,9 +32,7 @@ import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
-import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCombination;
-import javafx.scene.input.KeyEvent;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -184,13 +181,19 @@ final class MainMenu extends MenuBar {
 		// type if there's a matching mnemonic
 		// https://stackoverflow.com/questions/73383089/javafx-menu-bar-steals-focus
 		// JAVABUG (L) 10/12/23 [workaround] https://bugs.openjdk.org/browse/JDK-8238731
-		if (RuntimeProperties.IS_WINDOWS_OS) {
-			context.windowFocusedProperty().addListener((obs, ov, nv) -> {
-				if (nv) {
-					this.fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.ESCAPE, false, false, false, false));
-				}
-			});
-		}
+		
+		// NOTE: this was removed due to it causing ColorPicker to crash (it would force focus loss
+		// on the color picker removing the popup before the custom color picker had disposed of it
+		// causing it to attempt to dispose it again.  I tested this again on Java/JavaFX 21 and
+		// did see the issue of the alt state being retained
+		
+//		if (RuntimeProperties.IS_WINDOWS_OS) {
+//			context.windowFocusedProperty().addListener((obs, ov, nv) -> {
+//				if (!nv) {
+//					this.fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.ESCAPE, false, false, false, false));
+//				}
+//			});
+//		}
 	}
 
 	private MenuItem createMenuItem(Action action) {

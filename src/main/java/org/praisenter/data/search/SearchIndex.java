@@ -120,7 +120,7 @@ public final class SearchIndex {
 						matches.add(new SearchTextMatch(Indexable.FIELD_TEXT, text, fragment));
 					}
 				} catch (IllegalArgumentException e) {
-					// https://issues.apache.org/jira/browse/LUCENE-9568
+					// https://github.com/apache/lucene/issues/10608
 					LOGGER.warn("Failed to get highlighted text for search '" + criteria.getTerms() + "': " + e.getMessage());
 				} catch (Exception e) {
 					LOGGER.error("Failed to get matching text for terms: '" + criteria.getTerms() + "'", e);
