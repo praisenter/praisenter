@@ -140,7 +140,9 @@ final class PraisenterPane extends BorderPane {
 	private void dragDropped(DragEvent e) {
 		Dragboard db = e.getDragboard();
 		if (e.getGestureSource() == null && db.hasFiles()) {
-			this.context.importFiles(db.getFiles()).exceptionallyCompose(AsyncHelper.onJavaFXThreadAndWait((t) -> {
+			this.context.importFiles(db.getFiles()).thenAccept((items) -> {
+				// nothing else to do with the items
+			}).exceptionallyCompose(AsyncHelper.onJavaFXThreadAndWait((t) -> {
 				Platform.runLater(() -> {
 					Alert alert = Dialogs.exception(this.context.stage, t);
 					alert.show();

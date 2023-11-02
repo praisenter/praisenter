@@ -129,11 +129,11 @@ final class BackgroundTaskDetailPane extends VBox {
 						if (ts >= 60) {
 							return Translations.get("task.duration",
 									// hours
-									String.format("%.00f", Math.floor(ts / 3600)),
+									String.format("%02.0f", Math.floor(ts / 3600)),
 									// minutes
-									String.format("%.00f", Math.floor((ts % 3600) / 60)),
+									String.format("%02.0f", Math.floor((ts % 3600) / 60)),
 									// seconds
-									String.format("%.00f", Math.floor((ts % 60))));
+									String.format("%02.0f", Math.floor((ts % 60))));
 						} else if (tms >= 1000) {
 							return Translations.get("task.duration.seconds", String.format("%.0f", ts));
 						} else {

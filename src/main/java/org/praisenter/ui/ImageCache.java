@@ -96,6 +96,22 @@ public final class ImageCache {
 	}
 
 	/**
+	 * Returns true if the given image id is present in the image cache.
+	 * @param id the id
+	 * @return true if the id exists, and it's image is non-null
+	 */
+	public synchronized boolean isImageCached(UUID id) {
+		ImageCacheKey key = new ImageCacheKey(ImageCacheKeyType.MEDIA_IMAGE, id.toString());
+		if (this.images.containsKey(key)) {
+			Image image = this.images.get(key).get();
+			if (image != null) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	/**
 	 * Returns the cached image for the given image or loads the image given the classpath
 	 * path if the image is not in the cache.
 	 * <p>

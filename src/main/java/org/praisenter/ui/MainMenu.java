@@ -285,7 +285,9 @@ final class MainMenu extends MenuBar {
 		FileChooser fc = new FileChooser();
 		fc.setTitle(Translations.get("action.import"));
 		List<File> files = fc.showOpenMultipleDialog(this.context.stage);
-		this.context.importFiles(files).exceptionallyCompose(AsyncHelper.onJavaFXThreadAndWait((t) -> {
+		this.context.importFiles(files).thenAccept((items) -> {
+			// nothing extra to do with the imported data
+		}).exceptionallyCompose(AsyncHelper.onJavaFXThreadAndWait(t -> {
 			Platform.runLater(() -> {
 				Alert alert = Dialogs.exception(this.context.stage, t);
 				alert.show();

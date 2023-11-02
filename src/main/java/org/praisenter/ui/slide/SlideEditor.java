@@ -1,5 +1,6 @@
 package org.praisenter.ui.slide;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -34,6 +35,7 @@ import org.praisenter.ui.events.ActionStateChangedEvent;
 import org.praisenter.ui.translations.Translations;
 import org.praisenter.ui.undo.UndoManager;
 import org.praisenter.utility.Scaling;
+import org.praisenter.utility.StringManipulator;
 
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
@@ -50,8 +52,10 @@ import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.image.Image;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.DataFormat;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
@@ -226,72 +230,50 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 		
 		// allow drag-n-drop of library items onto the editor
 		this.setOnDragOver(e -> {
-			if (e.getDragboard().hasContent(DataFormats.PRAISENTER_ID_LIST)) {
-				if (this.getMediaFromDragBoard(e.getDragboard()).size() > 0) {
-					e.acceptTransferModes(TransferMode.ANY);
-				}
+			if (e.getDragboard().hasContent(DataFormat.FILES) ||
+				e.getDragboard().hasContent(DataFormat.IMAGE)) {
+				e.acceptTransferModes(TransferMode.COPY);
 			}
 			e.consume();
 		});
 		
 		this.setOnDragDropped(e -> {
 			Dragboard db = e.getDragboard();
-			Slide slide = this.slide.get();
 			
-			if (slide != null && db.hasContent(DataFormats.PRAISENTER_ID_LIST)) {
-				List<Media> media = this.getMediaFromDragBoard(db);
-				if (media.size() > 0) {
-					for (Media m : media) {
-						MediaObject mo = new MediaObject();
-						mo.setMediaId(m.getId());
-						mo.setMediaName(m.getName());
-						mo.setMediaType(m.getMediaType());
-						mo.setScaleType(ScaleType.UNIFORM);
-						
-						// then create a new media component with this media
-						MediaComponent mc = new MediaComponent();
-						mc.setMedia(mo);
-						
-						// set the width/height as a function of the slide and media size
-						double mw = slide.getWidth() * 0.75;
-						double mh = slide.getHeight() * 0.75;
-						double w = m.getWidth();
-						double h = m.getHeight();
-						if (w > mw || h > mh) {
-							w = mw;
-							h = mh;
-						}
-						
-						mc.setX(50);
-						mc.setY(50);
-						mc.setWidth(mw);
-						mc.setHeight(mh);
-						
-						this.slide.get().getComponents().add(mc);
-						
-						e.setDropCompleted(true);
-					}
-				}
+			if (db.hasContent(DataFormat.FILES)) {
 				e.consume();
+				
+				List<File> files = db.getFiles();
+				
+				this.context.importFiles(files).thenComposeAsync(AsyncHelper.onJavaFXThreadAndWait(items -> {
+					this.addMediaComponents(items);
+					e.setDropCompleted(true);
+				})).exceptionally(t -> {
+					LOGGER.error("Failed to import media: ", t);
+					// show the error message
+					return null;
+				}).thenRun(() -> {
+					e.setDropCompleted(true);
+				});
+				
+			} else if (db.hasContent(DataFormat.IMAGE)) {
+				String name = "Utitled.png";
+				Image image = db.getImage();
+				
+				this.context.importImage(name, image).thenComposeAsync(AsyncHelper.onJavaFXThreadAndWait(item -> {
+					List<Persistable> items = new ArrayList<>();
+					items.add(item);
+					this.addMediaComponents(items);
+					e.setDropCompleted(true);
+				})).exceptionally(t -> {
+					LOGGER.error("Failed to import media: ", t);
+					// show the error message
+					return null;
+				}).thenRun(() -> {
+					e.setDropCompleted(true);
+				});
 			}
 		});
-	}
-	
-	private List<Media> getMediaFromDragBoard(Dragboard db) {
-		List<Media> media = new ArrayList<Media>();
-		Object object = db.getContent(DataFormats.PRAISENTER_ID_LIST);
-		if (object instanceof List<?>) {
-			List<?> ids = (List<?>)object;
-			for (Object id : ids) {
-				if (id instanceof UUID) {
-					Persistable p = context.getWorkspaceManager().getPersistableById((UUID)id);
-					if (p != null && p instanceof Media) {
-						media.add((Media)p);
-					}
-				}
-			}
-		}
-		return media;
 	}
 	
 	private MenuItem createMenuItem(Action action) {
@@ -408,7 +390,8 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 			case CUT:
 				return ctx.getSelectedCount() > 0;
 			case PASTE:
-				return Clipboard.getSystemClipboard().hasContent(DataFormats.PRAISENTER_SLIDE_COMPONENT_ARRAY);
+				return Clipboard.getSystemClipboard().hasContent(DataFormats.PRAISENTER_SLIDE_COMPONENT_ARRAY) ||
+						Clipboard.getSystemClipboard().hasImage();
 			case DELETE:
 				return ctx.getSelectedCount() > 0;
 			case NEW_SLIDE_TEXT_COMPONENT:
@@ -510,6 +493,19 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 			} catch (Exception ex) {
 				LOGGER.warn("Failed to paste clipboard content (likely due to a JSON deserialization error", ex);
 			}
+		} else if (clipboard.hasContent(DataFormat.IMAGE)) {
+			String name = StringManipulator.toFileName(Translations.get("action.new.untitled", "") + ".png", "");
+			Image image = clipboard.getImage();
+			
+			this.context.importImage(name, image).thenComposeAsync(AsyncHelper.onJavaFXThreadAndWait(item -> {
+				List<Persistable> items = new ArrayList<>();
+				items.add(item);
+				this.addMediaComponents(items);
+			})).exceptionally(t -> {
+				LOGGER.error("Failed to import media: ", t);
+				// show the error message
+				return null;
+			});
 		}
 		
 		return CompletableFuture.completedFuture(null);
@@ -538,6 +534,51 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 			this.undoManager.discardBatch();
 		}
 		return CompletableFuture.completedFuture(null);
+	}
+	
+	private void addMediaComponents(List<Persistable> items) {
+		Slide slide = this.slide.get();
+		
+		List<Media> media = new ArrayList<>();
+		// are any items media?
+		for (Persistable item : items) {
+			if (item instanceof Media) {
+				media.add((Media)item);
+			}
+		}
+		
+		// if so, then add them to the slide
+		for (Media m : media) {
+			MediaObject mo = new MediaObject();
+			mo.setMediaId(m.getId());
+			mo.setMediaName(m.getName());
+			mo.setMediaType(m.getMediaType());
+			mo.setScaleType(ScaleType.UNIFORM);
+			
+			// then create a new media component with this media
+			MediaComponent mc = new MediaComponent();
+			mc.setMedia(mo);
+			
+			// set the width/height as a function of the slide and media size
+			double mw = slide.getWidth() * 0.75;
+			double mh = slide.getHeight() * 0.75;
+			double w = m.getWidth();
+			double h = m.getHeight();
+			if (w > mw || h > mh) {
+				w = mw;
+				h = mh;
+			}
+			
+			mc.setX(60);
+			mc.setY(60);
+			mc.setWidth(mw);
+			mc.setHeight(mh);
+			
+			slide.getComponents().add(mc);
+			this.selectComponent(mc);
+		}
+		
+		this.context.getStage().requestFocus();
 	}
 	
 	private CompletableFuture<Void> createNewTextComponent() {

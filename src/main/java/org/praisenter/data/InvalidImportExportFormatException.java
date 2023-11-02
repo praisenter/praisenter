@@ -31,14 +31,14 @@ import java.io.IOException;
  * @author William Bittle
  * @version 3.0.0
  */
-public class InvalidFormatException extends IOException {
+public class InvalidImportExportFormatException extends IOException {
 	/** The version id */
 	private static final long serialVersionUID = 8420463368288027495L;
 
 	/**
 	 * Default constructor.
 	 */
-	public InvalidFormatException() {
+	public InvalidImportExportFormatException() {
 		super();
 	}
 	
@@ -47,7 +47,7 @@ public class InvalidFormatException extends IOException {
 	 * @param message the message
 	 * @param cause the root exception
 	 */
-	public InvalidFormatException(String message, Throwable cause) {
+	public InvalidImportExportFormatException(String message, Throwable cause) {
 		super(message, cause);
 	}
 	
@@ -55,7 +55,7 @@ public class InvalidFormatException extends IOException {
 	 * Optional constructor.
 	 * @param message the message
 	 */
-	public InvalidFormatException(String message) {
+	public InvalidImportExportFormatException(String message) {
 		super(message);
 	}
 
@@ -63,7 +63,7 @@ public class InvalidFormatException extends IOException {
 	 * Optional constructor.
 	 * @param cause the root exception
 	 */
-	public InvalidFormatException(Throwable cause) {
+	public InvalidImportExportFormatException(Throwable cause) {
 		super(cause);
 	}
 }

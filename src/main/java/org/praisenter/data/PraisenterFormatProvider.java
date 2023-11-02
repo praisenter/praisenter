@@ -24,18 +24,26 @@
  */
 package org.praisenter.data;
 
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Enumeration;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipFile;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.data.json.JsonIO;
 import org.praisenter.data.json.PraisenterFormat;
 import org.praisenter.utility.MimeType;
+import org.praisenter.utility.Streams;
 
 /**
  * {@link PraisenterFormatProvider} for the Praisenter format.
@@ -43,11 +51,11 @@ import org.praisenter.utility.MimeType;
  * @version 3.0.0
  * @since 3.0.0
  */
-public final class PraisenterFormatProvider<T> implements DataFormatProvider<T> {
+public class PraisenterFormatProvider<T extends Persistable> implements ImportExportProvider<T> {
 	/** The class-level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
 	
-	private final Class<T> clazz;
+	protected final Class<T> clazz;
 	
 	public PraisenterFormatProvider(Class<T> clazz) {
 		this.clazz = clazz;
@@ -55,64 +63,118 @@ public final class PraisenterFormatProvider<T> implements DataFormatProvider<T> 
 	
 	@Override
 	public boolean isSupported(Path path) {
-		if (MimeType.JSON.check(path)) {
-			try {
-				PraisenterFormat format = JsonIO.getPraisenterFormat(path);
-				if (format.is(this.clazz)) {
-					return true;
-				}
-			} catch (Exception ex) {
-				LOGGER.trace("Failed to determine if '" + path.toAbsolutePath() + "' was in the Praisenter json format.", ex);
-			}
-		}
-		return false;
+		return this.isSupported(MimeType.get(path));
 	}
 	
 	@Override
 	public boolean isSupported(String mimeType) {
-		return MimeType.JSON.is(mimeType) || mimeType.toLowerCase().startsWith("text");
+		return MimeType.JSON.is(mimeType) || MimeType.ZIP.is(mimeType);
 	}
 	
 	@Override
-	public boolean isSupported(String resourceName, InputStream stream) throws IOException {
-		if (stream == null) return false;
+	public boolean isSupported(String name, InputStream stream) throws IOException {
 		if (!stream.markSupported()) {
 			LOGGER.warn("Mark is not supported on the given input stream.");
 		}
-		try {
-			PraisenterFormat format = JsonIO.getPraisenterFormat(stream);
-			if (format != null && format.is(this.clazz)) {
-				return true;
-			}
-		} catch (Exception ex) {
-			LOGGER.trace("Failed to determine if '" + resourceName + "' was in the Praisenter json format.", ex);
-		}
-		return false;
+		
+		return this.isSupported(MimeType.get(stream, name));
 	}
 	
 	@Override
-	public List<DataReadResult<T>> read(Path path) throws IOException {
-		List<DataReadResult<T>> results = new ArrayList<>();
-		T data = JsonIO.read(path, this.clazz);
-		results.add(new DataReadResult<T>(data));
-		return results;
-	}
-	
-	@Override
-	public List<DataReadResult<T>> read(String resourceName, InputStream stream) throws IOException {
-		T data = JsonIO.read(stream, this.clazz);
-		List<DataReadResult<T>> results = new ArrayList<>();
-		results.add(new DataReadResult<T>(data));
-		return results;
-	}
-	
-	@Override
-	public void write(OutputStream stream, T data) throws IOException {
+	public void exp(PersistAdapter<T> adapter, OutputStream stream, T data) throws IOException {
 		JsonIO.write(stream, data);
 	}
 	
 	@Override
-	public void write(Path path, T data) throws IOException {
+	public void exp(PersistAdapter<T> adapter, Path path, T data) throws IOException {
 		JsonIO.write(path, data);
+	}
+	
+	@Override
+	public void exp(PersistAdapter<T> adapter, ZipOutputStream stream, T data) throws IOException {
+		Path path = adapter.getPathResolver().getExportPath(data);
+		ZipEntry entry = new ZipEntry(FilenameUtils.separatorsToUnix(path.toString()));
+		stream.putNextEntry(entry);
+		JsonIO.write(stream, data);
+		stream.closeEntry();
+	}
+	
+	@Override
+	public DataImportResult<T> imp(PersistAdapter<T> adapter, Path path) throws IOException {
+		DataImportResult<T> result = new DataImportResult<>();
+		
+		try (FileInputStream fis = new FileInputStream(path.toFile());
+			 BufferedInputStream bis = new BufferedInputStream(fis);) {
+			bis.mark(Integer.MAX_VALUE);
+			
+			LOGGER.trace("Checking stream for zip/json");
+			if (MimeType.ZIP.check(path)) {
+				LOGGER.trace("Reading as ZIP");
+				// NOTE: Native java.util.zip package can't support zips 4GB or bigger or elements 2GB or bigger
+		        try (ZipFile zipFile = new ZipFile(path)) {
+		        	Enumeration<ZipArchiveEntry> entries = zipFile.getEntries();
+		        	while (entries.hasMoreElements()) {
+		        		ZipArchiveEntry entry = entries.nextElement();
+		        		
+		        		if (entry.isDirectory()) 
+		        			continue;
+		        		
+		        		if (!zipFile.canReadEntryData(entry)) {
+		        			LOGGER.warn("Unable to read entry '{}'. This is usually caused by encryption or an unsupported compression algorithm.", entry.getName());
+		        			continue;
+		        		}
+		        		
+						// wrap the stream in a stream that can reset
+						BufferedInputStream zbis = new BufferedInputStream(zipFile.getInputStream(entry));
+						zbis.mark(Integer.MAX_VALUE);
+						
+						LOGGER.trace("Checking zip entry '{}'", entry.getName());
+						if (MimeType.JSON.check(zbis, entry.getName())) {
+							zbis.reset();
+							
+							try {
+								LOGGER.trace("Zip entry '{}' is a JSON file, reading and checking format", entry.getName());
+								byte[] data = Streams.read(zbis);
+								ByteArrayInputStream bais = new ByteArrayInputStream(data);
+								PraisenterFormat format = JsonIO.getPraisenterFormat(bais);
+								
+								if (format != null && format.is(this.clazz)) {
+									bais.reset();
+									LOGGER.debug("Zip entry '{}' matches the format for '{}', attempting import", entry.getName(), this.clazz.getName());
+									T item = JsonIO.read(bais, this.clazz);
+									boolean isUpdate = adapter.upsert(item);
+									if (isUpdate) {
+										result.getUpdated().add(item);
+									} else {
+										result.getCreated().add(item);
+									}
+								}
+							} catch (Exception ex) {
+								LOGGER.trace("Failed to determine if '" + entry.getName() + "' was in the Praisenter json format.", ex);
+							}
+						}
+					}
+				}
+			} else {
+				LOGGER.trace("Reading as JSON");
+				
+				byte[] data = Streams.read(bis);
+				ByteArrayInputStream bais = new ByteArrayInputStream(data);
+				PraisenterFormat format = JsonIO.getPraisenterFormat(bais);
+				
+				if (format != null && format.is(this.clazz)) {
+					LOGGER.debug("File '{}' matches the format for '{}', attempting import", path.getFileName(), this.clazz.getName());
+					T item = JsonIO.read(bis, this.clazz);
+					boolean isUpdate = adapter.upsert(item);
+					if (isUpdate) {
+						result.getUpdated().add(item);
+					} else {
+						result.getCreated().add(item);
+					}
+				}
+			}
+		}
+		
+		return result;
 	}
 }

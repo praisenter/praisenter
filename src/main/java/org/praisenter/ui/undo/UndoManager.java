@@ -211,13 +211,13 @@ public final class UndoManager {
 	}
 	
 	public void print() {
-		System.out.println("====== Undos ======");
+		LOGGER.debug("====== Undos ======");
 		for (Edit edit : this.undos) {
-			System.out.println(edit);
+			LOGGER.debug(edit);
 		}
-		System.out.println("====== Redos ======");
+		LOGGER.debug("====== Redos ======");
 		for (Edit edit : this.redos) {
-			System.out.println(edit);
+			LOGGER.debug(edit);
 		}
 	}
 	

@@ -1,8 +1,12 @@
 package org.praisenter.ui;
 
+import java.awt.image.BufferedImage;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -23,13 +27,15 @@ import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
 import java.util.zip.ZipOutputStream;
 
+import javax.imageio.ImageIO;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.Version;
 import org.praisenter.async.AsyncHelper;
 import org.praisenter.async.BackgroundTask;
 import org.praisenter.async.ReadOnlyBackgroundTask;
-import org.praisenter.data.KnownFormat;
+import org.praisenter.data.ImportExportFormat;
 import org.praisenter.data.Persistable;
 import org.praisenter.data.bible.Bible;
 import org.praisenter.data.bible.Book;
@@ -73,12 +79,14 @@ import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.event.EventHandler;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.IndexRange;
 import javafx.scene.control.TextInputControl;
+import javafx.scene.image.Image;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.DataFormat;
 import javafx.stage.Screen;
@@ -900,12 +908,13 @@ public final class GlobalContext {
 		});
 	}
 	
-	public CompletableFuture<Void> importFiles(List<File> files) {
+	public CompletableFuture<List<Persistable>> importFiles(List<File> files) {
 		if (files == null || files.isEmpty()) {
 			return CompletableFuture.completedFuture(null);
 		}
 		
 		List<CompletableFuture<Void>> futures = new ArrayList<>();
+		List<Persistable> results = new ArrayList<>();
 		
 		for (File file : files) {
 			final BackgroundTask bt = new BackgroundTask();
@@ -916,8 +925,9 @@ public final class GlobalContext {
 			this.addBackgroundTask(bt);
 			
 			LOGGER.info("Beginning import of '{}'", file.toPath().toAbsolutePath().toString());
-			CompletableFuture<Void> future = this.workspaceManager.importData(file.toPath(), Bible.class, Slide.class, Media.class, Song.class).thenRun(() -> {
+			CompletableFuture<Void> future = this.workspaceManager.importData(file.toPath(), Bible.class, Slide.class, Media.class, Song.class).thenAccept((r) -> {
 				bt.setProgress(1.0);
+				results.addAll(r);
 			}).exceptionally(t -> {
 				LOGGER.error("Failed to import file '" + file.toPath().toAbsolutePath().toString() + "' due to: " + t.getMessage(), t);
 				bt.setException(t);
@@ -930,7 +940,69 @@ public final class GlobalContext {
 			futures.add(future);
 		}
 		
-		return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
+		return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).thenApply((v) -> {
+			return results;
+		});
+	}
+	
+	public CompletableFuture<Persistable> importImage(String name, Image image) {
+		if (image == null) {
+			return CompletableFuture.completedFuture(null);
+		}
+		
+		final BackgroundTask bt = new BackgroundTask();
+		bt.setName(name);
+		bt.setMessage(Translations.get("action.import.task", name));
+		bt.setOperation(Translations.get("action.import"));
+		bt.setType(MimeType.get(name));
+		this.addBackgroundTask(bt);
+		
+		Path tempPath = this.getWorkspaceManager().getWorkspacePathResolver().getBasePath().resolve("temp");
+		Path tempFile = tempPath.resolve(name);
+		
+		LOGGER.info("Beginning import of '{}'", name);
+		return CompletableFuture.supplyAsync(() -> {
+			try {
+				BufferedImage img = SwingFXUtils.fromFXImage(image, null);
+				Files.createDirectories(tempFile);
+				ImageIO.write(img, "png", tempFile.toFile());
+				return tempFile;
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			return null;
+		}).thenComposeAsync(path -> {
+			if (path != null) {
+				return this.workspaceManager.importData(path, Bible.class, Slide.class, Media.class, Song.class);
+			}
+			return null;
+		}).thenApply(r -> {
+			try {
+				Files.deleteIfExists(tempFile);
+			} catch (Exception ex) {
+				// TODO handle/log
+			}
+			
+			if (r != null && r.size() > 0) {
+				return r.get(0);
+			}
+			return null;
+		}).exceptionally(t -> {
+			LOGGER.error("Failed to import '" + name + "' due to: " + t.getMessage(), t);
+			bt.setException(t);
+			
+			try {
+				Files.deleteIfExists(tempFile);
+			} catch (Exception ex) {
+				// TODO handle/log
+			}
+			
+			if (t instanceof CompletionException) 
+				throw (CompletionException)t;
+			
+			throw new CompletionException(t);
+		});
 	}
 	
 	public CompletableFuture<Void> export(List<Persistable> items, File file) {
@@ -958,8 +1030,8 @@ public final class GlobalContext {
 	    		ZipOutputStream zos = new ZipOutputStream(bos);) {
 				
 				// export the items selected
-				this.workspaceManager.exportData(KnownFormat.PRAISENTER3, zos, items);
-				this.workspaceManager.exportData(KnownFormat.PRAISENTER3, zos, dependentItems);
+				this.workspaceManager.exportData(ImportExportFormat.PRAISENTER3, zos, items);
+				this.workspaceManager.exportData(ImportExportFormat.PRAISENTER3, zos, dependentItems);
 			} catch (Exception ex) {
 				throw new CompletionException(ex);
 			}
