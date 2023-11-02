@@ -56,7 +56,6 @@ import javafx.stage.Window;
 import javafx.util.Duration;
 
 public final class LifecycleHandler {
-	// FEATURE (L-H) We should look at making some of the Java FX features "optional" instead of required
 	/** The array of Java FX features that Praisenter uses */
 	private static final ConditionalFeature[] REQUIRED_JAVAFX_FEATURES = new ConditionalFeature[] {
 		ConditionalFeature.TRANSPARENT_WINDOW,

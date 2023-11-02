@@ -24,14 +24,14 @@
  */
 package org.praisenter.data.media;
 
-import org.praisenter.data.InvalidFormatException;
+import org.praisenter.data.InvalidImportExportFormatException;
 
 /**
  * Exception thrown when an audio file doesn't contain any audio streams.
  * @author William Bittle
  * @version 3.0.0
  */
-public final class MediaImportException extends InvalidFormatException {
+public final class MediaImportException extends InvalidImportExportFormatException {
 	/** The serialization id */
 	private static final long serialVersionUID = 7220613974139511072L;
 

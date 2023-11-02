@@ -6,9 +6,11 @@ import java.text.Collator;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -524,12 +526,42 @@ public final class LibraryList extends BorderPane implements ActionPane {
 	private CompletableFuture<Void> confirmDelete(List<Persistable> items) {
 		int n = items.size();
 		if (n > 0) {
+			// collect all dependencies
+			Set<UUID> dependendencyIds = new HashSet<>();
+			for (Persistable item : items) {
+				dependendencyIds.add(item.getId());
+			}
+			
+			// iterate ALL items to find those dependent on these items
+			List<Persistable> dependents = new ArrayList<>();
+			for (Persistable p : this.context.getWorkspaceManager().getItemsUnmodifiable()) {
+				if (p.getDependencies().isEmpty())
+					continue;
+				
+				for (UUID id : p.getDependencies()) {
+					if (dependendencyIds.contains(id)) {
+						dependents.add(p);
+						break;
+					}
+				}
+			}
+			
+			String contentText = Translations.get("action.confirm.delete");
+			if (!dependents.isEmpty()) {
+				String dependentNames = String.join(", ", dependents.stream().map(d -> {
+					return Translations.get("action.delete.dependency.pattern", d.getName(), this.context.getFriendlyItemType(d));
+				}).collect(Collectors.toList()));
+				
+				String dependencyWarning = Translations.get("action.delete.dependency.warning", dependentNames);
+				contentText = dependencyWarning + "\n\n" + contentText;
+			}
+			
 			Alert alert = Dialogs.confirm(
 					this.context.getStage(), 
 					Modality.WINDOW_MODAL, 
 					Translations.get("action.delete"),
 					Translations.get("action.confirm"), 
-					Translations.get("action.confirm.delete"));
+					contentText);
 			Optional<ButtonType> result = alert.showAndWait();
 			if (result.isPresent() && result.get() == ButtonType.OK) {
 				return this.context.delete(items).thenAccept((exceptions) -> {

@@ -1,6 +1,6 @@
 package org.praisenter.data;
 
-public enum KnownFormat {
+public enum ImportExportFormat {
 	PRAISENTER1,
 	PRAISENTER2,
 	PRAISENTER3,
@@ -8,5 +8,8 @@ public enum KnownFormat {
 	ZEFANIABIBLE,
 	OPENSONGBIBLE,
 	OPENLYRICSSONG,
-	CHURCHVIEWSONG
+	CHURCHVIEWSONG,
+	RAW_AUDIO,
+	RAW_VIDEO,
+	RAW_IMAGE
 }

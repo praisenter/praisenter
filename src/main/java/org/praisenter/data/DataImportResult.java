@@ -31,4 +31,15 @@ public final class DataImportResult<T> {
 	public List<Exception> getErrors() {
 		return this.errors;
 	}
+	
+	public void add(DataImportResult<T> other) {
+		this.created.addAll(other.created);
+		this.updated.addAll(other.updated);
+		this.warnings.addAll(other.warnings);
+		this.errors.addAll(other.errors);
+	}
+	
+	public boolean isEmpty() {
+		return this.created.size() <= 0 && this.updated.size() <= 0;
+	}
 }

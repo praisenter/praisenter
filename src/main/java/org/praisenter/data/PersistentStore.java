@@ -8,6 +8,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.zip.ZipOutputStream;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.praisenter.async.AsyncHelper;
 import org.praisenter.data.search.SearchIndex;
 
@@ -16,6 +18,8 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 public final class PersistentStore<T extends Persistable> {
+	private static final Logger LOGGER = LogManager.getLogger();
+	
 	private final PersistAdapter<T> adapter;
 	private final SearchIndex index;
 	
@@ -131,6 +135,7 @@ public final class PersistentStore<T extends Persistable> {
 				if (isTypeKnown) {
 					throw new CompletionException(ex);
 				} else {
+					LOGGER.warn("Failed to import '" + path.toAbsolutePath() + "' due to: " + ex.getMessage(), ex);
 					return null;
 				}
 			}
@@ -150,11 +155,11 @@ public final class PersistentStore<T extends Persistable> {
 		}));
 	}
 	
-	public void exportData(KnownFormat format, ZipOutputStream stream, List<T> items) throws IOException {
+	public void exportData(ImportExportFormat format, ZipOutputStream stream, List<T> items) throws IOException {
 		this.adapter.exportData(format, stream, items);
 	}
 	
-	public CompletableFuture<Void> exportData(KnownFormat format, Path path, T item) {
+	public CompletableFuture<Void> exportData(ImportExportFormat format, Path path, T item) {
 		return CompletableFuture.runAsync(() -> {
 			try {
 				this.adapter.exportData(format, path, item);

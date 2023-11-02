@@ -33,6 +33,7 @@ public final class DeleteFilesShutdownHook {
 			try {
 				LOGGER.info("Attempting to delete file '" + path.toAbsolutePath().toString() + "' at shutdown.");
 				Files.deleteIfExists(path);
+				LOGGER.info("File '" + path.toAbsolutePath().toString() + "' deleted successfully.");
 			} catch (Exception ex) {
 				LOGGER.warn("Failed to delete file '" + path.toAbsolutePath().toString() + "' during shutdown due to: " + ex.getMessage(), ex);
 			}

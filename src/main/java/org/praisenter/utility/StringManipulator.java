@@ -27,7 +27,7 @@ public final class StringManipulator {
 	 * @return String
 	 * @see <a href="http://stackoverflow.com/questions/1155107/is-there-a-cross-platform-java-method-to-remove-filename-special-chars">Cross Platform FileNames</a>
 	 */
-	private static String toFileName(String string, String replacement) {
+	public static String toFileName(String string, String replacement) {
 		if (string == null) return null;
 		
 		StringBuilder filename = new StringBuilder();

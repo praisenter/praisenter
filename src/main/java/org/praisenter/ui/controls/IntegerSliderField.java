@@ -43,7 +43,6 @@ public final class IntegerSliderField extends HBox {
 		double svalue = value * scale;
 		
 		int ticks = (int)(smax - smin) - 1;
-//		System.out.println(ticks);
 		Slider sldOpacity = new Slider(smin, smax, svalue);
 		sldOpacity.setSnapToTicks(true);
 		sldOpacity.setMinorTickCount(ticks);
@@ -55,7 +54,6 @@ public final class IntegerSliderField extends HBox {
 		TextFormatter<Double> tf = new TextFormatter<>(new StringConverter<Double>() {
 			@Override
 			public Double fromString(String s) {
-//				System.out.println("s: " + s);
 				if (s == null) return 0.0;
 				try {
 					double val = Double.parseDouble(s);
@@ -66,7 +64,6 @@ public final class IntegerSliderField extends HBox {
 			}
 			
 			public String toString(Double d) {
-//				System.out.println("d: " + d);
 				if (d == null) return "0";
 				return String.valueOf((int)d.doubleValue());
 			}
