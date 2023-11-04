@@ -968,8 +968,7 @@ public final class GlobalContext {
 				ImageIO.write(img, "png", tempFile.toFile());
 				return tempFile;
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				LOGGER.error("Failed to write clipboard image to temporary location", e);
 			}
 			return null;
 		}).thenComposeAsync(path -> {
@@ -981,7 +980,7 @@ public final class GlobalContext {
 			try {
 				Files.deleteIfExists(tempFile);
 			} catch (Exception ex) {
-				// TODO handle/log
+				LOGGER.error("Failed to delete the temporary file '" + tempFile.toAbsolutePath() + "'", ex);
 			}
 			
 			if (r != null && r.size() > 0) {
@@ -995,7 +994,7 @@ public final class GlobalContext {
 			try {
 				Files.deleteIfExists(tempFile);
 			} catch (Exception ex) {
-				// TODO handle/log
+				LOGGER.error("Failed to delete the temporary file '" + tempFile.toAbsolutePath() + "'", ex);
 			}
 			
 			if (t instanceof CompletionException) 
