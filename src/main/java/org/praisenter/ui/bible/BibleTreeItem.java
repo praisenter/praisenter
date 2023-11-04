@@ -4,7 +4,7 @@ import org.praisenter.data.bible.Bible;
 import org.praisenter.data.bible.Book;
 import org.praisenter.data.bible.Chapter;
 import org.praisenter.data.bible.Verse;
-import org.praisenter.ui.MappedList;
+import org.praisenter.ui.bind.MappedList;
 
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleStringProperty;

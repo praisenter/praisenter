@@ -24,9 +24,7 @@
  */
 package org.praisenter.data.bible;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -35,17 +33,20 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
 
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.praisenter.data.DataFormatProvider;
-import org.praisenter.data.DataReadResult;
-import org.praisenter.data.InvalidFormatException;
+import org.praisenter.data.DataImportResult;
+import org.praisenter.data.ImportExportProvider;
+import org.praisenter.data.InvalidImportExportFormatException;
+import org.praisenter.data.PersistAdapter;
 import org.praisenter.utility.MimeType;
 
 import javafx.collections.FXCollections;
@@ -57,28 +58,13 @@ import javafx.collections.FXCollections;
  * @author William Bittle
  * @version 3.0.0
  */
-final class UnboundBibleFormatProvider implements DataFormatProvider<Bible> {
+final class UnboundBibleFormatProvider implements ImportExportProvider<Bible> {
 	/** The class level-logger */
 	private static final Logger LOGGER = LogManager.getLogger();
 	
 	@Override
 	public boolean isSupported(Path path) {
-		if (MimeType.ZIP.check(path)) {
-			try (FileInputStream fis = new FileInputStream(path.toFile());
-				 BufferedInputStream bis = new BufferedInputStream(fis);
-				 ZipInputStream zis = new ZipInputStream(bis);) {
-				// read the entries
-				ZipEntry entry = null;
-				while ((entry = zis.getNextEntry()) != null) {
-					if (entry.getName().equalsIgnoreCase("book_names.txt")) {
-						return true;
-					}
-				}
-			} catch (Exception ex) {
-				LOGGER.trace("Failed to determine if '" + path.toAbsolutePath() + "' was a unbound bible zip format.", ex);
-			}
-		}
-		return false;
+		return this.isSupported(MimeType.get(path));
 	}
 	
 	@Override
@@ -87,17 +73,35 @@ final class UnboundBibleFormatProvider implements DataFormatProvider<Bible> {
 	}
 	
 	@Override
-	public boolean isSupported(String resourceName, InputStream stream) {
-		// zips in zips not supported
-		return false;
+	public boolean isSupported(String name, InputStream stream) {
+		if (!stream.markSupported()) {
+			LOGGER.warn("Mark is not supported on the given input stream.");
+		}
+		
+		return this.isSupported(MimeType.get(stream, name));
 	}
 	
 	@Override
-	public List<DataReadResult<Bible>> read(Path path) throws IOException {
-		List<String> warnings = null;
-		String resourceName = path.getFileName().toString();
-		int d = resourceName.lastIndexOf(".");
-		String name = resourceName.substring(0, d);
+	public void exp(PersistAdapter<Bible> adapter, OutputStream stream, Bible data) throws IOException {
+		throw new UnsupportedOperationException();
+	}
+	@Override
+	public void exp(PersistAdapter<Bible> adapter, Path path, Bible data) throws IOException {
+		throw new UnsupportedOperationException();
+	}
+	
+	@Override
+	public void exp(PersistAdapter<Bible> adapter, ZipOutputStream stream, Bible data) throws IOException {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public DataImportResult<Bible> imp(PersistAdapter<Bible> adapter, Path path) throws IOException {
+		DataImportResult<Bible> result = new DataImportResult<>();
+
+		String name = path.getFileName().toString();
+		int d = name.lastIndexOf(".");
+		name = name.substring(0, d);
 		
 		// set the important file names
 		final String bookFileName = "book_names.txt";
@@ -106,72 +110,86 @@ final class UnboundBibleFormatProvider implements DataFormatProvider<Bible> {
 		Bible bible = new Bible();
 		bible.setSource("THE UNBOUND BIBLE (www.unboundbible.org)");
 
-		BufferedInputStream bis = new BufferedInputStream(new FileInputStream(path.toFile()));
-		bis.mark(Integer.MAX_VALUE);
-		
 		// find the book first
 		Map<String, Book> bookMap = null;
-		ZipInputStream zis = new ZipInputStream(bis);
-		ZipEntry entry = null;
-		while ((entry = zis.getNextEntry()) != null) {
-			if (entry.getName().equalsIgnoreCase(bookFileName)) {
-				LOGGER.debug("Reading UnboundBible .zip file contents: " + bookFileName);
-				bookMap = readBooks(bible, bookFileName, zis);
-				LOGGER.debug("UnboundBible .zip file contents read successfully: " + bookFileName);
-				break;
+		// NOTE: Native java.util.zip package can't support zips 4GB or bigger or elements 2GB or bigger
+        try (ZipFile zipFile = new ZipFile(path)) {
+        	Enumeration<ZipArchiveEntry> entries = zipFile.getEntries();
+        	while (entries.hasMoreElements()) {
+        		ZipArchiveEntry entry = entries.nextElement();
+        		
+        		if (entry.isDirectory()) 
+        			continue;
+        		
+        		if (!zipFile.canReadEntryData(entry)) {
+        			LOGGER.warn("Unable to read entry '{}'. This is usually caused by encryption or an unsupported compression algorithm.", entry.getName());
+        			continue;
+        		}
+        		
+				if (entry.getName().equalsIgnoreCase(bookFileName)) {
+					LOGGER.debug("Reading UnboundBible .zip file contents: " + bookFileName);
+					bookMap = readBooks(bible, bookFileName, zipFile.getInputStream(entry));
+					LOGGER.debug("UnboundBible .zip file contents read successfully: " + bookFileName);
+					break;
+				}
 			}
 		}
 		
 		// check for books
 		if (bible.getBookCount() == 0 || bookMap == null) {
 			LOGGER.error("The file did not contain any books. Import failed.");
-			throw new InvalidFormatException("A book_names.txt file was not found '" + resourceName + "'.");
+			throw new InvalidImportExportFormatException("A book_names.txt file was not found '" + name + "'.");
 		}
 		
-		bis.reset();
 		// read the zip file for Verses
-		zis = new ZipInputStream(bis);
-		entry = null;
-		while ((entry = zis.getNextEntry()) != null) {
-			if (entry.getName().equalsIgnoreCase(verseFileName) || entry.getName().toLowerCase().endsWith("_utf8.txt")) {
-				LOGGER.debug("Reading UnboundBible .zip file contents: " + verseFileName);
-				warnings = readVerses(bible, bookMap, verseFileName, zis);
-				LOGGER.debug("UnboundBible .zip file contents read successfully: " + verseFileName);
+		// NOTE: Native java.util.zip package can't support zips 4GB or bigger or elements 2GB or bigger
+        try (ZipFile zipFile = new ZipFile(path)) {
+        	Enumeration<ZipArchiveEntry> entries = zipFile.getEntries();
+        	while (entries.hasMoreElements()) {
+        		ZipArchiveEntry entry = entries.nextElement();
+        		
+        		if (entry.isDirectory()) 
+        			continue;
+        		
+        		if (!zipFile.canReadEntryData(entry)) {
+        			LOGGER.warn("Unable to read entry '{}'. This is usually caused by encryption or an unsupported compression algorithm.", entry.getName());
+        			continue;
+        		}
+        		
+				if (entry.getName().equalsIgnoreCase(verseFileName) || entry.getName().toLowerCase().endsWith("_utf8.txt")) {
+					LOGGER.debug("Reading UnboundBible .zip file contents: " + verseFileName);
+					result.getWarnings().addAll(readVerses(bible, bookMap, verseFileName, zipFile.getInputStream(entry)));
+					LOGGER.debug("UnboundBible .zip file contents read successfully: " + verseFileName);
+				}
 			}
 		}
 		
-		List<DataReadResult<Bible>> results = new ArrayList<>();
-		results.add(new DataReadResult<Bible>(bible, warnings));
-		return results;
-	}
-	
-	@Override
-	public List<DataReadResult<Bible>> read(String resourceName, InputStream stream) throws IOException {
-		throw new UnsupportedOperationException();
-	}
-	
-	@Override
-	public void write(OutputStream stream, Bible bible) throws IOException {
-		throw new UnsupportedOperationException();
-	}
-	
-	@Override
-	public void write(Path path, Bible bible) throws IOException {
-		throw new UnsupportedOperationException();
+		try {
+			boolean isUpdate = adapter.upsert(bible);
+			if (isUpdate) {
+				result.getUpdated().add(bible);
+			} else {
+				result.getCreated().add(bible);
+			}
+		} catch (Exception ex) {
+			result.getErrors().add(ex);
+		}
+		
+		return result;
 	}
 	
 	/**
 	 * Reads the books file.
 	 * @param bible the bible to add to
 	 * @param fileName the file name
-	 * @param zis the ZipInputStream
-	 * @throws InvalidFormatException if the data is in an unexpected format
+	 * @param is the stream
+	 * @throws InvalidImportExportFormatException if the data is in an unexpected format
 	 * @throws IOException if an IO error occurs
 	 */
-	private Map<String, Book> readBooks(Bible bible, String fileName, ZipInputStream zis) throws InvalidFormatException, IOException {
+	private Map<String, Book> readBooks(Bible bible, String fileName, InputStream is) throws InvalidImportExportFormatException, IOException {
 		Map<String, Book> bookMap = new HashMap<String, Book>();
 		// load up the book names
-		BufferedReader reader = new BufferedReader(new InputStreamReader(zis));
+		BufferedReader reader = new BufferedReader(new InputStreamReader(is));
 		// read them line by line
 		String line = null;
 		int order = 1;
@@ -184,7 +202,7 @@ final class UnboundBibleFormatProvider implements DataFormatProvider<Bible> {
 				String[] data = line.split("\\t");
 				if (data.length != 2) {
 					LOGGER.error("Expected 2 columns of tab delimited data, but found " + data.length + " columns at line " + i + " of " + fileName);
-					throw new InvalidFormatException(fileName + ":" + i);
+					throw new InvalidImportExportFormatException(fileName + ":" + i);
 				} else {
 					Book book = new Book();
 					book.setName(data[1].trim().equalsIgnoreCase("Acts of the Apostles") ? "Acts" : data[1].trim());
@@ -203,14 +221,14 @@ final class UnboundBibleFormatProvider implements DataFormatProvider<Bible> {
 	 * @param bible the bible to add to
 	 * @param bookMap the mapping of bookcode to book
 	 * @param fileName the file name
-	 * @param zis the ZipInputStream
-	 * @throws InvalidFormatException if the data is in an unexpected format
+	 * @param is the stream
+	 * @throws InvalidImportExportFormatException if the data is in an unexpected format
 	 * @throws IOException if an IO error occurs
 	 */
-	private List<String> readVerses(Bible bible, Map<String, Book> bookMap, String fileName, ZipInputStream zis) throws InvalidFormatException, IOException {
+	private List<String> readVerses(Bible bible, Map<String, Book> bookMap, String fileName, InputStream is) throws InvalidImportExportFormatException, IOException {
 		List<String> warnings = new ArrayList<>();
 		// load up the verses
-		BufferedReader reader = new BufferedReader(new InputStreamReader(zis, StandardCharsets.UTF_8));
+		BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
 		// read them line by line
 		String line = null;
 		int[] columnMapping = new int[6];
@@ -255,7 +273,7 @@ final class UnboundBibleFormatProvider implements DataFormatProvider<Bible> {
 				// we need at least 4 columns to continue (book,chapter,verse,text)
 				if (data.length < 4) {
 					LOGGER.error("Expected at least 4 columns of tab delimited data, but found " + data.length + " columns at line " + i + " of " + fileName);
-					throw new InvalidFormatException(fileName + ":" + i);
+					throw new InvalidImportExportFormatException(fileName + ":" + i);
 				} else {
 					try {
 						// dont bother checking the mapping on these since they are necessary
@@ -295,7 +313,7 @@ final class UnboundBibleFormatProvider implements DataFormatProvider<Bible> {
 						}
 					} catch (NumberFormatException e) {
 						LOGGER.error("Failed to parse chapter, verse or order as integers at line " + i + " of " + fileName);
-						throw new InvalidFormatException(fileName + ":" + i);
+						throw new InvalidImportExportFormatException(fileName + ":" + i);
 					}
 				}
 			}

@@ -12,12 +12,14 @@ import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.controlsfx.glyphfont.Glyph;
 import org.praisenter.data.SingleFileManager;
 import org.praisenter.data.workspace.WorkspacePathResolver;
 import org.praisenter.data.workspace.Workspaces;
 import org.praisenter.ui.translations.Translations;
 
+import atlantafx.base.controls.Message;
+import atlantafx.base.layout.InputGroup;
+import atlantafx.base.theme.Styles;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -30,8 +32,6 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.OverrunStyle;
-import javafx.scene.control.Separator;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -99,6 +99,7 @@ final class WorkspaceSelectionPane extends VBox {
 		lblWorkspace.setAlignment(Pos.CENTER_LEFT);
 		ComboBox<Path> cmbWorkspacePath = new ComboBox<Path>(this.workspacePaths);
 		cmbWorkspacePath.setMaxWidth(Double.MAX_VALUE);
+		cmbWorkspacePath.setMinWidth(0);
 		cmbWorkspacePath.setEditable(true);
 		cmbWorkspacePath.setConverter(new StringConverter<Path>() {
 			@Override
@@ -120,41 +121,38 @@ final class WorkspaceSelectionPane extends VBox {
 		
 		// browse button
 		Button btnBrowse = new Button(Translations.get("browse"));
-		HBox selectorRow = new HBox(lblWorkspace, cmbWorkspacePath, btnBrowse);
+		InputGroup grpWorkspacePath = new InputGroup(new Label("", Icons.getIcon(Icons.FOLDER, Icons.COLOR_FOLDER)), cmbWorkspacePath);
+		grpWorkspacePath.setMinWidth(0);
+		HBox selectorRow = new HBox(grpWorkspacePath, btnBrowse);
 		selectorRow.getStyleClass().add(WORKSPACE_SELECTION_PANE_SELECTION_CLASS);
 		selectorRow.setFillHeight(true);
 		selectorRow.setAlignment(Pos.CENTER_LEFT);
 		HBox.setHgrow(cmbWorkspacePath, Priority.ALWAYS);
-		HBox.setHgrow(lblWorkspace, Priority.NEVER);
+		HBox.setHgrow(grpWorkspacePath, Priority.ALWAYS);
 		HBox.setHgrow(btnBrowse, Priority.NEVER);
 		
-		// The selected folder isn't empty and it doesn't look like an existing workspace. If you are creating a new workspace you should choose an empty folder.
-		Label lblWorkspaceWarning = new Label();
-		lblWorkspaceWarning.textProperty().bind(this.warning);
-		lblWorkspaceWarning.setWrapText(true);
-		Glyph warnIcon = Glyphs.WARN.duplicate();
-		warnIcon.setMinWidth(USE_COMPUTED_SIZE);
-		warnIcon.setTextOverrun(OverrunStyle.CLIP);
-		HBox pathWarning = new HBox(warnIcon, lblWorkspaceWarning);
-		pathWarning.getStyleClass().add(WORKSPACE_SELECTION_PANE_WARNING_CLASS);
-		HBox.setHgrow(warnIcon, Priority.NEVER);
-		HBox.setHgrow(lblWorkspaceWarning, Priority.ALWAYS);
-		pathWarning.visibleProperty().bind(this.warning.isNotEmpty());
+		Message msgWarning = new Message(
+				Translations.get("warning"),
+				Translations.get("workspace.path.notEmpty"),
+				Icons.getIcon(Icons.WARN, Icons.COLOR_WARN));
+		msgWarning.descriptionProperty().bind(this.warning);
+		msgWarning.getStyleClass().addAll(Styles.WARNING, WORKSPACE_SELECTION_PANE_WARNING_CLASS);
+		msgWarning.visibleProperty().bind(this.warning.isNotEmpty());
 		
 		Button btnCancel = new Button(Translations.get("cancel"));
 		Button btnLaunch = new Button(Translations.get("launch"));
 		btnLaunch.getStyleClass().add(WORKSPACE_SELECTION_PANE_LAUNCH_BUTTON_CLASS);
 		btnLaunch.disableProperty().bind(this.pathValid.not());
 		btnLaunch.setDefaultButton(true);
-		HBox buttonRow = new HBox(btnLaunch, btnCancel);
+		HBox buttonRow = new HBox(btnCancel, btnLaunch);
 		buttonRow.getStyleClass().add(WORKSPACE_SELECTION_PANE_BUTTONS_CLASS);
-		buttonRow.setAlignment(Pos.CENTER_RIGHT);
+		buttonRow.setAlignment(Pos.BOTTOM_RIGHT);
+		VBox.setVgrow(buttonRow, Priority.ALWAYS);
 		
 		this.getChildren().addAll(
 				description,
-				new Separator(),
 				selectorRow,
-				pathWarning,
+				msgWarning,
 				buttonRow);
 		
 		

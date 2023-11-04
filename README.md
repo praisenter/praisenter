@@ -7,10 +7,11 @@ A free and open source presentation software package for Churches, providing dis
 
 ## Requirements:
 * Windows 10 x64 (where most testing occurs)
-* Linux x64 (tested on Ubuntu xxx)
-* Mac OS x64 (tested on Mac OS xxx) - M1 not supported yet
+* Ubuntu 22.04 x64 or higher
+* Mac OS 11 x64 or higher
 * Plenty of RAM (4 or more)
 * A decent/recent multicore CPU
+* At least 2 video outputs
 
 ## Features:
 * Free, no cost, no ads, nothing.
@@ -65,3 +66,12 @@ Light Mode
 JavaFX Mode
 
 ![JavaFX Mode](https://github.com/wnbittle/praisenter/blob/master/images/javafx-mode.png)
+
+## Building
+Install WiX Toolset 3.x:
+https://github.com/wixtoolset/wix3/releases
+
+Run Maven build:
+```shell
+mvn clean install
+```

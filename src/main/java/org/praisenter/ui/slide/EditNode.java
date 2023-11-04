@@ -32,6 +32,8 @@ import javafx.scene.shape.StrokeLineJoin;
 import javafx.scene.shape.StrokeType;
 
 final class EditNode extends StackPane {
+	private static final int GRID_SIZE = 20;
+	
 	private static final double THUMB_SIZE = 10;
 	private static final double BORDER_OFFSET = 6;
 	private static final double BORDER_SIZE = 1;
@@ -41,6 +43,8 @@ final class EditNode extends StackPane {
 	private final ObjectProperty<SlideComponent> component;
 	private final DoubleProperty scale;
 	private final BooleanProperty selected;
+	
+	private final BooleanProperty snapToGridEnabled;
 	
 	// for selection, move, and resize
 
@@ -64,8 +68,6 @@ final class EditNode extends StackPane {
 	/** The current height of the region */
 	private double h;
 	
-//	private final ContextMenu contextMenu;
-	
 	public EditNode(
 			DocumentContext<Slide> document,
 			SlideComponent component) {
@@ -74,23 +76,7 @@ final class EditNode extends StackPane {
 		this.scale = new SimpleDoubleProperty(1);
 		this.selected = new SimpleBooleanProperty(false);
 		
-//		this.contextMenu = new ContextMenu();
-//		this.contextMenu.getItems().addAll(
-////				this.createMenuItem(Action.NEW_BOOK),
-////				this.createMenuItem(Action.NEW_CHAPTER),
-////				this.createMenuItem(Action.NEW_VERSE),
-////				new SeparatorMenuItem(),
-//				this.createMenuItem(Action.COPY),
-//				this.createMenuItem(Action.CUT),
-//				this.createMenuItem(Action.PASTE),
-////				new SeparatorMenuItem(),
-////				this.createMenuItem(Action.REORDER),
-////				this.createMenuItem(Action.RENUMBER),
-//				new SeparatorMenuItem(),
-//				this.createMenuItem(Action.DELETE)
-//			);
-//		this.contextMenu.setAutoHide(true);
-//		this.setOnContextMenuRequested(e -> this.contextMenu.show(this, e.getScreenX(), e.getScreenY()));
+		this.snapToGridEnabled = new SimpleBooleanProperty(false);
 
 		List<Double> halfdashes = new ArrayList<Double>();
 		halfdashes.add(DASH_SIZE / 2);
@@ -277,40 +263,61 @@ final class EditNode extends StackPane {
 		double dyi = dy * sf;
 		
 		// are we moving the node?
-		if (cursor == Cursor.MOVE) {				
+		if (cursor == Cursor.MOVE) {
 			// we SET the x/y for accuracy
 			this.positionChanged(x + dxi, y + dyi);
+			return;
 		}
+		
+		dxi = this.snapToGrid(dxi);
+		dyi = this.snapToGrid(dyi);
+		
+		double tx = this.snapToGrid(x);
+		double ty = this.snapToGrid(y);
+		double tw = this.snapToGrid(w);
+		double th = this.snapToGrid(h);
 		
 		if (cursor == Cursor.E_RESIZE) {
 			dxi = clamp(w, dxi);
-			this.sizeChanged(x, y, w + dxi, h);
+			tw += dxi;
 		} else if (cursor == Cursor.S_RESIZE) {
 			dyi = clamp(h, dyi);
-			this.sizeChanged(x, y, w, h + dyi);
+			th += dyi;
 		} else if (cursor == Cursor.N_RESIZE) {
 			dyi = -clamp(h, -dyi);
-			this.sizeChanged(x, y + dyi, w, h - dyi);
+			ty += dyi;
+			th -= dyi;
 		} else if (cursor == Cursor.W_RESIZE) {
 			dxi = -clamp(w, -dxi);
-			this.sizeChanged(x + dxi, y, w - dxi, h);
+			tx += dxi;
+			tw -= dxi;
 		} else if (cursor == Cursor.SE_RESIZE) {
 			dxi = clamp(w, dxi);
 			dyi = clamp(h, dyi);
-			this.sizeChanged(x, y, w + dxi, h + dyi);
+			tw += dxi;
+			th += dyi;
 		} else if (cursor == Cursor.SW_RESIZE) {
 			dxi = -clamp(w, -dxi);
 			dyi = clamp(h, dyi);
-			this.sizeChanged(x + dxi, y, w - dxi, h + dyi);
+			tx += dxi;
+			tw -= dxi;
+			th += dyi;
 		} else if (cursor == Cursor.NE_RESIZE) {
 			dxi = clamp(w, dxi);
 			dyi = -clamp(h, -dyi);
-			this.sizeChanged(x, y + dyi, w + dxi, h - dyi);
+			ty += dyi;
+			tw += dxi;
+			th -= dyi;
 		} else if (cursor == Cursor.NW_RESIZE) {
 			dxi = -clamp(w, -dxi);
 			dyi = -clamp(h, -dyi);
-			this.sizeChanged(x + dxi, y + dyi, w - dxi, h - dyi);
+			tx += dxi;
+			ty += dyi;
+			tw -= dxi;
+			th -= dyi;
 		}
+		
+		this.sizeChanged(tx, ty, tw, th);
 	}
 	
 	/**
@@ -329,13 +336,44 @@ final class EditNode extends StackPane {
 	}
 	
 	/**
+	 * Returns a rounded value.
+	 * <p>
+	 * If the modulus of the value and factor is greater than half of factor
+	 * the value is rounded up, otherwise its rounded down.
+	 * @param value the value to normalize
+	 * @param factor the normalization factor
+	 * @return int
+	 */
+	private static final int roundAtHalf(int value, int factor) {
+		int mod = value % factor;
+		if (mod == 0) return value;
+		if (mod < (factor / 2)) {
+			return (value / factor) * factor;
+		} else {
+			return ((value / factor) + 1) * factor;
+		}
+	}
+	
+	/**
+	 * Returns a point on the grid closest to the given point.
+	 * @param point the point
+	 * @return Point
+	 */
+	protected double snapToGrid(double value) {
+		if (this.snapToGridEnabled.get()) {
+			return roundAtHalf((int)value, GRID_SIZE);
+		}
+		return value;
+	}
+	
+	/**
 	 * Calls the position changed handler.
 	 * @param x the new x coordinate
 	 * @param y the new y coordinate
 	 */
 	private void positionChanged(double x, double y) {
-		this.component.get().setX(x);
-		this.component.get().setY(y);
+		this.component.get().setX(snapToGrid(x));
+		this.component.get().setY(snapToGrid(y));
 	}
 	
 	/**
@@ -417,5 +455,17 @@ final class EditNode extends StackPane {
 	
 	public void setSelected(boolean flag) {
 		this.selected.set(flag);
+	}
+	
+	public BooleanProperty snapToGridEnabledProperty() {
+		return this.snapToGridEnabled;
+	}
+	
+	public void setSnapToGridEnabled(boolean flag) {
+		this.snapToGridEnabled.set(flag);
+	}
+	
+	public boolean isSnapToGridEnabled() {
+		return this.snapToGridEnabled.get();
 	}
 }

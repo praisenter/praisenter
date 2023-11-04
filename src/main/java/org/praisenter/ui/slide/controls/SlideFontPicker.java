@@ -6,7 +6,9 @@ import org.praisenter.data.slide.text.SlideFontWeight;
 import org.praisenter.ui.Option;
 import org.praisenter.ui.bind.BindingHelper;
 import org.praisenter.ui.bind.ObjectConverter;
-import org.praisenter.ui.controls.FormFieldSection;
+import org.praisenter.ui.controls.EditorDivider;
+import org.praisenter.ui.controls.EditorField;
+import org.praisenter.ui.controls.EditorFieldGroup;
 import org.praisenter.ui.controls.LastValueNumberStringConverter;
 import org.praisenter.ui.controls.TextInputFieldEventFilter;
 import org.praisenter.ui.translations.Translations;
@@ -32,7 +34,7 @@ import javafx.util.Callback;
 // JAVABUG (L) 03/15/16 Java FX does not have a facility to derive fonts; If this is added in the future, consider changing the bold button to a drop down of values https://bugs.openjdk.java.net/browse/JDK-8091064
 // see also https://bitbucket.org/controlsfx/controlsfx/src/13e52b38df16842b71a4c9df1cadbeba6087742a/controlsfx/src/main/java/org/controlsfx/dialog/FontSelectorDialog.java?at=default&fileviewer=file-view-default
 
-public final class SlideFontPicker extends FormFieldSection {
+public final class SlideFontPicker extends EditorFieldGroup {
 	private final ObservableList<String> families;
 	private final Font defaultJavaFXFont;
 	
@@ -84,6 +86,7 @@ public final class SlideFontPicker extends FormFieldSection {
 
 		Spinner<Double> spnSize = new Spinner<>(1, Double.MAX_VALUE, 20, 1);
 		spnSize.setEditable(true);
+		spnSize.getStyleClass().add(Spinner.STYLE_CLASS_SPLIT_ARROWS_HORIZONTAL);
 		spnSize.getValueFactory().setConverter(LastValueNumberStringConverter.forDouble((originalValueText) -> {
 			Platform.runLater(() -> {
 				spnSize.getEditor().setText(originalValueText);
@@ -182,11 +185,18 @@ public final class SlideFontPicker extends FormFieldSection {
 //		});
 		
 		TextInputFieldEventFilter.applyTextInputFieldEventFilter(spnSize.getEditor());
-
-		this.addField(label, cmbFamily);
-		this.addField(Translations.get("slide.font.weight"), cmbWeight);
-		this.addField(Translations.get("slide.font.style"), cmbPosture);
-		this.addField(Translations.get("slide.font.size"), spnSize);
+		
+		EditorField fldFontFamily = new EditorField(label, cmbFamily);
+		EditorField fldFontWeight = new EditorField(Translations.get("slide.font.weight"), cmbWeight);
+		EditorField fldFontPosture = new EditorField(Translations.get("slide.font.style"), cmbPosture);
+		EditorField fldFontSize = new EditorField(Translations.get("slide.font.size"), spnSize);
+		
+		this.getChildren().addAll(
+				fldFontFamily,
+				fldFontWeight,
+				fldFontPosture,
+				new EditorDivider(Translations.get("slide.font.size")),
+				fldFontSize);
 	}
 	
 	private SlideFont getCurrentValue() {

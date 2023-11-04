@@ -12,27 +12,35 @@ import org.praisenter.data.slide.graphics.SlideStrokeType;
 import org.praisenter.ui.Option;
 import org.praisenter.ui.bind.BindingHelper;
 import org.praisenter.ui.bind.ObjectConverter;
-import org.praisenter.ui.controls.FormFieldSection;
+import org.praisenter.ui.controls.EditorDivider;
+import org.praisenter.ui.controls.EditorField;
+import org.praisenter.ui.controls.EditorFieldGroup;
 import org.praisenter.ui.controls.LastValueNumberStringConverter;
 import org.praisenter.ui.translations.Translations;
 
+import atlantafx.base.layout.InputGroup;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.geometry.Pos;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
 import javafx.util.Callback;
 
-public final class SlideStrokePicker extends FormFieldSection {
+public final class SlideStrokePicker extends EditorFieldGroup {
+	private static final String SLIDE_STROKE_PICKER_CSS = "p-slide-stroke-picker";
 	private static final String DASH_PATTERN_CSS = "p-slide-dash-pattern";
 	
 	private final ObjectProperty<SlideStroke> value;
@@ -48,8 +56,6 @@ public final class SlideStrokePicker extends FormFieldSection {
 	private final BooleanBinding isValueSelected;
 	
 	public SlideStrokePicker(SlideStrokeType type, String label, boolean showRadius) {
-		super(null);
-		
 		this.value = new SimpleObjectProperty<>();
 		
 		this.type = type;
@@ -109,25 +115,64 @@ public final class SlideStrokePicker extends FormFieldSection {
 		cmbDash.setMaxWidth(Double.MAX_VALUE);
 		cmbDash.valueProperty().bindBidirectional(this.dashes);
 		
-		int fIndex = this.addSubSection(pkrPaint);
-		this.addField(Translations.get("slide.border.width"), txtWidth);
-		this.addField(Translations.get("slide.border.radius"), txtRadius);
-		this.addField(Translations.get("slide.border.cap"), cbCap);
-		this.addField(Translations.get("slide.border.join"), cbJoin);
-		this.addField(Translations.get("slide.border.dashes"), cmbDash);
+		// layout
+		Label lblWidthAdder = new Label(Translations.get("slide.measure.pixels.abbreviation"));
+		lblWidthAdder.setAlignment(Pos.CENTER);
+		Label lblRadiusAdder = new Label(Translations.get("slide.measure.pixels.abbreviation"));
+		lblRadiusAdder.setAlignment(Pos.CENTER);
+		InputGroup grpWidth = new InputGroup(txtWidth, lblWidthAdder);
+		InputGroup grpRadius = new InputGroup(txtRadius, lblRadiusAdder);
 		
-		this.showRowsOnly(fIndex);
+		HBox.setHgrow(txtWidth, Priority.ALWAYS);
+		HBox.setHgrow(txtRadius, Priority.ALWAYS);
 		
-		this.isValueSelected.addListener((obs, ov, nv) -> {
-			if (nv) {
-				if (showRadius) {
-					this.showRowsOnly(fIndex, fIndex + 1, fIndex + 2, fIndex + 3, fIndex + 4, fIndex + 5);
-				} else {
-					this.showRowsOnly(fIndex, fIndex + 1, fIndex + 3, fIndex + 4, fIndex + 5);
-				}
-			}
-			else this.showRowsOnly(fIndex);
-		});
+		EditorField fldPaint = new EditorField(pkrPaint);
+		EditorDivider divSize = new EditorDivider(Translations.get("slide.border.size"));
+		EditorField fldWidth = new EditorField(Translations.get("slide.border.width"), grpWidth);
+		EditorField fldRadius = new EditorField(Translations.get("slide.border.radius"), grpRadius);
+		EditorDivider divStyle = new EditorDivider(Translations.get("slide.border.style"));
+		EditorField fldCap = new EditorField(Translations.get("slide.border.cap"), cbCap);
+		EditorField fldJoin = new EditorField(Translations.get("slide.border.join"), cbJoin);
+		EditorField fldDash = new EditorField(Translations.get("slide.border.dashes"), cmbDash);
+		
+		divSize.visibleProperty().bind(this.isValueSelected);
+		divSize.managedProperty().bind(divSize.visibleProperty());
+		fldWidth.visibleProperty().bind(this.isValueSelected);
+		fldWidth.managedProperty().bind(fldWidth.visibleProperty());
+		fldRadius.visibleProperty().bind(this.isValueSelected);
+		fldRadius.managedProperty().bind(fldRadius.visibleProperty());
+		divStyle.visibleProperty().bind(this.isValueSelected);
+		divStyle.managedProperty().bind(divStyle.visibleProperty());
+		fldCap.visibleProperty().bind(this.isValueSelected);
+		fldCap.managedProperty().bind(fldCap.visibleProperty());
+		fldJoin.visibleProperty().bind(this.isValueSelected);
+		fldJoin.managedProperty().bind(fldJoin.visibleProperty());
+		fldDash.visibleProperty().bind(this.isValueSelected);
+		fldDash.managedProperty().bind(fldDash.visibleProperty());
+		
+		this.getChildren().addAll(
+				fldPaint,
+				divSize,
+				fldWidth,
+				fldRadius,
+				divStyle,
+				fldCap,
+				fldJoin,
+				fldDash);
+		this.getStyleClass().add(SLIDE_STROKE_PICKER_CSS);
+		
+//		this.showRowsOnly(fIndex);
+//		
+//		this.isValueSelected.addListener((obs, ov, nv) -> {
+//			if (nv) {
+//				if (showRadius) {
+//					this.showRowsOnly(fIndex, fIndex + 1, fIndex + 2, fIndex + 3, fIndex + 4, fIndex + 5);
+//				} else {
+//					this.showRowsOnly(fIndex, fIndex + 1, fIndex + 3, fIndex + 4, fIndex + 5);
+//				}
+//			}
+//			else this.showRowsOnly(fIndex);
+//		});
 		
 		BindingHelper.bindBidirectional(this.paint, this.value, new ObjectConverter<SlidePaint, SlideStroke>() {
 			@Override

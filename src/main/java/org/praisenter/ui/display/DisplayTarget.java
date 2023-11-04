@@ -32,10 +32,10 @@ import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
 
 public final class DisplayTarget extends Stage {
+	@SuppressWarnings("unused")
 	private final GlobalContext context;
 	private final DisplayConfiguration configuration;
 	
-//	private final Stage stage;
 	private final Pane container;
 	
 	private final SlideView slideView;

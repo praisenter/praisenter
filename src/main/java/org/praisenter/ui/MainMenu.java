@@ -1,6 +1,7 @@
 package org.praisenter.ui;
 
 import java.awt.Desktop;
+import java.awt.EventQueue;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -23,8 +24,10 @@ import org.praisenter.ui.translations.Translations;
 import org.praisenter.ui.upgrade.UpgradeChecker;
 
 import javafx.application.Platform;
+import javafx.beans.property.BooleanProperty;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
+import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
@@ -88,9 +91,9 @@ final class MainMenu extends MenuBar {
 								Translations.get("menu.song"),
 								null,
 								this.createMenuItem(Action.NEW_LYRICS),
-								this.createMenuItem(Action.NEW_SECTION),
 								this.createMenuItem(Action.NEW_AUTHOR),
-								this.createMenuItem(Action.NEW_SONGBOOK)),
+								this.createMenuItem(Action.NEW_SONGBOOK),
+								this.createMenuItem(Action.NEW_SECTION)),
 						new Menu(
 								Translations.get("menu.slide"),
 								null,
@@ -134,6 +137,8 @@ final class MainMenu extends MenuBar {
 				this.createMenuItem(Action.RENUMBER),
 				this.createMenuItem(Action.REORDER),
 				new SeparatorMenuItem(),
+				this.createToggleMenuItem(Action.SLIDE_COMPONENT_SNAP_TO_GRID, context.snapToGridEnabledProperty()),
+				new SeparatorMenuItem(),
 				this.createMenuItem(Action.SLIDE_COMPONENT_MOVE_BACK),
 				this.createMenuItem(Action.SLIDE_COMPONENT_MOVE_DOWN),
 				this.createMenuItem(Action.SLIDE_COMPONENT_MOVE_UP),
@@ -170,11 +175,37 @@ final class MainMenu extends MenuBar {
 				this.createMenuItem(Action.ABOUT));
 		
 		this.getMenus().addAll(mnuFile, mnuEdit, mnuWindow, mnuHelp);
+		
+		// on windows when focus returns after the user alt-tabbing to another application
+		// the alt status stays in place and if the user types anything it steals what they
+		// type if there's a matching mnemonic
+		// https://stackoverflow.com/questions/73383089/javafx-menu-bar-steals-focus
+		// JAVABUG (L) 10/12/23 [workaround] https://bugs.openjdk.org/browse/JDK-8238731
+		
+		// NOTE: this was removed due to it causing ColorPicker to crash (it would force focus loss
+		// on the color picker removing the popup before the custom color picker had disposed of it
+		// causing it to attempt to dispose it again.  I tested this again on Java/JavaFX 21 and
+		// did see the issue of the alt state being retained
+		
+//		if (RuntimeProperties.IS_WINDOWS_OS) {
+//			context.windowFocusedProperty().addListener((obs, ov, nv) -> {
+//				if (!nv) {
+//					this.fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.ESCAPE, false, false, false, false));
+//				}
+//			});
+//		}
 	}
 
 	private MenuItem createMenuItem(Action action) {
 		MenuItem item = new MenuItem();
 		item.setOnAction(e -> this.executeAction(action));
+		this.setMenuItemProperties(item, action);
+		return item;
+	}
+	
+	private MenuItem createToggleMenuItem(Action action, BooleanProperty target) {
+		CheckMenuItem item = new CheckMenuItem();
+		item.selectedProperty().bindBidirectional(target);
 		this.setMenuItemProperties(item, action);
 		return item;
 	}
@@ -254,7 +285,9 @@ final class MainMenu extends MenuBar {
 		FileChooser fc = new FileChooser();
 		fc.setTitle(Translations.get("action.import"));
 		List<File> files = fc.showOpenMultipleDialog(this.context.stage);
-		this.context.importFiles(files).exceptionallyCompose(AsyncHelper.onJavaFXThreadAndWait((t) -> {
+		this.context.importFiles(files).thenAccept((items) -> {
+			// nothing extra to do with the imported data
+		}).exceptionallyCompose(AsyncHelper.onJavaFXThreadAndWait(t -> {
 			Platform.runLater(() -> {
 				Alert alert = Dialogs.exception(this.context.stage, t);
 				alert.show();
@@ -278,27 +311,35 @@ final class MainMenu extends MenuBar {
 	}
 	
 	private void viewApplicationLogs() {
-		if (Desktop.isDesktopSupported()) {
-		    try {
-				Desktop.getDesktop().open(Paths.get(Constants.LOGS_ABSOLUTE_PATH).toFile());
-			} catch (IOException ex) {
-				LOGGER.error("Unable to open logs directory due to: " + ex.getMessage(), ex);
-			}
-		} else {
-			LOGGER.warn("Desktop is not supported. Failed to open log path.");
-		}
+		// Desktop must be used from the AWT EventQueue
+		// https://stackoverflow.com/a/65863422
+    	EventQueue.invokeLater(() -> {
+    		if (Desktop.isDesktopSupported()) {
+	    		try {
+	    			Desktop.getDesktop().open(Paths.get(Constants.LOGS_ABSOLUTE_PATH).toFile());
+				} catch (IOException ex) {
+					LOGGER.error("Unable to open logs directory due to: " + ex.getMessage(), ex);
+				}
+    		} else {
+    			LOGGER.warn("Desktop is not supported. Failed to open log path.");
+    		}
+    	});
 	}
 	
 	private void viewWorkspaceLogs() {
-		if (Desktop.isDesktopSupported()) {
-		    try {
-				Desktop.getDesktop().open(this.context.getWorkspaceManager().getWorkspacePathResolver().getLogsPath().toFile());
-			} catch (IOException ex) {
-				LOGGER.error("Unable to open logs directory due to: " + ex.getMessage(), ex);
+		// Desktop must be used from the AWT EventQueue
+		// https://stackoverflow.com/a/65863422
+		EventQueue.invokeLater(() -> {
+			if (Desktop.isDesktopSupported()) {
+			    try {
+					Desktop.getDesktop().open(this.context.getWorkspaceManager().getWorkspacePathResolver().getLogsPath().toFile());
+				} catch (IOException ex) {
+					LOGGER.error("Unable to open logs directory due to: " + ex.getMessage(), ex);
+				}
+			} else {
+				LOGGER.warn("Desktop is not supported. Failed to open log path.");
 			}
-		} else {
-			LOGGER.warn("Desktop is not supported. Failed to open log path.");
-		}
+		});
 	}
 	
 	private void checkForUpdate() {
@@ -367,6 +408,7 @@ final class MainMenu extends MenuBar {
 			this.aboutDialog.setResizable(true);
 			this.aboutDialog.setScene(WindowHelper.createSceneWithOwnerCss(pneAbout, owner));
 			this.context.attachZoomHandler(this.aboutDialog.getScene());
+			this.context.attachAccentHandler(this.aboutDialog.getScene());
 			WindowHelper.setIcons(this.aboutDialog);
 		}
 		

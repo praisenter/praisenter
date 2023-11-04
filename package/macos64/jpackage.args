@@ -1,12 +1,12 @@
 --name ${app.name}
---icon ${project.basedir}/package/macos64/app-icon.icns
---dest ${project.build.directory}
+--icon "${project.basedir}/package/macos64/app-icon.icns"
+--dest "${project.build.directory}"
 --main-jar ${project.build.finalName}.jar
 --main-class ${main-class}
---input ${project.build.directory}/dependency
+--input "${project.build.directory}/dependency"
 --app-version ${app.version}
---runtime-image ${project.build.directory}/jvm-image
---temp ${project.build.directory}/installer-work
+--runtime-image "${project.build.directory}/jvm-image"
+--temp "${project.build.directory}/installer-work"
 --vendor ${app.vendor}
 --description "${project.description}"
 --copyright "(C) ${app.vendor}"
@@ -23,3 +23,5 @@
 --java-options "--add-exports=javafx.base/com.sun.javafx.runtime=ALL-UNNAMED"
 --java-options "--add-opens=javafx.controls/javafx.scene.control.skin=ALL-UNNAMED"
 --java-options "--add-opens=javafx.graphics/javafx.scene=ALL-UNNAMED"
+${macos.sign}
+${macos.sign.identity}

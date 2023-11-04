@@ -10,6 +10,7 @@ import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -18,7 +19,9 @@ import javafx.beans.property.StringProperty;
 
 public final class BackgroundTask implements ReadOnlyBackgroundTask, Comparable<ReadOnlyBackgroundTask> {
 	private final StringProperty name;
+	private final StringProperty operation;
 	private final StringProperty message;
+	private final StringProperty type;
 	private final DoubleProperty progress;
 	private final ObjectProperty<Throwable> exception;
 	private final BooleanProperty complete;
@@ -27,7 +30,9 @@ public final class BackgroundTask implements ReadOnlyBackgroundTask, Comparable<
 	
 	public BackgroundTask() {
 		this.name = new SimpleStringProperty();
+		this.operation = new SimpleStringProperty();
 		this.message = new SimpleStringProperty();
+		this.type = new SimpleStringProperty();
 		this.progress = new SimpleDoubleProperty();
 		this.exception = new SimpleObjectProperty<>();
 		this.complete = new SimpleBooleanProperty();
@@ -59,21 +64,39 @@ public final class BackgroundTask implements ReadOnlyBackgroundTask, Comparable<
 			Platform.runLater(r);
 		}
 	}
-	
+
 	@Override
 	public String getName() {
 		return this.name.get();
 	}
 	
+	/**
+	 * Sets the item name
+	 * @param name
+	 */
 	public void setName(String name) {
 		this.executeOnJavaFXThread(() -> {
 			this.name.set(name);
 		});
 	}
-	
+
 	@Override
 	public StringProperty nameProperty() { 
 		return this.name;
+	}
+	
+	@Override
+	public String getOperation() {
+		return this.operation.get();
+	}
+	
+	public void setOperation(String operation) {
+		this.operation.set(operation);
+	}
+	
+	@Override
+	public StringProperty operationProperty() {
+		return this.operation;
 	}
 	
 	@Override
@@ -90,6 +113,20 @@ public final class BackgroundTask implements ReadOnlyBackgroundTask, Comparable<
 	@Override
 	public StringProperty messageProperty() { 
 		return this.message;
+	}
+	
+	@Override
+	public String getType() {
+		return this.type.get();
+	}
+	
+	public void setType(String type) {
+		this.type.set(type);
+	}
+	
+	@Override
+	public ReadOnlyStringProperty typeProperty() {
+		return this.type;
 	}
 	
 	@Override
@@ -160,7 +197,10 @@ public final class BackgroundTask implements ReadOnlyBackgroundTask, Comparable<
 	
 	@Override
 	public Duration getDuration() {
-		return Duration.between(this.startTime.get(), this.endTime.get());
+		if (this.endTime.get() != null) {
+			return Duration.between(this.startTime.get(), this.endTime.get());
+		}
+		return Duration.ZERO;
 	}
 	
 }

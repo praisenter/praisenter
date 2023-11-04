@@ -12,14 +12,16 @@ import org.praisenter.data.song.Song;
 import org.praisenter.data.song.SongBook;
 import org.praisenter.ui.Action;
 import org.praisenter.ui.GlobalContext;
-import org.praisenter.ui.controls.FormFieldGroup;
-import org.praisenter.ui.controls.FormFieldSection;
+import org.praisenter.ui.controls.EditorField;
+import org.praisenter.ui.controls.EditorFieldGroup;
+import org.praisenter.ui.controls.EditorTitledPane;
 import org.praisenter.ui.controls.TagListView;
 import org.praisenter.ui.controls.TextInputFieldEventFilter;
 import org.praisenter.ui.document.DocumentContext;
 import org.praisenter.ui.document.DocumentSelectionEditor;
 import org.praisenter.ui.translations.Translations;
 
+import atlantafx.base.controls.ToggleSwitch;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.ObjectBinding;
@@ -31,10 +33,11 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
+import javafx.geometry.Pos;
 import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 public final class SongSelectionEditor extends VBox implements DocumentSelectionEditor<Song> {
@@ -333,8 +336,10 @@ public final class SongSelectionEditor extends VBox implements DocumentSelection
 		
 		// lyrics
 		
-		CheckBox chkLyricsOriginal = new CheckBox();
-		chkLyricsOriginal.selectedProperty().bindBidirectional(this.lyricsOriginal);
+		ToggleSwitch tglLyricsOriginal = new ToggleSwitch();
+		tglLyricsOriginal.selectedProperty().bindBidirectional(this.lyricsOriginal);
+		HBox boxLyricsOriginal = new HBox(tglLyricsOriginal);
+		boxLyricsOriginal.setAlignment(Pos.CENTER_RIGHT);
 		
 		TextField txtLyricsLanguage = new TextField();
 		txtLyricsLanguage.textProperty().bindBidirectional(this.lyricsLanguage);
@@ -383,45 +388,64 @@ public final class SongSelectionEditor extends VBox implements DocumentSelection
 				txtSongTransposition,
 				txtSongVariant);
 		
-		FormFieldSection sctGeneral = new FormFieldSection();
-		sctGeneral.addField(Translations.get("song.name"), txtSongName);
-		sctGeneral.addField(Translations.get("song.source"), txtSongSource);
-		sctGeneral.addField(Translations.get("song.copyright"), txtSongCopyright);
-		sctGeneral.addField(Translations.get("song.ccli"), txtSongCCLINumber);
-		sctGeneral.addField(Translations.get("song.released"), txtSongReleased);
-		sctGeneral.addField(Translations.get("song.transposition"), txtSongTransposition);
-		sctGeneral.addField(Translations.get("song.tempo"), txtSongTempo);
-		sctGeneral.addField(Translations.get("song.key"), txtSongKey);
-		sctGeneral.addField(Translations.get("song.variant"), txtSongVariant);
-		sctGeneral.addField(Translations.get("song.publisher"), txtSongPublisher);
-		sctGeneral.addField(Translations.get("song.keywords"), txtSongKeywords);
-		sctGeneral.addField(Translations.get("song.notes"), txtSongNotes);
-		sctGeneral.addField(Translations.get("song.tags"), viewTags);
 		
-		FormFieldSection sctAuthor = new FormFieldSection();
-		sctAuthor.addField(Translations.get("song.lyrics.author.name"), txtAuthorName);
-		sctAuthor.addField(Translations.get("song.lyrics.author.type"), txtAuthorType);
+		EditorField fldName = new EditorField(Translations.get("song.name"), txtSongName);
+		EditorField fldSource = new EditorField(Translations.get("song.source"), txtSongSource);
+		EditorField fldCopyright = new EditorField(Translations.get("song.copyright"), txtSongCopyright);
+		EditorField fldCCLINumber = new EditorField(Translations.get("song.ccli"), txtSongCCLINumber);
+		EditorField fldReleased = new EditorField(Translations.get("song.released"), txtSongReleased);
+		EditorField fldTransposition = new EditorField(Translations.get("song.transposition"), txtSongTransposition);
+		EditorField fldTempo = new EditorField(Translations.get("song.tempo"), txtSongTempo);
+		EditorField fldKey = new EditorField(Translations.get("song.key"), txtSongKey);
+		EditorField fldVariant = new EditorField(Translations.get("song.variant"), txtSongVariant);
+		EditorField fldPublisher = new EditorField(Translations.get("song.publisher"), txtSongPublisher);
+		EditorField fldKeywords = new EditorField(Translations.get("song.keywords"), txtSongKeywords);
+		EditorField fldNotes = new EditorField(Translations.get("song.notes"), txtSongNotes, EditorField.LAYOUT_VERTICAL);
+		EditorField fldTags = new EditorField(viewTags);
+		EditorFieldGroup grpSong = new EditorFieldGroup(
+				fldName,
+				fldSource,
+				fldCopyright,
+				fldCCLINumber,
+				fldReleased,
+				fldTransposition,
+				fldTempo,
+				fldKey,
+				fldVariant,
+				fldPublisher,
+				fldKeywords,
+				fldNotes,
+				fldTags);
 		
-		FormFieldSection sctSongbook = new FormFieldSection();
-		sctSongbook.addField(Translations.get("song.lyrics.songbook.name"), txtSongBookName);
-		sctSongbook.addField(Translations.get("song.lyrics.songbook.entry"), txtSongBookEntry);
+		EditorField fldAuthorName = new EditorField(Translations.get("song.lyrics.author.name"), txtAuthorName);
+		EditorField fldAuthorType = new EditorField(Translations.get("song.lyrics.author.type"), txtAuthorType);
+		EditorFieldGroup grpAuthor = new EditorFieldGroup(fldAuthorName, fldAuthorType);
 		
-		FormFieldSection sctLyrics = new FormFieldSection();
-		sctLyrics.addField(Translations.get("song.lyrics.original"), chkLyricsOriginal);
-		sctLyrics.addField(Translations.get("song.lyrics.language"), txtLyricsLanguage);
-		sctLyrics.addField(Translations.get("song.lyrics.transliteration"), txtLyricsTransliteration);
-		sctLyrics.addField(Translations.get("song.lyrics.title"), txtLyricsTitle);
-		sctLyrics.addField("", btnLyricsQuickEdit);
+		EditorField fldSongBookName = new EditorField(Translations.get("song.lyrics.songbook.name"), txtSongBookName);
+		EditorField fldSongBookEntry = new EditorField(Translations.get("song.lyrics.songbook.entry"), txtSongBookEntry);
+		EditorFieldGroup grpSongBook = new EditorFieldGroup(fldSongBookName, fldSongBookEntry);
 		
-		FormFieldSection sctSection = new FormFieldSection();
-		sctSection.addField(Translations.get("song.lyrics.section.name"), txtSectionName);
-		sctSection.addField(Translations.get("song.lyrics.section.text"), txtSectionText);
+		EditorField fldLyricsOriginal = new EditorField(Translations.get("song.lyrics.original"), boxLyricsOriginal);
+		EditorField fldLyricsLanguage = new EditorField(Translations.get("song.lyrics.language"), txtLyricsLanguage);
+		EditorField fldLyricsTransliteration = new EditorField(Translations.get("song.lyrics.transliteration"), txtLyricsTransliteration);
+		EditorField fldLyricsTitle = new EditorField(Translations.get("song.lyrics.title"), txtLyricsTitle);
+		EditorField fldLyricsQuickEdit = new EditorField("", btnLyricsQuickEdit);
+		EditorFieldGroup grpLyrics = new EditorFieldGroup(
+				fldLyricsTitle,
+				fldLyricsLanguage,
+				fldLyricsTransliteration,
+				fldLyricsOriginal,
+				fldLyricsQuickEdit);
 		
-		FormFieldGroup pneGeneral = new FormFieldGroup(Translations.get("song"), sctGeneral);
-		FormFieldGroup pneAuthor = new FormFieldGroup(Translations.get("song.lyrics.author"), sctAuthor);
-		FormFieldGroup pneSongBook = new FormFieldGroup(Translations.get("song.lyrics.songbook"), sctSongbook);
-		FormFieldGroup pneLyrics = new FormFieldGroup(Translations.get("song.lyrics"), sctLyrics);
-		FormFieldGroup pneSection = new FormFieldGroup(Translations.get("song.lyrics.section"), sctSection);
+		EditorField fldSectionName = new EditorField(Translations.get("song.lyrics.section.name"), txtSectionName);
+		EditorField fldSectionText = new EditorField(Translations.get("song.lyrics.section.text"), txtSectionText, EditorField.LAYOUT_VERTICAL);
+		EditorFieldGroup grpSection = new EditorFieldGroup(fldSectionName, fldSectionText);
+		
+		EditorTitledPane pneGeneral = new EditorTitledPane(Translations.get("song"), grpSong);
+		EditorTitledPane pneAuthor = new EditorTitledPane(Translations.get("song.lyrics.author"), grpAuthor);
+		EditorTitledPane pneSongBook = new EditorTitledPane(Translations.get("song.lyrics.songbook"), grpSongBook);
+		EditorTitledPane pneLyrics = new EditorTitledPane(Translations.get("song.lyrics"), grpLyrics);
+		EditorTitledPane pneSection = new EditorTitledPane(Translations.get("song.lyrics.section"), grpSection);
 		
 		this.getChildren().addAll(
 				pneGeneral,

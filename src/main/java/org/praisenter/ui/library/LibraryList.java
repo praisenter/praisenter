@@ -1,48 +1,44 @@
 package org.praisenter.ui.library;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.nio.file.Path;
 import java.text.Collator;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
-import java.util.zip.ZipOutputStream;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.controlsfx.glyphfont.Glyph;
 import org.praisenter.Constants;
 import org.praisenter.Editable;
-import org.praisenter.async.AsyncHelper;
-import org.praisenter.async.BackgroundTask;
-import org.praisenter.data.KnownFormat;
 import org.praisenter.data.Persistable;
 import org.praisenter.data.media.Media;
 import org.praisenter.ui.Action;
 import org.praisenter.ui.ActionPane;
 import org.praisenter.ui.DataFormats;
 import org.praisenter.ui.GlobalContext;
-import org.praisenter.ui.Glyphs;
+import org.praisenter.ui.Icons;
 import org.praisenter.ui.Option;
 import org.praisenter.ui.controls.Dialogs;
+import org.praisenter.ui.controls.FastScrollPane;
 import org.praisenter.ui.controls.FlowListCell;
 import org.praisenter.ui.controls.FlowListSelectionModel;
 import org.praisenter.ui.controls.FlowListView;
-import org.praisenter.ui.document.DocumentContext;
 import org.praisenter.ui.events.ActionStateChangedEvent;
 import org.praisenter.ui.events.FlowListViewSelectionEvent;
 import org.praisenter.ui.translations.Translations;
 import org.praisenter.utility.StringManipulator;
 
+import atlantafx.base.controls.CustomTextField;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
@@ -56,7 +52,7 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
 import javafx.geometry.Orientation;
-import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ChoiceBox;
@@ -65,18 +61,17 @@ import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
+import javafx.scene.control.Separator;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.SplitPane;
-import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.control.ToolBar;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.FlowPane;
-import javafx.scene.layout.HBox;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Modality;
@@ -86,14 +81,15 @@ public final class LibraryList extends BorderPane implements ActionPane {
 	private static final String LIBRARY_LIST_FILTER_BAR_CSS = "p-library-list-filter-bar";
 	private static final String LIBRARY_LIST_ITEMS_CSS = "p-library-list-items";
 	private static final String LIBRARY_LIST_RIGHT_CSS = "p-library-list-right";
+	private static final String LIBRARY_LIST_SEARCH_CSS = "p-library-list-search";
 	
 	private static final Logger LOGGER = LogManager.getLogger();
 	private static final Collator COLLATOR = Collator.getInstance();
 	
-	private final Glyph SORT_ASC = Glyphs.SORT_ASC.duplicate();
-	private final Glyph SORT_DESC = Glyphs.SORT_DESC.duplicate();
-	
 	private final GlobalContext context;
+	private final Node sortAsc = Icons.getIcon(Icons.SORT_ASCENDING);
+	private final Node sortDesc = Icons.getIcon(Icons.SORT_DESCENDING);
+	private final Node search = Icons.getIcon(Icons.SEARCH);
 	
 	// sorting and filtering
 	
@@ -108,7 +104,9 @@ public final class LibraryList extends BorderPane implements ActionPane {
 	private final FlowListView<Persistable> view;
 	
 	private final BooleanProperty detailsPaneVisible;
-	private final BooleanProperty typeFilterVisible;
+	private final BooleanProperty filterVisible;
+	private final BooleanProperty searchVisible;
+	private final BooleanProperty sortVisible;
 	
 	public LibraryList(GlobalContext context, Orientation orientation, LibraryListType... filterTypes) {
 		this.getStyleClass().add(LIBRARY_LIST_CSS);
@@ -121,7 +119,9 @@ public final class LibraryList extends BorderPane implements ActionPane {
 		this.sortAscending = new SimpleBooleanProperty(true);
 		
 		this.detailsPaneVisible = new SimpleBooleanProperty(true);
-		this.typeFilterVisible = new SimpleBooleanProperty(true);
+		this.filterVisible = new SimpleBooleanProperty(true);
+		this.searchVisible = new SimpleBooleanProperty(true);
+		this.sortVisible = new SimpleBooleanProperty(true);
 		
 		this.view = new FlowListView<>(orientation, (item) -> {
 			LibraryListCell cell = new LibraryListCell(item);
@@ -148,7 +148,9 @@ public final class LibraryList extends BorderPane implements ActionPane {
 				
 				Dragboard db = cell.startDragAndDrop(TransferMode.COPY);
 				ClipboardContent content = new ClipboardContent();
-				if (files.size() > 0) content.putFiles(files);
+				if (files.size() > 0) {
+					content.putFiles(files);
+				}
 				content.putString(p.getName());
 				content.put(DataFormats.PRAISENTER_ID_LIST, ids);
 				db.setContent(content);
@@ -191,12 +193,16 @@ public final class LibraryList extends BorderPane implements ActionPane {
 						return false;
 					}
 				}
+				
 				// single name search (more complex searching will be handled elsewhere)
 				if (!StringManipulator.isNullOrEmpty(search)) {
-					if (!i.getName().toLowerCase().contains(term)) {
+					boolean matchesName = i.getName().toLowerCase().contains(term);
+					boolean matchesAnyTag = i.getTags().stream().anyMatch(t -> t.getName().toLowerCase().contains(term));
+					if (!matchesAnyTag && !matchesName) {
 						return false;
 					}
 				}
+				
 				return true;
 			});
 		};
@@ -255,12 +261,6 @@ public final class LibraryList extends BorderPane implements ActionPane {
 		
 		Bindings.bindContent(this.view.getItems(), sorted);
 		
-//		sorted.addListener((Change<? extends Persistable> c) -> {
-//			while (c.next()) {
-//				
-//			}
-//		});
-		
 		this.view.addEventHandler(FlowListViewSelectionEvent.DOUBLE_CLICK, (e) -> {
 			FlowListCell<?> view = (FlowListCell<?>)e.getTarget();
         	Object item = view.getData();
@@ -288,49 +288,67 @@ public final class LibraryList extends BorderPane implements ActionPane {
         		.collect(Collectors.toList()));
         
         Label lblFilter = new Label(Translations.get("list.filter.type"));
-        ChoiceBox<Option<LibraryListType>> cbTypes = new ChoiceBox<Option<LibraryListType>>(typeFilters);
-        cbTypes.setValue(new Option<>());
-        cbTypes.valueProperty().bindBidirectional(this.typeFilter);
-        lblFilter.visibleProperty().bind(this.typeFilterVisible);
-        lblFilter.managedProperty().bind(cbTypes.visibleProperty());
-        cbTypes.visibleProperty().bind(this.typeFilterVisible);
-        cbTypes.managedProperty().bind(cbTypes.visibleProperty());
+        Separator sepFilter = new Separator(Orientation.VERTICAL);
+        ChoiceBox<Option<LibraryListType>> cbFilterType = new ChoiceBox<Option<LibraryListType>>(typeFilters);
+        cbFilterType.setValue(new Option<>());
+        cbFilterType.valueProperty().bindBidirectional(this.typeFilter);
+        lblFilter.visibleProperty().bind(this.filterVisible);
+        lblFilter.managedProperty().bind(lblFilter.visibleProperty());
+        cbFilterType.visibleProperty().bind(this.filterVisible);
+        cbFilterType.managedProperty().bind(cbFilterType.visibleProperty());
+        sepFilter.visibleProperty().bind(this.filterVisible);
+        sepFilter.managedProperty().bind(sepFilter.visibleProperty());
 		
         Label lblSort = new Label(Translations.get("list.sort.field"));
-        ChoiceBox<Option<LibraryListSortField>> cbSort = new ChoiceBox<Option<LibraryListSortField>>(sortFields);
-        cbSort.valueProperty().bindBidirectional(this.sortField);
-        ToggleButton tgl = new ToggleButton(null);
-        tgl.graphicProperty().bind(Bindings.createObjectBinding(() -> {
-        	boolean isAsc = this.sortAscending.get();
-        	return isAsc ? SORT_ASC : SORT_DESC;
-        }, this.sortAscending));
-        tgl.selectedProperty().bindBidirectional(this.sortAscending);
+        Separator sepSort = new Separator(Orientation.VERTICAL);
+        ChoiceBox<Option<LibraryListSortField>> cbSortType = new ChoiceBox<Option<LibraryListSortField>>(sortFields);
+        cbSortType.valueProperty().bindBidirectional(this.sortField);
+        ToggleButton tglSortDirection = new ToggleButton(null, this.sortAsc);
+        tglSortDirection.selectedProperty().bindBidirectional(this.sortAscending);
+        tglSortDirection.selectedProperty().addListener((obs, ov, nv) -> {
+        	if (nv) {
+        		tglSortDirection.setGraphic(this.sortAsc);
+        	} else {
+        		tglSortDirection.setGraphic(this.sortDesc);
+        	}
+        });
+        lblSort.visibleProperty().bind(this.sortVisible);
+        lblSort.managedProperty().bind(lblSort.visibleProperty());
+        cbSortType.visibleProperty().bind(this.sortVisible);
+        cbSortType.managedProperty().bind(cbSortType.visibleProperty());
+        tglSortDirection.visibleProperty().bind(this.sortVisible);
+        tglSortDirection.managedProperty().bind(tglSortDirection.visibleProperty());
+        sepSort.visibleProperty().bind(this.sortVisible);
+        sepSort.managedProperty().bind(sepSort.visibleProperty());
         
-        TextField txtSearch = new TextField();
+        CustomTextField txtSearch = new CustomTextField();
         txtSearch.setPromptText(Translations.get("list.filter.search"));
         txtSearch.textProperty().bindBidirectional(this.textFilter);
+        txtSearch.setLeft(this.search);
+        txtSearch.visibleProperty().bind(this.searchVisible);
+        txtSearch.managedProperty().bind(txtSearch.visibleProperty());
+        txtSearch.getStyleClass().add(LIBRARY_LIST_SEARCH_CSS);
         
-        HBox pFilter = new HBox(lblFilter, cbTypes, txtSearch); 
-        pFilter.setAlignment(Pos.BASELINE_LEFT);
-        pFilter.setSpacing(5);
-        
-        HBox pSort = new HBox(lblSort, cbSort, tgl);
-        pSort.setAlignment(Pos.CENTER_LEFT);
-        pSort.setSpacing(5);
-        
-        FlowPane top = new FlowPane();
-        top.getStyleClass().add(LIBRARY_LIST_FILTER_BAR_CSS);
-        top.setAlignment(Pos.BASELINE_LEFT);
-        top.setPrefWrapLength(0);
-        
-        top.getChildren().addAll(pFilter, pSort);
+        ToolBar toolbar = new ToolBar(
+        		txtSearch,
+        		sepFilter,
+        		lblFilter, cbFilterType,
+        		sepSort,
+        		lblSort, cbSortType, tglSortDirection);
+        toolbar.getStyleClass().add(LIBRARY_LIST_FILTER_BAR_CSS);
+        toolbar.visibleProperty().bind(Bindings.createBooleanBinding(() -> {
+        	return this.searchVisible.get() ||
+        		   this.filterVisible.get() ||
+        		   this.sortVisible.get();
+        }, this.searchVisible, this.filterVisible, this.sortVisible));
+        toolbar.managedProperty().bind(toolbar.visibleProperty());
         
         LibraryItemDetails details = new LibraryItemDetails(context);
         details.setMinWidth(0);
         details.itemProperty().bind(this.view.getSelectionModel().selectedItemProperty());
         
-        ScrollPane detailsScroller = new ScrollPane(details);
-//		detailsScroller.setFitToWidth(true);
+        ScrollPane detailsScroller = new FastScrollPane(details, 2.0);
+		detailsScroller.setFitToWidth(true);
 		detailsScroller.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
 		detailsScroller.setHbarPolicy(ScrollBarPolicy.NEVER);
 		detailsScroller.getStyleClass().add(LIBRARY_LIST_RIGHT_CSS);
@@ -354,23 +372,21 @@ public final class LibraryList extends BorderPane implements ActionPane {
 			);
 		this.view.setContextMenu(menu);
 		
-		BorderPane left = new BorderPane();
-		left.setTop(top);
-		left.setCenter(this.view);
-		SplitPane split = new SplitPane(left, detailsScroller);
-		split.setDividerPosition(0, 0.75);
+		SplitPane split = new SplitPane(this.view, detailsScroller);
+		split.setDividerPosition(0, 0.70);
 		SplitPane.setResizableWithParent(detailsScroller, false);
 		
 		this.detailsPaneVisible.addListener((obs, ov, nv) -> {
 			if (nv) {
-				split.getItems().add(0, left);
+				split.getItems().add(0, this.view);
 				this.setCenter(split);
 			} else {
-				split.getItems().remove(left);
-				this.setCenter(left);
+				split.getItems().remove(this.view);
+				this.setCenter(this.view);
 			}
 		});
 
+		this.setTop(toolbar);
 		this.setCenter(split);
 	}
 
@@ -512,58 +528,60 @@ public final class LibraryList extends BorderPane implements ActionPane {
 	private CompletableFuture<Void> confirmDelete(List<Persistable> items) {
 		int n = items.size();
 		if (n > 0) {
+			// collect all dependencies
+			Set<UUID> dependendencyIds = new HashSet<>();
+			for (Persistable item : items) {
+				dependendencyIds.add(item.getId());
+			}
+			
+			// iterate ALL items to find those dependent on these items
+			List<Persistable> dependents = new ArrayList<>();
+			for (Persistable p : this.context.getWorkspaceManager().getItemsUnmodifiable()) {
+				if (p.getDependencies().isEmpty())
+					continue;
+				
+				for (UUID id : p.getDependencies()) {
+					if (dependendencyIds.contains(id)) {
+						dependents.add(p);
+						break;
+					}
+				}
+			}
+			
+			String contentText = Translations.get("action.confirm.delete");
+			if (!dependents.isEmpty()) {
+				String dependentNames = String.join(", ", dependents.stream().map(d -> {
+					return Translations.get("action.delete.dependency.pattern", d.getName(), this.context.getFriendlyItemType(d));
+				}).collect(Collectors.toList()));
+				
+				String dependencyWarning = Translations.get("action.delete.dependency.warning", dependentNames);
+				contentText = dependencyWarning + "\n\n" + contentText;
+			}
+			
 			Alert alert = Dialogs.confirm(
 					this.context.getStage(), 
 					Modality.WINDOW_MODAL, 
 					Translations.get("action.delete"),
 					Translations.get("action.confirm"), 
-					Translations.get("action.confirm.delete"));
+					contentText);
 			Optional<ButtonType> result = alert.showAndWait();
 			if (result.isPresent() && result.get() == ButtonType.OK) {
-				int size = items.size();
-				String btName = Translations.get("action.delete.task.multiple", size);
-				if (size == 1) {
-					btName = Translations.get("action.delete.task", items.get(0).getName());
-				}
-				
-				BackgroundTask task = new BackgroundTask();
-				task.setName(btName);
-				task.setMessage(btName);
-				
-				CompletableFuture<?>[] futures = new CompletableFuture<?>[n];
-				int i = 0;
-				for (Persistable item : items) {
-					futures[i++] = this.context.getWorkspaceManager().delete(item).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
-						// close the document if its open
-						this.context.closeDocument(item);
-					})).exceptionally((t) -> {
-						LOGGER.error("Failed to delete item '" + item.getName() + "': " + t.getMessage(), t);
-						throw new CompletionException(t);
-					});
-				}
-				
-				this.context.addBackgroundTask(task);
-				return CompletableFuture.allOf(futures).thenRun(() -> {
-					task.setProgress(1.0);
+				return this.context.delete(items).thenAccept((exceptions) -> {
+					if (exceptions != null && exceptions.size() > 0) {
+						Platform.runLater(() -> {
+							Alert errorAlert = Dialogs.exception(
+									this.context.getStage(), 
+									null, null,	null, 
+									exceptions);
+							errorAlert.show();
+						});
+					}
 				}).exceptionally((t) -> {
-					// log the exception
-					LOGGER.error("Failed to delete one or more items (see prior error logs for details)");
-					
-					// get the root exceptions from the futures
-					List<Throwable> exceptions = AsyncHelper.getExceptions(futures);
-					
-					// update the task
-					task.setException(exceptions.get(0));
-					
-					// present them to the user
+					LOGGER.error("The bulk delete of the items failed: ", t);
 					Platform.runLater(() -> {
-						Alert errorAlert = Dialogs.exception(
-								this.context.getStage(), 
-								null, null,	null, 
-								exceptions);
+						Alert errorAlert = Dialogs.exception(this.context.getStage(), t);
 						errorAlert.show();
 					});
-					
 					return null;
 				});
 			}
@@ -586,52 +604,13 @@ public final class LibraryList extends BorderPane implements ActionPane {
 	    	if (result.isPresent()) {
 	    		String newName = result.get();
 	    		if (!Objects.equals(oldName, newName)) {
-	    			final Persistable copy = item.copy();
-	    			
-	    			// go ahead and set the name
-	    			item.setName(newName);
-	    			
-	    			// then attempt to save the renamed item
-	    			copy.setName(newName);
-	    			copy.setModifiedDate(Instant.now());
-	    			
-	    			BackgroundTask task = new BackgroundTask();
-					task.setName(Translations.get("action.rename.task", oldName, newName));
-					task.setMessage(Translations.get("action.rename.task", oldName, newName));
-					
-					this.context.addBackgroundTask(task);
-					return this.context.getWorkspaceManager().update(copy).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
-		    			// is it open as a document?
-		    			DocumentContext<? extends Persistable> document = this.context.getOpenDocument(item);
-		    			if (document != null) {
-		    				// if its open, then set the name of the open document (it should be a copy always)
-		    				document.getDocument().setName(newName);
-		    			}
-					})).thenRun(() -> {
-						task.setProgress(1.0);
-					}).exceptionally((t) -> {
-						if (t instanceof CompletionException) {
-							t = t.getCause();
-						}
-						
-						// log the error
-						LOGGER.error("Failed to rename item", t);
-						
-						// update the task
-						task.setException(t);
-						
-						// show the user the exception
-						final Throwable ex = t;
-						Platform.runLater(() -> {
-							// reset the name back in the case of an exception
-							item.setName(oldName);
-							
-							Alert alert = Dialogs.exception(this.context.getStage(), ex);
+	    			return this.context.rename(item, newName).exceptionally(t -> {
+	    				Platform.runLater(() -> {
+	    					Alert alert = Dialogs.exception(this.context.getStage(), t);
 							alert.show();
-						});
-						
-						return null;
-					});
+	    				});
+	    				return null;
+	    			});
 	    		}
 	    	}
 		}
@@ -714,41 +693,22 @@ public final class LibraryList extends BorderPane implements ActionPane {
 					});
 				}
 				
-				BackgroundTask task = new BackgroundTask();
-				task.setName(Translations.get("action.paste.task", items.size()));
-				task.setMessage(Translations.get("action.paste.task", items.size()));
-				
-				int i = 0;
-				final CompletableFuture<?>[] futures = new CompletableFuture<?>[items.size()];
-				for (Persistable item : items) {
-					futures[i++] = this.context.getWorkspaceManager().create(item).exceptionally(t -> {
-						LOGGER.error("Failed to paste item '" + item.getName() + "' due to: " + t.getMessage(), t);
-						throw new CompletionException(t);
-					});
-				}
-				
-				this.context.addBackgroundTask(task);
-				return CompletableFuture.allOf(futures).thenRun(() -> {
-					task.setProgress(1.0);
+				return this.context.saveAll(items).thenAccept((exceptions) -> {
+					if (exceptions != null && exceptions.size() > 0) {
+						Platform.runLater(() -> {
+							Alert errorAlert = Dialogs.exception(
+									this.context.getStage(), 
+									null, null,	null, 
+									exceptions);
+							errorAlert.show();
+						});
+					}
 				}).exceptionally((t) -> {
-					// log the exception
-					LOGGER.error("Failed to paste items (see prior error logs for details)");
-					
-					// get the root exceptions from the futures
-					List<Throwable> exceptions = AsyncHelper.getExceptions(futures);
-					
-					// update the task
-					task.setException(exceptions.get(0));
-					
-					// present them to the user
+					LOGGER.error("The bulk copy/paste of items failed: ", t);
 					Platform.runLater(() -> {
-						Alert errorAlert = Dialogs.exception(
-								this.context.getStage(), 
-								null, null,	null, 
-								exceptions);
+						Alert errorAlert = Dialogs.exception(this.context.getStage(), t);
 						errorAlert.show();
 					});
-					
 					return null;
 				});
 			}
@@ -768,37 +728,14 @@ public final class LibraryList extends BorderPane implements ActionPane {
 	    	File file = chooser.showSaveDialog(this.context.getStage());
 	    	// check for cancellation
 	    	if (file != null) {
-	    		
-	    		BackgroundTask task = new BackgroundTask();
-	    		task.setName(Translations.get("action.export.task", items.size()));
-	    		task.setMessage(Translations.get("action.export.task", items.size()));
-	    		this.context.addBackgroundTask(task);
-	    		
-	    		return CompletableFuture.runAsync(() -> {
-					try(FileOutputStream fos = new FileOutputStream(file);
-						BufferedOutputStream bos = new BufferedOutputStream(fos);
-			    		ZipOutputStream zos = new ZipOutputStream(bos);) {
-						
-						this.context.getWorkspaceManager().exportData(KnownFormat.PRAISENTER3, zos, items);
-					} catch (Exception ex) {
-						throw new CompletionException(ex);
-					}
-	    		}).thenRun(() -> {
-	    			task.setProgress(1.0);
-	    		}).exceptionally(t -> {
+	    		return this.context.export(items, file).exceptionally(t -> {
 	    			// get the root exception
 	    			if (t instanceof CompletionException) {
 	    				t = t.getCause();
 	    			}
 	    			
-					// log the exception
-					LOGGER.error("Failed to export the selected items: " + t.getMessage(), t);
-					
-					// update the task
-					task.setException(t);
-					
 					// show it to the user
-					final Throwable ex = t;
+	    			final Throwable ex = t;
 					Platform.runLater(() -> {
 						Dialogs.exception(this.context.getStage(), ex).show();
 					});
@@ -835,15 +772,39 @@ public final class LibraryList extends BorderPane implements ActionPane {
 		return this.detailsPaneVisible;
 	}
 	
-	public boolean isTypeFilterVisible() {
-		return this.typeFilterVisible.get();
+	public boolean isFilterVisible() {
+		return this.filterVisible.get();
 	}
 	
-	public void setTypeFilterVisible(boolean enabled) {
-		this.typeFilterVisible.set(enabled);
+	public void setFilterVisible(boolean enabled) {
+		this.filterVisible.set(enabled);
 	}
 	
-	public BooleanProperty typeFilterVisibleProperty() {
-		return this.typeFilterVisible;
+	public BooleanProperty filterVisibleProperty() {
+		return this.filterVisible;
+	}
+	
+	public boolean isSortVisible() {
+		return this.sortVisible.get();
+	}
+	
+	public void setSortVisible(boolean enabled) {
+		this.sortVisible.set(enabled);
+	}
+	
+	public BooleanProperty sortVisibleProperty() {
+		return this.sortVisible;
+	}
+
+	public boolean isSearchVisible() {
+		return this.searchVisible.get();
+	}
+	
+	public void setSearchVisible(boolean enabled) {
+		this.searchVisible.set(enabled);
+	}
+	
+	public BooleanProperty searchVisibleProperty() {
+		return this.searchVisible;
 	}
 }

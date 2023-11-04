@@ -1,5 +1,6 @@
 package org.praisenter.ui.slide;
 
+import java.nio.file.Path;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -259,27 +260,40 @@ public class SlideView extends Region implements Playable {
 	
 	// TODO would be nice if there was a mechanism to wait for the SlideNode to load as well (when media players are ready for example) for better PRESENT interaction
 	public CompletableFuture<Void> loadSlideAsync(Slide slide) {
+		LOGGER.trace("Loading slide '{}' asynchronously", slide.getName());
 		final Set<UUID> mediaIds = slide.getReferencedMedia();
-		final List<Media> mediaToLoad = new ArrayList<>();
+		final Map<UUID, Path> mediaToLoad = new HashMap<>();
 		
+		LOGGER.trace("Checking for media that hasn't been loaded");
 		for (UUID mediaId : mediaIds) {
 			Media media = this.context.getWorkspaceManager().getItem(Media.class, mediaId);
 			if (media != null) {
-				mediaToLoad.add(media);
+				if (media.getMediaType() == MediaType.IMAGE) {
+					if (!this.context.getImageCache().isImageCached(mediaId)) {
+						LOGGER.trace("Image media '{}' has not been loaded yet", media.getName());
+						mediaToLoad.put(media.getId(), media.getMediaPath());
+					}
+				} else if (media.getMediaType() == MediaType.VIDEO && this.mode.get() != SlideMode.PRESENT) {
+					if (!this.context.getImageCache().isImageCached(mediaId)) {
+						LOGGER.trace("Video media image '{}' has not been loaded yet", media.getName());
+						mediaToLoad.put(media.getId(), media.getMediaImagePath());
+					}
+				}
 			}
 		}
 		
-		return CompletableFuture.runAsync(() -> {
-			for (Media media : mediaToLoad) {
-				if (media.getMediaType() == MediaType.IMAGE) {
-					// load the image
-					this.context.getImageCache().getOrLoadImage(media.getId(), media.getMediaPath());
-				} else if (media.getMediaType() == MediaType.VIDEO && this.mode.get() != SlideMode.PRESENT) {
-					// load the video frame (NOTE: we don't need this for present mode)
-					this.context.getImageCache().getOrLoadImage(media.getId(), media.getMediaImagePath());
+		if (mediaToLoad.size() > 0) {
+			LOGGER.trace("Loading {} media", mediaToLoad.size());
+			return CompletableFuture.runAsync(() -> {
+				for (var entry : mediaToLoad.entrySet()) {
+					LOGGER.trace("Loading media '{}'", entry.getValue());
+					this.context.getImageCache().getOrLoadImage(entry.getKey(), entry.getValue());
 				}
-			}
-		});
+			});
+		} else {
+			LOGGER.trace("No media to load, returning");
+			return CompletableFuture.completedFuture(null);
+		}
 	}
 	
 	public void swapSlide(Slide slide) {

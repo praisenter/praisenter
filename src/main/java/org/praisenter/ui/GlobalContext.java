@@ -1,20 +1,33 @@
 package org.praisenter.ui;
 
+import java.awt.image.BufferedImage;
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
+import java.util.zip.ZipOutputStream;
+
+import javax.imageio.ImageIO;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -22,6 +35,7 @@ import org.praisenter.Version;
 import org.praisenter.async.AsyncHelper;
 import org.praisenter.async.BackgroundTask;
 import org.praisenter.async.ReadOnlyBackgroundTask;
+import org.praisenter.data.ImportExportFormat;
 import org.praisenter.data.Persistable;
 import org.praisenter.data.bible.Bible;
 import org.praisenter.data.bible.Book;
@@ -41,9 +55,13 @@ import org.praisenter.ui.display.DisplayManager;
 import org.praisenter.ui.display.DisplayTarget;
 import org.praisenter.ui.document.DocumentContext;
 import org.praisenter.ui.events.ActionStateChangedEvent;
+import org.praisenter.ui.themes.Accent;
+import org.praisenter.ui.themes.Theming;
 import org.praisenter.ui.translations.Translations;
+import org.praisenter.utility.MimeType;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
@@ -61,12 +79,14 @@ import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.event.EventHandler;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.IndexRange;
 import javafx.scene.control.TextInputControl;
+import javafx.scene.image.Image;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.DataFormat;
 import javafx.stage.Screen;
@@ -92,12 +112,14 @@ public final class GlobalContext {
 	private final BooleanProperty textSelected;
 	private final Map<Action, BooleanProperty> isActionEnabled;
 	private final Map<Action, BooleanProperty> isActionVisible;
+	private final ObjectProperty<Page> currentPage;
 	
 	// document editing
 	
 	private final ObjectProperty<DocumentContext<? extends Persistable>> currentDocument;
 	private final ObservableList<DocumentContext<? extends Persistable>> openDocuments;
 	private final ObservableList<DocumentContext<? extends Persistable>> openDocumentsReadOnly;
+	private final BooleanProperty snapToGridEnabled;
 	
 	// background task tracking
 	
@@ -122,6 +144,7 @@ public final class GlobalContext {
 	private final ChangeListener<? super Boolean> textSelectedListener;
 	private final InvalidationListener screensListener;
 	private final List<ChangeListener<Number>> fontSizeListeners;
+	private final List<ChangeListener<String>> accentListeners;
 	
 	public GlobalContext(
 			Application application, 
@@ -142,10 +165,12 @@ public final class GlobalContext {
 		
 		this.selectedText = new SimpleStringProperty();
 		this.textSelected = new SimpleBooleanProperty();
+		this.currentPage = new SimpleObjectProperty<>(Page.PRESENT);
 		
 		this.currentDocument = new SimpleObjectProperty<>();
 		this.openDocuments = FXCollections.observableArrayList();
 		this.openDocumentsReadOnly = FXCollections.unmodifiableObservableList(this.openDocuments);
+		this.snapToGridEnabled = new SimpleBooleanProperty(false);
 		
 		this.isActionEnabled = new HashMap<>();
 		this.isActionVisible = new HashMap<>();
@@ -169,6 +194,7 @@ public final class GlobalContext {
 		this.latestVersion = new SimpleObjectProperty<Version>(Version.VERSION);
 		
 		this.fontSizeListeners = new ArrayList<>();
+		this.accentListeners = new ArrayList<>();
 		
 		// bindings
 		
@@ -343,6 +369,9 @@ public final class GlobalContext {
 		for (ChangeListener<Number> listener : this.fontSizeListeners) {
 			this.workspaceManager.getWorkspaceConfiguration().applicationFontSizeProperty().removeListener(listener);
 		}
+		for (ChangeListener<String> listener : this.accentListeners) {
+			this.workspaceManager.getWorkspaceConfiguration().accentNameProperty().removeListener(listener);
+		}
 		
 		// remove bindings
 		this.backgroundTaskExecuting.unbind();
@@ -428,7 +457,7 @@ public final class GlobalContext {
 			case INCREASE_FONT_SIZE:
 				return this.workspaceManager.getWorkspaceConfiguration().getApplicationFontSize() < 22;
 			case DECREASE_FONT_SIZE:
-				return this.workspaceManager.getWorkspaceConfiguration().getApplicationFontSize() > 8;
+				return this.workspaceManager.getWorkspaceConfiguration().getApplicationFontSize() > 10;
 			default:
 				break;
 		}
@@ -513,6 +542,7 @@ public final class GlobalContext {
 			case SLIDE_COMPONENT_MOVE_DOWN:
 			case SLIDE_COMPONENT_MOVE_FRONT:
 			case SLIDE_COMPONENT_MOVE_UP:
+			case SLIDE_COMPONENT_SNAP_TO_GRID:
 				return ap != null && ap.isActionVisible(action);
 			default:
 				return true;
@@ -539,6 +569,9 @@ public final class GlobalContext {
 				return this.createNewSlideAndOpen();
 			case NEW_SONG:
 				return this.createNewSongAndOpen();
+			case SLIDE_COMPONENT_SNAP_TO_GRID:
+				this.snapToGridEnabled.set(!this.snapToGridEnabled.get());
+				return CompletableFuture.completedFuture(null);
 			default:
 				break;
 		}
@@ -590,8 +623,8 @@ public final class GlobalContext {
 	}
 
 	private CompletableFuture<Void> resetApplicationFontSize() {
-		this.workspaceManager.getWorkspaceConfiguration().setApplicationFontSize(12);
-		this.onActionStateChanged("FONT_SIZE_CHANGED=12.0");
+		this.workspaceManager.getWorkspaceConfiguration().setApplicationFontSize(14);
+		this.onActionStateChanged("FONT_SIZE_CHANGED=14.0");
 		return CompletableFuture.completedFuture(null);
 	}
 	
@@ -694,8 +727,10 @@ public final class GlobalContext {
 			final Object position = context.getUndoManager().storePosition();
 			
 			BackgroundTask task = new BackgroundTask();
-			task.setName(Translations.get("task.saving", copy.getName()));
+			task.setName(copy.getName());
 			task.setMessage(Translations.get("task.saving", copy.getName()));
+			task.setOperation(Translations.get("save"));
+			task.setType(this.getFriendlyItemType(copy));
 			this.addBackgroundTask(task);
 			
 			return context.getSaveExecutionManager().execute(() -> {
@@ -739,7 +774,9 @@ public final class GlobalContext {
 	public CompletableFuture<Void> reindex() {
 		BackgroundTask task = new BackgroundTask();
 		task.setName(Translations.get("task.reindex"));
-		task.setMessage(Translations.get("task.reindex"));
+		task.setMessage(Translations.get("task.reindex.description"));
+		task.setOperation(Translations.get("task.reindex"));
+		task.setType("lucene/index");
 		this.addBackgroundTask(task);
 		
 		return this.workspaceManager.reindex().thenRun(() -> {
@@ -772,41 +809,305 @@ public final class GlobalContext {
 		return CompletableFuture.allOf(futures);
 	}
 	
-	public CompletableFuture<Void> importFiles(List<File> files) {
+	public CompletableFuture<List<Throwable>> saveAll(Collection<Persistable> items) {
+		int i = 0;
+		final CompletableFuture<?>[] futures = new CompletableFuture<?>[items.size()];
+		for (Persistable item : items) {
+
+			BackgroundTask task = new BackgroundTask();
+			task.setName(item.getName());
+			task.setMessage(Translations.get("action.paste.task", item.getName()));
+			task.setOperation(Translations.get("action.paste"));
+			task.setType(this.getFriendlyItemType(item));
+			this.addBackgroundTask(task);
+			
+			futures[i++] = this.workspaceManager.create(item).thenRun(() -> {
+				task.setProgress(1.0);
+			}).exceptionally(t -> {
+				LOGGER.error("Failed to paste item '" + item.getName() + "' due to: " + t.getMessage(), t);
+				task.setException(t);
+				throw new CompletionException(t);
+			});
+		}
+		
+		return CompletableFuture.allOf(futures).thenApply((a) -> {
+			List<Throwable> r = new ArrayList<Throwable>();
+			return r;
+		}).exceptionally((t) -> {
+			// log the exception
+			LOGGER.error("Failed to save one or more items (see prior error logs for details)");
+			// get the root exceptions from the futures
+			return AsyncHelper.getExceptions(futures);
+		});
+	}
+
+	public CompletableFuture<Void> saveTags(Persistable p) {
+		BackgroundTask task = new BackgroundTask();
+		task.setName(p.getName());
+		task.setMessage(Translations.get("task.saving.tags", p.getName()));
+		task.setOperation(Translations.get("task.tag.change"));
+		task.setType(MimeType.get(this.workspaceManager.getFilePath(p)));
+		this.addBackgroundTask(task);
+		
+		return this.workspaceManager.update(p).thenRun(() -> {
+			// complete the task
+			task.setProgress(1.0);
+		}).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
+			// update any open document that matches this document (on the UI thread)
+			List<DocumentContext<?>> docs = this.getOpenDocumentsUnmodifiable();
+			for (DocumentContext<?> ctx : docs) {
+				if (ctx.getDocument().identityEquals(p)) {
+					ctx.getDocument().setTags(p.getTags());
+				}
+			}
+		})).exceptionally((t) -> {
+			// handle any error
+			LOGGER.error("Failed to add/remove tag: " + t.getMessage(), t);
+			task.setException(t);
+			if (t instanceof CompletionException) 
+				throw (CompletionException)t;
+			
+			// rethrow for the caller
+			throw new CompletionException(t);
+		});
+	}
+	
+	public CompletableFuture<List<Throwable>> delete(Collection<Persistable> items) {
+		int n = items.size();
+		
+		CompletableFuture<?>[] futures = new CompletableFuture<?>[n];
+		int i = 0;
+		for (Persistable item : items) {
+			BackgroundTask task = new BackgroundTask();
+			task.setName(item.getName());
+			task.setMessage(Translations.get("action.delete.task", item.getName()));
+			task.setOperation(Translations.get("action.delete"));
+			task.setType(this.getFriendlyItemType(item));
+			this.addBackgroundTask(task);
+			
+			futures[i++] = this.workspaceManager.delete(item).thenRun(() -> {
+				task.setProgress(1.0);
+			}).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
+				// close the document if its open
+				this.closeDocument(item);
+			})).exceptionally((t) -> {
+				LOGGER.error("Failed to delete item '" + item.getName() + "': " + t.getMessage(), t);
+				task.setException(t);
+				throw new CompletionException(t);
+			});
+		}
+		
+		return CompletableFuture.allOf(futures).thenApply((a) -> {
+			List<Throwable> r = new ArrayList<Throwable>();
+			return r;
+		}).exceptionally((t) -> {
+			// log the exception
+			LOGGER.error("Failed to delete one or more items (see prior error logs for details)");
+			// get the root exceptions from the futures
+			return AsyncHelper.getExceptions(futures);
+		});
+	}
+	
+	public CompletableFuture<List<Persistable>> importFiles(List<File> files) {
 		if (files == null || files.isEmpty()) {
 			return CompletableFuture.completedFuture(null);
 		}
 		
-		int size = files.size();
-		String btName = Translations.get("action.import.task.multiple", size);
-		if (size == 1) {
-			btName = Translations.get("action.import.task", files.get(0).getName());
-		}
-		
-		final BackgroundTask bt = new BackgroundTask();
-		bt.setName(btName);
-		bt.setMessage(btName);
-		this.addBackgroundTask(bt);
-		
 		List<CompletableFuture<Void>> futures = new ArrayList<>();
+		List<Persistable> results = new ArrayList<>();
 		
 		for (File file : files) {
+			final BackgroundTask bt = new BackgroundTask();
+			bt.setName(file.getAbsolutePath());
+			bt.setMessage(Translations.get("action.import.task", file.getName()));
+			bt.setOperation(Translations.get("action.import"));
+			bt.setType(MimeType.get(file.toPath()));
+			this.addBackgroundTask(bt);
+			
 			LOGGER.info("Beginning import of '{}'", file.toPath().toAbsolutePath().toString());
-			CompletableFuture<Void> future = this.workspaceManager.importData(file.toPath(), Bible.class, Slide.class, Media.class, Song.class).exceptionally(t -> {
+			CompletableFuture<Void> future = this.workspaceManager.importData(file.toPath(), Bible.class, Slide.class, Media.class, Song.class).thenAccept((r) -> {
+				bt.setProgress(1.0);
+				results.addAll(r);
+			}).exceptionally(t -> {
 				LOGGER.error("Failed to import file '" + file.toPath().toAbsolutePath().toString() + "' due to: " + t.getMessage(), t);
-				if (t instanceof CompletionException) throw (CompletionException)t; 
+				bt.setException(t);
+				
+				if (t instanceof CompletionException) 
+					throw (CompletionException)t;
+				
 				throw new CompletionException(t);
 			});
 			futures.add(future);
 		}
 		
-		CompletableFuture<?>[] farray = futures.toArray(new CompletableFuture[0]);
-		return CompletableFuture.allOf(farray).thenRun(() -> {
-			bt.setProgress(1.0);
-		}).exceptionally((ex) -> {
-			bt.setException(ex);
-			if (ex instanceof CompletionException) throw (CompletionException)ex;
-			throw new CompletionException(ex);
+		return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).thenApply((v) -> {
+			return results;
+		});
+	}
+	
+	public CompletableFuture<Persistable> importImage(String name, Image image) {
+		if (image == null) {
+			return CompletableFuture.completedFuture(null);
+		}
+		
+		final BackgroundTask bt = new BackgroundTask();
+		bt.setName(name);
+		bt.setMessage(Translations.get("action.import.task", name));
+		bt.setOperation(Translations.get("action.import"));
+		bt.setType(MimeType.get(name));
+		this.addBackgroundTask(bt);
+		
+		Path tempPath = this.getWorkspaceManager().getWorkspacePathResolver().getBasePath().resolve("temp");
+		Path tempFile = tempPath.resolve(name);
+		
+		LOGGER.info("Beginning import of '{}'", name);
+		return CompletableFuture.supplyAsync(() -> {
+			try {
+				BufferedImage img = SwingFXUtils.fromFXImage(image, null);
+				Files.createDirectories(tempFile);
+				ImageIO.write(img, "png", tempFile.toFile());
+				return tempFile;
+			} catch (IOException e) {
+				LOGGER.error("Failed to write clipboard image to temporary location", e);
+			}
+			return null;
+		}).thenComposeAsync(path -> {
+			if (path != null) {
+				return this.workspaceManager.importData(path, Bible.class, Slide.class, Media.class, Song.class);
+			}
+			return null;
+		}).thenApply(r -> {
+			try {
+				Files.deleteIfExists(tempFile);
+			} catch (Exception ex) {
+				LOGGER.error("Failed to delete the temporary file '" + tempFile.toAbsolutePath() + "'", ex);
+			}
+			
+			if (r != null && r.size() > 0) {
+				return r.get(0);
+			}
+			return null;
+		}).exceptionally(t -> {
+			LOGGER.error("Failed to import '" + name + "' due to: " + t.getMessage(), t);
+			bt.setException(t);
+			
+			try {
+				Files.deleteIfExists(tempFile);
+			} catch (Exception ex) {
+				LOGGER.error("Failed to delete the temporary file '" + tempFile.toAbsolutePath() + "'", ex);
+			}
+			
+			if (t instanceof CompletionException) 
+				throw (CompletionException)t;
+			
+			throw new CompletionException(t);
+		});
+	}
+	
+	public CompletableFuture<Void> export(List<Persistable> items, File file) {
+		BackgroundTask task = new BackgroundTask();
+		task.setName(Translations.get("action.export.task", items.size()));
+		task.setMessage(Translations.get("action.export.task", items.size()));
+		task.setOperation(Translations.get("action.export"));
+		task.setType("application/zip");
+		this.addBackgroundTask(task);
+
+		// get all dependent items
+		Set<UUID> dependencies = new HashSet<>();
+		for (Persistable item : items) {
+			dependencies.addAll(item.getDependencies());
+		}
+		
+		// export the dependencies
+		List<Persistable> dependentItems = dependencies.stream()
+				.map(id -> this.workspaceManager.getPersistableById(id))
+				.collect(Collectors.toList());
+		
+		return CompletableFuture.runAsync(() -> {
+			try(FileOutputStream fos = new FileOutputStream(file);
+				BufferedOutputStream bos = new BufferedOutputStream(fos);
+	    		ZipOutputStream zos = new ZipOutputStream(bos);) {
+				
+				// export the items selected
+				this.workspaceManager.exportData(ImportExportFormat.PRAISENTER3, zos, items);
+				this.workspaceManager.exportData(ImportExportFormat.PRAISENTER3, zos, dependentItems);
+			} catch (Exception ex) {
+				throw new CompletionException(ex);
+			}
+		}).thenRun(() -> {
+			task.setProgress(1.0);
+		}).exceptionally(t -> {
+			// get the root exception
+			Throwable ex = t;
+			if (t instanceof CompletionException) {
+				ex = ex.getCause();
+			}
+			
+			// log the exception
+			LOGGER.error("Failed to export the selected items: " + ex.getMessage(), ex);
+			
+			// update the task
+			task.setException(ex);
+
+			// rethrow
+			if (ex == t) {
+				throw new CompletionException(t);
+			} else {
+				throw (CompletionException)t;
+			}
+		});
+	}
+	
+	public CompletableFuture<Void> rename(Persistable item, String newName) {
+		final String oldName = item.getName();
+		final Persistable copy = item.copy();
+		
+		// go ahead and set the name
+		item.setName(newName);
+		
+		// then attempt to save the renamed item
+		copy.setName(newName);
+		copy.setModifiedDate(Instant.now());
+		
+		BackgroundTask task = new BackgroundTask();
+		task.setName(newName);
+		task.setMessage(Translations.get("action.rename.task", oldName, newName));
+		task.setOperation(Translations.get("action.rename"));
+		task.setType(this.getFriendlyItemType(item));
+		this.addBackgroundTask(task);
+		
+		return this.workspaceManager.update(copy).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
+			// is it open as a document?
+			DocumentContext<? extends Persistable> document = this.getOpenDocument(item);
+			if (document != null) {
+				// if its open, then set the name of the open document (it should be a copy always)
+				document.getDocument().setName(newName);
+			}
+		})).thenRun(() -> {
+			task.setProgress(1.0);
+		}).exceptionally((t) -> {
+			// reset the name back in the case of an exception
+			Platform.runLater(() -> {
+				item.setName(oldName);
+			});
+			
+			Throwable ex = t;
+			if (ex instanceof CompletionException) {
+				ex = t.getCause();
+			}
+			
+			// log the error
+			LOGGER.error("Failed to rename item", ex);
+			
+			// update the task
+			task.setException(ex);
+			
+			// rethrow
+			if (ex == t) {
+				throw new CompletionException(t);
+			} else {
+				throw (CompletionException)t;
+			}
 		});
 	}
 	
@@ -876,6 +1177,29 @@ public final class GlobalContext {
 		};
 		this.fontSizeListeners.add(listener);
 		this.workspaceManager.getWorkspaceConfiguration().applicationFontSizeProperty().addListener(listener);
+	}
+	
+	public void attachAccentHandler(Scene scene) {
+		Node root = scene.getRoot();
+		// set the initial accent color
+		{
+			Accent accent = Theming.getAccent(this.getWorkspaceConfiguration().getAccentName());
+			if (accent != null) {
+				root.pseudoClassStateChanged(accent.getPseudoClass(), true);
+			}
+		}
+		// then setup listener for accent color changes
+		ChangeListener<String> listener = (obs, ov, nv) -> {
+			for (Accent accent : Theming.ACCENTS) {
+				root.pseudoClassStateChanged(accent.getPseudoClass(), false);
+			}
+			Accent accent = Theming.getAccent(nv);
+			if (accent != null) {
+				root.pseudoClassStateChanged(accent.getPseudoClass(), true);
+			}
+		};
+		this.accentListeners.add(listener);
+		this.workspaceManager.getWorkspaceConfiguration().accentNameProperty().addListener(listener);
 	}
 	
 	public Application getApplication() {
@@ -995,6 +1319,7 @@ public final class GlobalContext {
 		// set it to the current document
 		final DocumentContext<? extends Persistable> ctx = context;
 		this.currentDocument.set(ctx);
+		this.currentPage.set(Page.EDITOR);
 	}
 	
 	/**
@@ -1110,5 +1435,47 @@ public final class GlobalContext {
 	
 	public ObjectProperty<Version> latestVersionProperty() {
 		return this.latestVersion;
+	}
+	
+	public Page getCurrentPage() {
+		return this.currentPage.get();
+	}
+	
+	public void setCurrentPage(Page page) {
+		this.currentPage.set(page);
+	}
+	
+	public ObjectProperty<Page> currentPageProperty() {
+		return this.currentPage;
+	}
+
+	public boolean isSnapToGridEnabled() {
+		return this.snapToGridEnabled.get();
+	}
+	
+	public void setSnapToGridEnabled(boolean flag) {
+		this.snapToGridEnabled.set(flag);
+	}
+	
+	public BooleanProperty snapToGridEnabledProperty() {
+		return this.snapToGridEnabled;
+	}
+	
+	public <T extends Persistable> String getFriendlyItemType(T item) {
+		if (item == null)
+			return null;
+		
+		if (item instanceof Bible) {
+			return Translations.get("bible");
+		} else if (item instanceof Song) {
+			return Translations.get("song");
+		} else if (item instanceof Slide) {
+			return Translations.get("slide");
+		} else if (item instanceof Media) {
+			Media m = (Media)item;
+			return m.getMimeType();
+		}
+		
+		return MimeType.get(this.workspaceManager.getFilePath(item));
 	}
 }

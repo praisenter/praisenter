@@ -56,6 +56,7 @@ public final class WorkspaceConfiguration implements ReadOnlyWorkspaceConfigurat
 	
 	private final StringProperty languageTag;
 	private final StringProperty themeName;
+	private final StringProperty accentName;
 	private final DoubleProperty applicationX;
 	private final DoubleProperty applicationY;
 	private final DoubleProperty applicationWidth;
@@ -93,7 +94,8 @@ public final class WorkspaceConfiguration implements ReadOnlyWorkspaceConfigurat
 		this.targetMeanVolume = new SimpleDoubleProperty(MediaConfiguration.DEFAULT_TARGET_MEAN_VOLUME);
 		
 		this.languageTag = new SimpleStringProperty(null);
-		this.themeName = new SimpleStringProperty("flat-dark");
+		this.themeName = new SimpleStringProperty();
+		this.accentName = new SimpleStringProperty();
 		this.applicationX = new SimpleDoubleProperty(POSITION_SIZE_UNSET);
 		this.applicationY = new SimpleDoubleProperty(POSITION_SIZE_UNSET);
 		this.applicationWidth = new SimpleDoubleProperty(POSITION_SIZE_UNSET);
@@ -424,6 +426,22 @@ public final class WorkspaceConfiguration implements ReadOnlyWorkspaceConfigurat
 	@Override
 	public StringProperty themeNameProperty() {
 		return this.themeName;
+	}
+
+	@Override
+	@JsonProperty
+	public String getAccentName() {
+		return this.accentName.get();
+	}
+	
+	@JsonProperty
+	public void setAccentName(String name) {
+		this.accentName.set(name);
+	}
+	
+	@Override
+	public StringProperty accentNameProperty() {
+		return this.accentName;
 	}
 
 	@Override

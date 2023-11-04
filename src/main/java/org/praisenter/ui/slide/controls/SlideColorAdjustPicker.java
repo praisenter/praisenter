@@ -3,22 +3,25 @@ package org.praisenter.ui.slide.controls;
 import org.praisenter.data.slide.effects.SlideColorAdjust;
 import org.praisenter.ui.bind.BindingHelper;
 import org.praisenter.ui.bind.ObjectConverter;
-import org.praisenter.ui.controls.FormFieldSection;
+import org.praisenter.ui.controls.EditorField;
+import org.praisenter.ui.controls.EditorFieldGroup;
+import org.praisenter.ui.controls.IntegerSliderField;
 import org.praisenter.ui.translations.Translations;
 
+import atlantafx.base.controls.ToggleSwitch;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.Slider;
+import javafx.geometry.Pos;
+import javafx.scene.layout.HBox;
 
 // JAVABUG (L) 08/09/17 [workaround] LabelFormatter doesn't give enough control of the labels https://bugs.openjdk.java.net/browse/JDK-8091345
 // JAVABUG (H) 08/09/17 [workaround] The ticks aren't evenly spaced; setting the LabelFormatter seemed to fix it https://bugs.openjdk.java.net/browse/JDK-8164328
 
-public final class SlideColorAdjustPicker extends FormFieldSection {
+public final class SlideColorAdjustPicker extends EditorFieldGroup {
 	private final ObjectProperty<SlideColorAdjust> value = new SimpleObjectProperty<SlideColorAdjust>();
 	
 	private final BooleanProperty enabled;
@@ -33,12 +36,6 @@ public final class SlideColorAdjustPicker extends FormFieldSection {
 	private final ObjectProperty<Double> contrastAsObject;
 	
 	public SlideColorAdjustPicker() {
-		this(null);
-	}
-	
-	public SlideColorAdjustPicker(String label) {
-		super(label);
-		
 		this.enabled = new SimpleBooleanProperty();
 		
 		this.hue = new SimpleDoubleProperty();
@@ -50,30 +47,39 @@ public final class SlideColorAdjustPicker extends FormFieldSection {
 		this.saturationAsObject = this.saturation.asObject();
 		this.brightnessAsObject = this.brightness.asObject();
 		this.contrastAsObject = this.contrast.asObject();
+
+		ToggleSwitch tglEnable = new ToggleSwitch();
+		HBox boxEnable = new HBox(tglEnable);
+		boxEnable.setAlignment(Pos.CENTER_RIGHT);
 		
-		CheckBox enable = new CheckBox();
-		enable.selectedProperty().bindBidirectional(this.enabled);
+		IntegerSliderField sldHue = new IntegerSliderField(-1, 1, 0, 255);
+		IntegerSliderField sldSaturation = new IntegerSliderField(-1, 1, 0, 255);
+		IntegerSliderField sldBrightness = new IntegerSliderField(-1, 1, 0, 255);
+		IntegerSliderField sldContrast = new IntegerSliderField(-1, 1, 0, 255);
 		
-		Slider sldHue = this.buildSlider();
-		Slider sldSaturation = this.buildSlider();
-		Slider sldBrightness = this.buildSlider();
-		Slider sldContrast = this.buildSlider();
+		EditorField fldEnable = new EditorField(Translations.get("slide.coloradjust.enabled"), boxEnable);
+		EditorField fldHue = new EditorField(Translations.get("slide.coloradjust.hue"), sldHue);
+		EditorField fldSaturation = new EditorField(Translations.get("slide.coloradjust.saturation"), sldSaturation);
+		EditorField fldBrightness = new EditorField(Translations.get("slide.coloradjust.brightness"), sldBrightness);
+		EditorField fldContrast = new EditorField(Translations.get("slide.coloradjust.contrast"), sldContrast);
 		
-		int fIndex = this.addField(Translations.get("slide.coloradjust.enabled"), enable);
-		this.addField(Translations.get("slide.coloradjust.hue"), sldHue);
-		this.addField(Translations.get("slide.coloradjust.saturation"), sldSaturation);
-		this.addField(Translations.get("slide.coloradjust.brightness"), sldBrightness);
-		this.addField(Translations.get("slide.coloradjust.contrast"), sldContrast);
+		fldHue.visibleProperty().bind(this.enabled);
+		fldHue.managedProperty().bind(fldHue.visibleProperty());
+		fldSaturation.visibleProperty().bind(this.enabled);
+		fldSaturation.managedProperty().bind(fldSaturation.visibleProperty());
+		fldBrightness.visibleProperty().bind(this.enabled);
+		fldBrightness.managedProperty().bind(fldBrightness.visibleProperty());
+		fldContrast.visibleProperty().bind(this.enabled);
+		fldContrast.managedProperty().bind(fldContrast.visibleProperty());
 		
-		this.showRowsOnly(fIndex);
-		this.enabled.addListener((obs, ov, nv) -> {
-			if (nv) {
-				this.showRows(fIndex, fIndex + 1, fIndex + 2, fIndex + 3, fIndex + 4);
-			} else {
-				this.showRowsOnly(fIndex);
-			}
-		});
+		this.getChildren().addAll(
+				fldEnable,
+				fldHue,
+				fldSaturation,
+				fldBrightness,
+				fldContrast);
 		
+		tglEnable.selectedProperty().bindBidirectional(this.enabled);
 		sldHue.valueProperty().bindBidirectional(this.hue);
 		sldSaturation.valueProperty().bindBidirectional(this.saturation);
 		sldBrightness.valueProperty().bindBidirectional(this.brightness);
@@ -150,20 +156,6 @@ public final class SlideColorAdjustPicker extends FormFieldSection {
 			return adjust;
 		}
 		return null;
-	}
-	
-	private Slider buildSlider() {
-		Slider slider = new Slider(-1, 1, 0);
-		
-//		slider.setMajorTickUnit(0.2);
-//		slider.setMinorTickCount(0);
-//		slider.setShowTickMarks(true);
-//		slider.setShowTickLabels(true);
-//		slider.setLabelFormatter(SLIDER_FORMATTER);
-//		slider.setBlockIncrement(0.2);
-//		slider.setMinWidth(300);
-		
-		return slider;
 	}
 	
 	public void setValue(SlideColorAdjust value) {

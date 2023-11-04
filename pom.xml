@@ -61,7 +61,9 @@
          https://docs.oracle.com/en/java/javase/15/docs/api/java.base/java/text/SimpleDateFormat.html
          -->
         <maven.build.timestamp.format>yy.w.WWkkmm</maven.build.timestamp.format>
-        <app.version>${maven.build.timestamp}</app.version>
+        
+        <!-- This should be replaced by the build profile -->
+        <app.version>1.0.0</app.version>
 
 		<!-- This property is used to specify the modules included in the (custom) JVM image. -->
         <!-- Reminder: javafx.web (the embedded browser component) is not included in this project by default due
@@ -72,11 +74,11 @@
         <!-- Set the project to UTF-8, avoiding warnings in the build logs -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <maven.compiler.source>16</maven.compiler.source>
-        <maven.compiler.target>16</maven.compiler.target>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
 
         <!-- Used to set both the path to find the JavaFX modules and also the versions for Maven dependencies -->
-        <javafx.version>16</javafx.version>
+        <javafx.version>21</javafx.version>
 
         <!-- Replace this UUID with a custom one for your project. This ID is used by the Windows installer system
         to know that an installer is intended to replace/upgrade an earlier version. The easiest thing to do is
@@ -85,6 +87,10 @@
         
         <!-- This is used to set many user-visible fields in the Windows Installer. See win-jpackage.txt -->
         <app.vendor>Praisenter</app.vendor>
+        
+        <!-- Empty properties to skip signing by default. Set with the macos-sign Maven profile -->
+        <macos.sign></macos.sign>
+        <macos.sign.identity></macos.sign.identity>
 	</properties>
 
 	<dependencies>
@@ -97,57 +103,52 @@
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
-			<version>2.7</version>
+			<version>2.14.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-api</artifactId>
-			<version>2.17.2</version>
+			<version>2.20.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-core</artifactId>
-			<version>2.17.2</version>
-		</dependency>
-		<dependency>
-			<groupId>org.controlsfx</groupId>
-			<artifactId>controlsfx</artifactId>
-			<version>11.1.0</version>
+			<version>2.20.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.drewnoakes</groupId>
 			<artifactId>metadata-extractor</artifactId>
-			<version>2.17.0</version>
+			<version>2.18.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
-			<version>3.9</version>
+			<version>3.13.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-jpeg</artifactId>
-			<version>3.7.0</version>
+			<version>3.9.3</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-tiff</artifactId>
-			<version>3.7.0</version>
+			<version>3.9.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.tika</groupId>
 			<artifactId>tika-core</artifactId>
-			<version>1.22</version>
+			<version>2.9.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
-			<version>2.14.0-rc1</version>
+			<version>2.15.3</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.pdfbox</groupId>
 			<artifactId>pdfbox</artifactId>
-			<version>2.0.24</version>
+			<version>2.0.29</version>
 		</dependency>
 		<dependency>
 			<groupId>com.sun.activation</groupId>
@@ -157,31 +158,31 @@
 		<dependency>
 			<groupId>org.openjfx</groupId>
 			<artifactId>javafx-base</artifactId>
-			<version>17.0.1</version>
+			<version>21</version>
 			<classifier>${jfx.platform}</classifier>
 		</dependency>
 		<dependency>
 			<groupId>org.openjfx</groupId>
 			<artifactId>javafx-controls</artifactId>
-			<version>17.0.1</version>
+			<version>21</version>
 			<classifier>${jfx.platform}</classifier>
 		</dependency>
 		<dependency>
 			<groupId>org.openjfx</groupId>
 			<artifactId>javafx-media</artifactId>
-			<version>17.0.1</version>
+			<version>21</version>
 			<classifier>${jfx.platform}</classifier>
 		</dependency>
 		<dependency>
 			<groupId>org.openjfx</groupId>
 			<artifactId>javafx-swing</artifactId>
-			<version>17.0.1</version>
+			<version>21</version>
 			<classifier>${jfx.platform}</classifier>
 		</dependency>
 		<dependency>
 			<groupId>org.openjfx</groupId>
 			<artifactId>javafx-web</artifactId>
-			<version>17.0.1</version>
+			<version>21</version>
 			<classifier>${jfx.platform}</classifier>
 		</dependency>
 		<dependency>
@@ -192,17 +193,42 @@
 		<dependency>
 			<groupId>org.apache.lucene</groupId>
 			<artifactId>lucene-core</artifactId>
-			<version>8.8.2</version>
+			<version>9.8.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.lucene</groupId>
 			<artifactId>lucene-memory</artifactId>
-			<version>8.8.2</version>
+			<version>9.8.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.lucene</groupId>
 			<artifactId>lucene-highlighter</artifactId>
-			<version>8.8.2</version>
+			<version>9.8.0</version>
+		</dependency>
+		<dependency>
+			<groupId>io.github.mkpaz</groupId>
+			<artifactId>atlantafx-base</artifactId>
+			<version>2.0.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.lucene</groupId>
+			<artifactId>lucene-queries</artifactId>
+			<version>9.8.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.lucene</groupId>
+			<artifactId>lucene-backward-codecs</artifactId>
+			<version>9.8.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-slf4j2-impl</artifactId>
+			<version>2.20.0</version>
+		</dependency>
+		<dependency>
+		    <groupId>org.apache.commons</groupId>
+		    <artifactId>commons-compress</artifactId>
+		    <version>1.24.0</version>
 		</dependency>
 	</dependencies>
 
@@ -217,28 +243,42 @@
                 <includes>
                 	<include>${platform}/**/*.*</include>
                 </includes>
+                <excludes>
+                	<exclude>${platform}/**/*.jmod</exclude>
+                </excludes>
+            </resource>
+            <resource>
+                <!-- Here we are processing the platform-specific jpackage command files, adding in Maven
+                 properties for configuration. -->
+                <directory>${project.basedir}/package</directory>
+                <targetPath>${project.build.directory}/packaging</targetPath>
+                <includes>
+                	<include>${platform}/**/*.jmod</include>
+                </includes>
             </resource>
             <!-- Add the default resource path back in - by overriding above it disables the default -->
             <resource>
                 <directory>${project.basedir}/src/main/resources</directory>
                 <includes>
-                	<include>org/praisenter/**/**</include>
-                	<include>org/praisenter/data/media/*</include>
-                	<include>org/praisenter/data/media/tools/${platform}</include>
+                	<include>META-INF/**/**</include>
+                	<include>org/praisenter/config/*</include>
+                	<include>org/praisenter/data/*</include>
+                	<include>org/praisenter/images/*</include>
+                	<include>org/praisenter/logo/*</include>
+                	<include>org/praisenter/styles/*</include>
+                	<include>org/praisenter/translations/*</include>
+                	<include>org/praisenter/data/media/tools/${platform}/*</include>
                 </includes>
-                <excludes>
-                	<exclude>org/praisenter/data/media/tools</exclude>
-                </excludes>
             </resource>
         </resources>
 	
-	<plugins>
+		<plugins>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>16</source>
-                    <target>16</target>
-                    <release>16</release>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.target}</target>
+                    <release>${maven.compiler.target}</release>
                 </configuration>
             </plugin>
             <plugin>
@@ -262,6 +302,8 @@
                             <goal>copy-dependencies</goal>
                         </goals>
                         <configuration>
+                        	<!-- Include only compile stage dependencies (no test dependencies) -->
+                            <includeScope>compile</includeScope>
                             <!-- The JavaFX libraries are bundled into the custom JVM, so we don't want to duplicate
                             them in the bundled app and installer. This command skips all of the JavaFX by groupId. -->
                             <excludeGroupIds>org.openjfx</excludeGroupIds>
@@ -282,7 +324,7 @@
                 <!-- Plugin to make working with JavaFX nicer. See https://github.com/openjfx/javafx-maven-plugin -->
                 <groupId>org.openjfx</groupId>
                 <artifactId>javafx-maven-plugin</artifactId>
-                <version>0.0.5</version>
+                <version>0.0.8</version>
                 <configuration>
                     <mainClass>${main-class}</mainClass>
                 </configuration>
@@ -304,8 +346,7 @@
                         <configuration>
                             <toolName>jlink</toolName>
                             <removeDirectories>${project.build.directory}/jvm-image/</removeDirectories>
-                            <modulePath>${project.basedir}/package/${platform}/jmods/
-                            </modulePath>
+                            <modulePath>${project.basedir}/package/${platform}/jmods/</modulePath>
                             <addModules>${jvm.modules}</addModules>
                             <output>${project.build.directory}/jvm-image</output>
                             <args>
@@ -313,7 +354,6 @@
                                 <arg>--no-header-files</arg>
                                 <arg>--strip-debug</arg>
                                 <arg>--no-man-pages</arg>
-                                <arg>--compress=2</arg>
                             </args>
                         </configuration>
                     </execution>
@@ -331,6 +371,9 @@
                         </goals>
                         <configuration>
                             <toolName>jpackage</toolName>
+                            <writeOutputToLog>true</writeOutputToLog>
+                            <writeErrorsToLog>true</writeErrorsToLog>
+                            <failOnError>true</failOnError>
                             <removeDirectories>${project.build.directory}/installer-work</removeDirectories>
                             <args>@${project.build.directory}/packaging/${platform}/jpackage.args</args>
                         </configuration>
@@ -343,17 +386,17 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-clean-plugin</artifactId>
-                    <version>3.1.0</version>
+                    <version>3.2.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.8.1</version>
+                    <version>3.10.1</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-dependency-plugin</artifactId>
-                    <version>3.1.2</version>
+                    <version>3.3.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -363,7 +406,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-jar-plugin</artifactId>
-                    <version>3.2.0</version>
+                    <version>3.2.2</version>
                 </plugin>
                 <!-- 
                 <plugin>
@@ -375,18 +418,18 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-resources-plugin</artifactId>
-                    <version>3.1.0</version>
+                    <version>3.2.0</version>
                 </plugin>
 
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-site-plugin</artifactId>
-                    <version>3.9.1</version>
+                    <version>4.0.0-M1</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>3.0.0-M5</version>
+                    <version>3.0.0-M7</version>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -413,6 +456,30 @@
 	</build>
 	
 	 <profiles>
+         <profile>
+            <id>GitHub Run</id>
+            <activation>
+                <property>
+                    <name>env.GITHUB_ACTIONS</name>
+                </property>
+            </activation>
+            <properties>
+                <!--suppress UnresolvedMavenProperty -->
+                <app.version>3.1.${env.GITHUB_RUN_NUMBER}</app.version>
+            </properties>
+        </profile>
+        <profile>
+            <id>Local Development Run</id>
+            <activation>
+                <property>
+                    <name>!env.GITHUB_ACTIONS</name>
+                </property>
+            </activation>
+            <properties>
+                <app.version>3.1.0</app.version>
+            </properties>
+        </profile>
+        
         <!-- We use the built-in Maven profile activation system to set the platform property.
         These properties are then use to build the directory paths to the platform specific resources.
         It would be great if Maven automatically added the os family as a property by default
@@ -429,6 +496,7 @@
                 <jfx.platform>linux</jfx.platform>
             </properties>
         </profile>
+        
         <profile>
             <id>windows-active</id>
             <activation>
@@ -440,8 +508,8 @@
                 <platform>windows64</platform>
                 <jfx.platform>win</jfx.platform>
             </properties>
-
         </profile>
+        
         <profile>
             <id>mac-active</id>
             <activation>
@@ -452,7 +520,27 @@
             <properties>
                 <platform>macos64</platform>
                 <jfx.platform>mac</jfx.platform>
+                <macos.sign>--mac-sign</macos.sign>
+                <!-- You will have to replace this with your own dev information from your Apple identity -->
+                <macos.sign.identity>--mac-signing-key-user-name "Company Name, Inc. (BXPXTXC35S)"</macos.sign.identity>
             </properties>
         </profile>
+        
+         <profile>
+            <id>m1-active</id>
+            <activation>
+                <os>
+                    <family>mac</family>
+                </os>
+            </activation>
+            <properties>
+                <platform>macaarch64</platform>
+                <jfx.platform>mac-aarch64</jfx.platform>
+                <macos.sign>--mac-sign</macos.sign>
+                <!-- You will have to replace this with your own dev information from your Apple identity -->
+                <macos.sign.identity>--mac-signing-key-user-name "Company Name, Inc. (BXPXTXC35S)"</macos.sign.identity>
+            </properties>
+        </profile>
+	        
     </profiles>
 </project>

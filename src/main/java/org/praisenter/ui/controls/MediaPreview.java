@@ -26,22 +26,28 @@ package org.praisenter.ui.controls;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.controlsfx.glyphfont.Glyph;
-import org.praisenter.ui.Glyphs;
+import org.praisenter.ui.Icons;
 import org.praisenter.ui.Playable;
 
+import atlantafx.base.controls.Popover;
+import atlantafx.base.controls.Popover.ArrowLocation;
+import atlantafx.base.controls.ProgressSliderSkin;
+import atlantafx.base.theme.Styles;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
+import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
 import javafx.scene.media.MediaException;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaPlayer.Status;
@@ -67,10 +73,10 @@ public final class MediaPreview extends BorderPane implements Playable {
     // since we are toggling them back and forth, lets use the
     // same glyph nodes for better memory usage and performance
     
-    private final Glyph play = Glyphs.PLAYER_PLAY.duplicate();
-    private final Glyph pause = Glyphs.PLAYER_PAUSE.duplicate();
-    private final Glyph mute = Glyphs.PLAYER_VOLUME_MUTE.duplicate();
-    private final Glyph control = Glyphs.PLAYER_VOLUME_CONTROL.duplicate();
+    private final Node play = Icons.getIcon(Icons.PLAY);
+    private final Node pause = Icons.getIcon(Icons.PAUSE);
+    private final Node mute = Icons.getIcon(Icons.MUTE);
+    private final Node volume = Icons.getIcon(Icons.VOLUME);
     
     /**
      * Default constructor.
@@ -96,9 +102,12 @@ public final class MediaPreview extends BorderPane implements Playable {
         btnPlay.setOnAction(e -> {
         	this.play(true);
         });
+        btnPlay.getStyleClass().addAll(Styles.BUTTON_ICON, Styles.FLAT);
 
         // time slider
         Slider sldTime = new Slider();
+        sldTime.getStyleClass().add(Styles.SMALL);
+        sldTime.setSkin(new ProgressSliderSkin(sldTime));
         sldTime.setMin(0);
         sldTime.setMax(100);
         sldTime.setValue(0);
@@ -122,26 +131,22 @@ public final class MediaPreview extends BorderPane implements Playable {
         lblTime.setMinWidth(Label.USE_PREF_SIZE);
 
         // mute button
-        Button btnMute = new Button("", this.control);
-        btnMute.setOnAction((e) -> {
-        	MediaPlayer player = mediaView.getMediaPlayer();
-        	if (player == null) return;
-        	// toggle mute state
-        	if (player.isMute()) {
-        		player.setMute(false);
-        	} else {
-        		player.setMute(true);
+        ToggleButton btnMute = new ToggleButton("", this.mute);
+        mediaView.mediaPlayerProperty().addListener((obs, ov, nv) -> {
+        	btnMute.selectedProperty().unbind();
+        	if (nv != null) {
+        		btnMute.selectedProperty().bindBidirectional(nv.muteProperty());
         	}
         });
         
         // volume slider
         Slider sldVolume = new Slider();
+        sldVolume.getStyleClass().add(Styles.SMALL);
+        sldVolume.setSkin(new ProgressSliderSkin(sldVolume));
+        sldVolume.setOrientation(Orientation.VERTICAL);
         sldVolume.setMin(0.0);
         sldVolume.setMax(1.0);
         sldVolume.setValue(0.5);
-        sldVolume.setPrefWidth(70);
-        sldVolume.setMaxWidth(Region.USE_PREF_SIZE);
-        sldVolume.setMinWidth(50);
         sldVolume.valueProperty().addListener((obs) -> {
         	MediaPlayer player = mediaView.getMediaPlayer();
             if (player != null && sldVolume.isValueChanging()) {
@@ -149,7 +154,17 @@ public final class MediaPreview extends BorderPane implements Playable {
             }
         });
         
-        controlsBar.getChildren().addAll(btnPlay, sldTime, lblTime, btnMute, sldVolume);
+        Button btnVolume = new Button("", this.volume);
+        btnVolume.getStyleClass().addAll(Styles.BUTTON_ICON, Styles.FLAT);
+        VBox volumeLayout = new VBox(5, btnMute, sldVolume);
+        volumeLayout.setAlignment(Pos.TOP_CENTER);
+        Popover popVolume = new Popover(volumeLayout);
+        popVolume.setArrowLocation(ArrowLocation.TOP_CENTER);
+        btnVolume.setOnAction(e -> {
+        	popVolume.show(btnVolume);
+        });
+        
+        controlsBar.getChildren().addAll(btnPlay, sldTime, lblTime, btnVolume);
         controlsBar.setDisable(true);
 		
         this.setBottom(controlsBar);
@@ -184,14 +199,12 @@ public final class MediaPreview extends BorderPane implements Playable {
         	controlsBar.disableProperty().unbind();
         	btnPlay.graphicProperty().unbind();
         	lblTime.textProperty().unbind();
-        	btnMute.graphicProperty().unbind();
         	
         	this.duration.set(Duration.ZERO);
         	controlsBar.setDisable(true);
         	btnPlay.setGraphic(this.play);
         	lblTime.setText(this.formatTime(Duration.ZERO));
         	sldTime.setValue(0);
-        	btnMute.setGraphic(this.control);
         	sldVolume.setValue(0.5);
         	
         	if (nv != null) {
@@ -216,11 +229,6 @@ public final class MediaPreview extends BorderPane implements Playable {
         			Duration currentTime = nv.getCurrentTime();
         			return this.formatTime(currentTime);
         		}, nv.currentTimeProperty(), nv.cycleDurationProperty()));
-        		
-        		btnMute.graphicProperty().bind(Bindings.createObjectBinding(() -> {
-        			boolean isMuted = nv.isMute();
-        			return isMuted ? this.mute : this.control;
-        		}, nv.muteProperty()));
         		
         		nv.volumeProperty().bindBidirectional(sldVolume.valueProperty());
         		nv.setOnEndOfMedia(onEndOfMedia);

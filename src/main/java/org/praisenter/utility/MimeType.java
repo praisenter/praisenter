@@ -116,9 +116,10 @@ public enum MimeType {
 				return TIKA.detect(stream, fileName);
 			}
 		} catch (Exception ex) {
-			LOGGER.warn("Failed to detect mime type of input stream using Tika.", ex);
+			LOGGER.warn("Failed to detect mime type of input stream and name '" + fileName + "' using Tika.", ex);
+			// fallback to detection by name
+			return get(fileName);
 		}
-		return null;
 	}
 	
 	/**

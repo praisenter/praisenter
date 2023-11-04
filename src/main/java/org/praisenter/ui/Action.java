@@ -2,141 +2,86 @@ package org.praisenter.ui;
 
 import java.util.function.Supplier;
 
-import org.controlsfx.glyphfont.Glyph;
+//import org.controlsfx.glyphfont.Glyph;
 import org.praisenter.utility.RuntimeProperties;
 
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
-import javafx.scene.shape.SVGPath;
 
 public enum Action {
-	SAVE("action.save", new KeyCodeCombination(KeyCode.S, KeyCombination.SHORTCUT_DOWN), () -> Glyphs.SAVE.duplicate()),
-	SAVE_ALL("action.saveall", new KeyCodeCombination(KeyCode.S, KeyCombination.SHIFT_DOWN, KeyCombination.SHORTCUT_DOWN), () -> {
-		StackPane stack = new StackPane();
-		StackPane pane = new StackPane(Glyphs.SAVE.duplicate());
-		pane.setTranslateX(3);
-		pane.setTranslateY(1);
-		
-		stack.setTranslateX(-3);
-		stack.setTranslateY(-1);
-		
-		SVGPath path = new SVGPath();
-		path.setContent("M0,0 L10,0 L10,1 L1,1 L1,12 L0,12 Z");
-		path.getStyleClass().add("p-save-all-adder");
-
-		stack.getChildren().addAll(path, pane);
-		return stack;
-	}),
-	RENAME("action.rename", new KeyCodeCombination(KeyCode.R, KeyCombination.SHORTCUT_DOWN), () -> Glyphs.RENAME.duplicate()),
-	DELETE("action.delete", new KeyCodeCombination(KeyCode.DELETE), () -> Glyphs.DELETE.duplicate().color(Color.RED)),
+	SAVE("action.save", new KeyCodeCombination(KeyCode.S, KeyCombination.SHORTCUT_DOWN), getGraphicSupplier(Icons.SAVE)),
+	SAVE_ALL("action.saveall", new KeyCodeCombination(KeyCode.S, KeyCombination.SHIFT_DOWN, KeyCombination.SHORTCUT_DOWN), getGraphicSupplier(Icons.SAVE_ALL)),
+	RENAME("action.rename", new KeyCodeCombination(KeyCode.R, KeyCombination.SHORTCUT_DOWN), getGraphicSupplier(Icons.RENAME)),
+	DELETE("action.delete", new KeyCodeCombination(KeyCode.DELETE), getGraphicSupplier(Icons.DELETE)),
 	
 	OPEN("action.open"),
-	UNDO("action.undo", new KeyCodeCombination(KeyCode.Z, KeyCombination.SHORTCUT_DOWN), () -> Glyphs.UNDO.duplicate()),
+	UNDO("action.undo", new KeyCodeCombination(KeyCode.Z, KeyCombination.SHORTCUT_DOWN), getGraphicSupplier(Icons.UNDO)),
 	REDO("action.redo", RuntimeProperties.IS_WINDOWS_OS
 			// windows
 			? new KeyCodeCombination(KeyCode.Y, KeyCombination.SHORTCUT_DOWN)
 			// mac/ubuntu
-			: new KeyCodeCombination(KeyCode.Z, KeyCombination.SHORTCUT_DOWN, KeyCombination.SHIFT_DOWN), () -> Glyphs.REDO.duplicate()),
+			: new KeyCodeCombination(KeyCode.Z, KeyCombination.SHORTCUT_DOWN, KeyCombination.SHIFT_DOWN), getGraphicSupplier(Icons.REDO)),
 	
-	COPY("action.copy", new KeyCodeCombination(KeyCode.C, KeyCombination.SHORTCUT_DOWN), () -> Glyphs.COPY.duplicate()),
-	CUT("action.cut", new KeyCodeCombination(KeyCode.X, KeyCombination.SHORTCUT_DOWN), () -> Glyphs.CUT.duplicate()),
-	PASTE("action.paste", new KeyCodeCombination(KeyCode.V, KeyCombination.SHORTCUT_DOWN), () -> Glyphs.PASTE.duplicate()),
+	COPY("action.copy", new KeyCodeCombination(KeyCode.C, KeyCombination.SHORTCUT_DOWN), getGraphicSupplier(Icons.COPY)),
+	CUT("action.cut", new KeyCodeCombination(KeyCode.X, KeyCombination.SHORTCUT_DOWN), getGraphicSupplier(Icons.CUT)),
+	PASTE("action.paste", new KeyCodeCombination(KeyCode.V, KeyCombination.SHORTCUT_DOWN), getGraphicSupplier(Icons.PASTE)),
 	
-	SELECT_ALL("action.select.all", new KeyCodeCombination(KeyCode.A, KeyCombination.SHORTCUT_DOWN), () -> Glyphs.SELECT_ALL.duplicate()),
-	SELECT_NONE("action.select.none", () -> Glyphs.SELECT_NONE.duplicate()),
-	SELECT_INVERT("action.select.invert", () -> Glyphs.SELECT_INVERT.duplicate()),
+	SELECT_ALL("action.select.all", new KeyCodeCombination(KeyCode.A, KeyCombination.SHORTCUT_DOWN), getGraphicSupplier(Icons.SELECT_ALL)),
+	SELECT_NONE("action.select.none", getGraphicSupplier(Icons.SELECT_NONE)),
+	SELECT_INVERT("action.select.invert", getGraphicSupplier(Icons.SELECT_INVERT)),
 
-	IMPORT("action.import", () -> Glyphs.IMPORT.duplicate()),
-	EXPORT("action.export", () -> Glyphs.EXPORT.duplicate()),
+	IMPORT("action.import", getGraphicSupplier(Icons.IMPORT)),
+	EXPORT("action.export", getGraphicSupplier(Icons.EXPORT)),
 	
 	BULK_EDIT_BEGIN("action.edit.bulk"),
 	
 	// application
 	
 	REINDEX("action.workspace.reindex"),
-	ABOUT("action.about", () -> Glyphs.MENU_ABOUT.duplicate()),
-	INCREASE_FONT_SIZE("action.font.increase", new KeyCodeCombination(KeyCode.EQUALS, KeyCombination.SHORTCUT_DOWN)),
-	DECREASE_FONT_SIZE("action.font.decrease", new KeyCodeCombination(KeyCode.MINUS, KeyCombination.SHORTCUT_DOWN)),
+	ABOUT("action.about", getGraphicSupplier(Icons.INFO)),
+	INCREASE_FONT_SIZE("action.font.increase", new KeyCodeCombination(KeyCode.EQUALS, KeyCombination.SHORTCUT_DOWN), getGraphicSupplier(Icons.ZOOM_IN)),
+	DECREASE_FONT_SIZE("action.font.decrease", new KeyCodeCombination(KeyCode.MINUS, KeyCombination.SHORTCUT_DOWN), getGraphicSupplier(Icons.ZOOM_OUT)),
 	RESET_FONT_SIZE("action.font.reset", new KeyCodeCombination(KeyCode.NUMPAD0, KeyCombination.SHORTCUT_DOWN)),
 	APPLICATION_LOGS("action.application.logs"),
 	WORKSPACE_LOGS("action.workspace.logs"),
 	EXIT("action.exit"),
 	RESTART("action.restart"),
-	CHECK_FOR_UPDATE("action.update.check", () -> Glyphs.CHECK_FOR_UPDATE.duplicate()),
+	CHECK_FOR_UPDATE("action.update.check", getGraphicSupplier(Icons.UPDATE)),
 	
 	// bible
 	
-	NEW_BIBLE("action.new.bible", new KeyCodeCombination(KeyCode.B, KeyCombination.SHORTCUT_DOWN, KeyCombination.ALT_DOWN), getGraphicSupplierForNew(Glyphs.NEW_BIBLE)),
-	NEW_BOOK("action.new.bible.book", getGraphicSupplierForNew(Glyphs.NEW_BOOK)),
-	NEW_CHAPTER("action.new.bible.chapter", getGraphicSupplierForNew(Glyphs.NEW_CHAPTER)),
-	NEW_VERSE("action.new.bible.verse", getGraphicSupplierForNew(Glyphs.NEW_VERSE)),
-	RENUMBER("action.renumber", () -> Glyphs.RENUMBER.duplicate()),
-	REORDER("action.reorder", () -> Glyphs.REORDER.duplicate()),
+	NEW_BIBLE("action.new.bible", new KeyCodeCombination(KeyCode.B, KeyCombination.SHORTCUT_DOWN, KeyCombination.ALT_DOWN), getGraphicSupplier(Icons.BIBLE_ADD)),
+	NEW_BOOK("action.new.bible.book", getGraphicSupplier(Icons.BOOK_ADD)),
+	NEW_CHAPTER("action.new.bible.chapter", getGraphicSupplier(Icons.BOOKMARK_ADD)),
+	NEW_VERSE("action.new.bible.verse", getGraphicSupplier(Icons.VERSE_ADD)),
+	RENUMBER("action.renumber", getGraphicSupplier(Icons.RENUMBER)),
+	REORDER("action.reorder", getGraphicSupplier(Icons.REORDER)),
 	
 	// slide
 	
-	NEW_SLIDE("action.new.slide", new KeyCodeCombination(KeyCode.S, KeyCombination.SHORTCUT_DOWN, KeyCombination.ALT_DOWN), getGraphicSupplierForNew(Glyphs.NEW_SLIDE)),
-	NEW_SLIDE_TEXT_COMPONENT("action.new.slide.component.text", getGraphicSupplierForNew(Glyphs.NEW_TEXT_COMPONENT)),
-	NEW_SLIDE_MEDIA_COMPONENT("action.new.slide.component.media", getGraphicSupplierForNew(Glyphs.NEW_MEDIA_COMPONENT)),
-	NEW_SLIDE_DATETIME_COMPONENT("action.new.slide.component.datetime", getGraphicSupplierForNew(Glyphs.NEW_DATETIME_COMPONENT)),
-	NEW_SLIDE_PLACEHOLDER_COMPONENT("action.new.slide.component.placeholder", getGraphicSupplierForNew(Glyphs.NEW_PLACEHOLDER_COMPONENT)),
-	NEW_SLIDE_COUNTDOWN_COMPONENT("action.new.slide.component.countdown", getGraphicSupplierForNew(Glyphs.NEW_COUNTDOWN_COMPONENT)),
-	SLIDE_COMPONENT_MOVE_BACK("action.stacking.back", new KeyCodeCombination(KeyCode.CLOSE_BRACKET, KeyCombination.SHIFT_DOWN, KeyCombination.SHORTCUT_DOWN), () -> {
-		Rectangle back1 = new Rectangle(5, 5, 10, 10);
-		Rectangle back2 = new Rectangle(3, 3, 10, 10);
-		Rectangle back3 = new Rectangle(1, 1, 10, 10);
-		back1.setFill(Color.DARKGRAY);
-		back2.setFill(Color.GRAY);
-		back3.setFill(Color.BLUE);
-		back1.setSmooth(false);
-		back2.setSmooth(false);
-		back3.setSmooth(false);
-		return new Pane(back3, back2, back1);
-	}),
-	SLIDE_COMPONENT_MOVE_FRONT("action.stacking.front", new KeyCodeCombination(KeyCode.OPEN_BRACKET, KeyCombination.SHIFT_DOWN, KeyCombination.SHORTCUT_DOWN), () -> {
-		Rectangle front1 = new Rectangle(1, 1, 10, 10);
-		Rectangle front2 = new Rectangle(3, 3, 10, 10);
-		Rectangle front3 = new Rectangle(5, 5, 10, 10);
-		front1.setFill(Color.DARKGRAY);
-		front2.setFill(Color.GRAY);
-		front3.setFill(Color.BLUE);
-		front1.setSmooth(false);
-		front2.setSmooth(false);
-		front3.setSmooth(false);
-		return new Pane(front1, front2, front3);
-	}),
-	SLIDE_COMPONENT_MOVE_UP("action.stacking.up", new KeyCodeCombination(KeyCode.OPEN_BRACKET, KeyCombination.SHORTCUT_DOWN), () -> {
-		Rectangle upr1 = new Rectangle(1, 1, 10, 10);
-		Rectangle upr2 = new Rectangle(5, 5, 10, 10);
-		upr1.setFill(Color.GRAY);
-		upr2.setFill(Color.BLUE);
-		upr1.setSmooth(false);
-		return new Pane(upr1, upr2);
-	}),
-	SLIDE_COMPONENT_MOVE_DOWN("action.stacking.down", new KeyCodeCombination(KeyCode.CLOSE_BRACKET, KeyCombination.SHORTCUT_DOWN), () -> {
-		Rectangle downr1 = new Rectangle(1, 1, 10, 10);
-		Rectangle downr2 = new Rectangle(5, 5, 10, 10);
-		downr1.setFill(Color.BLUE);
-		downr2.setFill(Color.GRAY);
-		downr2.setSmooth(false);
-		return new Pane(downr1, downr2);
-	}),
+	NEW_SLIDE("action.new.slide", new KeyCodeCombination(KeyCode.S, KeyCombination.SHORTCUT_DOWN, KeyCombination.ALT_DOWN), getGraphicSupplier(Icons.DESKTOP_ADD)),
+	NEW_SLIDE_TEXT_COMPONENT("action.new.slide.component.text", getGraphicSupplier(Icons.TEXT_ADD)),
+	NEW_SLIDE_MEDIA_COMPONENT("action.new.slide.component.media", getGraphicSupplier(Icons.MEDIA_ADD)),
+	NEW_SLIDE_DATETIME_COMPONENT("action.new.slide.component.datetime", getGraphicSupplier(Icons.CALENDAR_ADD)),
+	NEW_SLIDE_PLACEHOLDER_COMPONENT("action.new.slide.component.placeholder", getGraphicSupplier(Icons.PLACEHOLDER_ADD)),
+	NEW_SLIDE_COUNTDOWN_COMPONENT("action.new.slide.component.countdown", getGraphicSupplier(Icons.TIMER_ADD)),
+	
+	SLIDE_COMPONENT_MOVE_BACK("action.stacking.back", new KeyCodeCombination(KeyCode.CLOSE_BRACKET, KeyCombination.SHIFT_DOWN, KeyCombination.SHORTCUT_DOWN), getGraphicSupplier(Icons.TO_BACK)),
+	SLIDE_COMPONENT_MOVE_FRONT("action.stacking.front", new KeyCodeCombination(KeyCode.OPEN_BRACKET, KeyCombination.SHIFT_DOWN, KeyCombination.SHORTCUT_DOWN), getGraphicSupplier(Icons.TO_FRONT)),
+	SLIDE_COMPONENT_MOVE_UP("action.stacking.up", new KeyCodeCombination(KeyCode.OPEN_BRACKET, KeyCombination.SHORTCUT_DOWN), getGraphicSupplier(Icons.FORWARD)),
+	SLIDE_COMPONENT_MOVE_DOWN("action.stacking.down", new KeyCodeCombination(KeyCode.CLOSE_BRACKET, KeyCombination.SHORTCUT_DOWN), getGraphicSupplier(Icons.BACKWARD)),
+	
+	SLIDE_COMPONENT_SNAP_TO_GRID("action.grid.snap", null, getGraphicSupplier(Icons.SNAP_GRID)),
 	
 	// song
 	
-	NEW_SONG("action.new.song", new KeyCodeCombination(KeyCode.L, KeyCombination.SHORTCUT_DOWN, KeyCombination.ALT_DOWN), getGraphicSupplierForNew(Glyphs.NEW_SONG)),
-	NEW_LYRICS("action.new.song.lyrics", getGraphicSupplierForNew(Glyphs.NEW_LYRICS)),
-	NEW_AUTHOR("action.new.song.author", getGraphicSupplierForNew(Glyphs.NEW_AUTHOR)),
-	NEW_SONGBOOK("action.new.song.songbook", getGraphicSupplierForNew(Glyphs.NEW_SONGBOOK)),
-	NEW_SECTION("action.new.song.section", getGraphicSupplierForNew(Glyphs.NEW_SECTION)),
+	NEW_SONG("action.new.song", new KeyCodeCombination(KeyCode.L, KeyCombination.SHORTCUT_DOWN, KeyCombination.ALT_DOWN), getGraphicSupplier(Icons.SONG_ADD)),
+	NEW_LYRICS("action.new.song.lyrics", getGraphicSupplier(Icons.LYRICS_ADD)),
+	NEW_AUTHOR("action.new.song.author", getGraphicSupplier(Icons.USER_ADD)),
+	NEW_SONGBOOK("action.new.song.songbook", getGraphicSupplier(Icons.BOOK_ADD)),
+	NEW_SECTION("action.new.song.section", getGraphicSupplier(Icons.VERSE_ADD)),
 	
 	// other
 	DOWNLOAD_ZEFANIA_BIBLES("action.download.zefania"),
@@ -145,32 +90,9 @@ public enum Action {
 	
 	;
 	
-	private static final Supplier<Node> getGraphicSupplierForNew(Glyph glyph) {
-		return () ->
-		{
-			StackPane stack = new StackPane();
-//			BorderStroke stroke1 = new BorderStroke(Color.BLACK, BorderStrokeStyle.SOLID, null, null);
-//			BorderStroke stroke2 = new BorderStroke(Color.WHITE, BorderStrokeStyle.SOLID, null, null);
-			Glyph plus = Glyphs.NEW.duplicate().size(6).color(Color.BLACK);
-//			plus.setBorder(new Border(stroke2));
-//			plus.setBackground(new Background(new BackgroundFill(Color.WHITE, null, null)));
-			plus.getStyleClass().add("p-new-adder");
-			plus.setPadding(new Insets(1, 2, 1, 2));
-//			plus.setShape(new Circle(Math.max(plus.getWidth() * 0.5, 24)));
-			plus.setTranslateX(3);
-			
-//			Region backing = new Region(); 
-//			backing.setShape(new Circle(4));
-//			backing.setMaxSize(9, 9);
-//			
-//			backing.setBorder(new Border(stroke2));
-//			backing.setBackground(new Background(new BackgroundFill(Color.LIME, null, null)));
-//			backing.setTranslateX(7);
-//			backing.setTranslateY(-5);
-			
-			stack.getChildren().addAll(glyph.duplicate(), plus);
-			StackPane.setAlignment(plus, Pos.TOP_RIGHT);
-			return stack;
+	private static final Supplier<Node> getGraphicSupplier(String icon) {
+		return () -> {
+			return Icons.getIcon(icon);
 		};
 	}
 	

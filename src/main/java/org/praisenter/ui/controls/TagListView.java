@@ -24,15 +24,12 @@
  */
 package org.praisenter.ui.controls;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.stream.Collectors;
-
-import org.controlsfx.control.textfield.AutoCompletionBinding.ISuggestionRequest;
-import org.controlsfx.control.textfield.TextFields;
 import org.praisenter.data.Tag;
+import org.praisenter.ui.Icons;
 import org.praisenter.ui.translations.Translations;
 
+import atlantafx.base.controls.CustomTextField;
+import atlantafx.base.theme.Styles;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
@@ -43,15 +40,13 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
-import javafx.scene.control.TextField;
+import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.shape.LineTo;
 import javafx.scene.shape.MoveTo;
 import javafx.scene.shape.Path;
-import javafx.util.Callback;
-import javafx.util.StringConverter;
 
 /**
  * Represents a list of tags that can be added and removed.
@@ -70,7 +65,7 @@ public final class TagListView extends BorderPane {
 	// nodes
 	
 	/** The text field */
-	private final TextField textField;
+	private final CustomTextField textField;
 	
 	/** The list of tag nodes */
 	private final ObservableList<Node> tagNodes;
@@ -109,37 +104,11 @@ public final class TagListView extends BorderPane {
 		});
 		
 		// create an autocomplete field
-		this.textField = new TextField();
+		this.textField = new CustomTextField();
 		this.textField.setPromptText(Translations.get("tags.add.placeholder"));
+		this.textField.setLeft(Icons.getIcon(Icons.TAG));
 		TextInputFieldEventFilter.applyTextInputFieldEventFilter(this.textField);
 		
-		// apply the auto completion binding
-		TextFields.bindAutoCompletion(
-        		this.textField,
-                new Callback<ISuggestionRequest, Collection<Tag>>() {
-					@Override
-					public Collection<Tag> call(ISuggestionRequest request) {
-						String name = request.getUserText().toLowerCase();
-						if (name == null || name.length() == 0) {
-							return Collections.emptyList();
-						}
-						return all.stream().filter(t -> t.getName().toLowerCase().startsWith(name)).collect(Collectors.toList());
-					}
-                },
-                new StringConverter<Tag>() {
-					@Override
-					public Tag fromString(String name) {
-						if (name == null || name.length() == 0) return null;
-						return new Tag(name);
-					}
-					@Override
-					public String toString(Tag tag) {
-						if (tag == null) return null;
-						return tag.getName();
-					}
-                });
-        
-        
         // when the user hits enter add the tag
         this.textField.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
@@ -165,6 +134,8 @@ public final class TagListView extends BorderPane {
 		btn.getStyleClass().add(TAG_LIST_VIEW_TAG_CSS);
 		btn.setTooltip(new Tooltip(Translations.get("tags.remove")));
 		btn.setUserData(tag);
+		btn.setContentDisplay(ContentDisplay.RIGHT);
+		btn.getStyleClass().addAll(Styles.ROUNDED, Styles.SMALL);
 		
 		// set the click action
 		btn.setOnAction(new EventHandler<ActionEvent>() {

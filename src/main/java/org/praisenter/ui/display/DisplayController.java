@@ -20,8 +20,8 @@ import org.praisenter.data.song.SongReferenceTextStore;
 import org.praisenter.data.workspace.DisplayConfiguration;
 import org.praisenter.data.workspace.PlaceholderTransitionBehavior;
 import org.praisenter.ui.GlobalContext;
-import org.praisenter.ui.MappedList;
 import org.praisenter.ui.bible.BibleNavigationPane;
+import org.praisenter.ui.bind.MappedList;
 import org.praisenter.ui.controls.Dialogs;
 import org.praisenter.ui.slide.SlideList;
 import org.praisenter.ui.slide.SlideMode;
@@ -32,16 +32,17 @@ import org.praisenter.ui.song.SongNavigationPane;
 import org.praisenter.ui.translations.Translations;
 import org.praisenter.utility.StringManipulator;
 
+import atlantafx.base.theme.Styles;
 import javafx.animation.PauseTransition;
 import javafx.animation.Transition;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.DoubleBinding;
-import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
+import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
@@ -83,9 +84,11 @@ public final class DisplayController extends BorderPane {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
 	private final GlobalContext context;
+	
+	@SuppressWarnings("unused")
 	private final DisplayTarget target;
 	
-	private final DoubleProperty leftMaxWidth;
+	private final DoubleBinding leftMaxWidth;
 	private final DoubleBinding slidePreviewMaxHeight;
 	
 	private final ObservableList<Slide> slides;
@@ -195,11 +198,16 @@ public final class DisplayController extends BorderPane {
 		VBox right = new VBox();
 		right.getStyleClass().add(DISPLAY_CONTROLLER_RIGHT_CSS);
 		
-		this.leftMaxWidth = right.maxWidthProperty();
+		this.leftMaxWidth = Bindings.createDoubleBinding(() -> {
+			// NOTE: the "-1" here is to account for rounding errors when showing the image view
+			return Math.floor(right.getMaxWidth()) - 1;
+		}, right.maxWidthProperty());
+//		this.leftMaxWidth = right.maxWidthProperty();
 		this.slidePreviewMaxHeight = this.leftMaxWidth.divide(configuration.widthProperty()).multiply(configuration.heightProperty());
 		
 		ImageView screen = new ImageView(image);
 		screen.fitWidthProperty().bind(this.leftMaxWidth);
+		screen.fitHeightProperty().bind(this.slidePreviewMaxHeight);
 		screen.setPreserveRatio(true);
 		
 		SlideView slideView = new SlideView(context);
@@ -324,7 +332,7 @@ public final class DisplayController extends BorderPane {
 						for (Slide s : this.slides) {
 							if (p.getId().equals(s.getId())) {
 								// then it was updated
-								Slide s1 = (Slide)p;
+								Slide s1 = (Slide)p.copy();
 								s1.setPlaceholderData(s.getPlaceholderData());
 								toReplace.put(i, s1);
 								break;
@@ -355,6 +363,7 @@ public final class DisplayController extends BorderPane {
 		});
 
 		StackPane stkSlideView = new StackPane(screen, slideView, notificationView);
+		stkSlideView.setAlignment(Pos.TOP_LEFT);
 		
 		GridPane layout = new GridPane();
 		layout.getStyleClass().add(DISPLAY_CONTROLLER_BTN_GRID_CSS);
@@ -392,31 +401,38 @@ public final class DisplayController extends BorderPane {
 		VBox.setVgrow(lstSlideQueue, Priority.ALWAYS);
 		VBox.setVgrow(tabs, Priority.ALWAYS);
 		
-//		right.visibleProperty().bind(target.getDisplay().activeProperty());
-//		right.managedProperty().bind(right.visibleProperty());
-//		left.visibleProperty().bind(target.getDisplay().activeProperty());
-//		left.managedProperty().bind(lstSlideQueue.visibleProperty());
-		
 		// HEADER layout
 		
 		Label lblHeader = new Label();
 		lblHeader.textProperty().bind(Bindings.createStringBinding(() -> {
 			String name = configuration.getName();
 			String defaultName = configuration.getDefaultName();
-			if (name == null || name.isBlank()) return defaultName;
-			return name;
+			if (name == null || name.isBlank()) {
+				return defaultName;
+			} else {
+				return "# " + name;				
+			}
 		}, configuration.nameProperty(), configuration.defaultNameProperty()));
+		lblHeader.getStyleClass().addAll(Styles.TITLE_3, DISPLAY_CONTROLLER_NAME_CSS);
 		
-		lblHeader.getStyleClass().add(DISPLAY_CONTROLLER_NAME_CSS);
+		Label lblDefaultName = new Label();
+		lblDefaultName.textProperty().bind(Bindings.createStringBinding(() -> {
+			String name = configuration.getName();
+			String defaultName = configuration.getDefaultName();
+			if (name == null || name.isBlank()) {
+				return "";
+			}
+			return defaultName;
+		}, configuration.nameProperty(), configuration.defaultNameProperty()));
 		
 		HBox spacer = new HBox();
 		spacer.setMaxWidth(Double.MAX_VALUE);
-		HBox headerBtns = new HBox(lblHeader, spacer, mnuActions);
-		headerBtns.getStyleClass().add(DISPLAY_CONTROLLER_HEADER_CSS);
+		HBox header = new HBox(lblHeader, lblDefaultName, spacer, mnuActions);
+		header.setAlignment(Pos.BASELINE_LEFT);
+		header.getStyleClass().add(DISPLAY_CONTROLLER_HEADER_CSS);
 		HBox.setHgrow(spacer, Priority.ALWAYS);
-//		HBox.setHgrow(mnuDisplayRole, Priority.NEVER);
 		
-		this.setTop(headerBtns);
+		this.setTop(header);
 		this.setCenter(body);
 
 		configuration.activeProperty().addListener((obs, ov, nv) -> {

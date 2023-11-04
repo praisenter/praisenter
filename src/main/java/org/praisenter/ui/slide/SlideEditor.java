@@ -1,5 +1,6 @@
 package org.praisenter.ui.slide;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -27,16 +28,18 @@ import org.praisenter.data.slide.text.TextPlaceholderComponent;
 import org.praisenter.ui.Action;
 import org.praisenter.ui.DataFormats;
 import org.praisenter.ui.GlobalContext;
-import org.praisenter.ui.MappedList;
+import org.praisenter.ui.bind.MappedList;
 import org.praisenter.ui.document.DocumentContext;
 import org.praisenter.ui.document.DocumentEditor;
 import org.praisenter.ui.events.ActionStateChangedEvent;
 import org.praisenter.ui.translations.Translations;
 import org.praisenter.ui.undo.UndoManager;
 import org.praisenter.utility.Scaling;
+import org.praisenter.utility.StringManipulator;
 
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -45,11 +48,14 @@ import javafx.event.EventTarget;
 import javafx.event.EventType;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.image.Image;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.DataFormat;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
@@ -60,7 +66,6 @@ import javafx.scene.layout.StackPane;
 // FEATURE (L-M) Allow multi select of components for moving or other actions
 // FEATURE (L-M) Allow grouping of components
 //		UUID group property on each slide component, when grouped sizing and moving work on the group, can't select individual when grouped; or grouped at selection level only
-// FEATURE (L-M) Add grid snaping to sizing/moving of components
 public final class SlideEditor extends BorderPane implements DocumentEditor<Slide> {
 	private static final String SLIDE_EDITOR_CSS = "p-slide-editor";
 	
@@ -112,6 +117,7 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 		this.componentMapping = new MappedList<>(this.components, (c) -> {
 			EditNode n = new EditNode(document, c);
 			n.scaleProperty().bind(this.slideView.viewScaleFactorProperty());
+			n.snapToGridEnabledProperty().bind(context.snapToGridEnabledProperty());
 			// restore selection (this happens when nodes are rearranged
 			// in the source list - since they have to be removed then
 			// re-added)
@@ -192,14 +198,16 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 		ContextMenu menu = new ContextMenu();
 		menu.getItems().addAll(
 			this.createMenuItem(Action.NEW_SLIDE_TEXT_COMPONENT),
-			this.createMenuItem(Action.NEW_SLIDE_MEDIA_COMPONENT),
 			this.createMenuItem(Action.NEW_SLIDE_PLACEHOLDER_COMPONENT),
 			this.createMenuItem(Action.NEW_SLIDE_DATETIME_COMPONENT),
 			this.createMenuItem(Action.NEW_SLIDE_COUNTDOWN_COMPONENT),
+			this.createMenuItem(Action.NEW_SLIDE_MEDIA_COMPONENT),
 			new SeparatorMenuItem(),
 			this.createMenuItem(Action.COPY),
 			this.createMenuItem(Action.CUT),
 			this.createMenuItem(Action.PASTE),
+			new SeparatorMenuItem(),
+			this.createToggleMenuItem(Action.SLIDE_COMPONENT_SNAP_TO_GRID, context.snapToGridEnabledProperty()),
 			new SeparatorMenuItem(),
 			this.createMenuItem(Action.SLIDE_COMPONENT_MOVE_UP),
 			this.createMenuItem(Action.SLIDE_COMPONENT_MOVE_DOWN),
@@ -222,72 +230,50 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 		
 		// allow drag-n-drop of library items onto the editor
 		this.setOnDragOver(e -> {
-			if (e.getDragboard().hasContent(DataFormats.PRAISENTER_ID_LIST)) {
-				if (this.getMediaFromDragBoard(e.getDragboard()).size() > 0) {
-					e.acceptTransferModes(TransferMode.ANY);
-				}
+			if (e.getDragboard().hasContent(DataFormat.FILES) ||
+				e.getDragboard().hasContent(DataFormat.IMAGE)) {
+				e.acceptTransferModes(TransferMode.COPY);
 			}
 			e.consume();
 		});
 		
 		this.setOnDragDropped(e -> {
 			Dragboard db = e.getDragboard();
-			Slide slide = this.slide.get();
 			
-			if (slide != null && db.hasContent(DataFormats.PRAISENTER_ID_LIST)) {
-				List<Media> media = this.getMediaFromDragBoard(db);
-				if (media.size() > 0) {
-					for (Media m : media) {
-						MediaObject mo = new MediaObject();
-						mo.setMediaId(m.getId());
-						mo.setMediaName(m.getName());
-						mo.setMediaType(m.getMediaType());
-						mo.setScaleType(ScaleType.UNIFORM);
-						
-						// then create a new media component with this media
-						MediaComponent mc = new MediaComponent();
-						mc.setMedia(mo);
-						
-						// set the width/height as a function of the slide and media size
-						double mw = slide.getWidth() * 0.75;
-						double mh = slide.getHeight() * 0.75;
-						double w = m.getWidth();
-						double h = m.getHeight();
-						if (w > mw || h > mh) {
-							w = mw;
-							h = mh;
-						}
-						
-						mc.setX(50);
-						mc.setY(50);
-						mc.setWidth(mw);
-						mc.setHeight(mh);
-						
-						this.slide.get().getComponents().add(mc);
-						
-						e.setDropCompleted(true);
-					}
-				}
+			if (db.hasContent(DataFormat.FILES)) {
 				e.consume();
+				
+				List<File> files = db.getFiles();
+				
+				this.context.importFiles(files).thenComposeAsync(AsyncHelper.onJavaFXThreadAndWait(items -> {
+					this.addMediaComponents(items);
+					e.setDropCompleted(true);
+				})).exceptionally(t -> {
+					LOGGER.error("Failed to import media: ", t);
+					// show the error message
+					return null;
+				}).thenRun(() -> {
+					e.setDropCompleted(true);
+				});
+				
+			} else if (db.hasContent(DataFormat.IMAGE)) {
+				String name = "Utitled.png";
+				Image image = db.getImage();
+				
+				this.context.importImage(name, image).thenComposeAsync(AsyncHelper.onJavaFXThreadAndWait(item -> {
+					List<Persistable> items = new ArrayList<>();
+					items.add(item);
+					this.addMediaComponents(items);
+					e.setDropCompleted(true);
+				})).exceptionally(t -> {
+					LOGGER.error("Failed to import media: ", t);
+					// show the error message
+					return null;
+				}).thenRun(() -> {
+					e.setDropCompleted(true);
+				});
 			}
 		});
-	}
-	
-	private List<Media> getMediaFromDragBoard(Dragboard db) {
-		List<Media> media = new ArrayList<Media>();
-		Object object = db.getContent(DataFormats.PRAISENTER_ID_LIST);
-		if (object instanceof List<?>) {
-			List<?> ids = (List<?>)object;
-			for (Object id : ids) {
-				if (id instanceof UUID) {
-					Persistable p = context.getWorkspaceManager().getPersistableById((UUID)id);
-					if (p != null && p instanceof Media) {
-						media.add((Media)p);
-					}
-				}
-			}
-		}
-		return media;
 	}
 	
 	private MenuItem createMenuItem(Action action) {
@@ -298,6 +284,19 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 		// NOTE: due to bug in JavaFX, we don't apply the accelerator here
 		//mnu.setAccelerator(value);
 		mnu.setOnAction(e -> this.executeAction(action));
+		mnu.disableProperty().bind(this.context.getActionEnabledProperty(action).not());
+		mnu.setUserData(action);
+		return mnu;
+	}
+	
+	private MenuItem createToggleMenuItem(Action action, BooleanProperty target) {
+		CheckMenuItem mnu = new CheckMenuItem(Translations.get(action.getMessageKey()));
+		mnu.selectedProperty().bindBidirectional(target);
+		if (action.getGraphicSupplier() != null) {
+			mnu.setGraphic(action.getGraphicSupplier().get());
+		}
+		// NOTE: due to bug in JavaFX, we don't apply the accelerator here
+		//mnu.setAccelerator(value);
 		mnu.disableProperty().bind(this.context.getActionEnabledProperty(action).not());
 		mnu.setUserData(action);
 		return mnu;
@@ -391,7 +390,8 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 			case CUT:
 				return ctx.getSelectedCount() > 0;
 			case PASTE:
-				return Clipboard.getSystemClipboard().hasContent(DataFormats.PRAISENTER_SLIDE_COMPONENT_ARRAY);
+				return Clipboard.getSystemClipboard().hasContent(DataFormats.PRAISENTER_SLIDE_COMPONENT_ARRAY) ||
+						Clipboard.getSystemClipboard().hasImage();
 			case DELETE:
 				return ctx.getSelectedCount() > 0;
 			case NEW_SLIDE_TEXT_COMPONENT:
@@ -406,6 +406,8 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 				return ctx.getUndoManager().isRedoAvailable();
 			case UNDO:
 				return ctx.getUndoManager().isUndoAvailable();
+			case SLIDE_COMPONENT_SNAP_TO_GRID:
+				return true;
 			case SLIDE_COMPONENT_MOVE_BACK:
 			case SLIDE_COMPONENT_MOVE_FRONT:
 			case SLIDE_COMPONENT_MOVE_DOWN:
@@ -429,6 +431,7 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 			case SLIDE_COMPONENT_MOVE_FRONT:
 			case SLIDE_COMPONENT_MOVE_DOWN:
 			case SLIDE_COMPONENT_MOVE_UP:
+			case SLIDE_COMPONENT_SNAP_TO_GRID:
 				return true;
 			default:
 				return false;
@@ -490,6 +493,19 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 			} catch (Exception ex) {
 				LOGGER.warn("Failed to paste clipboard content (likely due to a JSON deserialization error", ex);
 			}
+		} else if (clipboard.hasContent(DataFormat.IMAGE)) {
+			String name = StringManipulator.toFileName(Translations.get("action.new.untitled", "") + ".png", "");
+			Image image = clipboard.getImage();
+			
+			this.context.importImage(name, image).thenComposeAsync(AsyncHelper.onJavaFXThreadAndWait(item -> {
+				List<Persistable> items = new ArrayList<>();
+				items.add(item);
+				this.addMediaComponents(items);
+			})).exceptionally(t -> {
+				LOGGER.error("Failed to import media: ", t);
+				// show the error message
+				return null;
+			});
 		}
 		
 		return CompletableFuture.completedFuture(null);
@@ -518,6 +534,51 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 			this.undoManager.discardBatch();
 		}
 		return CompletableFuture.completedFuture(null);
+	}
+	
+	private void addMediaComponents(List<Persistable> items) {
+		Slide slide = this.slide.get();
+		
+		List<Media> media = new ArrayList<>();
+		// are any items media?
+		for (Persistable item : items) {
+			if (item instanceof Media) {
+				media.add((Media)item);
+			}
+		}
+		
+		// if so, then add them to the slide
+		for (Media m : media) {
+			MediaObject mo = new MediaObject();
+			mo.setMediaId(m.getId());
+			mo.setMediaName(m.getName());
+			mo.setMediaType(m.getMediaType());
+			mo.setScaleType(ScaleType.UNIFORM);
+			
+			// then create a new media component with this media
+			MediaComponent mc = new MediaComponent();
+			mc.setMedia(mo);
+			
+			// set the width/height as a function of the slide and media size
+			double mw = slide.getWidth() * 0.75;
+			double mh = slide.getHeight() * 0.75;
+			double w = m.getWidth();
+			double h = m.getHeight();
+			if (w > mw || h > mh) {
+				w = mw;
+				h = mh;
+			}
+			
+			mc.setX(60);
+			mc.setY(60);
+			mc.setWidth(mw);
+			mc.setHeight(mh);
+			
+			slide.getComponents().add(mc);
+			this.selectComponent(mc);
+		}
+		
+		this.context.getStage().requestFocus();
 	}
 	
 	private CompletableFuture<Void> createNewTextComponent() {

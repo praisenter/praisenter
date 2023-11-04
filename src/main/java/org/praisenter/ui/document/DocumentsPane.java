@@ -9,7 +9,8 @@ import org.praisenter.data.Persistable;
 import org.praisenter.ui.Action;
 import org.praisenter.ui.ActionPane;
 import org.praisenter.ui.GlobalContext;
-import org.praisenter.ui.MappedList;
+import org.praisenter.ui.bind.MappedList;
+import org.praisenter.ui.controls.FastScrollPane;
 
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
@@ -18,7 +19,6 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.Tab;
@@ -29,6 +29,10 @@ import javafx.scene.layout.BorderPane;
 // JAVABUG (L) 09/28/18 [workaround] Focus tab content when tab is selected https://stackoverflow.com/questions/19025268/javafx-tabpane-switch-tabs-only-when-focused/19046535#19046535, https://stackoverflow.com/questions/15646724/javafx-setfocus-after-tabpaine-change/15648609#15648609
 
 public final class DocumentsPane extends BorderPane implements ActionPane {
+	private static final String DOCUMENTS_PANE_CLASS = "p-documents-pane";
+	private static final String DOCUMENTS_PANE_TABS_CLASS = "p-documents-pane-tabs";
+	private static final String DOCUMENTS_PANE_SELECTION_EDITOR_CLASS = "p-documents-pane-selection-editor";
+	
 	private final MappedList<DocumentTab, DocumentContext<? extends Persistable>> documentToTabMapping;
 	
 	private final TabPane documentTabs;
@@ -38,6 +42,8 @@ public final class DocumentsPane extends BorderPane implements ActionPane {
 	private final ObservableList<Object> documentSelectedItems;
 	
 	public DocumentsPane(GlobalContext context) {
+		this.getStyleClass().add(DOCUMENTS_PANE_CLASS);
+		
 		this.documentToTabMapping = new MappedList<DocumentTab, DocumentContext<? extends Persistable>>(
 				context.getOpenDocumentsUnmodifiable(), 
 				(item) -> {
@@ -46,6 +52,7 @@ public final class DocumentsPane extends BorderPane implements ActionPane {
 
 		this.documentTabs = new TabPane();
 		this.documentTabs.setTabClosingPolicy(TabClosingPolicy.ALL_TABS);
+		this.documentTabs.getStyleClass().addAll(DOCUMENTS_PANE_TABS_CLASS);
 		
 		this.documentSelectionEditor = new CurrentDocumentSelectionEditor(context);
 		
@@ -114,9 +121,10 @@ public final class DocumentsPane extends BorderPane implements ActionPane {
 			}
 		});
 		
-		ScrollPane scroller = new ScrollPane(this.documentSelectionEditor);
+		FastScrollPane scroller = new FastScrollPane(this.documentSelectionEditor, 2.0);
 		scroller.setHbarPolicy(ScrollBarPolicy.NEVER);
 		scroller.setFitToWidth(true);
+		scroller.getStyleClass().addAll(DOCUMENTS_PANE_SELECTION_EDITOR_CLASS);
 		
 		SplitPane split = new SplitPane(this.documentTabs, scroller);
 		split.setDividerPosition(0, 0.7);

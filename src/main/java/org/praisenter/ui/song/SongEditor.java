@@ -1,5 +1,6 @@
 package org.praisenter.ui.song;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -8,7 +9,11 @@ import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.text.PDFTextStripper;
 import org.praisenter.Constants;
+import org.praisenter.async.AsyncHelper;
+import org.praisenter.async.BackgroundTask;
 import org.praisenter.data.json.JsonIO;
 import org.praisenter.data.song.Author;
 import org.praisenter.data.song.Lyrics;
@@ -20,6 +25,7 @@ import org.praisenter.ui.BulkEditConverter;
 import org.praisenter.ui.BulkEditParseException;
 import org.praisenter.ui.DataFormats;
 import org.praisenter.ui.GlobalContext;
+import org.praisenter.ui.Icons;
 import org.praisenter.ui.document.DocumentContext;
 import org.praisenter.ui.document.DocumentEditor;
 import org.praisenter.ui.events.ActionStateChangedEvent;
@@ -30,6 +36,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.ListChangeListener;
 import javafx.css.PseudoClass;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
@@ -52,9 +59,10 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
+import javafx.stage.FileChooser.ExtensionFilter;
 
 //FEATURE (L-L) Implement import from PDF for song lyrics
-//FEATURE (L-L) Implement upload of chord sheet for display on a teleprompter
 //JAVABUG (L) 11/03/16 Dragging to the edge of a scrollable window doesn't scroll it and there's no good way to scroll it manually
 
 public final class SongEditor extends BorderPane implements DocumentEditor<Song> {
@@ -105,6 +113,7 @@ public final class SongEditor extends BorderPane implements DocumentEditor<Song>
 		
 		SongTreeItem root = new SongTreeItem();
 		root.setValue(this.song);
+		root.setExpanded(true);
 		
 		this.treeView = new TreeView<Object>(root);
 		this.treeView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
@@ -164,7 +173,8 @@ public final class SongEditor extends BorderPane implements DocumentEditor<Song>
 		TextArea textArea = new TextArea();
 		textArea.setWrapText(false);
 		textArea.textProperty().bindBidirectional(this.bulkEditModeValue);
-		Button btnOk = new Button(Translations.get("ok"));
+		Button btnExtract = new Button(Translations.get("song.extract.text"));
+		Button btnOk = new Button(Translations.get("done"), Icons.getIcon(Icons.CHECK, Icons.COLOR_SUCCESS));
 		btnOk.minWidthProperty().bind(btnOk.prefWidthProperty());
 		Button btnCancel = new Button(Translations.get("cancel"));
 		btnCancel.minWidthProperty().bind(btnCancel.prefWidthProperty());
@@ -174,9 +184,11 @@ public final class SongEditor extends BorderPane implements DocumentEditor<Song>
 		lblError.textProperty().bind(this.bulkEditModeError);
 		lblError.visibleProperty().bind(this.bulkEditModeError.length().greaterThan(0));
 		
-		HBox bulkEditorButtons = new HBox(lblError, btnOk, btnCancel);
+		HBox bulkEditorButtons = new HBox(lblError, btnCancel, btnExtract, btnOk);
+		bulkEditorButtons.setAlignment(Pos.BASELINE_LEFT);
 		bulkEditorButtons.getStyleClass().add(SONG_EDITOR_BULK_BUTTONS_CSS);
 		HBox.setHgrow(lblError, Priority.ALWAYS);
+		HBox.setHgrow(btnExtract, Priority.SOMETIMES);
 		
 		VBox bulkEditor = new VBox(
 				textArea,
@@ -205,6 +217,45 @@ public final class SongEditor extends BorderPane implements DocumentEditor<Song>
 			document.setBulkEdit(false);
 			this.bulkEditModeValue.set(null);
 			this.bulkEditModeError.set(null);
+		});
+		
+		btnExtract.setOnAction(e -> {
+			// prompt user for file
+			FileChooser fc = new FileChooser();
+			fc.setTitle(Translations.get("action.extract.text"));
+			fc.getExtensionFilters().add(new ExtensionFilter(Translations.get("song.extract.text.filetype.pdf"), "*.pdf"));
+			File file = fc.showOpenDialog(this.context.getStage());
+			
+			if (file != null) {
+				// create background task
+				BackgroundTask task = new BackgroundTask();
+				task.setName(file.getAbsolutePath());
+				task.setMessage(Translations.get("action.extract.text"));
+				task.setOperation(Translations.get("action.extract.text"));
+				task.setType("application/pdf");
+				this.context.addBackgroundTask(task);
+
+				CompletableFuture.supplyAsync(() -> {
+					LOGGER.debug("Loading " + file.getAbsolutePath());
+					try (PDDocument doc = PDDocument.load(file)) {
+			            if (!doc.isEncrypted()) {
+			            	LOGGER.debug("Document loaded");
+			                PDFTextStripper tStripper = new PDFTextStripper();
+			                String pdfFileInText = tStripper.getText(doc);
+			                LOGGER.debug("Extracted " + pdfFileInText.length() + " characters from file");
+			                
+			                task.setProgress(1.0);
+			                
+			                return pdfFileInText;
+			            }
+			        } catch (Exception e1) {
+						task.setException(e1);
+					}
+					return null;
+				}).thenCompose(AsyncHelper.onJavaFXThreadAndWait((result) -> {
+					this.bulkEditModeValue.set(this.bulkEditModeValue.get() + result);
+				}));
+			}
 		});
 		
 		this.setCenter(editorStack);

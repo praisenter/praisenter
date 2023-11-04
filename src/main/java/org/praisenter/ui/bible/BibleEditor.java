@@ -19,6 +19,7 @@ import org.praisenter.ui.BulkEditConverter;
 import org.praisenter.ui.BulkEditParseException;
 import org.praisenter.ui.DataFormats;
 import org.praisenter.ui.GlobalContext;
+import org.praisenter.ui.Icons;
 import org.praisenter.ui.controls.Dialogs;
 import org.praisenter.ui.document.DocumentContext;
 import org.praisenter.ui.document.DocumentEditor;
@@ -30,6 +31,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.ListChangeListener;
 import javafx.css.PseudoClass;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
@@ -107,6 +109,7 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 		
 		BibleTreeItem root = new BibleTreeItem();
 		root.setValue(this.bible);
+		root.setExpanded(true);
 		
 		this.treeView = new TreeView<Object>(root);
 		this.treeView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
@@ -168,7 +171,7 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 		TextArea textArea = new TextArea();
 		textArea.setWrapText(false);
 		textArea.textProperty().bindBidirectional(this.bulkEditModeValue);
-		Button btnOk = new Button(Translations.get("ok"));
+		Button btnOk = new Button(Translations.get("done"), Icons.getIcon(Icons.CHECK, Icons.COLOR_SUCCESS));
 		btnOk.minWidthProperty().bind(btnOk.prefWidthProperty());
 		Button btnCancel = new Button(Translations.get("cancel"));
 		btnCancel.minWidthProperty().bind(btnCancel.prefWidthProperty());
@@ -178,7 +181,8 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 		lblError.textProperty().bind(this.bulkEditModeError);
 		lblError.visibleProperty().bind(this.bulkEditModeError.length().greaterThan(0));
 		
-		HBox bulkEditorButtons = new HBox(lblError, btnOk, btnCancel);
+		HBox bulkEditorButtons = new HBox(lblError, btnCancel, btnOk);
+		bulkEditorButtons.setAlignment(Pos.BASELINE_LEFT);
 		bulkEditorButtons.getStyleClass().add(BIBLE_EDITOR_BULK_BUTTONS_CSS);
 		HBox.setHgrow(lblError, Priority.ALWAYS);
 		

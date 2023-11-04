@@ -11,8 +11,9 @@ import org.praisenter.data.bible.Chapter;
 import org.praisenter.data.bible.Verse;
 import org.praisenter.ui.Action;
 import org.praisenter.ui.GlobalContext;
-import org.praisenter.ui.controls.FormFieldGroup;
-import org.praisenter.ui.controls.FormFieldSection;
+import org.praisenter.ui.controls.EditorField;
+import org.praisenter.ui.controls.EditorFieldGroup;
+import org.praisenter.ui.controls.EditorTitledPane;
 import org.praisenter.ui.controls.TagListView;
 import org.praisenter.ui.controls.TextInputFieldEventFilter;
 import org.praisenter.ui.document.DocumentContext;
@@ -229,11 +230,15 @@ public final class BibleSelectionEditor extends VBox implements DocumentSelectio
 		spnBookNumber.setEditable(true);
 		spnBookNumber.getValueFactory().valueProperty().bindBidirectional(this.bookNumber2);
 		spnBookNumber.setMaxWidth(Double.MAX_VALUE);
+		spnBookNumber.setPrefWidth(120);
+		spnBookNumber.getStyleClass().add(Spinner.STYLE_CLASS_SPLIT_ARROWS_HORIZONTAL);
 		
 		Spinner<Integer> spnChapterNumber = new Spinner<>(1, Integer.MAX_VALUE, 1);
 		spnChapterNumber.setEditable(true);
 		spnChapterNumber.getValueFactory().valueProperty().bindBidirectional(this.chapterNumber2);
 		spnChapterNumber.setMaxWidth(Double.MAX_VALUE);
+		spnChapterNumber.setPrefWidth(120);
+		spnChapterNumber.getStyleClass().add(Spinner.STYLE_CLASS_SPLIT_ARROWS_HORIZONTAL);
 		
 		TextArea txtVerseText = new TextArea();
 		txtVerseText.textProperty().bindBidirectional(this.verseText);
@@ -243,6 +248,8 @@ public final class BibleSelectionEditor extends VBox implements DocumentSelectio
 		spnVerseNumber.setEditable(true);
 		spnVerseNumber.getValueFactory().valueProperty().bindBidirectional(this.verseNumber2);
 		spnVerseNumber.setMaxWidth(Double.MAX_VALUE);
+		spnVerseNumber.setPrefWidth(120);
+		spnVerseNumber.getStyleClass().add(Spinner.STYLE_CLASS_SPLIT_ARROWS_HORIZONTAL);
 		
 		Button btnBookQuickEdit = new Button(Translations.get("action.edit.bulk"));
 		Button btnChapterQuickEdit = new Button(Translations.get("action.edit.bulk"));
@@ -267,31 +274,37 @@ public final class BibleSelectionEditor extends VBox implements DocumentSelectio
 				txtVerseText,
 				spnVerseNumber.getEditor());
 		
-		FormFieldSection sctBible = new FormFieldSection();
-		sctBible.addField(Translations.get("bible.name"), txtBibleName);
-		sctBible.addField(Translations.get("bible.language"), txtBibleLanguage);
-		sctBible.addField(Translations.get("bible.source"), txtBibleSource);
-		sctBible.addField(Translations.get("bible.copyright"), txtBibleCopyright);
-		sctBible.addField(Translations.get("bible.notes"), txtBibleNotes);
-		sctBible.addField(Translations.get("bible.tags"), viewTags);
+		EditorField fldName = new EditorField(Translations.get("bible.name"), txtBibleName);
+		EditorField fldLanguage = new EditorField(Translations.get("bible.language"), txtBibleLanguage);
+		EditorField fldSource = new EditorField(Translations.get("bible.source"), txtBibleSource);
+		EditorField fldCopyright = new EditorField(Translations.get("bible.copyright"), txtBibleCopyright);
+		EditorField fldNotes = new EditorField(Translations.get("bible.notes"), txtBibleNotes, EditorField.LAYOUT_VERTICAL);
+		EditorField fldTags = new EditorField(viewTags);
+		EditorFieldGroup grpBible = new EditorFieldGroup(
+				fldName,
+				fldLanguage,
+				fldSource,
+				fldCopyright,
+				fldNotes,
+				fldTags);
 		
-		FormFieldSection sctBook = new FormFieldSection();
-		sctBook.addField(Translations.get("bible.book.name"), txtBookName);
-		sctBook.addField(Translations.get("bible.book.number"), spnBookNumber);
-		sctBook.addField("", btnBookQuickEdit);
+		EditorField fldBookName = new EditorField(Translations.get("bible.book.name"), txtBookName);
+		EditorField fldBookNumber = new EditorField(Translations.get("bible.book.number"), spnBookNumber);
+		EditorField fldBookQuickEdit = new EditorField("", btnBookQuickEdit);
+		EditorFieldGroup grpBook = new EditorFieldGroup(fldBookName, fldBookNumber, fldBookQuickEdit);
 		
-		FormFieldSection sctChapter = new FormFieldSection();
-		sctChapter.addField(Translations.get("bible.chapter.number"), spnChapterNumber);
-		sctChapter.addField("", btnChapterQuickEdit);
+		EditorField fldChapterNumber = new EditorField(Translations.get("bible.chapter.number"), spnChapterNumber);
+		EditorField fldCapterQuickEdit = new EditorField("", btnChapterQuickEdit);
+		EditorFieldGroup grpChapter = new EditorFieldGroup(fldChapterNumber, fldCapterQuickEdit);
 		
-		FormFieldSection sctVerse = new FormFieldSection();
-		sctVerse.addField(Translations.get("bible.verse.number"), spnVerseNumber);
-		sctVerse.addField(Translations.get("bible.verse.text"), txtVerseText);
+		EditorField fldVerseNumber = new EditorField(Translations.get("bible.verse.number"), spnVerseNumber);
+		EditorField fldVerseText = new EditorField(Translations.get("bible.verse.text"), txtVerseText, EditorField.LAYOUT_VERTICAL);
+		EditorFieldGroup grpVerse = new EditorFieldGroup(fldVerseNumber, fldVerseText);
 		
-		FormFieldGroup pneGeneral = new FormFieldGroup(Translations.get("bible"), sctBible);
-		FormFieldGroup pneBook = new FormFieldGroup(Translations.get("bible.book"), sctBook);
-		FormFieldGroup pneChapter = new FormFieldGroup(Translations.get("bible.chapter"), sctChapter);
-		FormFieldGroup pneVerse = new FormFieldGroup(Translations.get("bible.verse"), sctVerse);
+		EditorTitledPane pneGeneral = new EditorTitledPane(Translations.get("bible"), grpBible);
+		EditorTitledPane pneBook = new EditorTitledPane(Translations.get("bible.book"), grpBook);
+		EditorTitledPane pneChapter = new EditorTitledPane(Translations.get("bible.chapter"), grpChapter);
+		EditorTitledPane pneVerse = new EditorTitledPane(Translations.get("bible.verse"), grpVerse);
 
 		this.getChildren().addAll(
 				pneGeneral,

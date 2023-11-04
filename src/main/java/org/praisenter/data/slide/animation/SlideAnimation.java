@@ -40,7 +40,7 @@ public class SlideAnimation implements ReadOnlySlideAnimation, Copyable {
 		this.easingType = new SimpleObjectProperty<AnimationEasingType>(AnimationEasingType.IN);
 		this.orientation = new SimpleObjectProperty<>(AnimationOrientation.VERTICAL);
 		this.operation = new SimpleObjectProperty<>(AnimationOperation.EXPAND);
-		this.direction = new SimpleObjectProperty<>(AnimationDirection.UP);
+		this.direction = new SimpleObjectProperty<>(AnimationDirection.LEFT);
 		this.shapeType = new SimpleObjectProperty<>(AnimationShapeType.CIRCLE);
 		this.blindCount = new SimpleIntegerProperty(12);
 		

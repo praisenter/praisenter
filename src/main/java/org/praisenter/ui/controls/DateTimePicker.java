@@ -6,13 +6,13 @@ import java.time.LocalTime;
 
 import org.praisenter.ui.bind.BindingHelper;
 import org.praisenter.ui.bind.ObjectConverter;
+import org.praisenter.ui.translations.Translations;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.DatePicker;
-import javafx.scene.layout.VBox;
 
-public final class DateTimePicker extends VBox {
+public final class DateTimePicker extends EditorFieldGroup {
 	private static final String DATETIME_PICKER_CSS = "p-datetime-picker";
 	
 	private final DatePicker pkrDate;
@@ -26,7 +26,10 @@ public final class DateTimePicker extends VBox {
 		this.pkrDate = new DatePicker(LocalDate.now());
 		this.spnTime = new TimeSpinner();
 		
-		this.getChildren().addAll(this.pkrDate, this.spnTime);
+		EditorField fldDate = new EditorField(Translations.get("slide.countdown.target"), this.pkrDate);
+		EditorField fldTime = new EditorField("", Translations.get("slide.countdown.target.description"), this.spnTime);
+		
+		this.getChildren().addAll(fldDate, fldTime);
 		
 		BindingHelper.bindBidirectional(this.value, this.pkrDate.valueProperty(), new ObjectConverter<LocalDateTime, LocalDate>() {
 			@Override

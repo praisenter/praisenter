@@ -30,7 +30,8 @@ public final class SlideNavigationPane extends BorderPane {
 		
 		LibraryList slides = new LibraryList(context, Orientation.HORIZONTAL, LibraryListType.SLIDE);
 		slides.setMultiSelectEnabled(false);
-		slides.setTypeFilterVisible(false);
+		slides.setFilterVisible(false);
+		slides.setSortVisible(false);
 		slides.setDetailsPaneVisible(false);
 		slides.setPrefWidth(400);
 		

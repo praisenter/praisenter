@@ -119,7 +119,7 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 		this.createdDate = new SimpleObjectProperty<>(Instant.now());
 		this.modifiedDate = new SimpleObjectProperty<>(this.createdDate.get());
 		this.time = new SimpleLongProperty(0);
-		this.transition = new SimpleObjectProperty<SlideAnimation>();
+		this.transition = new SimpleObjectProperty<SlideAnimation>(new SlideAnimation());
 		this.placeholderData = new SimpleObjectProperty<>();
 
 		this.tags = FXCollections.observableSet(new HashSet<>());
@@ -616,5 +616,10 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 			media.addAll(component.getReferencedMedia());
 		}
 		return media;
+	}
+
+	@Override
+	public Set<UUID> getDependencies() {
+		return this.getReferencedMedia();
 	}
 }

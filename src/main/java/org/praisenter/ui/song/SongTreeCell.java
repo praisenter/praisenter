@@ -1,27 +1,31 @@
 package org.praisenter.ui.song;
 
-import org.controlsfx.glyphfont.Glyph;
 import org.praisenter.data.song.Author;
 import org.praisenter.data.song.Lyrics;
 import org.praisenter.data.song.Section;
 import org.praisenter.data.song.Song;
 import org.praisenter.data.song.SongBook;
-import org.praisenter.ui.Glyphs;
+import org.praisenter.ui.Icons;
 
 import javafx.beans.binding.Bindings;
+import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.TreeCell;
 
 final class SongTreeCell extends TreeCell<Object> {
-	private final Glyph lyrics;
-	private final Glyph songbook;
-	private final Glyph author;
+	private final Node lyrics;
+	private final Node songbook;
+	private final Node author;
 	private final Label graphic;
 	
 	public SongTreeCell() {
-		this.songbook = Glyphs.NEW_SONGBOOK.duplicate();
-		this.lyrics = Glyphs.NEW_LYRICS.duplicate();
-		this.author = Glyphs.NEW_AUTHOR.duplicate();
+		this.songbook = Icons.getIcon(Icons.BOOK);
+		this.lyrics = Icons.getIcon(Icons.LYRICS);
+		this.author = Icons.getIcon(Icons.USER);
+		
+		this.songbook.getStyleClass().addAll("p-songbook-icon");
+		this.lyrics.getStyleClass().addAll("p-lyrics-icon");
+		this.author.getStyleClass().addAll("p-author-icon");
 		
 		this.graphic = new Label();
 		this.graphic.getStyleClass().addAll("p-section-name");

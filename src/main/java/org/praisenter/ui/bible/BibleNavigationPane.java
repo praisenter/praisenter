@@ -21,10 +21,12 @@ import org.praisenter.data.bible.LocatedVerseTriplet;
 import org.praisenter.data.bible.ReadOnlyBible;
 import org.praisenter.data.bible.ReadOnlyBook;
 import org.praisenter.data.bible.Verse;
-import org.praisenter.ui.EmptyItemList;
 import org.praisenter.ui.GlobalContext;
-import org.praisenter.ui.Glyphs;
+import org.praisenter.ui.Icons;
+import org.praisenter.ui.bind.EmptyItemList;
 import org.praisenter.ui.controls.AutoCompleteComboBox;
+import org.praisenter.ui.controls.IntegerSpinnerValueFactory;
+import org.praisenter.ui.controls.LastValueNumberStringConverter;
 import org.praisenter.ui.controls.WindowHelper;
 import org.praisenter.ui.translations.Translations;
 
@@ -58,8 +60,8 @@ public final class BibleNavigationPane extends GridPane {
 	
 	private static final String BIBLE_NAV_CSS = "p-bible-nav";
 	
-	private final Node INVALID_CHAPTER = Glyphs.BIBLE_NAV_INVALID.duplicate();
-	private final Node INVALID_VERSE = Glyphs.BIBLE_NAV_INVALID.duplicate();
+	private final Node INVALID_CHAPTER = Icons.getIcon(Icons.ERROR);
+	private final Node INVALID_VERSE = Icons.getIcon(Icons.ERROR);
 	
 	private static final ReadOnlyBible EMPTY_BIBLE = new Bible();
 	
@@ -146,8 +148,10 @@ public final class BibleNavigationPane extends GridPane {
 		this.valid.bind(Bindings.createBooleanBinding(() -> {
 			ReadOnlyBook book = this.book.get();
 			if (book == null) return true;
-			int cn = this.chapter.get();
-			int vn = this.verse.get();
+			Integer cn = this.chapter.get();
+			if (cn == null) return true;
+			Integer vn = this.verse.get();
+			if (vn == null) return true;
 			Chapter chapter = book.getChapter(cn);
 			if (chapter == null) return false;
 			Verse verse = chapter.getVerse(vn);
@@ -205,17 +209,29 @@ public final class BibleNavigationPane extends GridPane {
 		
 		Spinner<Integer> spnChapter = new Spinner<Integer>(1, Short.MAX_VALUE, 1, 1);
 		spnChapter.setEditable(true);
-		spnChapter.getValueFactory().valueProperty().bindBidirectional(this.chapter);
+		spnChapter.setValueFactory(new IntegerSpinnerValueFactory(1, Short.MAX_VALUE));
+		spnChapter.getValueFactory().setConverter(LastValueNumberStringConverter.forInteger((original) -> {
+			Platform.runLater(() -> {
+				spnChapter.getEditor().setText(original == null ? "1" : original);
+			});
+		}));
 		spnChapter.focusedProperty().addListener((obs) -> {
 			Platform.runLater(spnChapter.getEditor()::selectAll);
 		});
+		spnChapter.getValueFactory().valueProperty().bindBidirectional(this.chapter);
 		
 		Spinner<Integer> spnVerse = new Spinner<Integer>(1, Short.MAX_VALUE, 1, 1);
 		spnVerse.setEditable(true);
-		spnVerse.getValueFactory().valueProperty().bindBidirectional(this.verse);
+		spnVerse.setValueFactory(new IntegerSpinnerValueFactory(1, Short.MAX_VALUE));
+		spnVerse.getValueFactory().setConverter(LastValueNumberStringConverter.forInteger((original) -> {
+			Platform.runLater(() -> {
+				spnVerse.getEditor().setText(original == null ? "1" : original);
+			});
+		}));
 		spnVerse.focusedProperty().addListener((obs) -> {
 			Platform.runLater(spnVerse.getEditor()::selectAll);
 		});
+		spnVerse.getValueFactory().valueProperty().bindBidirectional(this.verse);
 		
 		Label lblChapters = new Label();
 		lblChapters.textProperty().bind(Bindings.createStringBinding(() -> {
@@ -226,7 +242,8 @@ public final class BibleNavigationPane extends GridPane {
 		lblChapters.graphicProperty().bind(Bindings.createObjectBinding(() -> {
 			ReadOnlyBook book = this.book.get();
 			if (book == null) return null;
-			int cn = this.chapter.get();
+			Integer cn = this.chapter.get();
+			if (cn == null) return null;
 			Chapter chapter = book.getChapter(cn);
 			if (chapter == null) return INVALID_CHAPTER;
 			return null;
@@ -236,7 +253,8 @@ public final class BibleNavigationPane extends GridPane {
 		lblVerses.textProperty().bind(Bindings.createStringBinding(() -> {
 			ReadOnlyBook book = this.book.get();
 			if (book == null) return "";
-			int cn = this.chapter.get();
+			Integer cn = this.chapter.get();
+			if (cn == null) return null;
 			Chapter chapter = book.getChapter(cn);
 			if (chapter == null) return "";
 			return String.valueOf(chapter.getVerses().size());
@@ -244,10 +262,12 @@ public final class BibleNavigationPane extends GridPane {
 		lblVerses.graphicProperty().bind(Bindings.createObjectBinding(() -> {
 			ReadOnlyBook book = this.book.get();
 			if (book == null) return null;
-			int cn = this.chapter.get();
+			Integer cn = this.chapter.get();
+			if (cn == null) return null;
 			Chapter chapter = book.getChapter(cn);
 			if (chapter == null) return INVALID_VERSE;
-			int vn = this.verse.get();
+			Integer vn = this.verse.get();
+			if (vn == null) return null;
 			Verse verse = chapter.getVerse(vn);
 			if (verse == null) return INVALID_VERSE;
 			return null;
@@ -328,12 +348,16 @@ public final class BibleNavigationPane extends GridPane {
 				this.searchDialog.setTitle(Translations.get("bible.search.title"));
 				this.searchDialog.initModality(Modality.NONE);
 				this.searchDialog.initStyle(StageStyle.DECORATED);
-				this.searchDialog.setWidth(800);
-				this.searchDialog.setHeight(450);
+				this.searchDialog.setWidth(1000);
+				this.searchDialog.setHeight(600);
 				this.searchDialog.setResizable(true);
 				this.searchDialog.setScene(WindowHelper.createSceneWithOwnerCss(pneSearch, owner));
 				WindowHelper.setIcons(this.searchDialog);
 				context.attachZoomHandler(this.searchDialog.getScene());
+				context.attachAccentHandler(this.searchDialog.getScene());
+				this.searchDialog.setOnShown(evt -> {
+					pneSearch.requestSearchFocus();
+				});
 			}
 			
 			this.searchDialogFirstItemSelected = false;
@@ -524,10 +548,10 @@ public final class BibleNavigationPane extends GridPane {
 		ReadOnlyBook book = this.book.get();
 
 		int bn = book != null ? book.getNumber() : 0;
-		int cn = this.chapter.get();
-		int vn = this.verse.get();
+		Integer cn = this.chapter.get();
+		Integer vn = this.verse.get();
 		
-		if (bible != null && book != null) {
+		if (bible != null && book != null && cn != null && vn != null) {
 			switch(type) {
 				case FIND:
 					try {

@@ -25,7 +25,7 @@ import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.store.FSDirectory;
 import org.praisenter.async.AsyncHelper;
 import org.praisenter.data.DataImportResult;
-import org.praisenter.data.KnownFormat;
+import org.praisenter.data.ImportExportFormat;
 import org.praisenter.data.PersistAdapter;
 import org.praisenter.data.Persistable;
 import org.praisenter.data.PersistentStore;
@@ -320,7 +320,7 @@ public final class WorkspaceManager {
 		}));
 	}
 	
-	public CompletableFuture<Void> importData(Path path, Class<?>... classes) {
+	public CompletableFuture<List<Persistable>> importData(Path path, Class<?>... classes) {
 		final List<CompletableFuture<DataImportResult<? extends Persistable>>> futures = new ArrayList<>();
 		
 		for (Class<?> clazz : classes) {
@@ -329,6 +329,7 @@ public final class WorkspaceManager {
 			futures.add(store.importData(path, false).thenApply((l) -> (DataImportResult<? extends Persistable>)l));
 		}
 		
+		List<Persistable> results = new ArrayList<>();
 		return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
 			// process the results
 			int numberImported = 0;
@@ -344,6 +345,7 @@ public final class WorkspaceManager {
 				// add created lookups
 				for (Persistable item : result.getCreated()) {
 					this.itemLookup.put(item.getId(), item);
+					results.add(item);
 					numberImported++;
 				}
 				
@@ -353,6 +355,7 @@ public final class WorkspaceManager {
 				// update updated
 				for (Persistable item : result.getUpdated()) {
 					this.updateListItem(item);
+					results.add(item);
 					numberImported++;
 				}
 				
@@ -363,7 +366,9 @@ public final class WorkspaceManager {
 			if (numberImported == 0) {
 				throw new CompletionException(new Exception("Failed to import path '" + path + "' it does not match any supported format of media, bible, song, or slide."));
 			}
-		}));
+		})).thenApply((v) -> {
+			return results;
+		});
 	}
 	
 	private void updateListItem(Persistable item) {
@@ -402,7 +407,7 @@ public final class WorkspaceManager {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public <T extends Persistable> void exportData(KnownFormat format, ZipOutputStream stream, List<T> items) throws IOException {
+	public <T extends Persistable> void exportData(ImportExportFormat format, ZipOutputStream stream, List<T> items) throws IOException {
 		if (items == null || items.isEmpty()) return;
 		
 		// group by class
@@ -426,7 +431,7 @@ public final class WorkspaceManager {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public <T extends Persistable> CompletableFuture<Void> exportData(KnownFormat format, Path path, T item) {
+	public <T extends Persistable> CompletableFuture<Void> exportData(ImportExportFormat format, Path path, T item) {
 		PersistentStore<T> store = (PersistentStore<T>)this.adapters.get(item.getClass());
 		if (store == null) throw new UnsupportedOperationException("A persistence adapter was not found for class '" + item.getClass() + "'.");
 		return store.exportData(format, path, item);

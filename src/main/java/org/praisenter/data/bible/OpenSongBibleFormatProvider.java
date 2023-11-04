@@ -24,6 +24,7 @@
  */
 package org.praisenter.data.bible;
 
+import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -32,6 +33,7 @@ import java.io.OutputStream;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.zip.ZipOutputStream;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
@@ -41,9 +43,11 @@ import javax.xml.stream.XMLStreamReader;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.praisenter.data.DataFormatProvider;
+import org.praisenter.data.DataImportResult;
 import org.praisenter.data.DataReadResult;
-import org.praisenter.data.InvalidFormatException;
+import org.praisenter.data.ImportExportProvider;
+import org.praisenter.data.InvalidImportExportFormatException;
+import org.praisenter.data.PersistAdapter;
 import org.praisenter.utility.MimeType;
 import org.praisenter.utility.Streams;
 import org.xml.sax.Attributes;
@@ -56,7 +60,7 @@ import org.xml.sax.helpers.DefaultHandler;
  * @version 3.0.0
  * @since 3.0.0
  */
-final class OpenSongBibleFormatProvider implements DataFormatProvider<Bible> {
+final class OpenSongBibleFormatProvider implements ImportExportProvider<Bible> {
 	/** The class level-logger */
 	private static final Logger LOGGER = LogManager.getLogger();
 	
@@ -65,6 +69,76 @@ final class OpenSongBibleFormatProvider implements DataFormatProvider<Bible> {
 	
 	@Override
 	public boolean isSupported(Path path) {
+		return this.isSupported(MimeType.get(path));
+	}
+	
+	@Override
+	public boolean isSupported(String mimeType) {
+		return MimeType.XML.is(mimeType) || mimeType.toLowerCase().startsWith("text");
+	}
+	
+	@Override
+	public boolean isSupported(String name, InputStream stream) {
+		return this.isSupported(MimeType.get(stream, name));
+	}
+	
+	@Override
+	public void exp(PersistAdapter<Bible> adapter, OutputStream stream, Bible data) throws IOException {
+		throw new UnsupportedOperationException();
+	}
+	@Override
+	public void exp(PersistAdapter<Bible> adapter, Path path, Bible data) throws IOException {
+		throw new UnsupportedOperationException();
+	}
+	
+	@Override
+	public void exp(PersistAdapter<Bible> adapter, ZipOutputStream stream, Bible data) throws IOException {
+		throw new UnsupportedOperationException();
+	}
+	
+	@Override
+	public DataImportResult<Bible> imp(PersistAdapter<Bible> adapter, Path path) throws IOException {
+		DataImportResult<Bible> result = new DataImportResult<>();
+		
+		if (!this.isOpenSongBible(path)) {
+			return result;
+		}
+		
+		String name = path.getFileName().toString();
+		int i = name.lastIndexOf('.');
+		if (i >= 0) {
+			name = name.substring(0, i);
+		}
+		
+		List<DataReadResult<Bible>> results = new ArrayList<>();
+		try (FileInputStream fis = new FileInputStream(path.toFile());
+			BufferedInputStream bis = new BufferedInputStream(fis)) {
+			results.add(this.parse(bis, name));
+		} catch (SAXException | ParserConfigurationException ex) {
+			throw new InvalidImportExportFormatException(ex);
+		}
+		
+		for (DataReadResult<Bible> drr : results) {
+			if (drr == null) continue;
+			Bible bible = drr.getData();
+			if (bible == null) continue;
+			try {
+				boolean isUpdate = adapter.upsert(bible);
+				if (isUpdate) {
+					result.getUpdated().add(bible);
+				} else {
+					result.getCreated().add(bible);
+				}
+				result.getWarnings().addAll(drr.getWarnings());
+			} catch (Exception ex) {
+				result.getErrors().add(ex);
+			}
+		}
+		
+		return result;
+	}
+	
+	private boolean isOpenSongBible(Path path) {
 		try (FileInputStream stream = new FileInputStream(path.toFile())) {
 			XMLInputFactory f = XMLInputFactory.newInstance();
 			// prevent XXE attacks
@@ -86,74 +160,12 @@ final class OpenSongBibleFormatProvider implements DataFormatProvider<Bible> {
 		return false;
 	}
 	
-	@Override
-	public boolean isSupported(String mimeType) {
-		return MimeType.XML.is(mimeType) || mimeType.toLowerCase().startsWith("text");
-	}
-	
-	@Override
-	public boolean isSupported(String resourceName, InputStream stream) {
-		try {
-			XMLInputFactory f = XMLInputFactory.newInstance();
-			// prevent XXE attacks
-			// https://www.owasp.org/index.php/XML_External_Entity_(XXE)_Prevention_Cheat_Sheet#XMLInputFactory_.28a_StAX_parser.29
-			f.setProperty(XMLInputFactory.SUPPORT_DTD, false);
-			f.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false);
-			XMLStreamReader r = f.createXMLStreamReader(stream);
-			while(r.hasNext()) {
-			    r.next();
-			    if (r.isStartElement()) {
-			    	if (r.getLocalName().equalsIgnoreCase("bible")) {
-			    		return true;
-			    	}
-			    }
-			}
-		} catch (Exception ex) {
-			LOGGER.trace("Failed to read the input stream as an XML document.", ex);
-		}
-		return false;
-	}
-	
-	@Override
-	public List<DataReadResult<Bible>> read(Path path) throws IOException {
-		try (FileInputStream stream = new FileInputStream(path.toFile())) {
-			return this.read(path.getFileName().toString(), stream);
-		}
-	}
-	
-	@Override
-	public List<DataReadResult<Bible>> read(String resourceName, InputStream stream) throws IOException {
-		String name = resourceName;
-		int i = resourceName.lastIndexOf('.');
-		if (i >= 0) {
-			name = resourceName.substring(0, i);
-		}
-		
-		List<DataReadResult<Bible>> results = new ArrayList<>();
-		try {
-			results.add(this.parse(stream, name));
-		} catch (SAXException | ParserConfigurationException ex) {
-			throw new InvalidFormatException(ex);
-		}
-		return results;
-	}
-	
-	@Override
-	public void write(OutputStream stream, Bible bible) throws IOException {
-		throw new UnsupportedOperationException();
-	}
-	
-	@Override
-	public void write(Path path, Bible bible) throws IOException {
-		throw new UnsupportedOperationException();
-	}
-	
 	/**
 	 * Attempts to parse the given input stream into the internal bible format.
 	 * @param stream the input stream
 	 * @param name the name
 	 * @throws IOException if an IO error occurs
-	 * @throws InvalidFormatException if the stream was not in the expected format
+	 * @throws InvalidImportExportFormatException if the stream was not in the expected format
 	 * @return {@link Bible}
 	 * @throws SAXException 
 	 * @throws ParserConfigurationException 
