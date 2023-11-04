@@ -10,7 +10,7 @@ on:
   #  pull_request:
   #    branches: [ main ]
   workflow_dispatch:
-    branches: [ main ]
+    branches: [ master ]
 
 env:
   DEV_IDENTITY: BXPZTQZ35S # Your Apple Dev identity, something like BXPZTQZ35S
