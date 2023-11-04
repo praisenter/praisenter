@@ -46,7 +46,8 @@ jobs:
         with:
           java-version: 21.0.1
           distribution: 'zulu'
-          java-package: jdk+fx
+          java-package: jdk
+          # java-package: jdk+fx
           cache: 'maven'
       - name: "Build with Maven"
         if: matrix.os != 'macos-latest'
