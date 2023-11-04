@@ -525,5 +525,22 @@
                 <macos.sign.identity>--mac-signing-key-user-name "Company Name, Inc. (BXPXTXC35S)"</macos.sign.identity>
             </properties>
         </profile>
+        
+         <profile>
+            <id>m1-active</id>
+            <activation>
+                <os>
+                    <family>mac</family>
+                </os>
+            </activation>
+            <properties>
+                <platform>macaarch64</platform>
+                <jfx.platform>mac-aarch64</jfx.platform>
+                <macos.sign>--mac-sign</macos.sign>
+                <!-- You will have to replace this with your own dev information from your Apple identity -->
+                <macos.sign.identity>--mac-signing-key-user-name "Company Name, Inc. (BXPXTXC35S)"</macos.sign.identity>
+            </properties>
+        </profile>
+	        
     </profiles>
 </project>

@@ -236,8 +236,7 @@ public abstract class AbstractPersistAdapter<T extends Persistable, E extends Pa
 									DataImportResult<T> res = this.importFile(p, providers);
 									results.add(res);
 								} catch (IOException e) {
-									// TODO Auto-generated catch block
-									e.printStackTrace();
+									LOGGER.debug("Failed to import file '" + p.toAbsolutePath() + "'", e);
 								}
 							}
 					    });

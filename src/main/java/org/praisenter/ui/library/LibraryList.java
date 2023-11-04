@@ -148,7 +148,9 @@ public final class LibraryList extends BorderPane implements ActionPane {
 				
 				Dragboard db = cell.startDragAndDrop(TransferMode.COPY);
 				ClipboardContent content = new ClipboardContent();
-				if (files.size() > 0) content.putFiles(files);
+				if (files.size() > 0) {
+					content.putFiles(files);
+				}
 				content.putString(p.getName());
 				content.put(DataFormats.PRAISENTER_ID_LIST, ids);
 				db.setContent(content);
