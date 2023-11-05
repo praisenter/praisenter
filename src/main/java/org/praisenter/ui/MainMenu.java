@@ -384,13 +384,17 @@ final class MainMenu extends MenuBar {
 	}
 	
 	private void openUrl(String url) {
-		if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-			try {
-			    Desktop.getDesktop().browse(new URI(url));
-			} catch (Exception e) {
-				LOGGER.error("Failed to open default browser for URL: " + url, e);
+		// Desktop must be used from the AWT EventQueue
+		// https://stackoverflow.com/a/65863422
+		EventQueue.invokeLater(() -> {
+			if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+				try {
+				    Desktop.getDesktop().browse(new URI(url));
+				} catch (Exception e) {
+					LOGGER.error("Failed to open default browser for URL: " + url, e);
+				}
 			}
-		}
+		});
 	}
 	
 	private void showAbout() {
