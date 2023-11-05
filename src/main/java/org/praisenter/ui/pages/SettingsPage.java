@@ -17,6 +17,7 @@ import org.praisenter.ui.themes.Accent;
 import org.praisenter.ui.themes.AtlantaFXTheme;
 import org.praisenter.ui.themes.StyleSheets;
 import org.praisenter.ui.themes.ThemeListCell;
+import org.praisenter.ui.themes.ThemeType;
 import org.praisenter.ui.themes.Theming;
 import org.praisenter.ui.translations.Translations;
 import org.praisenter.utility.StringManipulator;
@@ -98,7 +99,11 @@ public final class SettingsPage extends BorderPane {
 		});
 		
 		FilteredList<Accent> filteredAccents = new FilteredList<Accent>(FXCollections.observableArrayList(Theming.ACCENTS), a -> {
-			return a.getThemeType() == currentTheme.getType();
+			ThemeType tt = ThemeType.DARK;
+			if (currentTheme != null) {
+				tt = currentTheme.getType();
+			}
+			return a.getThemeType() == tt;
 		});
 		configuration.themeNameProperty().addListener((obs, ov, nv) -> {
 			AtlantaFXTheme theme = Theming.getTheme(configuration.getThemeName());
