@@ -189,8 +189,8 @@ public final class DisplayManager {
 	}
 	
 	private boolean isPrimaryScreen(int index, int screenCount) {
-		if (index == 0 && screenCount == 1) return true;
-		if (index == 1 && screenCount == 2) return true;
+//		if (index == 0 && screenCount == 1) return true;
+		if (index == 1 && screenCount >= 2) return true;
 		return false;
 	}
 	
