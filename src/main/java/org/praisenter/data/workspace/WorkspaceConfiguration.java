@@ -100,7 +100,7 @@ public final class WorkspaceConfiguration implements ReadOnlyWorkspaceConfigurat
 		this.applicationY = new SimpleDoubleProperty(POSITION_SIZE_UNSET);
 		this.applicationWidth = new SimpleDoubleProperty(POSITION_SIZE_UNSET);
 		this.applicationHeight = new SimpleDoubleProperty(POSITION_SIZE_UNSET);
-		this.applicationFontSize = new SimpleDoubleProperty(12);
+		this.applicationFontSize = new SimpleDoubleProperty(14);
 		this.applicationMaximized = new SimpleBooleanProperty(false);
 		this.debugModeEnabled = new SimpleBooleanProperty(false);
 
