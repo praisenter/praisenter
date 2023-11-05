@@ -450,7 +450,7 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 							AlertType.CONFIRMATION, 
 							Translations.get("action.renumber"), 
 							Translations.get("action.confirm"), 
-							Translations.get("bible.editor.renumber.description"), 
+							Translations.get("bible.renumber.description"), 
 							Translations.get("action.confirm.optout"), 
 							(optOut) -> {
 								if (optOut) {
@@ -506,7 +506,7 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 							AlertType.CONFIRMATION, 
 							Translations.get("action.reorder"), 
 							Translations.get("action.confirm"), 
-							Translations.get("bible.editor.reorder.description"), 
+							Translations.get("bible.reorder.description"), 
 							Translations.get("action.confirm.optout"),
 							(optOut) -> {
 								if (optOut) {
