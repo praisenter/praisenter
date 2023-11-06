@@ -1,7 +1,7 @@
 --type deb
 --name ${app.name}
 --icon "${project.basedir}/package/linux64/praisenter.png"
---resource-dir "build/jpackage/${app.name}/lib"
+--resource-dir "${project.basedir}/package/linux64/"
 --dest "${project.build.directory}"
 --main-jar ${project.build.finalName}.jar
 --main-class ${main-class}
