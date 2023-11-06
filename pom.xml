@@ -5,7 +5,7 @@
 
 	<groupId>org.praisenter</groupId>
 	<artifactId>praisenter</artifactId>
-	<version>3.0.1</version>
+	<version>3.1.0</version>
 	<packaging>jar</packaging>
 
 	<!-- General Project Information -->
@@ -465,7 +465,7 @@
             </activation>
             <properties>
                 <!--suppress UnresolvedMavenProperty -->
-                <app.version>3.1.${env.GITHUB_RUN_NUMBER}</app.version>
+                <app.version>3.1.0</app.version>
             </properties>
         </profile>
         <profile>
