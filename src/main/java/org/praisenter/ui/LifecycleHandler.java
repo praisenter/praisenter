@@ -315,7 +315,9 @@ public final class LifecycleHandler {
     		// we are in the bounds of a screen
     		// if not, we'll rely on Java FX to place
     		// the window a the default location
-    		if (this.isInScreenBounds(x, y, w, h)) {
+        	if (x == WorkspaceConfiguration.POSITION_SIZE_UNSET && y == WorkspaceConfiguration.POSITION_SIZE_UNSET) {
+        		stage.centerOnScreen();
+        	} else if (this.isInScreenBounds(x, y, w, h)) {
     			stage.setX(x);
     			stage.setY(y);
     		}
