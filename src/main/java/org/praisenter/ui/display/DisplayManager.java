@@ -83,6 +83,10 @@ public final class DisplayManager {
 				boolean isPrimary = this.isPrimaryScreen(i, sSize);
 
 				DisplayConfiguration newConfiguration = this.createDisplayConfiguration(screens.get(i), i, isPrimary);
+				if (isPrimary && sSize > 1) {
+					newConfiguration.setActive(true);
+				}
+				
 				configurations.add(newConfiguration);
 
 				this.targets.add(new DisplayTarget(this.context, newConfiguration));
@@ -189,7 +193,7 @@ public final class DisplayManager {
 	}
 	
 	private boolean isPrimaryScreen(int index, int screenCount) {
-//		if (index == 0 && screenCount == 1) return true;
+		if (index == 0 && screenCount == 1) return true;
 		if (index == 1 && screenCount >= 2) return true;
 		return false;
 	}

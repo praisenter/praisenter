@@ -51,7 +51,7 @@ public final class DisplayConfiguration implements BibleConfiguration, ReadOnlyD
 		this.primary = new SimpleBooleanProperty(false);
 		this.name = new SimpleStringProperty();
 		this.defaultName = new SimpleStringProperty();
-		this.active = new SimpleBooleanProperty(true);
+		this.active = new SimpleBooleanProperty(false);
 		
 		this.x = new SimpleIntegerProperty();
 		this.y = new SimpleIntegerProperty();
