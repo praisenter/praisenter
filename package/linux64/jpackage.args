@@ -1,6 +1,6 @@
 --type deb
 --name ${app.name}
---icon "praisenter.png"
+--icon "${project.basedir}/package/linux64/praisenter.png"
 --resource-dir "${project.basedir}/package/linux64/"
 --dest "${project.build.directory}"
 --main-jar ${project.build.finalName}.jar
@@ -12,9 +12,11 @@
 --vendor ${app.vendor}
 --description "${project.description}"
 --copyright "(C) ${app.vendor}"
+--about-url "https://praisenter.org/"
 --linux-shortcut
 --linux-package-name praisenter
 --linux-menu-group "Office;Presentation;Spirituality"
+--linux-deb-maintainer "wjbittle@gmail.com"
 --java-options "-Xms1g"
 --java-options "--add-exports=javafx.base/com.sun.javafx.event=ALL-UNNAMED"
 --java-options "--add-exports=javafx.graphics/com.sun.javafx.scene=ALL-UNNAMED"

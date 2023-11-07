@@ -11,9 +11,12 @@
 --vendor ${app.vendor}
 --description "${project.description}"
 --copyright "(C) ${app.vendor}"
+--about-url "https://praisenter.org/"
 --win-menu
 --win-menu-group ${app.vendor}
 --win-upgrade-uuid ${windows.upgrade.uuid}
+--win-shortcut-prompt
+--win-help-url "https://praisenter.org/"
 --java-options "-Xms1g"
 --java-options "--add-exports=javafx.base/com.sun.javafx.event=ALL-UNNAMED"
 --java-options "--add-exports=javafx.graphics/com.sun.javafx.scene=ALL-UNNAMED"

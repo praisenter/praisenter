@@ -10,6 +10,7 @@
 --vendor ${app.vendor}
 --description "${project.description}"
 --copyright "(C) ${app.vendor}"
+--about-url "https://praisenter.org/"
 --mac-package-identifier "org.praisenter"
 --mac-package-name ${app.vendor}
 --java-options "-Xms1g"

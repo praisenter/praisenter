@@ -247,15 +247,14 @@
                 	<exclude>${platform}/**/*.jmod</exclude>
                 </excludes>
             </resource>
-            <resource>
-                <!-- Here we are processing the platform-specific jpackage command files, adding in Maven
-                 properties for configuration. -->
+<!--             <resource>
                 <directory>${project.basedir}/package</directory>
                 <targetPath>${project.build.directory}/packaging</targetPath>
                 <includes>
                 	<include>${platform}/**/*.jmod</include>
                 </includes>
             </resource>
+            -->
             <!-- Add the default resource path back in - by overriding above it disables the default -->
             <resource>
                 <directory>${project.basedir}/src/main/resources</directory>
@@ -346,7 +345,7 @@
                         <configuration>
                             <toolName>jlink</toolName>
                             <removeDirectories>${project.build.directory}/jvm-image/</removeDirectories>
-                            <modulePath>${project.basedir}/package/${platform}/jmods/</modulePath>
+                            <!--<modulePath>${project.basedir}/package/${platform}/jmods/</modulePath>-->
                             <addModules>${jvm.modules}</addModules>
                             <output>${project.build.directory}/jvm-image</output>
                             <args>
