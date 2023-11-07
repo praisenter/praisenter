@@ -15,7 +15,6 @@
 --win-menu
 --win-menu-group ${app.vendor}
 --win-upgrade-uuid ${windows.upgrade.uuid}
---win-shortcut-prompt
 --win-help-url "https://praisenter.org/"
 --java-options "-Xms1g"
 --java-options "--add-exports=javafx.base/com.sun.javafx.event=ALL-UNNAMED"
