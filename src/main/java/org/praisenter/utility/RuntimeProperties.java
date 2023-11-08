@@ -28,6 +28,10 @@ public final class RuntimeProperties {
 	/** The java vendor */
 	public static final String JAVA_VENDOR = getJavaVendor();
 	
+	// TODO We could get better OS name using a command line:
+	// Linux: cat /etc/os-release and get the line with format PRETTY_NAME="{the name we want}"
+	// Windows: systeminfo and get the line with format OS Name:                   Microsoft Windows 10 Enterprise
+	
 	/** The operating system */
 	public static final String OPERATING_SYSTEM = getOperatingSystem();
 	

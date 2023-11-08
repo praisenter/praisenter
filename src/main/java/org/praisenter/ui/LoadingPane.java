@@ -188,7 +188,6 @@ final class LoadingPane extends Pane {
 	}
 	
 	private Font getFont(double size) {
-    	// TODO test fonts on various platforms
     	return Font.font(
 			RuntimeProperties.IS_WINDOWS_OS 
 			? "Segoe UI Light" //"Sans Serif" //"Lucida Grande" //"Segoe UI Light" 

@@ -25,7 +25,6 @@ import javafx.scene.layout.Region;
 
 final class PraisenterPane extends BorderPane {
 	// TODO background striping or something to split the screen controllers apart visually
-	// TODO flicker on update of tags on library list
 	
 	private static final String LEFT_NAVIGATION_CLASS = "p-left-navigation";
 	private static final String LEFT_NAVIGATION_ICON_CLASS = "p-left-navigation-icon";
