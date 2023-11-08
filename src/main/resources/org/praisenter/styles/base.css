@@ -565,6 +565,7 @@
 .p-documents-pane-selection-editor {
 	-fx-min-width: 350;
 	-fx-pref-width: 350;
+	-fx-max-width: 500;
 }
 
 /* EDITOR FIELDS */
