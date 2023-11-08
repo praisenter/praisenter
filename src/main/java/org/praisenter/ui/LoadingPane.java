@@ -194,7 +194,9 @@ final class LoadingPane extends Pane {
 			? "Segoe UI Light" //"Sans Serif" //"Lucida Grande" //"Segoe UI Light" 
 			: RuntimeProperties.IS_MAC_OS 
 				? "Lucida Grande"
-				: "Sans Serif", size);
+				: RuntimeProperties.IS_LINUX_OS && Font.getFamilies().contains("Ubuntu Light")
+					? "Ubuntu Light"
+					: "Sans Serif", size);
 	}
 
 	private CompletableFuture<Void> performUpgrade() {
