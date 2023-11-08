@@ -340,17 +340,17 @@ final class LibraryItemDetails extends VBox {
 	        			javafx.scene.media.Media m = new javafx.scene.media.Media(media.getMediaPath().toUri().toString());
 	        			Exception ex = m.getError();
 	        			if (ex != null) {
-	        				LOGGER.error("Error loading media " + media.getName(), ex);
+	        				LOGGER.error("Error loading media " + media.getMediaPath().toAbsolutePath(), ex);
 	        			} else {
 	        				MediaPlayer mp = new MediaPlayer(m);
 	        				ex = mp.getError();
 	        				if (ex != null) {
-	        					LOGGER.error("Error creating media player for " + media.getName(), ex);
+	        					LOGGER.error("Error creating media player for " + media.getMediaPath().toAbsolutePath(), ex);
 	        				}
 	        				return mp;
 	        			}
         			} catch (Exception ex) {
-        				LOGGER.error("Error loading media " + media.getName(), ex);
+        				LOGGER.error("Error loading media " + media.getMediaPath().toAbsolutePath(), ex);
         			}
 				}
 			}

@@ -37,9 +37,9 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.zip.ZipOutputStream;
 
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -91,7 +91,7 @@ final class UnboundBibleFormatProvider implements ImportExportProvider<Bible> {
 	}
 	
 	@Override
-	public void exp(PersistAdapter<Bible> adapter, ZipOutputStream stream, Bible data) throws IOException {
+	public void exp(PersistAdapter<Bible> adapter, ZipArchiveOutputStream stream, Bible data) throws IOException {
 		throw new UnsupportedOperationException();
 	}
 

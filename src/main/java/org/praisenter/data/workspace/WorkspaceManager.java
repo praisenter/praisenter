@@ -15,8 +15,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.zip.ZipOutputStream;
 
+import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.lucene.analysis.Analyzer;
@@ -407,7 +407,7 @@ public final class WorkspaceManager {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public <T extends Persistable> void exportData(ImportExportFormat format, ZipOutputStream stream, List<T> items) throws IOException {
+	public <T extends Persistable> void exportData(ImportExportFormat format, ZipArchiveOutputStream stream, List<T> items) throws IOException {
 		if (items == null || items.isEmpty()) return;
 		
 		// group by class

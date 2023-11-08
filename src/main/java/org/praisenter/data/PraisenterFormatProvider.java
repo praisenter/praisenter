@@ -32,10 +32,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Path;
 import java.util.Enumeration;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
+import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
@@ -91,12 +91,12 @@ public class PraisenterFormatProvider<T extends Persistable> implements ImportEx
 	}
 	
 	@Override
-	public void exp(PersistAdapter<T> adapter, ZipOutputStream stream, T data) throws IOException {
+	public void exp(PersistAdapter<T> adapter, ZipArchiveOutputStream stream, T data) throws IOException {
 		Path path = adapter.getPathResolver().getExportPath(data);
-		ZipEntry entry = new ZipEntry(FilenameUtils.separatorsToUnix(path.toString()));
-		stream.putNextEntry(entry);
+		ArchiveEntry entry = new ZipArchiveEntry(FilenameUtils.separatorsToUnix(path.toString()));
+		stream.putArchiveEntry(entry);
 		JsonIO.write(stream, data);
-		stream.closeEntry();
+		stream.closeArchiveEntry();
 	}
 	
 	@Override

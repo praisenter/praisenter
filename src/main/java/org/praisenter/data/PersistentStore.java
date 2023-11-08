@@ -6,8 +6,8 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
-import java.util.zip.ZipOutputStream;
 
+import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.async.AsyncHelper;
@@ -155,7 +155,7 @@ public final class PersistentStore<T extends Persistable> {
 		}));
 	}
 	
-	public void exportData(ImportExportFormat format, ZipOutputStream stream, List<T> items) throws IOException {
+	public void exportData(ImportExportFormat format, ZipArchiveOutputStream stream, List<T> items) throws IOException {
 		this.adapter.exportData(format, stream, items);
 	}
 	

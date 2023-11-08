@@ -33,7 +33,6 @@ import java.io.OutputStream;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.zip.ZipOutputStream;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
@@ -41,6 +40,7 @@ import javax.xml.parsers.SAXParserFactory;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamReader;
 
+import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.data.DataImportResult;
@@ -92,7 +92,7 @@ final class OpenSongBibleFormatProvider implements ImportExportProvider<Bible> {
 	}
 	
 	@Override
-	public void exp(PersistAdapter<Bible> adapter, ZipOutputStream stream, Bible data) throws IOException {
+	public void exp(PersistAdapter<Bible> adapter, ZipArchiveOutputStream stream, Bible data) throws IOException {
 		throw new UnsupportedOperationException();
 	}
 	

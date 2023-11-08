@@ -4,7 +4,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Path;
-import java.util.zip.ZipOutputStream;
+
+import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 
 public interface ImportExportProvider<T extends Persistable> {
 	/**
@@ -61,7 +62,7 @@ public interface ImportExportProvider<T extends Persistable> {
 	 * @param data the data to write
 	 * @throws IOException
 	 */
-	public void exp(PersistAdapter<T> adapter, ZipOutputStream stream, T data) throws IOException;
+	public void exp(PersistAdapter<T> adapter, ZipArchiveOutputStream stream, T data) throws IOException;
 	
 	/**
 	 * Imports the file at the given path.

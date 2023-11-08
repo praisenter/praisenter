@@ -11,10 +11,9 @@ import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
@@ -66,42 +65,42 @@ final class PraisenterMediaFormatProvider extends PraisenterFormatProvider<Media
 	}
 
 	@Override
-	public void exp(PersistAdapter<Media> adapter, ZipOutputStream stream, Media data) throws IOException {
+	public void exp(PersistAdapter<Media> adapter, ZipArchiveOutputStream stream, Media data) throws IOException {
 		MediaPathResolver mpr = (MediaPathResolver)adapter.getPathResolver();
 		
 		// the metadata
 		LOGGER.trace("Exporting media metadata '{}'", data.getName());
 		Path path = mpr.getExportPath(data);
-		ZipEntry e = new ZipEntry(FilenameUtils.separatorsToUnix(path.toString()));
-		stream.putNextEntry(e);
+		ZipArchiveEntry e = new ZipArchiveEntry(FilenameUtils.separatorsToUnix(path.toString()));
+		stream.putArchiveEntry(e);
 		JsonIO.write(stream, data);
-		stream.closeEntry();
+		stream.closeArchiveEntry();
 		
 		// the media
 		LOGGER.trace("Exporting media '{}'", data.getName());
 		path = mpr.getExportMediaPath(data);
-		e = new ZipEntry(FilenameUtils.separatorsToUnix(path.toString()));
-		stream.putNextEntry(e);
+		e = new ZipArchiveEntry(FilenameUtils.separatorsToUnix(path.toString()));
+		stream.putArchiveEntry(e);
 		Files.copy(mpr.getMediaPath(data), stream);
-		stream.closeEntry();
+		stream.closeArchiveEntry();
 		
 		// the image (video only)
 		if (data.getMediaType() == MediaType.VIDEO) {
 			LOGGER.trace("Exporting media image '{}'", data.getName());
 			path = mpr.getExportImagePath(data);
-			e = new ZipEntry(FilenameUtils.separatorsToUnix(path.toString()));
-			stream.putNextEntry(e);
+			e = new ZipArchiveEntry(FilenameUtils.separatorsToUnix(path.toString()));
+			stream.putArchiveEntry(e);
 			Files.copy(mpr.getImagePath(data), stream);
-			stream.closeEntry();
+			stream.closeArchiveEntry();
 		}
 		
 		// the thumb
 		LOGGER.trace("Exporting media thumbnail '{}'", data.getName());
 		path = mpr.getExportThumbPath(data);
-		e = new ZipEntry(FilenameUtils.separatorsToUnix(path.toString()));
-		stream.putNextEntry(e);
+		e = new ZipArchiveEntry(FilenameUtils.separatorsToUnix(path.toString()));
+		stream.putArchiveEntry(e);
 		Files.copy(mpr.getThumbPath(data), stream);
-		stream.closeEntry();
+		stream.closeArchiveEntry();
 	}
 
 	@Override
@@ -160,7 +159,7 @@ final class PraisenterMediaFormatProvider extends PraisenterFormatProvider<Media
 							} else {
 								media.setMediaImagePath(mpr.getImagePath(media));
 							}
-							media.setMediaPath(mpr.getPath(media));
+							media.setMediaPath(mpr.getMediaPath(media));
 							media.setMediaThumbnailPath(mpr.getThumbPath(media));
 							metadata.add(media);
 						}

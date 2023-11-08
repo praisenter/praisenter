@@ -17,9 +17,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Stream;
-import java.util.zip.ZipOutputStream;
 
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -158,7 +158,7 @@ public abstract class AbstractPersistAdapter<T extends Persistable, E extends Pa
 	}
 	
 	@Override
-	public void exportData(ImportExportFormat format, ZipOutputStream destination, List<T> items) throws IOException {
+	public void exportData(ImportExportFormat format, ZipArchiveOutputStream destination, List<T> items) throws IOException {
 		LOGGER.trace("Getting export provider for format '{}'", format);
 		ImportExportProvider<T> provider = this.importExportProviders.get(format);
 		if (provider == null) {

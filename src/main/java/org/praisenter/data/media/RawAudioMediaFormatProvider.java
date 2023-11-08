@@ -32,11 +32,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.UUID;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 import javax.imageio.ImageIO;
 
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -106,15 +106,15 @@ final class RawAudioMediaFormatProvider extends AbstractMediaFormatProvider {
 	}
 	
 	@Override
-	public void exp(PersistAdapter<Media> adapter, ZipOutputStream stream, Media data) throws IOException {
+	public void exp(PersistAdapter<Media> adapter, ZipArchiveOutputStream stream, Media data) throws IOException {
 		MediaPathResolver mpr = (MediaPathResolver)adapter.getPathResolver();
 		// TODO this will export the file as "{GUID}.{ext}" we should change this to export as the item name (which could cause collisions)
 		Path targetPath = mpr.getExportMediaPath(data);
 		Path sourcePath = mpr.getMediaPath(data);
-		ZipEntry entry = new ZipEntry(FilenameUtils.separatorsToUnix(targetPath.toString()));
-		stream.putNextEntry(entry);
+		ZipArchiveEntry entry = new ZipArchiveEntry(FilenameUtils.separatorsToUnix(targetPath.toString()));
+		stream.putArchiveEntry(entry);
 		Files.copy(sourcePath, stream);
-		stream.closeEntry();
+		stream.closeArchiveEntry();
 	}
 	
 	@Override

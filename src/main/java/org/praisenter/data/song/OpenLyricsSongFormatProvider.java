@@ -12,7 +12,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.zip.ZipOutputStream;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
@@ -20,12 +19,13 @@ import javax.xml.parsers.SAXParserFactory;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamReader;
 
+import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.Constants;
-import org.praisenter.data.ImportExportProvider;
 import org.praisenter.data.DataImportResult;
 import org.praisenter.data.DataReadResult;
+import org.praisenter.data.ImportExportProvider;
 import org.praisenter.data.InvalidImportExportFormatException;
 import org.praisenter.data.PersistAdapter;
 import org.praisenter.data.Tag;
@@ -68,7 +68,7 @@ final class OpenLyricsSongFormatProvider implements ImportExportProvider<Song> {
 	}
 	
 	@Override
-	public void exp(PersistAdapter<Song> adapter, ZipOutputStream stream, Song data) throws IOException {
+	public void exp(PersistAdapter<Song> adapter, ZipArchiveOutputStream stream, Song data) throws IOException {
 		throw new UnsupportedOperationException();
 	}
 

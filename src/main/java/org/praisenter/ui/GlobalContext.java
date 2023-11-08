@@ -1,12 +1,11 @@
 package org.praisenter.ui;
 
 import java.awt.image.BufferedImage;
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -25,10 +24,10 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
-import java.util.zip.ZipOutputStream;
 
 import javax.imageio.ImageIO;
 
+import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.Version;
@@ -1024,16 +1023,25 @@ public final class GlobalContext {
 				.collect(Collectors.toList());
 		
 		return CompletableFuture.runAsync(() -> {
-			try(FileOutputStream fos = new FileOutputStream(file);
-				BufferedOutputStream bos = new BufferedOutputStream(fos);
-	    		ZipOutputStream zos = new ZipOutputStream(bos);) {
-				
+			try (ZipArchiveOutputStream zos = new ZipArchiveOutputStream(file.toPath(), StandardOpenOption.TRUNCATE_EXISTING)) {
 				// export the items selected
 				this.workspaceManager.exportData(ImportExportFormat.PRAISENTER3, zos, items);
 				this.workspaceManager.exportData(ImportExportFormat.PRAISENTER3, zos, dependentItems);
 			} catch (Exception ex) {
 				throw new CompletionException(ex);
 			}
+			
+			
+//			try(FileOutputStream fos = new FileOutputStream(file);
+//				BufferedOutputStream bos = new BufferedOutputStream(fos);
+//	    		ZipOutputStream zos = new ZipOutputStream(bos);) {
+//				
+//				// export the items selected
+//				this.workspaceManager.exportData(ImportExportFormat.PRAISENTER3, zos, items);
+//				this.workspaceManager.exportData(ImportExportFormat.PRAISENTER3, zos, dependentItems);
+//			} catch (Exception ex) {
+//				throw new CompletionException(ex);
+//			}
 		}).thenRun(() -> {
 			task.setProgress(1.0);
 		}).exceptionally(t -> {

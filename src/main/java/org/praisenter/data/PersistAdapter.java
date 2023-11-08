@@ -4,7 +4,8 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.UUID;
-import java.util.zip.ZipOutputStream;
+
+import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 
 public interface PersistAdapter<T extends Persistable> {
 	public void initialize() throws IOException;
@@ -15,7 +16,7 @@ public interface PersistAdapter<T extends Persistable> {
 	public boolean upsert(T item) throws IOException;
 	public Object getLock(UUID id);
 	public DataImportResult<T> importData(Path path) throws IOException;
-	public void exportData(ImportExportFormat format, ZipOutputStream destination, List<T> items) throws IOException;
+	public void exportData(ImportExportFormat format, ZipArchiveOutputStream destination, List<T> items) throws IOException;
 	public void exportData(ImportExportFormat format, Path path, T item) throws IOException;
 	public Path getFilePath(T item);
 	public PathResolver<T> getPathResolver();
