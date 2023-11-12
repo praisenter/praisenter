@@ -83,12 +83,12 @@ public final class Workspaces implements ReadOnlyWorkspaces, Identifiable {
 	}
 	
 	@JsonProperty(Constants.VERSION_PROPERTY_NAME)
-	void setVersion(String version) {
+	public void setVersion(String version) {
 		this.version.set(version);
 	}
 	
 	@Override
-	public ReadOnlyStringProperty versionProperty() {
+	public StringProperty versionProperty() {
 		return this.version;
 	}
 	

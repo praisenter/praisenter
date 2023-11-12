@@ -2,41 +2,58 @@ package org.praisenter.ui.upgrade;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.nio.file.DirectoryStream;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.security.DigestInputStream;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+import org.apache.logging.log4j.Logger;
 import org.praisenter.Constants;
 import org.praisenter.Version;
+import org.praisenter.data.workspace.WorkspaceManager;
 import org.praisenter.utility.ClasspathLoader;
 
+/**
+ * This class handles install/upgrade for both the application files
+ * and workspace files.
+ * <p>
+ * A praisenter install has one working location for the application itself
+ * in the user's home directory under the .praisenter3 folder.
+ * <p>
+ * Each workspace tracks a configuration file with the current version of
+ * the workspace.
+ * @author WBittle
+ *
+ */
 public final class InstallUpgradeHandler {
 	private final InstallUpgradeLogger logger;
-	private final String archiveFolder;
+	private final FileUpgradeHelper fileUpgradeHelper;
+	private final List<VersionUpgradeHandler> upgradeHandlers;
 	
 	public InstallUpgradeHandler() {
 		this.logger = new InstallUpgradeLogger();
 		
 		LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
-		this.archiveFolder = now.toString().replaceAll("-|:", "");
+		Path archivePath = Paths.get(Constants.UPGRADE_ARCHIVE_ABSOLUTE_PATH, now.toString().replaceAll("-|:", ""));
+		this.fileUpgradeHelper = new FileUpgradeHelper(archivePath); 
+		
+		this.upgradeHandlers = new ArrayList<>();
+		this.upgradeHandlers.add(new Upgrade300OrEarlier());
 	}
 	
-	public void initialize() {
+	public void performApplicationInstallOrUpgradeSteps() {
 		// ensure folders exist
 		logger.debug("Making sure all application folders exist");
 		this.buildFolders();
@@ -91,18 +108,12 @@ public final class InstallUpgradeHandler {
 		this.installOrUpgradeLog4jConfiguration(true);
 		this.installOrUpgradeDefaultLocale(true);
 		this.installOrUpgradeDefaultStyles(true);
+		this.archiveAndRemoveThemesFolder();
 		this.writeVersionFile();
 
 		logger.info("All install/upgrade initialization steps have completed successfully.");
 	}
-	
-	public CompletableFuture<Void> performUpgradeSteps() {
-		// we'll need to be very careful here if we want to prevent issues where we leave the 
-		// application files in a bad state. That might mean we need to manually archive the 
-		// library so we can revert or something like that
-		return CompletableFuture.completedFuture(null);
-	}
-	
+
 	private void buildFolders() {
 		final Path[] paths = new Path[] {
 				Paths.get(Constants.ROOT_PATH),
@@ -157,16 +168,45 @@ public final class InstallUpgradeHandler {
 				isUpgrade);
 	}
 	
+	private void archiveAndRemoveThemesFolder() {
+		final String folder = "themes";
+		// from 3.0.0 and before, the app was styled using css only in the themes folder
+		Path path = Paths.get(Constants.ROOT_PATH, folder);
+		if (Files.exists(path)) {
+			try (DirectoryStream<Path> stream = Files.newDirectoryStream(path)) {
+				for (Path file : stream) {
+					try {
+						// attempt to move them to the archive
+						this.fileUpgradeHelper.archiveFile(file, folder);
+						// remove the file
+						Files.deleteIfExists(file);
+					} catch (IOException ex) {
+						logger.warn("Failed to archive or delete: '" + file.toAbsolutePath() + "'");
+					}
+				}
+			} catch (IOException ex) {
+				logger.warn("Failed to archive or delete files in folder: '" + path.toAbsolutePath() + "'");
+			}
+			
+			// then delete the folder
+			try {
+				Files.deleteIfExists(path);
+			} catch (IOException ex) {
+				logger.warn("Failed to delete folder: '" + path.toAbsolutePath() + "'");
+			}
+		}
+	}
+	
 	private void installOrUpgradeClasspathFile(String filePath, String fileName, String classpathPath, boolean isUpgrade) {
 		Path path = Paths.get(filePath, fileName);
 		if (Files.exists(path)) {
 			logger.debug("The file '" + fileName + "' exits.");
 			try {
-				if (isUpgrade && !this.isFileContentIdentical(path, classpathPath)) {
+				if (isUpgrade && !this.fileUpgradeHelper.isFileContentIdentical(path, classpathPath)) {
 					logger.debug("The file '" + fileName + "' exits, we're doing an upgrade, and the file content is different.");
 					logger.debug("Archiving file '" + fileName + "'.");
 					// archive off the file
-					this.archiveFile(path);
+					this.fileUpgradeHelper.archiveFile(path);
 					// delete the current file
 					logger.debug("Replacing file '" + fileName + "' with version from the jar.");
 					Files.delete(path);
@@ -254,41 +294,78 @@ public final class InstallUpgradeHandler {
 			throw new RuntimeException(e);
 		}
 	}
-	
-	private void archiveFile(Path path) throws IOException {
-		Path folder = Paths.get(Constants.UPGRADE_ARCHIVE_ABSOLUTE_PATH, this.archiveFolder);
-		Files.createDirectories(folder);
-		Path to = folder.resolve(path.getFileName().toString());
-		Files.copy(path, to, StandardCopyOption.REPLACE_EXISTING);
-	}
-	
-	private boolean isFileContentIdentical(Path path, String classpath) throws NoSuchAlgorithmException, IOException {
-		try (FileInputStream fis = new FileInputStream(path.toFile());
-			 InputStream is = InstallUpgradeHandler.class.getResourceAsStream(classpath)) {
-			return this.isFileContentIdentical(fis, is);
-		}
-	}
-	
-	private boolean isFileContentIdentical(InputStream is1, InputStream is2) throws IOException, NoSuchAlgorithmException {
-		// get a hash of the file
-		String hash1 = hash(is1, "SHA-256");
-		String hash2 = hash(is2, "SHA-256");
-		return hash1.equals(hash2);
-	}
-	
-	public static final String hash(InputStream stream, String algorithm) throws IOException, NoSuchAlgorithmException {
-		MessageDigest md = MessageDigest.getInstance(algorithm);
-		DigestInputStream dis = new DigestInputStream(stream, md);
 
-		byte[] data = new byte[4096];
-		while (dis.read(data, 0, data.length) != -1) {}
-		
-		byte[] digest = md.digest();
-		StringBuffer sb = new StringBuffer();
-		for (int i = 0; i < digest.length; i++) {
-		    sb.append(Integer.toString((digest[i] & 0xff) + 0x100, 16).substring(1));
+	public boolean isUpgradeRequired(Logger workspaceLogger, Version workspaceVersion) {
+		// now compare with the runtime version
+		if (workspaceVersion == null) {
+			// we couldn't parse the runtime version
+			workspaceLogger.warn("We couldn't determine the current workspace version. No upgrade steps will be performed.");
+		} else if (workspaceVersion.equals(Version.VERSION)) {
+			// then there's nothing to do
+			workspaceLogger.debug("Workspace version and runtime version match: '{}'. No upgrade steps necessary.", workspaceVersion);
+		} else if (workspaceVersion.isLessThan(Version.VERSION)) {
+			// then the workspace is older than the current runtime version
+			// perform any upgrade steps necessary to the workspace
+			workspaceLogger.debug("Workspace version '{}' is older than runtime version '{}'. Performing workspace upgrade steps.", workspaceVersion, Version.VERSION);
+			return true;
+		} else if (workspaceVersion.isGreaterThan(Version.VERSION)) {
+			// the workspace is newer than the runtime version, this could be a problem
+			// but we're just going to warn about it
+			workspaceLogger.warn("Workspace version '{}' is newer than runtime version '{}'. The behavior in this scenario is not defined.", workspaceVersion, Version.VERSION);
 		}
 		
-		return sb.toString();
+		return false;
+	}
+	
+	public CompletableFuture<Void> performWorkspacePreLoadUpgradeSteps(Logger workspaceLogger, WorkspaceManager workspaceManager, Version workspaceVersion) {
+		// we'll need to be very careful here if we want to prevent issues where we leave the 
+		// application files in a bad state. That might mean we need to manually archive the 
+		// library so we can revert or something like that
+		
+		// do we need to upgrade?
+		if (!this.isUpgradeRequired(workspaceLogger, workspaceVersion)) {
+			return CompletableFuture.completedFuture(null);
+		}
+		
+		// run through all the upgrade handlers sequentially
+		CompletableFuture<Void> future = CompletableFuture.completedFuture(null);
+		for (VersionUpgradeHandler handler : this.upgradeHandlers) {
+			if (handler.isUpgradeRequired(workspaceVersion)) {
+				future = future.thenComposeAsync((v) -> {
+					workspaceLogger.debug("Executing upgrade handler: '{}'", handler.getClass().getName());
+					return handler.beforeLoadUpgrade(workspaceLogger, workspaceManager);
+				});
+			}
+		}
+
+		return future.thenRun(() -> {
+			workspaceLogger.debug("Pre-load upgrade handlers completed successfully");
+		});
+	}
+	
+	public CompletableFuture<Void> performWorkspacePostLoadUpgradeSteps(Logger workspaceLogger, WorkspaceManager workspaceManager, Version workspaceVersion) {
+		// we'll need to be very careful here if we want to prevent issues where we leave the 
+		// application files in a bad state. That might mean we need to manually archive the 
+		// library so we can revert or something like that
+
+		// do we need to upgrade?
+		if (!this.isUpgradeRequired(workspaceLogger, workspaceVersion)) {
+			return CompletableFuture.completedFuture(null);
+		}
+		
+		// run through all the upgrade handlers sequentially
+		CompletableFuture<Void> future = CompletableFuture.completedFuture(null);
+		for (VersionUpgradeHandler handler : this.upgradeHandlers) {
+			if (handler.isUpgradeRequired(workspaceVersion)) {
+				future = future.thenComposeAsync((v) -> {
+					workspaceLogger.debug("Executing upgrade handler: '{}'", handler.getClass().getName());
+					return handler.afterLoadUpgrade(workspaceLogger, workspaceManager);
+				});
+			}
+		}
+
+		return future.thenRun(() -> {
+			workspaceLogger.debug("Post-load upgrade handlers completed successfully");
+		});
 	}
 }

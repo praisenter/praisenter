@@ -34,6 +34,7 @@ import javafx.collections.ObservableList;
 @JsonTypeName(value = "workspace")
 public final class WorkspaceConfiguration implements ReadOnlyWorkspaceConfiguration, MediaConfiguration, SlideConfiguration, Identifiable {
 	public static final double POSITION_SIZE_UNSET = -1;
+	public static final double DEFAULT_FONT_SIZE = 14;
 	
 	private final StringProperty format;
 	private final StringProperty version;
@@ -100,7 +101,7 @@ public final class WorkspaceConfiguration implements ReadOnlyWorkspaceConfigurat
 		this.applicationY = new SimpleDoubleProperty(POSITION_SIZE_UNSET);
 		this.applicationWidth = new SimpleDoubleProperty(POSITION_SIZE_UNSET);
 		this.applicationHeight = new SimpleDoubleProperty(POSITION_SIZE_UNSET);
-		this.applicationFontSize = new SimpleDoubleProperty(14);
+		this.applicationFontSize = new SimpleDoubleProperty(DEFAULT_FONT_SIZE);
 		this.applicationMaximized = new SimpleBooleanProperty(false);
 		this.debugModeEnabled = new SimpleBooleanProperty(false);
 
@@ -163,12 +164,12 @@ public final class WorkspaceConfiguration implements ReadOnlyWorkspaceConfigurat
 	}
 	
 	@JsonProperty(Constants.VERSION_PROPERTY_NAME)
-	void setVersion(String version) {
+	public void setVersion(String version) {
 		this.version.set(version);
 	}
 	
 	@Override
-	public ReadOnlyStringProperty versionProperty() {
+	public StringProperty versionProperty() {
 		return this.version;
 	}
 	

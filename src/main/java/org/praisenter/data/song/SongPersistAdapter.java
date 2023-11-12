@@ -10,6 +10,7 @@ import org.praisenter.data.BasicPathResolver;
 import org.praisenter.data.ImportExportFormat;
 import org.praisenter.data.PersistAdapter;
 import org.praisenter.data.PraisenterFormatProvider;
+import org.praisenter.data.RawExportFormatProvider;
 import org.praisenter.data.json.JsonIO;
 import org.praisenter.utility.MimeType;
 
@@ -31,6 +32,7 @@ public final class SongPersistAdapter extends AbstractPersistAdapter<Song, Basic
 		this.importExportProviders.put(ImportExportFormat.PRAISENTER2, new Praisenter2SongFormatProvider());
 		// XML not much to differentiate between other formats
 		this.importExportProviders.put(ImportExportFormat.PRAISENTER1, new Praisenter1SongFormatProvider());
+		this.importExportProviders.put(ImportExportFormat.RAW, new RawExportFormatProvider<Song>());
 	}
 	
 	@Override

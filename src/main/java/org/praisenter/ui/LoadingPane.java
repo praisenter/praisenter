@@ -7,7 +7,9 @@ import java.util.concurrent.CompletableFuture;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.praisenter.Version;
 import org.praisenter.async.AsyncHelper;
+import org.praisenter.data.workspace.WorkspaceConfiguration;
 import org.praisenter.ui.slide.JavaFXSlideRenderer;
 import org.praisenter.ui.translations.Translations;
 import org.praisenter.ui.upgrade.InstallUpgradeHandler;
@@ -198,13 +200,14 @@ final class LoadingPane extends Pane {
 					: "Sans Serif", size);
 	}
 
-	private CompletableFuture<Void> performUpgrade() {
+	private CompletableFuture<Void> performPreLoadUpgrade(Version workspaceVersion) {
 		return AsyncHelper.onJavaFXThreadAndWait(() -> {
 			this.message.set(Translations.get("task.loading.upgrade"));
 		}).apply(null).thenCompose((v) -> {
-			LOGGER.info("Performing any upgrade steps");
-			return this.upgradeHandler.performUpgradeSteps();
+			LOGGER.info("Performing any pre-load upgrade steps");
+			return this.upgradeHandler.performWorkspacePreLoadUpgradeSteps(LOGGER, this.context.workspaceManager, workspaceVersion);
 		}).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
+			LOGGER.info("Pre-load upgrade steps complete");
 			this.progress.set(0.1);
 		}));
 	}
@@ -216,6 +219,7 @@ final class LoadingPane extends Pane {
 			LOGGER.info("Loading bibles");
 			return this.context.workspaceManager.registerBiblePersistAdapter();
 		}).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
+			LOGGER.info("Bible loading complete");
 			this.progress.set(0.3);
 		}));
 	}
@@ -227,6 +231,7 @@ final class LoadingPane extends Pane {
 			LOGGER.info("Loading songs");
 			return this.context.workspaceManager.registerSongPersistAdapter();
 		}).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
+			LOGGER.info("Song loading complete");
 			this.progress.set(0.5);
 		}));
 	}
@@ -238,6 +243,7 @@ final class LoadingPane extends Pane {
 			LOGGER.info("Loading media");
 			return this.context.workspaceManager.registerMediaPersistAdapter();
 		}).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
+			LOGGER.info("Media loading complete");
 			this.progress.set(0.7);
 		}));
 	}
@@ -249,16 +255,42 @@ final class LoadingPane extends Pane {
 			LOGGER.info("Loading slides");
 			return this.context.workspaceManager.registerSlidePersistAdapter(new JavaFXSlideRenderer(this.context));
 		}).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
+			LOGGER.info("Slide loading complete");
 			this.progress.set(0.8);
 		}));
 	}
 
+	private CompletableFuture<Void> performPostLoadUpgrade(Version workspaceVersion) {
+		return AsyncHelper.onJavaFXThreadAndWait(() -> {
+			this.message.set(Translations.get("task.loading.upgrade"));
+		}).apply(null).thenCompose((v) -> {
+			LOGGER.info("Performing any post-load upgrade steps");
+			return this.upgradeHandler.performWorkspacePostLoadUpgradeSteps(LOGGER, this.context.workspaceManager, workspaceVersion);
+		}).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
+			LOGGER.info("Post-load upgrade steps complete");
+			this.progress.set(0.825);
+		}));
+	}
+	
+	private CompletableFuture<Void> updateWorkspaceVersionPostUpgrade(Version workspaceVersion) {
+		if (this.upgradeHandler.isUpgradeRequired(LOGGER, workspaceVersion)) {
+			LOGGER.debug("Updating workspace version");
+			WorkspaceConfiguration config = this.context.getWorkspaceConfiguration();
+			config.setVersion(Version.STRING);
+			return this.context.workspaceManager.saveWorkspaceConfiguration().thenRun(() -> {
+				LOGGER.debug("Workspace version updated successfully");
+			});
+		}
+		return CompletableFuture.completedFuture(null);
+	}
+	
 	private CompletableFuture<Void> loadDisplayManager() {
 		return AsyncHelper.onJavaFXThreadAndWait(() -> {
 			this.message.set(Translations.get("task.loading.displays"));
 			// setup the display manager
-			LOGGER.info("Initializing the screen manager.");
+			LOGGER.info("Initializing the display manager");
 			this.context.getDisplayManager().initialize();
+			LOGGER.info("Display manager initialization complete");
 			this.progress.set(0.85);
 		}).apply(null).thenRunAsync(() -> {
 			this.waitForAnimation();
@@ -268,7 +300,7 @@ final class LoadingPane extends Pane {
 	private CompletableFuture<Void> loadFonts() {
 		return AsyncHelper.onJavaFXThreadAndWait(() -> {
 			this.message.set(Translations.get("task.loading.fonts"));
-			LOGGER.info("Loading fonts.");
+			LOGGER.info("Loading fonts");
 			List<String> families = Font.getFamilies();
 			Font.getFontNames();
 			// to improve performance of font pickers, we need to preload
@@ -276,7 +308,7 @@ final class LoadingPane extends Pane {
 			for (String family : families) {
 				Font.font(family);
 			}
-			LOGGER.info("Fonts loaded.");
+			LOGGER.info("Font loading complete");
 			this.progress.set(0.9);
 		}).apply(null).thenRunAsync(() -> {
 			this.waitForAnimation();
@@ -298,7 +330,7 @@ final class LoadingPane extends Pane {
 					List<File> files = new ArrayList<>();
 					files.add(path.toFile());
 					future = this.context.importFiles(files).thenAccept(v2 -> {
-						LOGGER.info("Workspace initialized.");
+						LOGGER.info("New workspace initialized");
 					}).exceptionally(t -> {
 						LOGGER.warn("Failed to import sample data: " + t.getMessage(), t);
 						return null;
@@ -306,6 +338,8 @@ final class LoadingPane extends Pane {
 				} catch (Exception ex) {
 					LOGGER.warn("Failed to extract sample data: " + ex.getMessage(), ex);
 				}
+			} else {
+				LOGGER.info("Existing workspace detected, skipping this step");
 			}
 			
 			return future;
@@ -319,6 +353,7 @@ final class LoadingPane extends Pane {
 			this.message.set(Translations.get("task.loading.ui"));
 			LOGGER.info("Building UI");
 			PraisenterPane main = new PraisenterPane(this.context);
+			LOGGER.info("Main UI loaded");
 			this.progress.set(1.0);
 			return main;
 		}).apply(null).thenApplyAsync((ui) -> {
@@ -337,9 +372,20 @@ final class LoadingPane extends Pane {
 	 * Starts the loading process on another thread.
 	 */
 	public CompletableFuture<Node> start() {
+		// get the version of the workspace at startup
+		WorkspaceConfiguration config = this.context.getWorkspaceConfiguration();
+		Version version = null;
+		
+		try { 
+			version = Version.parse(config.getVersion());
+		} catch (Exception ex) {
+			LOGGER.error("Failed to parse the workspace version: '" + config.getVersion() + "'", ex);
+		}
+		
+		final Version workspaceVersion = version;
 		return CompletableFuture.completedFuture(null)
 		.thenCompose((v) -> {
-			return this.performUpgrade();
+			return this.performPreLoadUpgrade(workspaceVersion);
 		}).thenCompose((v) -> {
 			return this.loadBibles();
 		}).thenCompose((v) -> {
@@ -348,6 +394,10 @@ final class LoadingPane extends Pane {
 			return this.loadMedia();
 		}).thenCompose((v) -> {
 			return this.loadSlides();
+		}).thenCompose((v) -> {
+			return this.performPostLoadUpgrade(workspaceVersion);
+		}).thenCompose((v) -> {
+			return this.updateWorkspaceVersionPostUpgrade(workspaceVersion);
 		}).thenCompose((v) -> {
 			return this.loadDisplayManager();
 		}).thenCompose((v) -> {

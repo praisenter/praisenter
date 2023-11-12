@@ -11,5 +11,6 @@ public enum ImportExportFormat {
 	CHURCHVIEWSONG,
 	RAW_AUDIO,
 	RAW_VIDEO,
-	RAW_IMAGE
+	RAW_IMAGE,
+	RAW
 }

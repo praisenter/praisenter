@@ -116,7 +116,7 @@ public final class LifecycleHandler {
     	// the very first step is to do any install initialization or 
     	// upgrade operations
     	InstallUpgradeHandler installer = new InstallUpgradeHandler();
-    	installer.initialize();
+    	installer.performApplicationInstallOrUpgradeSteps();
     	
     	// set system props for log4j
     	System.setProperty("praisenter.logs.dir", Constants.LOGS_ABSOLUTE_PATH);
@@ -230,6 +230,7 @@ public final class LifecycleHandler {
     		// save the workspaces config file with the new
     		// last workspace opened and if there's a new workspace
     		String wsp = workspaceManager.getWorkspacePathResolver().getBasePath().toAbsolutePath().toString();
+    		fm.getData().setVersion(Version.STRING);
     		fm.getData().setLastSelectedWorkspace(wsp);
     		fm.getData().getWorkspaces().add(wsp);
     		return fm.saveData().thenApply((v) -> {

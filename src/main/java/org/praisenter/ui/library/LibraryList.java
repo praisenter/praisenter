@@ -720,12 +720,18 @@ public final class LibraryList extends BorderPane implements ActionPane {
 		List<Persistable> items = new ArrayList<>(this.view.getSelectionModel().getSelectedItems());
 		int n = items.size();
 		if (n > 0) {
+	    	// TODO show a custom UI allowing the user to select the zip to export to AND the export format (Praisenter or Raw)
+			// If the user selects raw and we have items with dependencies - warn the user that they should choose Praisenter format instead
+			// or just describe the differences between the exports
+			// TODO if you navigate away from the library list, then come back, export isn't enabled again if you have things selected
+	    	
 			// prompt for export location and file name
 			FileChooser chooser = new FileChooser();
 	    	chooser.setInitialFileName(Translations.get("action.export.filename") + ".zip");
 	    	chooser.setTitle(Translations.get("action.export"));
 	    	chooser.getExtensionFilters().add(new ExtensionFilter(Translations.get("action.export.filetype"), "*.zip"));
 	    	File file = chooser.showSaveDialog(this.context.getStage());
+	    	
 	    	// check for cancellation
 	    	if (file != null) {
 	    		return this.context.export(items, file).exceptionally(t -> {

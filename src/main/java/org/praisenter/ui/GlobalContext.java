@@ -1030,18 +1030,6 @@ public final class GlobalContext {
 			} catch (Exception ex) {
 				throw new CompletionException(ex);
 			}
-			
-			
-//			try(FileOutputStream fos = new FileOutputStream(file);
-//				BufferedOutputStream bos = new BufferedOutputStream(fos);
-//	    		ZipOutputStream zos = new ZipOutputStream(bos);) {
-//				
-//				// export the items selected
-//				this.workspaceManager.exportData(ImportExportFormat.PRAISENTER3, zos, items);
-//				this.workspaceManager.exportData(ImportExportFormat.PRAISENTER3, zos, dependentItems);
-//			} catch (Exception ex) {
-//				throw new CompletionException(ex);
-//			}
 		}).thenRun(() -> {
 			task.setProgress(1.0);
 		}).exceptionally(t -> {

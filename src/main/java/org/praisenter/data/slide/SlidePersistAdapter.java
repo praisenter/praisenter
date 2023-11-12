@@ -11,6 +11,7 @@ import org.praisenter.data.AbstractPersistAdapter;
 import org.praisenter.data.ImportExportFormat;
 import org.praisenter.data.PersistAdapter;
 import org.praisenter.data.PraisenterFormatProvider;
+import org.praisenter.data.RawExportFormatProvider;
 import org.praisenter.data.json.JsonIO;
 import org.praisenter.utility.MimeType;
 
@@ -26,6 +27,7 @@ public final class SlidePersistAdapter extends AbstractPersistAdapter<Slide, Sli
 		this.renderer = renderer;
 		
 		this.importExportProviders.put(ImportExportFormat.PRAISENTER3, new PraisenterFormatProvider<>(Slide.class));
+		this.importExportProviders.put(ImportExportFormat.RAW, new RawExportFormatProvider<Slide>());
 	}
 	
 	@Override

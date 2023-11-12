@@ -17,9 +17,6 @@ import org.praisenter.data.workspace.WorkspacePathResolver;
 import org.praisenter.data.workspace.Workspaces;
 import org.praisenter.ui.translations.Translations;
 
-import atlantafx.base.controls.Message;
-import atlantafx.base.layout.InputGroup;
-import atlantafx.base.theme.Styles;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -29,9 +26,11 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -50,9 +49,13 @@ final class WorkspaceSelectionPane extends VBox {
 	private static final String WORKSPACE_SELECTION_PANE_LAUNCH_BUTTON_CLASS 	= "p-workspace-selection-pane-launch-button";
 	private static final String WORKSPACE_SELECTION_PANE_BUTTONS_CLASS 			= "p-workspace-selection-pane-buttons";
 	
+	private final Node VALID_ICON = Icons.getIcon(Icons.CHECK, Icons.COLOR_SUCCESS);
+	private final Node ERROR_ICON = Icons.getIcon(Icons.ERROR, Icons.COLOR_DANGER);
+	
 	private final ObservableList<Path> workspacePaths;
 	private final ObjectProperty<Optional<Path>> value;
-	private final StringProperty warning;
+	private final StringProperty statusText;
+	private final ObjectProperty<Node> statusIcon;
 	private final BooleanProperty pathValid;
 	
 	private final CompletableFuture<Optional<Path>> future;
@@ -62,7 +65,8 @@ final class WorkspaceSelectionPane extends VBox {
 		
 		this.workspacePaths = FXCollections.observableArrayList();
 		this.value = new SimpleObjectProperty<>();
-		this.warning = new SimpleStringProperty();
+		this.statusText = new SimpleStringProperty();
+		this.statusIcon = new SimpleObjectProperty<>();
 		this.pathValid = new SimpleBooleanProperty(false);
 		this.future = new CompletableFuture<Optional<Path>>();
 		
@@ -119,25 +123,25 @@ final class WorkspaceSelectionPane extends VBox {
 			}
 		});
 		
-		// browse button
-		Button btnBrowse = new Button(Translations.get("browse"));
-		InputGroup grpWorkspacePath = new InputGroup(new Label("", Icons.getIcon(Icons.FOLDER, Icons.COLOR_FOLDER)), cmbWorkspacePath);
-		grpWorkspacePath.setMinWidth(0);
-		HBox selectorRow = new HBox(grpWorkspacePath, btnBrowse);
-		selectorRow.getStyleClass().add(WORKSPACE_SELECTION_PANE_SELECTION_CLASS);
-		selectorRow.setFillHeight(true);
-		selectorRow.setAlignment(Pos.CENTER_LEFT);
-		HBox.setHgrow(cmbWorkspacePath, Priority.ALWAYS);
-		HBox.setHgrow(grpWorkspacePath, Priority.ALWAYS);
-		HBox.setHgrow(btnBrowse, Priority.NEVER);
+		// status icon
+		Label lblStatus = new Label();
+		lblStatus.getStyleClass().add(WORKSPACE_SELECTION_PANE_WARNING_CLASS);
+		lblStatus.graphicProperty().bind(this.statusIcon);
+		Tooltip tipStatus = new Tooltip();
+		tipStatus.setWrapText(true);
+		tipStatus.setPrefWidth(300);
+		tipStatus.textProperty().bind(this.statusText);
+		lblStatus.setTooltip(tipStatus);
 		
-		Message msgWarning = new Message(
-				Translations.get("warning"),
-				Translations.get("workspace.path.notEmpty"),
-				Icons.getIcon(Icons.WARN, Icons.COLOR_WARN));
-		msgWarning.descriptionProperty().bind(this.warning);
-		msgWarning.getStyleClass().addAll(Styles.WARNING, WORKSPACE_SELECTION_PANE_WARNING_CLASS);
-		msgWarning.visibleProperty().bind(this.warning.isNotEmpty());
+		// browse button 
+		Button btnBrowse = new Button(null, Icons.getIcon(Icons.FOLDER, Icons.COLOR_FOLDER));
+		btnBrowse.setTooltip(new Tooltip(Translations.get("browse")));
+		HBox selectorRow = new HBox(lblStatus, cmbWorkspacePath, btnBrowse);
+		selectorRow.getStyleClass().add(WORKSPACE_SELECTION_PANE_SELECTION_CLASS);
+		selectorRow.setAlignment(Pos.CENTER_LEFT);
+		HBox.setHgrow(lblStatus, Priority.NEVER);
+		HBox.setHgrow(cmbWorkspacePath, Priority.ALWAYS);
+		HBox.setHgrow(btnBrowse, Priority.NEVER);
 		
 		Button btnCancel = new Button(Translations.get("cancel"));
 		Button btnLaunch = new Button(Translations.get("launch"));
@@ -147,36 +151,41 @@ final class WorkspaceSelectionPane extends VBox {
 		HBox buttonRow = new HBox(btnCancel, btnLaunch);
 		buttonRow.getStyleClass().add(WORKSPACE_SELECTION_PANE_BUTTONS_CLASS);
 		buttonRow.setAlignment(Pos.BOTTOM_RIGHT);
+		
+		VBox.setVgrow(description, Priority.ALWAYS);
+		VBox.setVgrow(selectorRow, Priority.ALWAYS);
 		VBox.setVgrow(buttonRow, Priority.ALWAYS);
 		
 		this.getChildren().addAll(
 				description,
 				selectorRow,
-				msgWarning,
 				buttonRow);
-		
 		
 		cmbWorkspacePath.valueProperty().addListener((obs, ov, nv) -> {
 			Path path = nv;
 			
+			this.pathValid.set(true);
+			this.statusIcon.set(VALID_ICON);
+			this.statusText.set(Translations.get("workspace.path.valid"));
+			
 			// check for a valid path
 			if (path == null) {
 				this.pathValid.set(false);
-				this.warning.set(Translations.get("workspace.path.invalid"));
+				this.statusIcon.set(ERROR_ICON);
+				this.statusText.set(Translations.get("workspace.path.invalid"));
 				return;
 			}
 			
 			// does the path exist
 			if (!Files.exists(path)) {
-				this.pathValid.set(true);
-				this.warning.set(null);
 				return;
 			}
 			
 			// is it a directory
 			if (!Files.isDirectory(path)) {
 				this.pathValid.set(false);
-				this.warning.set(Translations.get("workspace.path.notDirectory"));
+				this.statusIcon.set(ERROR_ICON);
+				this.statusText.set(Translations.get("workspace.path.notDirectory"));
 				return;
 			}
 			
@@ -185,8 +194,6 @@ final class WorkspaceSelectionPane extends VBox {
 			// is it an existing workspace?
 			boolean hasWorkspaceConfigurationFile = Files.exists(wpr.getConfigurationFilePath().toAbsolutePath());
 			if (hasWorkspaceConfigurationFile) {
-				this.pathValid.set(true);
-				this.warning.set(null);
 				return;
 			}
 			
@@ -197,14 +204,15 @@ final class WorkspaceSelectionPane extends VBox {
 	        } catch (Exception ex) {
 	        	LOGGER.warn("Failed to check if the path is empty: " + ex.getMessage(), ex);
 	        	this.pathValid.set(false);
-	        	this.warning.set(Translations.get("workspace.path.error"));
+	        	this.statusIcon.set(ERROR_ICON);
+	        	this.statusText.set(Translations.get("workspace.path.error"));
 	        	return;
 	        }
 			
-			this.pathValid.set(true);
-			
 			if (!isEmpty) {
-				this.warning.set(Translations.get("workspace.path.notEmpty"));
+				this.pathValid.set(false);
+				this.statusIcon.set(ERROR_ICON);
+				this.statusText.set(Translations.get("workspace.path.notEmpty"));
 				return;
 			}
 		});
@@ -229,11 +237,18 @@ final class WorkspaceSelectionPane extends VBox {
 		});
 		
 		btnLaunch.setOnAction(e -> {
-			this.value.set(Optional.of(cmbWorkspacePath.getValue()));
-			this.future.complete(Optional.of(cmbWorkspacePath.getValue()));
+			Path ws = cmbWorkspacePath.getValue();
+			LOGGER.debug("User requesting launch using workspace: '{}'", ws.toAbsolutePath());
+			
+			Optional<Path> value = Optional.of(ws);
+			if (!this.future.isDone()) {
+				this.value.set(value);
+				this.future.complete(value);
+			}
 		});
 		
 		btnCancel.setOnAction(e -> {
+			LOGGER.debug("User cancelled workspace selection");
 			this.value.set(Optional.empty());
 			this.future.complete(Optional.empty());
 		});

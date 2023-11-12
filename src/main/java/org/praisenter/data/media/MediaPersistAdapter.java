@@ -10,6 +10,7 @@ import org.praisenter.data.AbstractPersistAdapter;
 import org.praisenter.data.DeleteFilesShutdownHook;
 import org.praisenter.data.ImportExportFormat;
 import org.praisenter.data.PersistAdapter;
+import org.praisenter.data.RawExportFormatProvider;
 import org.praisenter.data.json.JsonIO;
 import org.praisenter.data.media.tools.MediaTools;
 import org.praisenter.utility.MimeType;
@@ -33,6 +34,7 @@ public final class MediaPersistAdapter extends AbstractPersistAdapter<Media, Med
 		this.importExportProviders.put(ImportExportFormat.RAW_IMAGE, new RawImageMediaFormatProvider(this.configuration, this.tools));
 		this.importExportProviders.put(ImportExportFormat.RAW_VIDEO, new RawVideoMediaFormatProvider(this.configuration, this.tools));
 		this.importExportProviders.put(ImportExportFormat.RAW_AUDIO, new RawAudioMediaFormatProvider(this.configuration, this.tools));
+		this.importExportProviders.put(ImportExportFormat.RAW, new RawExportFormatProvider<Media>());
 	}
 
 	@Override

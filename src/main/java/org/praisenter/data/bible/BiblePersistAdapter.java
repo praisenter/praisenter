@@ -9,6 +9,7 @@ import org.praisenter.data.BasicPathResolver;
 import org.praisenter.data.ImportExportFormat;
 import org.praisenter.data.PersistAdapter;
 import org.praisenter.data.PraisenterFormatProvider;
+import org.praisenter.data.RawExportFormatProvider;
 import org.praisenter.data.json.JsonIO;
 import org.praisenter.utility.MimeType;
 
@@ -22,6 +23,7 @@ public final class BiblePersistAdapter extends AbstractPersistAdapter<Bible, Bas
 		this.importExportProviders.put(ImportExportFormat.UNBOUNDBIBLE, new UnboundBibleFormatProvider());
 		this.importExportProviders.put(ImportExportFormat.ZEFANIABIBLE, new ZefaniaBibleFormatProvider());
 		this.importExportProviders.put(ImportExportFormat.OPENSONGBIBLE, new OpenSongBibleFormatProvider());
+		this.importExportProviders.put(ImportExportFormat.RAW, new RawExportFormatProvider<Bible>());
 	}
 
 	@Override

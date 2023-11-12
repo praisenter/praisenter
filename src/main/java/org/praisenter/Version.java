@@ -3,7 +3,7 @@ package org.praisenter;
 public final class Version implements Comparable<Version> {
 	private static final int MAJOR = 3;
 	private static final int MINOR = 1;
-	private static final int REVISION = 0;
+	private static final int REVISION = 1;
 	
 	public static final Version VERSION = new Version(MAJOR, MINOR, REVISION);
 	public static final String STRING = VERSION.toString();
@@ -12,7 +12,7 @@ public final class Version implements Comparable<Version> {
 	private final int minor;
 	private final int revision;
 
-	private Version(int major, int minor, int revision) {
+	public Version(int major, int minor, int revision) {
 		this.major = major;
 		this.minor = minor;
 		this.revision = revision;
@@ -94,5 +94,17 @@ public final class Version implements Comparable<Version> {
 		}
 		
 		return 0;
+	}
+	
+	public int getMajor() {
+		return this.major;
+	}
+	
+	public int getMinor() {
+		return this.minor;
+	}
+	
+	public int getRevision() {
+		return this.revision;
 	}
 }

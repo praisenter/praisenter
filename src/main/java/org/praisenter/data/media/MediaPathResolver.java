@@ -130,4 +130,18 @@ final class MediaPathResolver extends BasicPathResolver<Media> implements PathRe
 	public Path getExportThumbPath(Media media) {
 		return this.getExportBasePath().resolve(this.getRelativeThumbPath(media));
 	}
+	
+	// raw overrides
+	
+	@Override
+	public Path getRawPath(Media media) {
+		return this.getMediaPath();
+	}
+	
+	// friendly overrides
+	
+	@Override
+	public Path getFriendlyFileName(Media media) {
+		return this.getFriendlyFileName(media, media.getExtension());
+	}
 }

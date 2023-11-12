@@ -8,7 +8,7 @@ import java.util.UUID;
 
 import org.praisenter.utility.StringManipulator;
 
-public class BasicPathResolver<T extends Identifiable> implements PathResolver<T> {
+public class BasicPathResolver<T extends Persistable> implements PathResolver<T> {
 	protected final Path basePath;
 	protected final String exportBasePath;
 	protected final String extension;
@@ -30,7 +30,7 @@ public class BasicPathResolver<T extends Identifiable> implements PathResolver<T
 		}
 		return Paths.get(id.toString().replaceAll("-", "") + ext);
 	}
-
+	
 	@Override
 	public void initialize() throws IOException {
 		Files.createDirectories(this.basePath);
@@ -64,5 +64,38 @@ public class BasicPathResolver<T extends Identifiable> implements PathResolver<T
 	@Override
 	public Path getExportPath(T item) {
 		return this.getExportBasePath().resolve(this.getRelativePath(item));
+	}
+
+	// raw
+
+	@Override
+	public Path getRawPath(T item) {
+		return this.getPath(item);
+	}
+	
+	// friendly
+	
+	public Path getFriendlyFileName(T item, String extension) {
+		String cleansedFileName = StringManipulator.toFileName(item.getName(), "");
+		String ext = "";
+		if (!StringManipulator.isNullOrEmpty(extension)) {
+			ext = "." + extension;
+		}
+		return Paths.get(cleansedFileName + ext);
+	}
+
+	@Override
+	public Path getFriendlyFileName(T item) {
+		return this.getFriendlyFileName(item, this.extension);
+	}
+	
+	@Override
+	public Path getFriendlyRelativePath(T item) {
+		return this.getFriendlyFileName(item);
+	}
+	
+	@Override
+	public Path getFriendlyExportPath(T item) {
+		return this.getExportBasePath().resolve(this.getFriendlyRelativePath(item));
 	}
 }

@@ -5,7 +5,7 @@
 
 	<groupId>org.praisenter</groupId>
 	<artifactId>praisenter</artifactId>
-	<version>3.1.0</version>
+	<version>3.1.1</version>
 	<packaging>jar</packaging>
 
 	<!-- General Project Information -->
@@ -464,7 +464,7 @@
             </activation>
             <properties>
                 <!--suppress UnresolvedMavenProperty -->
-                <app.version>3.1.0</app.version>
+                <app.version>3.1.1</app.version>
             </properties>
         </profile>
         <profile>
@@ -475,7 +475,7 @@
                 </property>
             </activation>
             <properties>
-                <app.version>3.1.0</app.version>
+                <app.version>3.1.1</app.version>
             </properties>
         </profile>
         

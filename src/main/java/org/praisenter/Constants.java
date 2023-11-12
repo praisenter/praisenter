@@ -114,11 +114,11 @@ public final class Constants {
 	///////////////////////////
 	// STYLES
 	
-	// /themes
+	// /styles
 	/** The relative path to the styles directory */
 	public static final String STYLES_RELATIVE_PATH = "styles" + RuntimeProperties.PATH_SEPARATOR;
 	
-	// /user/home/dir/Praisenter3/themes
+	// /user/home/dir/Praisenter3/styles
 	/** The absolute path to the styles directory */
 	public static final String STYLES_ABSOLUTE_PATH = Constants.ROOT_PATH + STYLES_RELATIVE_PATH;
 	

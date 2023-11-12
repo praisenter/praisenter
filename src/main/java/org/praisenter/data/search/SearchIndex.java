@@ -74,7 +74,7 @@ public final class SearchIndex {
 		config.setOpenMode(OpenMode.CREATE);
 		try (IndexWriter writer = new IndexWriter(this.directory, config)) {
 			for (Indexable item : items) {
-				LOGGER.debug("Indexing document {}", item.getName());
+				LOGGER.debug("Indexing document {} {}", item.getClass().getName(), item.getName());
 				List<Document> docs = item.index();
 				if (docs == null || docs.isEmpty()) {
 					continue;
