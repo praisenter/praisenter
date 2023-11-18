@@ -27,6 +27,7 @@ public enum Action {
 	COPY("action.copy", new KeyCodeCombination(KeyCode.C, KeyCombination.SHORTCUT_DOWN), getGraphicSupplier(Icons.COPY)),
 	CUT("action.cut", new KeyCodeCombination(KeyCode.X, KeyCombination.SHORTCUT_DOWN), getGraphicSupplier(Icons.CUT)),
 	PASTE("action.paste", new KeyCodeCombination(KeyCode.V, KeyCombination.SHORTCUT_DOWN), getGraphicSupplier(Icons.PASTE)),
+	DUPLICATE("action.duplicate", null, getGraphicSupplier(Icons.COPY)),
 	
 	SELECT_ALL("action.select.all", new KeyCodeCombination(KeyCode.A, KeyCombination.SHORTCUT_DOWN), getGraphicSupplier(Icons.SELECT_ALL)),
 	SELECT_NONE("action.select.none", getGraphicSupplier(Icons.SELECT_NONE)),
@@ -88,6 +89,7 @@ public enum Action {
 	DOWNLOAD_UNBOUND_BIBLES("action.download.unbound"),
 	DOWNLOAD_OPENSONG_BIBLES("action.download.opensong"),
 	
+	QUICK_SLIDE_FROM_MEDIA("action.new.slide.fromMedia", null, getGraphicSupplier(Icons.NEW))
 	;
 	
 	private static final Supplier<Node> getGraphicSupplier(String icon) {
