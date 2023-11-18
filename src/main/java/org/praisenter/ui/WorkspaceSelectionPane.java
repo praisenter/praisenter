@@ -28,6 +28,8 @@ import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
@@ -148,18 +150,17 @@ final class WorkspaceSelectionPane extends VBox {
 		btnLaunch.getStyleClass().add(WORKSPACE_SELECTION_PANE_LAUNCH_BUTTON_CLASS);
 		btnLaunch.disableProperty().bind(this.pathValid.not());
 		btnLaunch.setDefaultButton(true);
-		HBox buttonRow = new HBox(btnCancel, btnLaunch);
-		buttonRow.getStyleClass().add(WORKSPACE_SELECTION_PANE_BUTTONS_CLASS);
-		buttonRow.setAlignment(Pos.BOTTOM_RIGHT);
 		
-		VBox.setVgrow(description, Priority.ALWAYS);
-		VBox.setVgrow(selectorRow, Priority.ALWAYS);
-		VBox.setVgrow(buttonRow, Priority.ALWAYS);
+		ButtonBar.setButtonData(btnCancel, ButtonData.CANCEL_CLOSE);
+		ButtonBar.setButtonData(btnLaunch, ButtonData.OK_DONE);
+		ButtonBar buttonBar = new ButtonBar();
+		buttonBar.getStyleClass().add(WORKSPACE_SELECTION_PANE_BUTTONS_CLASS);
+		buttonBar.getButtons().addAll(btnCancel, btnLaunch);
 		
 		this.getChildren().addAll(
 				description,
 				selectorRow,
-				buttonRow);
+				buttonBar);
 		
 		cmbWorkspacePath.valueProperty().addListener((obs, ov, nv) -> {
 			Path path = nv;
