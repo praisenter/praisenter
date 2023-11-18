@@ -37,7 +37,6 @@ import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import javafx.stage.Window;
 
 final class MainMenu extends MenuBar {
 	private static final Logger LOGGER = LogManager.getLogger();
@@ -74,35 +73,31 @@ final class MainMenu extends MenuBar {
 		Menu mnuFile = new Menu(
 				Translations.get("menu.file"), 
 				null, 
-//				new Menu(
-//						Translations.get("menu.new"), 
-//						null,
-						this.createMenuItem(Action.NEW_SLIDE),
-						this.createMenuItem(Action.NEW_BIBLE),
-						this.createMenuItem(Action.NEW_SONG),
-						new SeparatorMenuItem(),
-						new Menu(
-								Translations.get("menu.bible"),
-								null,
-								this.createMenuItem(Action.NEW_BOOK),
-								this.createMenuItem(Action.NEW_CHAPTER),
-								this.createMenuItem(Action.NEW_VERSE)),
-						new Menu(
-								Translations.get("menu.song"),
-								null,
-								this.createMenuItem(Action.NEW_LYRICS),
-								this.createMenuItem(Action.NEW_AUTHOR),
-								this.createMenuItem(Action.NEW_SONGBOOK),
-								this.createMenuItem(Action.NEW_SECTION)),
-						new Menu(
-								Translations.get("menu.slide"),
-								null,
-								this.createMenuItem(Action.NEW_SLIDE_TEXT_COMPONENT),
-								this.createMenuItem(Action.NEW_SLIDE_PLACEHOLDER_COMPONENT),
-								this.createMenuItem(Action.NEW_SLIDE_DATETIME_COMPONENT),
-								this.createMenuItem(Action.NEW_SLIDE_COUNTDOWN_COMPONENT),
-								this.createMenuItem(Action.NEW_SLIDE_MEDIA_COMPONENT)),
-//						),
+				this.createMenuItem(Action.NEW_SLIDE),
+				this.createMenuItem(Action.NEW_BIBLE),
+				this.createMenuItem(Action.NEW_SONG),
+				new SeparatorMenuItem(),
+				new Menu(
+						Translations.get("menu.bible"),
+						null,
+						this.createMenuItem(Action.NEW_BOOK),
+						this.createMenuItem(Action.NEW_CHAPTER),
+						this.createMenuItem(Action.NEW_VERSE)),
+				new Menu(
+						Translations.get("menu.song"),
+						null,
+						this.createMenuItem(Action.NEW_LYRICS),
+						this.createMenuItem(Action.NEW_AUTHOR),
+						this.createMenuItem(Action.NEW_SONGBOOK),
+						this.createMenuItem(Action.NEW_SECTION)),
+				new Menu(
+						Translations.get("menu.slide"),
+						null,
+						this.createMenuItem(Action.NEW_SLIDE_TEXT_COMPONENT),
+						this.createMenuItem(Action.NEW_SLIDE_PLACEHOLDER_COMPONENT),
+						this.createMenuItem(Action.NEW_SLIDE_DATETIME_COMPONENT),
+						this.createMenuItem(Action.NEW_SLIDE_COUNTDOWN_COMPONENT),
+						this.createMenuItem(Action.NEW_SLIDE_MEDIA_COMPONENT)),
 				new SeparatorMenuItem(),
 				this.createMenuItem(Action.SAVE),
 				this.createMenuItem(Action.SAVE_ALL),
@@ -264,7 +259,7 @@ final class MainMenu extends MenuBar {
 				this.openUrl("https://github.com/wnbittle/unbound-bible-archive");
 				return;
 			case DOWNLOAD_OPENSONG_BIBLES:
-				this.openUrl("http://www.opensong.org/home/download");
+				this.openUrl("https://www.opensong.info/index.php/downloads");
 				return;
 			case ABOUT:
 				this.showAbout();
@@ -401,22 +396,16 @@ final class MainMenu extends MenuBar {
 		if (this.aboutDialog == null) {
 			AboutPane pneAbout = new AboutPane();
 			
-			Window owner = this.getScene().getWindow();
-			this.aboutDialog = new Stage();
-			this.aboutDialog.initOwner(owner);
-			this.aboutDialog.setTitle(Translations.get("about.title"));
-			this.aboutDialog.initModality(Modality.WINDOW_MODAL);
-			this.aboutDialog.initStyle(StageStyle.DECORATED);
-			this.aboutDialog.setWidth(600);
-			this.aboutDialog.setHeight(375);
+			this.aboutDialog = Dialogs.createStageDialog(this.context, Translations.get("action.about"), StageStyle.DECORATED, Modality.WINDOW_MODAL, pneAbout);
+			this.aboutDialog.setMinWidth(700);
+			this.aboutDialog.setMinHeight(400);
 			this.aboutDialog.setResizable(true);
-			this.aboutDialog.setScene(WindowHelper.createSceneWithOwnerCss(pneAbout, owner));
-			this.context.attachZoomHandler(this.aboutDialog.getScene());
-			this.context.attachAccentHandler(this.aboutDialog.getScene());
-			WindowHelper.setIcons(this.aboutDialog);
 		}
 		
-		this.aboutDialog.show();
+		this.aboutDialog.setWidth(800);
+		this.aboutDialog.setHeight(450);
+		this.aboutDialog.setMaximized(false);
 		WindowHelper.centerOnParent(this.getScene().getWindow(), this.aboutDialog);
+		this.aboutDialog.show();
 	}
 }

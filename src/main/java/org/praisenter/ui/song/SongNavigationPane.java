@@ -13,6 +13,7 @@ import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.Icons;
 import org.praisenter.ui.bind.EmptyItemList;
 import org.praisenter.ui.bind.MappedList;
+import org.praisenter.ui.controls.Dialogs;
 import org.praisenter.ui.controls.WindowHelper;
 import org.praisenter.ui.translations.Translations;
 
@@ -40,7 +41,6 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import javafx.stage.Window;
 
 public final class SongNavigationPane extends VBox {
 	private static final String SONG_NAVIGATION_CSS = "p-song-nav";
@@ -204,26 +204,25 @@ public final class SongNavigationPane extends VBox {
 					}
 				});
 				
-				Window owner = this.getScene().getWindow();
-				this.searchDialog = new Stage();
-				this.searchDialog.initOwner(owner);
-				this.searchDialog.setTitle(Translations.get("song.search.title"));
-				this.searchDialog.initModality(Modality.NONE);
-				this.searchDialog.initStyle(StageStyle.DECORATED);
-				this.searchDialog.setWidth(1000);
-				this.searchDialog.setHeight(600);
+				this.searchDialog = Dialogs.createStageDialog(
+						context, 
+						Translations.get("song.search.title"), 
+						StageStyle.DECORATED,
+						Modality.NONE, 
+						pneSearch);
+				this.searchDialog.setMinWidth(800);
+				this.searchDialog.setMinHeight(500);
 				this.searchDialog.setResizable(true);
-				this.searchDialog.setScene(WindowHelper.createSceneWithOwnerCss(pneSearch, owner));
 				this.searchDialog.setOnShown(we -> {
 					pneSearch.search();
 				});
-				WindowHelper.setIcons(this.searchDialog);
-				context.attachZoomHandler(this.searchDialog.getScene());
-				context.attachAccentHandler(this.searchDialog.getScene());
 			}
 			
-			this.searchDialog.show();
+			this.searchDialog.setWidth(1000);
+			this.searchDialog.setHeight(600);
+			this.searchDialog.setMaximized(false);
 			WindowHelper.centerOnParent(this.getScene().getWindow(), this.searchDialog);
+			this.searchDialog.show();
 		};
 		
 		CustomTextField txtSearch = new CustomTextField();

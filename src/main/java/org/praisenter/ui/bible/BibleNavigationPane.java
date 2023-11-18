@@ -25,6 +25,7 @@ import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.Icons;
 import org.praisenter.ui.bind.EmptyItemList;
 import org.praisenter.ui.controls.AutoCompleteComboBox;
+import org.praisenter.ui.controls.Dialogs;
 import org.praisenter.ui.controls.IntegerSpinnerValueFactory;
 import org.praisenter.ui.controls.LastValueNumberStringConverter;
 import org.praisenter.ui.controls.WindowHelper;
@@ -53,7 +54,6 @@ import javafx.scene.layout.GridPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import javafx.stage.Window;
 
 public final class BibleNavigationPane extends GridPane {
 	private static final Logger LOGGER = LogManager.getLogger();
@@ -342,27 +342,26 @@ public final class BibleNavigationPane extends GridPane {
 					}
 				});
 				
-				Window owner = this.getScene().getWindow();
-				this.searchDialog = new Stage();
-				this.searchDialog.initOwner(owner);
-				this.searchDialog.setTitle(Translations.get("bible.search.title"));
-				this.searchDialog.initModality(Modality.NONE);
-				this.searchDialog.initStyle(StageStyle.DECORATED);
-				this.searchDialog.setWidth(1000);
-				this.searchDialog.setHeight(600);
+				this.searchDialog = Dialogs.createStageDialog(
+						context, 
+						Translations.get("bible.search.title"), 
+						StageStyle.DECORATED,
+						Modality.NONE, 
+						pneSearch);
+				this.searchDialog.setMinWidth(800);
+				this.searchDialog.setMinHeight(500);
 				this.searchDialog.setResizable(true);
-				this.searchDialog.setScene(WindowHelper.createSceneWithOwnerCss(pneSearch, owner));
-				WindowHelper.setIcons(this.searchDialog);
-				context.attachZoomHandler(this.searchDialog.getScene());
-				context.attachAccentHandler(this.searchDialog.getScene());
 				this.searchDialog.setOnShown(evt -> {
 					pneSearch.requestSearchFocus();
 				});
 			}
 			
 			this.searchDialogFirstItemSelected = false;
-			this.searchDialog.show();
+			this.searchDialog.setWidth(1000);
+			this.searchDialog.setHeight(600);
+			this.searchDialog.setMaximized(false);
 			WindowHelper.centerOnParent(this.getScene().getWindow(), this.searchDialog);
+			this.searchDialog.show();
 		});
 		
 		this.value.addListener((obs, ov, nv) -> {

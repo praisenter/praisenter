@@ -77,8 +77,8 @@ final class AboutPane extends BorderPane {
 			}
 		});
 		
-		tc1.setPrefWidth(150);
-		tc2.setPrefWidth(200);
+		tc1.setPrefWidth(200);
+		tc2.setPrefWidth(300);
 		
 		tv.getColumns().add(tc1);
 		tv.getColumns().add(tc2);
@@ -97,8 +97,8 @@ final class AboutPane extends BorderPane {
 		layout.getStyleClass().add(ABOUT_RIGHT_CSS);
 		layout.getChildren().addAll(lbl, tv);
 		
-		VBox.setVgrow(lbl, Priority.SOMETIMES);
-		VBox.setVgrow(tv, Priority.NEVER);
+		VBox.setVgrow(lbl, Priority.NEVER);
+		VBox.setVgrow(tv, Priority.ALWAYS);
 		
 		StackPane left = new StackPane();
 		left.getStyleClass().add(ABOUT_LEFT_CSS);

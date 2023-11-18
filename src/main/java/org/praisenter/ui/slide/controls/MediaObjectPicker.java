@@ -12,6 +12,7 @@ import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.Option;
 import org.praisenter.ui.bind.BindingHelper;
 import org.praisenter.ui.bind.ObjectConverter;
+import org.praisenter.ui.controls.Dialogs;
 import org.praisenter.ui.controls.EditorField;
 import org.praisenter.ui.controls.EditorFieldGroup;
 import org.praisenter.ui.controls.WindowHelper;
@@ -32,16 +33,15 @@ import javafx.collections.transformation.FilteredList;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ChoiceBox;
-import javafx.scene.control.Dialog;
 import javafx.scene.layout.HBox;
 import javafx.stage.Modality;
+import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
 public final class MediaObjectPicker extends EditorFieldGroup {
-	private static final String MEDIA_DIALOG_CSS = "p-media-dialog";
-	
 	private final ObjectProperty<MediaObject> value;
 	
 	private final ObjectProperty<Media> media;
@@ -51,8 +51,6 @@ public final class MediaObjectPicker extends EditorFieldGroup {
 	private final ObjectProperty<SlideColorAdjust> colorAdjust;
 	
 	private final ObservableList<Media> mediaList;
-	
-	private Media originalMedia;
 	
 	private final BooleanBinding hasAudio;
 	private final BooleanBinding hasVideo;
@@ -90,34 +88,47 @@ public final class MediaObjectPicker extends EditorFieldGroup {
 		this.mediaList = filtered;
 		Bindings.bindContent(lstMedia.getItems(), this.mediaList);
 		
-		Dialog<Media> dlgMedia = new Dialog<>();
-		dlgMedia.setTitle(Translations.get("media"));
-		dlgMedia.getDialogPane().setContent(lstMedia);
-		dlgMedia.setResultConverter((button) -> {
-			if (button == ButtonType.OK) {
-				List<?> selected = lstMedia.getSelectedItems();
-				if (selected.size() > 0) {
-					return (Media)selected.get(0);
-				}
-			}
-			// return the original value
-			return this.originalMedia;
-		});
-		dlgMedia.resultProperty().bindBidirectional(this.media);
-		dlgMedia.initOwner(context.getStage());
-		dlgMedia.initStyle(StageStyle.DECORATED);
-		dlgMedia.initModality(Modality.WINDOW_MODAL);
+		Button btnCancel = new Button(Translations.get("cancel"));
+		Button btnOk = new Button(Translations.get("ok"));
+		btnOk.setDefaultButton(true);
+		
+		ButtonBar.setButtonData(btnCancel, ButtonData.CANCEL_CLOSE);
+		ButtonBar.setButtonData(btnOk, ButtonData.OK_DONE);
+		
+		Stage dlgMedia = Dialogs.createStageDialog(
+				context, 
+				Translations.get("media"), 
+				StageStyle.DECORATED, 
+				Modality.WINDOW_MODAL, 
+				lstMedia, 
+				btnCancel, btnOk);
+		
 		dlgMedia.setResizable(true);
-		dlgMedia.getDialogPane().getStyleClass().add(MEDIA_DIALOG_CSS);
-	    dlgMedia.getDialogPane().getButtonTypes().addAll(ButtonType.CANCEL, ButtonType.OK);
+		dlgMedia.setWidth(1000);
+		dlgMedia.setHeight(600);
+		dlgMedia.setMinWidth(850);
+		dlgMedia.setMinHeight(500);
+		btnCancel.setOnAction(e -> {
+			dlgMedia.hide();
+		});
+		btnOk.setOnAction(e -> {
+			dlgMedia.hide();
+			List<?> selected = lstMedia.getSelectedItems();
+			if (selected.size() > 0) {
+				MediaObjectPicker.this.media.set((Media)selected.get(0));
+			}
+		});
+		btnOk.disableProperty().bind(lstMedia.getSelectionModel().selectedItemProperty().isNull());
 		
 		Button btnMedia = new Button(Translations.get("slide.media.choose"));
 		btnMedia.setAlignment(Pos.BASELINE_LEFT);
 		btnMedia.setMaxWidth(Double.MAX_VALUE);
 		btnMedia.setOnAction(e -> {
-			this.originalMedia = this.media.get();
-			dlgMedia.show();
+			dlgMedia.setWidth(1000);
+			dlgMedia.setHeight(600);
+			dlgMedia.setMaximized(false);
 			WindowHelper.centerOnParent(this.getScene().getWindow(), dlgMedia);
+			dlgMedia.show();
 		});
 		
 //		CheckBox chkLoop = new CheckBox();
