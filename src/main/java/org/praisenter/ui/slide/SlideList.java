@@ -146,11 +146,6 @@ public final class SlideList extends ListView<Slide> implements ActionPane {
 		this.requestFocus();
 	}
 	
-	@Override
-	public void cleanUp() {
-		// nothing to do
-	}
-	
 	private CompletableFuture<Void> delete() {
 		List<Slide> selected = new ArrayList<>(this.getSelectionModel().getSelectedItems());
 		

@@ -19,5 +19,4 @@ public interface ActionPane {
 	public CompletableFuture<Void> executeAction(Action action);
 	
 	public void setDefaultFocus();
-	public void cleanUp();
 }

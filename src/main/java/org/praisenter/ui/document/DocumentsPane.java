@@ -135,11 +135,6 @@ public final class DocumentsPane extends BorderPane implements ActionPane {
 	}
 	
 	@Override
-	public void cleanUp() {
-		
-	}
-	
-	@Override
 	public ObservableList<Object> getSelectedItems() {
 		return this.documentSelectedItems;
 	}
