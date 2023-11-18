@@ -1,4 +1,4 @@
-/* VERSION: 3.1.1 */
+/* VERSION: 3.1.2 */
 
 .root {
 	
@@ -410,6 +410,11 @@
 	-fx-vgap: 0.5em;
 }
 
+/* LIBRARY LIST EXPORT PANE */
+.p-library-list-export-pane {
+	-fx-padding: 1em;
+}
+
 /** MEDIA PREVIEW */
 .p-media-preview {}
 .p-media-preview-controls {
@@ -643,24 +648,11 @@
 	-fx-background-repeat: repeat;
 }
 
-/* MEDIA SELECTION DIALOG */
-.p-media-dialog > .content {
-	-fx-padding: 0;
-	/* NOTE: only setting the minwidth worked... */
-	-fx-min-width: 1000;
-	-fx-pref-width: 1000;
-	-fx-pref-height: 600;
-	-fx-min-height: 600;
-}
-
-.p-media-dialog .button-bar {
+/* STAGE DIALOG */
+.p-stage-dialog-button-bar {
+	-fx-padding: 1em;
 	-fx-border-width: 1 0 0 0;
 	-fx-border-color: -color-border-muted;
-}
-
-/* This fixes excessive padding-top on the buttons */
-.p-media-dialog > .button-bar > .container {
-	-fx-padding: 1em;
 }
 
 /* BIBLE/SONG/SLIDE EDITOR */

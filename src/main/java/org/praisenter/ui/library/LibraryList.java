@@ -1,6 +1,7 @@
 package org.praisenter.ui.library;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.Collator;
 import java.time.Instant;
@@ -20,8 +21,14 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.Constants;
 import org.praisenter.Editable;
+import org.praisenter.data.ImportExportFormat;
 import org.praisenter.data.Persistable;
 import org.praisenter.data.media.Media;
+import org.praisenter.data.slide.Slide;
+import org.praisenter.data.slide.graphics.ScaleType;
+import org.praisenter.data.slide.graphics.SlideColor;
+import org.praisenter.data.slide.media.MediaComponent;
+import org.praisenter.data.slide.media.MediaObject;
 import org.praisenter.ui.Action;
 import org.praisenter.ui.ActionPane;
 import org.praisenter.ui.DataFormats;
@@ -33,6 +40,8 @@ import org.praisenter.ui.controls.FastScrollPane;
 import org.praisenter.ui.controls.FlowListCell;
 import org.praisenter.ui.controls.FlowListSelectionModel;
 import org.praisenter.ui.controls.FlowListView;
+import org.praisenter.ui.controls.WindowHelper;
+import org.praisenter.ui.display.DisplayTarget;
 import org.praisenter.ui.events.ActionStateChangedEvent;
 import org.praisenter.ui.events.FlowListViewSelectionEvent;
 import org.praisenter.ui.translations.Translations;
@@ -54,6 +63,9 @@ import javafx.collections.transformation.SortedList;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ContextMenu;
@@ -67,14 +79,15 @@ import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToolBar;
+import javafx.scene.image.Image;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
-import javafx.stage.FileChooser;
-import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Modality;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 
 public final class LibraryList extends BorderPane implements ActionPane {
 	private static final String LIBRARY_LIST_CSS = "p-library-list";
@@ -107,6 +120,11 @@ public final class LibraryList extends BorderPane implements ActionPane {
 	private final BooleanProperty filterVisible;
 	private final BooleanProperty searchVisible;
 	private final BooleanProperty sortVisible;
+	
+	// export
+	
+	private final ObjectProperty<ExportRequest> exportRequest;
+	private final Stage dlgExport;
 	
 	public LibraryList(GlobalContext context, Orientation orientation, LibraryListType... filterTypes) {
 		this.getStyleClass().add(LIBRARY_LIST_CSS);
@@ -357,6 +375,8 @@ public final class LibraryList extends BorderPane implements ActionPane {
 		ContextMenu menu = new ContextMenu();
 		menu.getItems().addAll(
 				this.createMenuItem(Action.OPEN),
+				this.createMenuItem(Action.DUPLICATE),
+				this.createMenuItem(Action.QUICK_SLIDE_FROM_MEDIA),
 				new SeparatorMenuItem(),
 				this.createMenuItem(Action.SELECT_ALL),
 				this.createMenuItem(Action.SELECT_INVERT),
@@ -388,6 +408,40 @@ public final class LibraryList extends BorderPane implements ActionPane {
 
 		this.setTop(toolbar);
 		this.setCenter(split);
+		
+		LibraryExportPane lep = new LibraryExportPane(this.context);
+		
+		Button btnCancel = new Button(Translations.get("cancel"));
+		Button btnOk = new Button(Translations.get("ok"));
+		btnOk.setDefaultButton(true);
+		
+		ButtonBar.setButtonData(btnCancel, ButtonData.CANCEL_CLOSE);
+		ButtonBar.setButtonData(btnOk, ButtonData.OK_DONE);
+		
+		this.exportRequest = new SimpleObjectProperty<ExportRequest>();
+		this.dlgExport = Dialogs.createStageDialog(
+				context, 
+				Translations.get("action.export"), 
+				StageStyle.DECORATED, 
+				Modality.WINDOW_MODAL, 
+				lep, 
+				btnCancel, btnOk);
+		
+		this.dlgExport.setResizable(true);
+		this.dlgExport.setMinWidth(600);
+		this.dlgExport.setMinHeight(350);
+		this.dlgExport.setWidth(600);
+		this.dlgExport.setHeight(350);
+		btnCancel.setOnAction(e -> {
+			this.exportRequest.set(null);
+			this.dlgExport.hide();
+		});
+		btnOk.setOnAction(e -> {
+			ExportRequest request = lep.getValue();
+			this.exportRequest.set(request);
+			this.dlgExport.hide();
+		});
+		btnOk.disableProperty().bind(lep.valueProperty().isNull());
 	}
 
 	private MenuItem createMenuItem(Action action) {
@@ -422,17 +476,16 @@ public final class LibraryList extends BorderPane implements ActionPane {
 	}
 	
 	@Override
-	public void cleanUp() {
-		
-	}
-
-	@Override
 	public boolean isActionEnabled(Action action) {
 		List<Persistable> selection = this.view.getSelectionModel().getSelectedItems();
 		Persistable selected = selection.size() > 0 ? selection.get(0) : null;
 		switch (action) {
 			case OPEN:
 				return selection.size() == 1 && selected.getClass().isAnnotationPresent(Editable.class);
+			case DUPLICATE:
+				return !selection.isEmpty() && selection.stream().anyMatch(p -> p.getClass().isAnnotationPresent(Editable.class));
+			case QUICK_SLIDE_FROM_MEDIA:
+				return selection.size() == 1 && selection.get(0) instanceof Media;
 			case SELECT_ALL:
 			case SELECT_NONE:
 			case SELECT_INVERT:
@@ -466,6 +519,12 @@ public final class LibraryList extends BorderPane implements ActionPane {
 			case OPEN:
 				this.openDocument();
 	        	break;
+			case DUPLICATE:
+				this.duplicate();
+				break;
+			case QUICK_SLIDE_FROM_MEDIA:
+				this.createSlideFromMedia();
+				break;
 			case SELECT_ALL:
 				this.view.getSelectionModel().selectAll();
 				break;
@@ -500,6 +559,106 @@ public final class LibraryList extends BorderPane implements ActionPane {
 	    		this.context.openDocument(selected.copy());
 	    	}
 		}
+	}
+	
+	private void duplicate() {
+		ObservableList<Persistable> items = this.view.getSelectionModel().getSelectedItems();
+		
+		if (items == null)
+			return;
+		
+		if (items.size() == 0)
+			return;
+		
+		List<Persistable> copies = new ArrayList<>();
+		for (Persistable item : items) {
+			// we only duplicate editable things (not media for example)
+			if (!item.getClass().isAnnotationPresent(Editable.class)) {
+				continue;
+			}
+			
+			Persistable copy = item.copy();
+			copy.setId(UUID.randomUUID());
+			copy.setName(Translations.get("action.copy.name", item.getName()));
+			copy.setCreatedDate(Instant.now());
+			copy.setModifiedDate(copy.getCreatedDate());
+			copies.add(copy);
+		}
+		
+		this.context.saveAll(copies).thenAccept((exceptions) -> {
+			if (exceptions != null && exceptions.size() > 0) {
+				Platform.runLater(() -> {
+					Alert errorAlert = Dialogs.exception(
+							this.context.getStage(), 
+							null, null,	null, 
+							exceptions);
+					errorAlert.show();
+				});
+			}
+		}).exceptionally((t) -> {
+			LOGGER.error("The duplications of items failed: ", t);
+			Platform.runLater(() -> {
+				Alert errorAlert = Dialogs.exception(this.context.getStage(), t);
+				errorAlert.show();
+			});
+			return null;
+		});
+	}
+	
+	private void createSlideFromMedia() {
+		Persistable persistable = this.view.getSelectionModel().getSelectedItem();
+		
+		if (persistable == null)
+			return;
+		
+		Media media = null;
+		if (persistable instanceof Media) {
+			media = (Media)persistable;
+		} else {
+			return;
+		}
+		
+		// default the size of the slide to the primary display target
+		List<DisplayTarget> targets = new ArrayList<>(this.context.getDisplayManager().getDisplayTargets());
+		DisplayTarget defaultTarget = targets.get(0);
+		double width = defaultTarget.getDisplayConfiguration().getWidth();
+		double height = defaultTarget.getDisplayConfiguration().getHeight();
+		
+		for (DisplayTarget target : targets) {
+			if (target.getDisplayConfiguration().isPrimary()) {
+				width = target.getDisplayConfiguration().getHeight();
+				height = target.getDisplayConfiguration().getWidth();
+				break;
+			}
+		}
+		
+		// build the background
+		SlideColor bg = new SlideColor(0, 0, 0, 1);
+		
+		// build the media
+		MediaObject mo = new MediaObject();
+		mo.setLoopEnabled(true);
+		mo.setMediaId(media.getId());
+		mo.setMediaName(media.getName());
+		mo.setMediaType(media.getMediaType());
+		mo.setMuted(false);
+		mo.setScaleType(ScaleType.UNIFORM);
+		
+		MediaComponent comp = new MediaComponent();
+		comp.setHeight(height);
+		comp.setMedia(mo);
+		comp.setWidth(width);
+		comp.setX(0);
+		comp.setY(0);
+		
+		Slide slide = new Slide(Translations.get("action.new.untitled", media.getName()));
+		slide.setBackground(bg);
+		slide.setHeight(height);
+		slide.setWidth(width);
+		
+		slide.getComponents().add(comp);
+		
+		this.context.openDocument(slide, true);
 	}
 	
 	private CompletableFuture<Void> delete() {
@@ -639,8 +798,22 @@ public final class LibraryList extends BorderPane implements ActionPane {
 				return i.getId();
 			}).filter(i -> i != null).collect(Collectors.toList());
 			
+			// we can put an image if there's only one item
+			Image image = null;
+			if (n == 1) {
+				Persistable item = items.get(0);
+				if (item instanceof Slide) {
+					Slide slide = (Slide)item;
+					image = this.context.getImageCache().getOrLoadThumbnail(slide.getId(), slide.getThumbnailPath());
+				} else if (item instanceof Media) {
+					Media media = (Media)item;
+					image = this.context.getImageCache().getOrLoadImage(media.getId(), media.getMediaImagePath());
+				}
+			}
+			
 			ClipboardContent content = new ClipboardContent();
 			content.putString(String.join(Constants.NEW_LINE, names));
+			if (image != null) content.putImage(image);
 			if (!files.isEmpty()) content.putFiles(files);
 			if (!ids.isEmpty()) content.put(DataFormats.PRAISENTER_ID_LIST, ids);
 			
@@ -720,35 +893,40 @@ public final class LibraryList extends BorderPane implements ActionPane {
 		List<Persistable> items = new ArrayList<>(this.view.getSelectionModel().getSelectedItems());
 		int n = items.size();
 		if (n > 0) {
-	    	// TODO show a custom UI allowing the user to select the zip to export to AND the export format (Praisenter or Raw)
-			// If the user selects raw and we have items with dependencies - warn the user that they should choose Praisenter format instead
-			// or just describe the differences between the exports
-			// TODO if you navigate away from the library list, then come back, export isn't enabled again if you have things selected
-	    	
-			// prompt for export location and file name
-			FileChooser chooser = new FileChooser();
-	    	chooser.setInitialFileName(Translations.get("action.export.filename") + ".zip");
-	    	chooser.setTitle(Translations.get("action.export"));
-	    	chooser.getExtensionFilters().add(new ExtensionFilter(Translations.get("action.export.filetype"), "*.zip"));
-	    	File file = chooser.showSaveDialog(this.context.getStage());
-	    	
-	    	// check for cancellation
-	    	if (file != null) {
-	    		return this.context.export(items, file).exceptionally(t -> {
-	    			// get the root exception
-	    			if (t instanceof CompletionException) {
-	    				t = t.getCause();
-	    			}
-	    			
-					// show it to the user
-	    			final Throwable ex = t;
-					Platform.runLater(() -> {
-						Dialogs.exception(this.context.getStage(), ex).show();
-					});
-					
-	    			return null;
-	    		});
-	    	}
+			LOGGER.trace("Prompting for format and location/file for export");
+			this.exportRequest.set(null);
+			
+			this.dlgExport.setWidth(600);
+			this.dlgExport.setHeight(350);
+			this.dlgExport.setMaximized(false);
+			WindowHelper.centerOnParent(this.getScene().getWindow(), this.dlgExport);
+		    this.dlgExport.showAndWait();
+		    
+		    LOGGER.trace("User cancelled or completed export dialog");
+		    ExportRequest value = this.exportRequest.get();
+		    if (value != null) {
+		    	Path path = value.getPath();
+		    	ImportExportFormat format = value.getFormat();
+		    	LOGGER.debug("User selected format '{}' and path '{}' for export of {} items", format, path, n);
+		    	LOGGER.trace("Validating path '{}' (exists and is a regular file)", path);
+		    	if (Files.isRegularFile(path) || !Files.exists(path)) {
+		    		LOGGER.trace("Path '{}' is valid, attempting export", path);
+			    	return this.context.export(items, path, format).exceptionally(t -> {
+		    			// get the root exception
+		    			if (t instanceof CompletionException) {
+		    				t = t.getCause();
+		    			}
+		    			
+						// show it to the user
+		    			final Throwable ex = t;
+						Platform.runLater(() -> {
+							Dialogs.exception(this.context.getStage(), ex).show();
+						});
+						
+		    			return null;
+		    		});
+		    	}
+		    }
 		}
 		
 		return CompletableFuture.completedFuture(null);

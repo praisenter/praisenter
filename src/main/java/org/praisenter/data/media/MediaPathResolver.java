@@ -135,7 +135,7 @@ final class MediaPathResolver extends BasicPathResolver<Media> implements PathRe
 	
 	@Override
 	public Path getRawPath(Media media) {
-		return this.getMediaPath();
+		return this.getMediaPath(media);
 	}
 	
 	// friendly overrides

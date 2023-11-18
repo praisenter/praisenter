@@ -6,12 +6,16 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
 
+import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.translations.Translations;
 
 import javafx.scene.Group;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.DialogPane;
@@ -20,7 +24,10 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import javafx.stage.Window;
 
 public final class Dialogs {
@@ -271,4 +278,45 @@ public final class Dialogs {
 			return optOut;
 		}
 	};
+	
+	/**
+	 * Creates a stage that mimics the OOB Dialog.
+	 * <p>
+	 * I had a lot of problems with auto-sizing with the OOB Dialog class and using a Stage
+	 * just gives more control.
+	 * @param context
+	 * @param content the content to show on the stage
+	 * @param buttons the buttons to show in the bottom right corner of the stage
+	 * @return Stage
+	 */
+	public static final Stage createStageDialog(GlobalContext context, String title, StageStyle style, Modality modality, Parent content, Button... buttons) {
+		Stage dialog = new Stage();
+		dialog.setTitle(title);
+		dialog.initOwner(context.getStage());
+		dialog.initStyle(StageStyle.DECORATED);
+		dialog.initModality(Modality.WINDOW_MODAL);
+		
+		if (buttons == null || buttons.length == 0) {
+			dialog.setScene(WindowHelper.createSceneWithOwnerCss(content, context.getStage()));
+		} else {
+			ButtonBar barButtons = new ButtonBar();
+			barButtons.getStyleClass().add("p-stage-dialog-button-bar");
+			barButtons.getButtons().addAll(buttons);
+			
+			VBox layout = new VBox(
+					content,
+					barButtons);
+			
+			VBox.setVgrow(content, Priority.ALWAYS);
+			VBox.setVgrow(barButtons, Priority.NEVER);
+			
+			dialog.setScene(WindowHelper.createSceneWithOwnerCss(layout, context.getStage()));
+		}
+		
+		WindowHelper.setIcons(dialog);
+		context.attachZoomHandler(dialog.getScene());
+		context.attachAccentHandler(dialog.getScene());
+		
+		return dialog;
+	}
 }

@@ -43,6 +43,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.data.DataImportResult;
+import org.praisenter.data.PathResolver;
 import org.praisenter.data.PersistAdapter;
 import org.praisenter.data.media.tools.FFProbeMediaMetadata;
 import org.praisenter.data.media.tools.MediaTools;
@@ -104,10 +105,9 @@ final class RawVideoMediaFormatProvider extends AbstractMediaFormatProvider {
 	
 	@Override
 	public void exp(PersistAdapter<Media> adapter, ZipArchiveOutputStream stream, Media data) throws IOException {
-		MediaPathResolver mpr = (MediaPathResolver)adapter.getPathResolver();
-		// TODO this will export the file as "{GUID}.{ext}" we should change this to export as the item name (which could cause collisions)
-		Path targetPath = mpr.getExportMediaPath(data);
-		Path sourcePath = mpr.getMediaPath(data);
+		PathResolver<Media> pr = adapter.getPathResolver();
+		Path targetPath = pr.getFriendlyExportPath(data);
+		Path sourcePath = pr.getRawPath(data);
 		ZipArchiveEntry entry = new ZipArchiveEntry(FilenameUtils.separatorsToUnix(targetPath.toString()));
 		stream.putArchiveEntry(entry);
 		Files.copy(sourcePath, stream);
@@ -177,7 +177,7 @@ final class RawVideoMediaFormatProvider extends AbstractMediaFormatProvider {
 		media.setMediaFormat(metadata.getFormat());
 		media.setMediaType(MediaType.VIDEO);
 		media.setMimeType(MimeType.get(target));
-		media.setName(path.getFileName().toString());
+		media.setName(FilenameUtils.getBaseName(path.getFileName().toString()));
 		media.setWidth(metadata.getWidth());
 		media.setSize(this.getFileSize(target));
 		

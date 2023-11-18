@@ -54,6 +54,7 @@ import org.praisenter.ui.display.DisplayManager;
 import org.praisenter.ui.display.DisplayTarget;
 import org.praisenter.ui.document.DocumentContext;
 import org.praisenter.ui.events.ActionStateChangedEvent;
+import org.praisenter.ui.pages.Page;
 import org.praisenter.ui.themes.Accent;
 import org.praisenter.ui.themes.Theming;
 import org.praisenter.ui.translations.Translations;
@@ -65,11 +66,13 @@ import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -106,12 +109,12 @@ public final class GlobalContext {
 	private final ObjectProperty<Scene> scene;
 	private final ObjectProperty<Node> sceneRoot;
 	private final ObjectProperty<Node> focusOwner;
-	private final ObjectProperty<ActionPane> closestActionPane;
+	private final ObjectProperty<ActionPane> actionPane;
 	private final StringProperty selectedText;
 	private final BooleanProperty textSelected;
 	private final Map<Action, BooleanProperty> isActionEnabled;
 	private final Map<Action, BooleanProperty> isActionVisible;
-	private final ObjectProperty<Page> currentPage;
+	private final IntegerProperty currentPage;
 	
 	// document editing
 	
@@ -159,12 +162,12 @@ public final class GlobalContext {
 		this.sceneRoot = new SimpleObjectProperty<>();
 		
 		this.focusOwner = new SimpleObjectProperty<>();
-		this.closestActionPane = new SimpleObjectProperty<>();
+		this.actionPane = new SimpleObjectProperty<>();
 		this.windowFocused = new SimpleBooleanProperty();
 		
 		this.selectedText = new SimpleStringProperty();
 		this.textSelected = new SimpleBooleanProperty();
-		this.currentPage = new SimpleObjectProperty<>(Page.PRESENT);
+		this.currentPage = new SimpleIntegerProperty(Page.PRESENT);
 		
 		this.currentDocument = new SimpleObjectProperty<>();
 		this.openDocuments = FXCollections.observableArrayList();
@@ -270,7 +273,7 @@ public final class GlobalContext {
 				}
 			}
 			
-			this.closestActionPane.set(ap);
+			this.actionPane.set(ap);
 			
 			this.onActionStateChanged("FOCUS_CHANGED=" + (nv != null ? nv.getClass().getName() : "null"));
 		};
@@ -290,7 +293,7 @@ public final class GlobalContext {
 		
 		ListChangeListener<Object> lcl = (Change<? extends Object> c) -> {
 			Object selectedItem = null;
-			ActionPane ap = this.closestActionPane.get();
+			ActionPane ap = this.actionPane.get();
 			if (ap != null) {
 				List<?> selected = ap.getSelectedItems();
 				if (selected != null && selected.size() > 0) {
@@ -311,7 +314,7 @@ public final class GlobalContext {
 				nv.getSelectedItems().addListener(lcl);
 			}
 		};
-		this.closestActionPane.addListener(this.closestActionPaneListener);
+		this.actionPane.addListener(this.closestActionPaneListener);
 		
 		this.currentDocumentListener = (obs, ov, nv) -> {
 			this.onActionStateChanged("CURRENT_DOCUMENT_CHANGED=" + this.currentDocument.get());
@@ -360,7 +363,7 @@ public final class GlobalContext {
 		this.scene.removeListener(this.sceneListener);
 		this.sceneRoot.removeListener(this.sceneRootListener);
 		this.focusOwner.removeListener(this.focusListener);
-		this.closestActionPane.removeListener(this.closestActionPaneListener);
+		this.actionPane.removeListener(this.closestActionPaneListener);
 		this.currentDocument.removeListener(this.currentDocumentListener);
 		this.windowFocused.removeListener(this.windowFocusedListener);
 		this.textSelected.removeListener(this.textSelectedListener);
@@ -376,7 +379,6 @@ public final class GlobalContext {
 		this.backgroundTaskExecuting.unbind();
 		this.backgroundTaskFailed.unbind();
 		this.backgroundTaskName.unbind();
-		this.closestActionPane.unbind();
 		this.currentDocument.unbind();
 		this.focusOwner.unbind();
 		this.scene.unbind();
@@ -499,7 +501,7 @@ public final class GlobalContext {
 		}
 		
 		// actions based on the closest action pane
-		ActionPane ap = this.closestActionPane.get();
+		ActionPane ap = this.actionPane.get();
 		if (ap != null) {
 			return ap.isActionEnabled(action);
 		}
@@ -514,7 +516,7 @@ public final class GlobalContext {
 	 * @return boolean
 	 */
 	private boolean isVisible(Action action) {
-		ActionPane ap = this.closestActionPane.get();
+		ActionPane ap = this.actionPane.get();
 		
 		switch (action) {
 			case SAVE:
@@ -542,6 +544,8 @@ public final class GlobalContext {
 			case SLIDE_COMPONENT_MOVE_FRONT:
 			case SLIDE_COMPONENT_MOVE_UP:
 			case SLIDE_COMPONENT_SNAP_TO_GRID:
+			case QUICK_SLIDE_FROM_MEDIA:
+			case DUPLICATE:
 				return ap != null && ap.isActionVisible(action);
 			default:
 				return true;
@@ -607,7 +611,7 @@ public final class GlobalContext {
 		}
 		
 		// lastly, send the actions to the closest action pane to the focused node
-		ActionPane ap = this.closestActionPane.get();
+		ActionPane ap = this.actionPane.get();
 		if (ap != null) {
 			future = ap.executeAction(action);
 		}
@@ -1003,7 +1007,7 @@ public final class GlobalContext {
 		});
 	}
 	
-	public CompletableFuture<Void> export(List<Persistable> items, File file) {
+	public CompletableFuture<Void> export(List<Persistable> items, Path path, ImportExportFormat format) {
 		BackgroundTask task = new BackgroundTask();
 		task.setName(Translations.get("action.export.task", items.size()));
 		task.setMessage(Translations.get("action.export.task", items.size()));
@@ -1011,6 +1015,8 @@ public final class GlobalContext {
 		task.setType("application/zip");
 		this.addBackgroundTask(task);
 
+		LOGGER.debug("Detecting dependencies of {} selected items", items.size());
+		
 		// get all dependent items
 		Set<UUID> dependencies = new HashSet<>();
 		for (Persistable item : items) {
@@ -1022,15 +1028,20 @@ public final class GlobalContext {
 				.map(id -> this.workspaceManager.getPersistableById(id))
 				.collect(Collectors.toList());
 		
+		LOGGER.debug("Found {} dependencies for the {} selected items", dependentItems.size(), items.size());
+		
 		return CompletableFuture.runAsync(() -> {
-			try (ZipArchiveOutputStream zos = new ZipArchiveOutputStream(file.toPath(), StandardOpenOption.TRUNCATE_EXISTING)) {
+			try (ZipArchiveOutputStream zos = new ZipArchiveOutputStream(path, StandardOpenOption.TRUNCATE_EXISTING)) {
 				// export the items selected
-				this.workspaceManager.exportData(ImportExportFormat.PRAISENTER3, zos, items);
-				this.workspaceManager.exportData(ImportExportFormat.PRAISENTER3, zos, dependentItems);
+				LOGGER.info("Attempting export of {} selected items", items.size());
+				this.workspaceManager.exportData(format, zos, items);
+				LOGGER.info("Attempting export of {} dependent items", dependentItems.size());
+				this.workspaceManager.exportData(format, zos, dependentItems);
 			} catch (Exception ex) {
 				throw new CompletionException(ex);
 			}
 		}).thenRun(() -> {
+			LOGGER.info("Export of {} selected items and {} dependent items completed successfully", items.size(), dependentItems.size());
 			task.setProgress(1.0);
 		}).exceptionally(t -> {
 			// get the root exception
@@ -1291,7 +1302,7 @@ public final class GlobalContext {
 	 * @param document the document
 	 * @param isNewDocument true if the document is a new (unsaved) document
 	 */
-	private <T extends Persistable> void openDocument(T document, boolean isNewDocument) {
+	public <T extends Persistable> void openDocument(T document, boolean isNewDocument) {
 		// is the document already open?
 		DocumentContext<? extends Persistable> context = null;
 		if (!isNewDocument) {
@@ -1433,18 +1444,18 @@ public final class GlobalContext {
 		return this.latestVersion;
 	}
 	
-	public Page getCurrentPage() {
+	public int getCurrentPage() {
 		return this.currentPage.get();
 	}
 	
-	public void setCurrentPage(Page page) {
+	public void setCurrentPage(int page) {
 		this.currentPage.set(page);
 	}
 	
-	public ObjectProperty<Page> currentPageProperty() {
+	public IntegerProperty currentPageProperty() {
 		return this.currentPage;
 	}
-
+	
 	public boolean isSnapToGridEnabled() {
 		return this.snapToGridEnabled.get();
 	}
