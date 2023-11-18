@@ -16,7 +16,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Callback;
 
-public final class TaskListPage extends BorderPane {
+public final class TaskListPage extends BorderPane implements Page {
 	private static final String TASKLIST_PAGE_CLASS = "p-tasklist-page";
 	private static final String TASKLIST_PAGE_TITLE_CLASS = "p-tasklist-title";
 	private static final String TASKLIST_PAGE_SPLIT_CLASS = "p-tasklist-split";
@@ -70,5 +70,10 @@ public final class TaskListPage extends BorderPane {
 		this.setTop(lblTasks);
 		this.setCenter(split);
 		this.getStyleClass().addAll(TASKLIST_PAGE_CLASS);
+	}
+	
+	@Override
+	public void setDefaultFocus() {
+		// no-op
 	}
 }

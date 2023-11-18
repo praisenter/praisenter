@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -19,6 +20,8 @@ import org.praisenter.data.slide.SlideReference;
 import org.praisenter.data.song.SongReferenceTextStore;
 import org.praisenter.data.workspace.DisplayConfiguration;
 import org.praisenter.data.workspace.PlaceholderTransitionBehavior;
+import org.praisenter.ui.Action;
+import org.praisenter.ui.ActionPane;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.bible.BibleNavigationPane;
 import org.praisenter.ui.bind.MappedList;
@@ -70,7 +73,7 @@ import javafx.scene.text.TextAlignment;
 import javafx.stage.Modality;
 import javafx.util.Duration;
 
-public final class DisplayController extends BorderPane {
+public final class DisplayController extends BorderPane implements ActionPane {
 	private static final String DISPLAY_CONTROLLER_CSS = "p-display-controller";
 	private static final String DISPLAY_CONTROLLER_HEADER_CSS = "p-display-controller-header";
 	private static final String DISPLAY_CONTROLLER_NAME_CSS = "p-display-controller-name";
@@ -97,6 +100,8 @@ public final class DisplayController extends BorderPane {
 	private final ObservableList<SlideReference> slideToSlideReferenceMapping;
 	
 	private final IntegerProperty lastTabIndex;
+	
+	private final SlideList slideList;
 	
 	private boolean selectingQueuedSlide = false;
 	
@@ -319,6 +324,7 @@ public final class DisplayController extends BorderPane {
 		lblEmptySlideList.setTextAlignment(TextAlignment.CENTER);
 		lstSlideQueue.setPlaceholder(lblEmptySlideList);
 		Bindings.bindContentBidirectional(lstSlideQueue.getItems(), this.slides);
+		this.slideList = lstSlideQueue;
 		
 		// listen for changes to the slides (remove and update)
 		context.getWorkspaceManager().getItemsUnmodifiable().addListener((Change<? extends Persistable> c) -> {
@@ -897,5 +903,30 @@ public final class DisplayController extends BorderPane {
 		
 		// otherwise, keep the current value
 		return null;
+	}
+	
+	@Override
+	public CompletableFuture<Void> executeAction(Action action) {
+		return this.slideList.executeAction(action);
+	}
+	
+	@Override
+	public ObservableList<?> getSelectedItems() {
+		return this.slideList.getSelectedItems();
+	}
+	
+	@Override
+	public boolean isActionEnabled(Action action) {
+		return this.slideList.isActionEnabled(action);
+	}
+	
+	@Override
+	public boolean isActionVisible(Action action) {
+		return this.slideList.isActionVisible(action);
+	}
+	
+	@Override
+	public void setDefaultFocus() {
+		this.slideList.setDefaultFocus();
 	}
 }

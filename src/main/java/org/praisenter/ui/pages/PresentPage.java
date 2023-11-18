@@ -15,7 +15,6 @@ import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
-import javafx.scene.Node;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
@@ -23,7 +22,7 @@ import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 
-public final class PresentPage extends BorderPane {
+public final class PresentPage extends BorderPane implements Page {
 	private static final String PRESENT_PAGE_CLASS = "p-present-page";
 	
 	private static final String PRESENT_PAGE_CONTROLLER_LIST_CSS = "p-present-page-controller-list";
@@ -31,7 +30,7 @@ public final class PresentPage extends BorderPane {
 	private static final String PRESENT_PAGE_CONTROLLER_ADD_CSS = "p-present-page-controller-add";
 	
 	private final ObservableList<DisplayTarget> displayTargets;
-	private final ObservableList<Node> displayControllers;
+	private final ObservableList<DisplayController> displayControllers;
 	private final ObservableList<MenuItem> inactiveDisplayControllers;
 	
 	public PresentPage(GlobalContext context) {
@@ -67,7 +66,7 @@ public final class PresentPage extends BorderPane {
 		MenuButton mnuAddController = new MenuButton(Translations.get("display.add"));
 		Bindings.bindContent(mnuAddController.getItems(), this.inactiveDisplayControllers);
 		
-		this.displayControllers = new MappedList<Node, DisplayTarget>(this.displayTargets, (DisplayTarget target) -> {
+		this.displayControllers = new MappedList<DisplayController, DisplayTarget>(this.displayTargets, (DisplayTarget target) -> {
 			DisplayController dc = new DisplayController(context, target);
 			dc.visibleProperty().bind(target.getDisplayConfiguration().activeProperty());
 			dc.managedProperty().bind(dc.visibleProperty());
@@ -94,5 +93,12 @@ public final class PresentPage extends BorderPane {
 		
 		this.setCenter(scroller);
 		this.getStyleClass().add(PRESENT_PAGE_CLASS);
+	}
+	
+	@Override
+	public void setDefaultFocus() {
+		if (this.displayControllers.size() > 0) {
+			this.displayControllers.get(0).setDefaultFocus();
+		}
 	}
 }

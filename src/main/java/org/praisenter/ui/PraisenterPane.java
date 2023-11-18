@@ -4,6 +4,7 @@ import org.praisenter.async.AsyncHelper;
 import org.praisenter.ui.controls.Dialogs;
 import org.praisenter.ui.pages.EditorPage;
 import org.praisenter.ui.pages.LibraryPage;
+import org.praisenter.ui.pages.Page;
 import org.praisenter.ui.pages.PresentPage;
 import org.praisenter.ui.pages.SettingsPage;
 import org.praisenter.ui.pages.TaskListPage;
@@ -78,11 +79,12 @@ final class PraisenterPane extends BorderPane {
 		body.getTabs().addAll(presentTab, libraryTab, editorTab, settingsTab, taskHistoryTab);
 		
 		context.currentPageProperty().addListener((obs, ov, nv) -> {
-			// get the current page index
-			int targetIndex = 0;
-			if (nv != null) {
-				targetIndex = nv.getPageIndex();
+			if (nv == null) {
+				return;
 			}
+			
+			// get the current page index
+			int targetIndex = nv.intValue();
 			
 			// is it different than what we have selected already?
 			SingleSelectionModel<Tab> sm = body.getSelectionModel();
@@ -92,28 +94,42 @@ final class PraisenterPane extends BorderPane {
 			
 			// it's different, so set the value
 			sm.select(targetIndex);
+			
+			// focus the correct node so menu state is updated
+			Tab tab = sm.getSelectedItem();
+			Node node = tab.getContent();
+			if (node instanceof Page) {
+				final Page page = (Page)node;
+				Platform.runLater(() -> {
+					page.setDefaultFocus();
+				});
+			}
 		});
 		
 		body.getSelectionModel().selectedIndexProperty().addListener((obs, ov, nv) -> {
 			// get the index selected by the user
-			int targetIndex = 0;
-			if (nv != null) {
-				targetIndex = nv.intValue();
-			}
-			
-			// get the page for the index
-			Page page = Page.getPageForIndex(targetIndex);
-			if (page == null) {
-				page = Page.getPageForIndex(0);
+			if (nv == null) {
+				return;
 			}
 			
 			// is it different than what is currently selected?
+			int page = nv.intValue();
 			if (page == context.getCurrentPage()) {
 				return;
 			}
 			
 			// it's different, so set it
 			context.setCurrentPage(page);
+			
+			// focus the correct node so menu state is updated
+			Tab tab = body.getTabs().get(page);
+			Node node = tab.getContent();
+			if (node instanceof Page) {
+				final Page pg = (Page)node;
+				Platform.runLater(() -> {
+					pg.setDefaultFocus();
+				});
+			}
 		});
 		
 		// layout

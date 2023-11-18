@@ -49,7 +49,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
-public final class SettingsPage extends BorderPane {
+public final class SettingsPage extends BorderPane implements Page {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
 	private static final String SETTINGS_PAGE_CLASS = "p-settings-page";
@@ -63,7 +63,7 @@ public final class SettingsPage extends BorderPane {
 	
 	public SettingsPage(GlobalContext context) {
 		WorkspaceConfiguration configuration = context.getWorkspaceConfiguration();
-		
+
 		// theme
 		AtlantaFXTheme currentTheme = Theming.getTheme(configuration.getThemeName());
 		this.themes = FXCollections.observableArrayList(Theming.THEMES);
@@ -404,5 +404,10 @@ public final class SettingsPage extends BorderPane {
 		
 		this.getStyleClass().add(SETTINGS_PAGE_CLASS);
 		this.setCenter(scrLayout);
+	}
+	
+	@Override
+	public void setDefaultFocus() {
+		// no-op
 	}
 }
