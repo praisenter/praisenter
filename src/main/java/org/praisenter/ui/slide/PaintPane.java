@@ -34,6 +34,7 @@ import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BackgroundImage;
 import javafx.scene.layout.BackgroundPosition;
 import javafx.scene.layout.BackgroundRepeat;
+import javafx.scene.layout.BackgroundSize;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
@@ -144,7 +145,7 @@ final class PaintPane extends StackPane implements Playable {
 				
 				MediaType type = m1.getMediaType();
 				if (type == MediaType.IMAGE || type == MediaType.AUDIO || this.isImageOnlyMode(mode)) {
-					return this.createBackground(m1, mo1.getScaleType());
+					return this.createBackground(m1, mo1.getScaleType(), mo1.isRepeatEnabled());
 				}
 			} else {
 				LOGGER.warn("Unsupported paint type '" + paint.getClass().getName() + "'.");
@@ -347,15 +348,24 @@ final class PaintPane extends StackPane implements Playable {
 		}
 	}
 	
-	private final Background createBackground(Media media, ScaleType scale) {
+	private final Background createBackground(Media media, ScaleType scale, boolean repeat) {
 		Image image = this.context.getImageCache().getOrLoadImage(media.getId(), media.getMediaImagePath());
 		if (image != null) {
-			return new Background(new BackgroundImage(
-					image,
-					BackgroundRepeat.NO_REPEAT, 
-					BackgroundRepeat.NO_REPEAT, 
-					BackgroundPosition.CENTER, 
-					MediaConverter.toJavaFX(scale)));							
+			if (repeat && media.getMediaType() == MediaType.IMAGE) {
+				return new Background(new BackgroundImage(
+						image,
+						BackgroundRepeat.REPEAT, 
+						BackgroundRepeat.REPEAT, 
+						BackgroundPosition.DEFAULT,
+						BackgroundSize.DEFAULT));
+			} else {
+				return new Background(new BackgroundImage(
+						image,
+						BackgroundRepeat.NO_REPEAT, 
+						BackgroundRepeat.NO_REPEAT, 
+						BackgroundPosition.CENTER, 
+						MediaConverter.toJavaFX(scale)));
+			}
 		}
 		return null;
 	}

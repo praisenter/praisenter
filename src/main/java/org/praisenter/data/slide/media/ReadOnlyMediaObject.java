@@ -17,6 +17,7 @@ public interface ReadOnlyMediaObject extends SlidePaint, Copyable {
 	public String getMediaName();
 	public MediaType getMediaType();
 	public ScaleType getScaleType();
+	public boolean isRepeatEnabled();
 	public boolean isLoopEnabled();
 	public boolean isMuted();
 	public SlideColorAdjust getColorAdjust();
@@ -25,6 +26,7 @@ public interface ReadOnlyMediaObject extends SlidePaint, Copyable {
 	public ReadOnlyStringProperty mediaNameProperty();
 	public ReadOnlyObjectProperty<MediaType> mediaTypeProperty();
 	public ReadOnlyObjectProperty<ScaleType> scaleTypeProperty();
+	public ReadOnlyBooleanProperty repeatEnabledProperty();
 	public ReadOnlyBooleanProperty loopEnabledProperty();
 	public ReadOnlyBooleanProperty mutedProperty();
 	public ReadOnlyObjectProperty<SlideColorAdjust> colorAdjustProperty();

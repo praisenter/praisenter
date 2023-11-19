@@ -42,7 +42,6 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
-// FEATURE (L-L) Add a repeat property that will tile an image
 // FEATURE (L-M) Evaluate supporting JavaFX http live streaming
 
 /**
@@ -63,6 +62,7 @@ public final class MediaObject implements ReadOnlyMediaObject, SlidePaint, Copya
 	private final StringProperty mediaName;
 	private final ObjectProperty<MediaType> mediaType;
 	private final ObjectProperty<ScaleType> scaleType;
+	private final BooleanProperty repeatEnabled;
 	private final BooleanProperty loopEnabled;
 	private final BooleanProperty muted;
 	private final ObjectProperty<SlideColorAdjust> colorAdjust;
@@ -72,6 +72,7 @@ public final class MediaObject implements ReadOnlyMediaObject, SlidePaint, Copya
 		this.mediaName = new SimpleStringProperty();
 		this.mediaType = new SimpleObjectProperty<>();
 		this.scaleType = new SimpleObjectProperty<>();
+		this.repeatEnabled = new SimpleBooleanProperty(false);
 		this.loopEnabled = new SimpleBooleanProperty();
 		this.muted = new SimpleBooleanProperty();
 		this.colorAdjust = new SimpleObjectProperty<>();
@@ -87,6 +88,7 @@ public final class MediaObject implements ReadOnlyMediaObject, SlidePaint, Copya
 		mo.mediaType.set(this.mediaType.get());
 		mo.muted.set(this.muted.get());
 		mo.scaleType.set(this.scaleType.get());
+		mo.repeatEnabled.set(this.repeatEnabled.get());
 		return mo;
 	}
 	
@@ -100,7 +102,8 @@ public final class MediaObject implements ReadOnlyMediaObject, SlidePaint, Copya
 				this.scaleType.get(),
 				this.colorAdjust.get(),
 				this.loopEnabled.get(),
-				this.muted.get());
+				this.muted.get(),
+				this.repeatEnabled.get());
 	}
 	
 	/* (non-Javadoc)
@@ -116,7 +119,8 @@ public final class MediaObject implements ReadOnlyMediaObject, SlidePaint, Copya
 					this.scaleType.get() == mo.scaleType.get() &&
 					this.loopEnabled.get() == mo.loopEnabled.get() &&
 					this.muted.get() == mo.muted.get() &&
-					Objects.equals(this.colorAdjust.get(), mo.colorAdjust.get());
+					Objects.equals(this.colorAdjust.get(), mo.colorAdjust.get()) &&
+					this.repeatEnabled.get() == mo.repeatEnabled.get();
 		}
 		return false;
 	}
@@ -128,6 +132,7 @@ public final class MediaObject implements ReadOnlyMediaObject, SlidePaint, Copya
 			.append(this.mediaName.get()).append(", ")
 			.append(this.mediaType.get()).append(", ")
 			.append(this.scaleType.get()).append(", ")
+			.append(this.repeatEnabled.get()).append(", ")
 			.append(this.muted.get()).append(", ")
 			.append(this.loopEnabled.get())
 		.append("]");
@@ -196,6 +201,22 @@ public final class MediaObject implements ReadOnlyMediaObject, SlidePaint, Copya
 	@Override
 	public ObjectProperty<ScaleType> scaleTypeProperty() {
 		return this.scaleType;
+	}
+	
+	@Override
+	@JsonProperty
+	public boolean isRepeatEnabled() {
+		return this.repeatEnabled.get();
+	}
+	
+	@JsonProperty
+	public void setRepeatEnabled(boolean enabled) {
+		this.repeatEnabled.set(enabled);
+	}
+	
+	@Override
+	public BooleanProperty repeatEnabledProperty() {
+		return this.repeatEnabled;
 	}
 	
 	@Override
