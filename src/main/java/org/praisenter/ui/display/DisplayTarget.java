@@ -151,13 +151,15 @@ public final class DisplayTarget extends Stage {
 	}
 
 	public void displaySlidePlaceholders(final TextStore data, boolean waitForTransition) {
-		this.slideView.transitionPlaceholders(data.copy(), waitForTransition);
+		TextStore copy = data != null ? data.copy() : null;
+		this.slideView.transitionPlaceholders(copy, waitForTransition);
 		
 		this.toFront();
 	}
 	
 	public void displaySlideContent(final TextStore data, boolean waitForTransition) {
-		this.slideView.transitionContent(data.copy(), waitForTransition);
+		TextStore copy = data != null ? data.copy() : null;
+		this.slideView.transitionContent(copy, waitForTransition);
 		
 		this.toFront();
 	}
