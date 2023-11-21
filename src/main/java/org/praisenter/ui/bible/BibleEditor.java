@@ -223,7 +223,7 @@ public final class BibleEditor extends BorderPane implements DocumentEditor<Bibl
 		if (action.getGraphicSupplier() != null) {
 			mnu.setGraphic(action.getGraphicSupplier().get());
 		}
-		// JAVABUG (L) 09/19/2021 [workaround] Multiple accelerators have odd behavior https://bugs.openjdk.java.net/browse/JDK-8088068
+		// JAVABUG (L) 09/19/21 [workaround] Multiple accelerators have odd behavior https://bugs.openjdk.java.net/browse/JDK-8088068
 //		mnu.setAccelerator(action.getAccelerator());
 		mnu.setOnAction(e -> this.executeAction(action));
 		mnu.setUserData(action);

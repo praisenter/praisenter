@@ -199,7 +199,7 @@ public abstract class SlideComponent extends SlideRegion implements ReadOnlySlid
 //		double wo = Math.max(0, Math.max(sox + sr, gox + gr));
 //		double ho = Math.max(0, Math.max(soy + sr, goy + gr));
 //		
-//		// TODO for some reason this calculation just doesn't seem right - it works though
+//		// for some reason this calculation just doesn't seem right - it works though
 //		return new Rectangle(
 //				xo - br,
 //				yo - br,

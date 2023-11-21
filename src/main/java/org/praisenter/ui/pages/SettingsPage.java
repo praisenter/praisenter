@@ -393,7 +393,7 @@ public final class SettingsPage extends BorderPane implements Page {
 		scrLayout.setHbarPolicy(ScrollBarPolicy.NEVER);
 		scrLayout.getStyleClass().addAll(SETTINGS_PAGE_SCROLL_CLASS);
 		
-		// JAVABUG (L) [workaround] FlowPane+ScrollPane doesn't work properly with the setFitToWidth method
+		// JAVABUG (L) 09/28/23 [workaround] FlowPane+ScrollPane doesn't work properly with the setFitToWidth method
 		scrLayout.viewportBoundsProperty().addListener((obs, ov, nv) -> {
 			flow.setPrefWrapLength(nv.getWidth());
 			flow.setPrefWidth(nv.getWidth());

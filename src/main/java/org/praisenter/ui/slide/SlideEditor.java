@@ -146,7 +146,6 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 				nv.setViewOrder(-1);
 			}
 			
-			// FEATURE (L-H) allow multi select
 			clearSelectionExceptFor(nv);
 			if (nv != null) {
 				this.document.getSelectedItems().setAll(nv);

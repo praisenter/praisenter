@@ -62,7 +62,6 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 
-//FEATURE (L-L) Implement import from PDF for song lyrics
 //JAVABUG (L) 11/03/16 Dragging to the edge of a scrollable window doesn't scroll it and there's no good way to scroll it manually
 
 public final class SongEditor extends BorderPane implements DocumentEditor<Song> {
