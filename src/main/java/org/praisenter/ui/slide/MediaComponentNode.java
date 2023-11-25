@@ -4,7 +4,7 @@ import org.praisenter.data.slide.media.MediaComponent;
 import org.praisenter.ui.GlobalContext;
 
 final class MediaComponentNode extends SlideComponentNode<MediaComponent> {
-	private final PaintPane media;
+	protected final PaintPane media;
 	
 	public MediaComponentNode(GlobalContext context, MediaComponent region) {
 		super(context, region);

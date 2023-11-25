@@ -19,7 +19,6 @@ import org.praisenter.data.slide.Slide;
 import org.praisenter.data.slide.SlideReference;
 import org.praisenter.data.song.SongReferenceTextStore;
 import org.praisenter.data.workspace.DisplayConfiguration;
-import org.praisenter.data.workspace.PlaceholderTransitionBehavior;
 import org.praisenter.ui.Action;
 import org.praisenter.ui.ActionPane;
 import org.praisenter.ui.GlobalContext;
@@ -517,32 +516,15 @@ public final class DisplayController extends BorderPane implements ActionPane {
 				LOGGER.warn("Tab index '" + index + "' is not supported.");
 			}
 			
-			boolean waitForTransition = context.getWorkspaceConfiguration().isWaitForTransitionsToCompleteEnabled();
-			PlaceholderTransitionBehavior behavior = context.getWorkspaceConfiguration().getPlaceholderTransitionBehavior();
-			Slide oldSlide = target.getSlide();
-			// we need to do this additional check to make sure the slide
-			// hasn't changed since the last time it was displayed
-			if (this.isPlaceholderTransitionOnly(oldSlide, slide)) {
-				// do placeholders only
-				if (behavior == null || behavior == PlaceholderTransitionBehavior.PLACEHOLDERS) {
-					target.displaySlidePlaceholders(data, waitForTransition);
-				} else if (behavior == PlaceholderTransitionBehavior.CONTENT) {
-					target.displaySlideContent(data, waitForTransition);
-				} else {
-					target.displaySlide(slide, data, waitForTransition);
-				}
-			} else {
-				target.displaySlide(slide, data, waitForTransition);
-			}
+			target.displaySlide(slide, data);
 		});
 		
 		btnClear.setOnAction(e -> {
-			target.displaySlide(null, null, false);
+			target.displaySlide(null, null);
 		});
 		
 		btnPreviewNotification.setOnAction(e -> {
 			boolean transition = chkPreviewTransition.isSelected();
-			boolean waitForTransition = context.getWorkspaceConfiguration().isWaitForTransitionsToCompleteEnabled();
 			Slide nv = cmbNotificationTemplate.getValue();
 			if (nv != null) {
 				Slide slide = nv.copy();
@@ -557,13 +539,10 @@ public final class DisplayController extends BorderPane implements ActionPane {
 				}
 				slide.setPlaceholderData(new StringTextStore(txtNotification.getText()));
 				slide.fit(configuration.getWidth(), configuration.getHeight());
-				if (transition) {
-					notificationView.transitionSlide(slide, waitForTransition);
-				} else { 
-					notificationView.swapSlide(slide);
-				}
+
+				notificationView.render(slide, slide.getPlaceholderData(), transition);
 			} else {
-				notificationView.swapSlide(null);
+				notificationView.render(null, null, false);
 			}
 		});
 		
@@ -571,13 +550,12 @@ public final class DisplayController extends BorderPane implements ActionPane {
 			Slide newSlide = cmbNotificationTemplate.getValue();
 			String message = txtNotification.getText();
 			if (newSlide != null && !StringManipulator.isNullOrEmpty(message)) {
-				boolean waitForTransition = context.getWorkspaceConfiguration().isWaitForTransitionsToCompleteEnabled();
-				target.displayNotification(newSlide, new StringTextStore(message), waitForTransition);
+				target.displayNotification(newSlide, new StringTextStore(message));
 			}
 		});
 		
 		btnClearNotification.setOnAction(e -> {
-			target.displayNotification(null, null, false);
+			target.displayNotification(null, null);
 		});
 		
 		cmbBibleSlideTemplate.getItems().addListener((Change<? extends Slide> c) -> {
@@ -615,9 +593,7 @@ public final class DisplayController extends BorderPane implements ActionPane {
 		
 		final TriConsumer<DisplayChange, Slide, TextStore> handleDisplayChange = (change, slide, data) -> {
 			boolean transition = chkPreviewTransition.isSelected();
-			boolean waitForTransition = context.getWorkspaceConfiguration().isWaitForTransitionsToCompleteEnabled();
 			boolean autoShow = chkAutoShow.isSelected();
-			PlaceholderTransitionBehavior behavior = context.getWorkspaceConfiguration().getPlaceholderTransitionBehavior();
 			
 			double tw = configuration.getWidth();
 			double th = configuration.getHeight();
@@ -626,60 +602,28 @@ public final class DisplayController extends BorderPane implements ActionPane {
 				lstSlideQueue.getSelectionModel().clearSelection();
 			}
 			
-			Slide sld = null;
-			if (slide != null) {
-				sld = slide.copy();
-				sld.setPlaceholderData(data);
-				sld.fit(tw, th);
+			TextStore dataCopy = null;
+			if (data != null) {
+				dataCopy = data.copy();
 			}
 			
-			if (data == null) {
-				data = new StringTextStore("");
+			Slide slideCopy = null;
+			if (slide != null) {
+				slideCopy = slide.copy();
+				slideCopy.setPlaceholderData(dataCopy);
+				slideCopy.fit(tw, th);
 			}
 			
 			// update the slide view
 			if (change == DisplayChange.HIDE || slide == null) {
-				if (transition) {
-					slideView.transitionSlide(null, waitForTransition);
-				} else {
-					slideView.swapSlide(null);
-				}
-			} else if (change == DisplayChange.DATA) {
-				if (transition) {
-					if (behavior == null || behavior == PlaceholderTransitionBehavior.PLACEHOLDERS) {
-						slideView.transitionPlaceholders(data.copy(), waitForTransition);
-					} else if (behavior == PlaceholderTransitionBehavior.CONTENT) {
-						slideView.transitionContent(data.copy(), waitForTransition);
-					} else {
-						slideView.transitionSlide(sld);
-					}
-				} else {
-					slideView.swapPlaceholders(data.copy());
-				}
-			} else {
-				if (transition) {
-					slideView.transitionSlide(sld, waitForTransition);
-				} else {
-					slideView.swapSlide(sld);
-				}
-			}
+				slideView.render(null, null, transition);
+			} else { 
+				slideView.render(slideCopy, dataCopy, transition);
+			} 
 			
 			// update the display (if auto-show enabled)
 			if (autoShow && change == DisplayChange.DATA) {
-				Slide oldSlide = target.getSlide();
-				// we need to do this additional check to make sure the slide
-				// hasn't changed since the last time it was displayed
-				if (this.isPlaceholderTransitionOnly(oldSlide, slide)) {
-					if (behavior == null || behavior == PlaceholderTransitionBehavior.PLACEHOLDERS) {
-						target.displaySlidePlaceholders(data, waitForTransition);
-					} else if (behavior == PlaceholderTransitionBehavior.CONTENT) {
-						target.displaySlideContent(data, waitForTransition);
-					} else {
-						target.displaySlide(slide, data, waitForTransition);
-					}
-				} else {
-					target.displaySlide(slide, data, waitForTransition);
-				}
+				target.displaySlide(slide, data);
 			}
 		};
 		
@@ -857,24 +801,6 @@ public final class DisplayController extends BorderPane implements ActionPane {
 				}
 			}
 		}
-	}
-	
-	private boolean isPlaceholderTransitionOnly(Slide oldSlide, Slide newSlide) {
-		// they must be the same slide (by identity)
-		if (oldSlide == null && newSlide != null) return false;
-		if (oldSlide != null && newSlide == null) return false;
-		if (oldSlide == null && newSlide == null) return false;
-		
-		if (oldSlide.identityEquals(newSlide)) {
-			// they must both be non-null
-			if (oldSlide != null && newSlide != null) {
-				// they must have the same modified date
-				if (newSlide.getModifiedDate().equals(oldSlide.getModifiedDate())) {
-					return true;
-				}
-			}
-		}
-		return false;
 	}
 	
 	private Slide getChangeAction(Change<? extends Slide> c, Slide cv) {

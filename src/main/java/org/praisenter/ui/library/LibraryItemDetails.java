@@ -420,26 +420,23 @@ final class LibraryItemDetails extends VBox {
 		labels.hideRows(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16);
 		
 		this.item.addListener((obs, ov, nv) -> {
-			this.mostRecentSlide = null;
-			slide.setSlide(null);
 			slide.setVisible(false);
 			image.setVisible(false);
 			player.setVisible(false);
 			if (nv == null) {
 				labels.showRowsOnly();
 			} else if (nv instanceof Slide) {
-				this.mostRecentSlide = (Slide)nv;
-				// load the slide async
-				slide.loadSlideAsync((Slide)nv).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
-					// by the time this finishes it could have been changed, so make sure
-					// its the same and if so, set it up
-					if (nv == this.mostRecentSlide) {
-						slide.setSlide((Slide)nv);
+				Slide sld = (Slide)nv;
+				Slide copy = sld.copy();
+				this.mostRecentSlide = sld;
+				slide.render(copy, null, false).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
+					if (this.mostRecentSlide == copy) {
 						slide.setVisible(true);
 					}
-				}));
+				}));;
 				
 				labels.showRowsOnly(0,1,2,3,4,5,16);
+				return;
 			} else if (nv instanceof Media) {
 				Media media = (Media)nv;
 				if (media.getMediaType() == MediaType.IMAGE) {
@@ -462,6 +459,9 @@ final class LibraryItemDetails extends VBox {
 			} else {
 				labels.showRowsOnly();
 			}
+			
+			this.mostRecentSlide = null;
+			slide.render(null, null, false);
 		});
 		
 		this.getStyleClass().add(LIBRARY_ITEM_DETAILS_CSS);

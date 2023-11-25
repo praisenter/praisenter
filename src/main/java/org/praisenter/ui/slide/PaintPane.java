@@ -23,8 +23,11 @@ import org.praisenter.ui.slide.convert.MediaConverter;
 import org.praisenter.ui.slide.convert.PaintConverter;
 
 import javafx.beans.binding.Bindings;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.effect.Effect;
@@ -39,6 +42,7 @@ import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.media.MediaPlayer;
+import javafx.scene.media.MediaPlayer.Status;
 import javafx.scene.media.MediaView;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
@@ -59,9 +63,12 @@ final class PaintPane extends StackPane implements Playable {
 	private final ObjectProperty<ScaleType> scaleType;
 	private final DoubleProperty mediaWidth;
 	private final DoubleProperty mediaHeight;
+	private final ObjectProperty<Status> playerStatus;
 	
 	private final Region backgroundView;
 	private final MediaView mediaView;
+	
+	private final BooleanProperty mediaReady;
 	
 	protected PaintPane(GlobalContext context) {
 		this.context = context;
@@ -77,9 +84,12 @@ final class PaintPane extends StackPane implements Playable {
 		this.scaleType = new SimpleObjectProperty<>();
 		this.mediaWidth = new SimpleDoubleProperty();
 		this.mediaHeight = new SimpleDoubleProperty();
+		this.playerStatus = new SimpleObjectProperty<>();
 		
 		this.backgroundView = new Region();
 		this.mediaView = new MediaView();
+		
+		this.mediaReady = new SimpleBooleanProperty(false);
 		
 		this.mediaObject.bind(Bindings.createObjectBinding(() -> {
 			SlidePaint paint = this.slidePaint.get();
@@ -240,6 +250,30 @@ final class PaintPane extends StackPane implements Playable {
 		});
 		
 		this.getChildren().addAll(this.backgroundView, this.mediaView);
+		
+		// media player status
+		this.mediaView.mediaPlayerProperty().addListener((obs, ov, nv) -> {
+			this.playerStatus.unbind();
+			if (nv != null) {
+				this.playerStatus.bind(nv.statusProperty());
+			}
+		});
+		
+		this.mediaReady.bind(Bindings.createBooleanBinding(() -> {
+			Media media = this.media.get();
+			if (media == null)
+				return true;
+			
+			if (media.getMediaType() == MediaType.IMAGE)
+				return true;
+			
+			SlideMode mode = this.slideMode.get();
+			if (mode != SlideMode.PRESENT)
+				return true;
+			
+			Status status = this.playerStatus.get();
+			return status == Status.STOPPED || status == Status.PAUSED || status == Status.PLAYING || status == Status.READY;
+		}, this.playerStatus, this.slideMode, this.media));
 	}
 	
 	private final Shape getBorderBasedClip(SlideStroke stroke, double width, double height) {
@@ -465,5 +499,13 @@ final class PaintPane extends StackPane implements Playable {
 	
 	public DoubleProperty slideHeightProperty() {
 		return this.slideHeight;
+	}
+	
+	public boolean isMediaReady() {
+		return this.mediaReady.get();
+	}
+	
+	public ReadOnlyBooleanProperty mediaReadyProperty() {
+		return this.mediaReady;
 	}
 }

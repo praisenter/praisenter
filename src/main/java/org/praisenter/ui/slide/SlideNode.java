@@ -20,7 +20,7 @@ final class SlideNode extends SlideRegionNode<Slide> implements Playable {
 	
 	public SlideNode(GlobalContext context, Slide region) {
 		super(context, region);
-		
+
 		this.components = new Pane();
 		
 		this.mapping = new MappedList<SlideComponentNode<?>, SlideComponent>(region.getComponents(), (SlideComponent c) -> {
@@ -72,6 +72,26 @@ final class SlideNode extends SlideRegionNode<Slide> implements Playable {
 		for (SlideComponentNode<?> child : this.mapping) {
 			child.dispose();
 		}
+	}
+	
+	public boolean isReady() {
+		if (!this.background.isMediaReady()) {
+			return false;
+		}
+		
+		for (SlideComponentNode<?> sc : this.mappingUnmodifiable) {
+			if (!sc.background.isMediaReady()) {
+				return false;
+			}
+			if (sc instanceof MediaComponentNode) {
+				MediaComponentNode mcn = (MediaComponentNode)sc;
+				if (!mcn.media.isMediaReady()) {
+					return false;
+				}
+			}
+		}
+		
+		return true;
 	}
 	
 	public ObservableList<SlideComponentNode<?>> getSlideComponentNodesUnmodifiable() {

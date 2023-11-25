@@ -44,7 +44,7 @@ final class SlideListCell extends ListCell<Slide> {
 	        		}
 	        	}
 	        	this.setText(name);
-	        	this.view.setSlide(newItem);
+	        	this.view.render(newItem, null, false);
 	        }
 	    });
 		

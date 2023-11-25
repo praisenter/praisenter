@@ -11,7 +11,6 @@ import org.praisenter.ui.slide.SlideMode;
 import org.praisenter.ui.slide.SlideView;
 
 import javafx.beans.binding.Bindings;
-import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.event.EventHandler;
 import javafx.scene.CacheHint;
@@ -150,23 +149,9 @@ public final class DisplayTarget extends Stage {
 		this.close();
 	}
 
-	public void displaySlidePlaceholders(final TextStore data, boolean waitForTransition) {
-		TextStore copy = data != null ? data.copy() : null;
-		this.slideView.transitionPlaceholders(copy, waitForTransition);
-		
-		this.toFront();
-	}
-	
-	public void displaySlideContent(final TextStore data, boolean waitForTransition) {
-		TextStore copy = data != null ? data.copy() : null;
-		this.slideView.transitionContent(copy, waitForTransition);
-		
-		this.toFront();
-	}
-	
-	public void displaySlide(final Slide slide, final TextStore data, boolean waitForTransition) {
+	public void displaySlide(final Slide slide, final TextStore data) {
 		if (slide == null) {
-			this.slideView.transitionSlide(null, false);
+			this.slideView.render(null, null, true);
 			return;
 		}
 		
@@ -181,14 +166,14 @@ public final class DisplayTarget extends Stage {
 		
 		copy.fit(w, h);
 		
-		this.slideView.transitionSlide(copy, waitForTransition);
+		this.slideView.render(copy, copy.getPlaceholderData(), true);
 		
 		this.toFront();
 	}
 
-	public void displayNotification(final Slide slide, final TextStore data, boolean waitForTransition) {
+	public void displayNotification(final Slide slide, final TextStore data) {
 		if (slide == null) {
-			this.notificationView.transitionSlide(null, false);
+			this.notificationView.render(null, null, true);
 			return;
 		}
 		
@@ -202,34 +187,34 @@ public final class DisplayTarget extends Stage {
 		double h = this.configuration.getHeight();
 		
 		copy.fit(w, h);
-		
-		this.notificationView.transitionSlide(copy, waitForTransition);
+
+		this.notificationView.render(copy, copy.getPlaceholderData(), true);
 		
 		this.toFront();
 	}
 	
 	public void clear() {
-		this.slideView.swapSlide(null);
-		this.notificationView.swapSlide(null);
+		this.slideView.render(null, null, true);
+		this.notificationView.render(null, null, true);
 	}
 	
 	public DisplayConfiguration getDisplayConfiguration() {
 		return this.configuration;
 	}
 	
-	public Slide getSlide() {
-		return this.slideView.getSlide();
-	}
-	
-	public ReadOnlyObjectProperty<Slide> slideProperty() {
-		return this.slideView.slideProperty();
-	}
-	
-	public Slide getNotificationSlide() {
-		return this.notificationView.getSlide();
-	}
-	
-	public ReadOnlyObjectProperty<Slide> notificationSlideProperty() {
-		return this.notificationView.slideProperty();
-	}
+//	public Slide getSlide() {
+//		return this.slideView.getSlide();
+//	}
+//	
+//	public ReadOnlyObjectProperty<Slide> slideProperty() {
+//		return this.slideView.slideProperty();
+//	}
+//	
+//	public Slide getNotificationSlide() {
+//		return this.notificationView.getSlide();
+//	}
+//	
+//	public ReadOnlyObjectProperty<Slide> notificationSlideProperty() {
+//		return this.notificationView.slideProperty();
+//	}
 }

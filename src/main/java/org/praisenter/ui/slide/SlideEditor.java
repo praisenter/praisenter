@@ -159,10 +159,14 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 			this.requestFocus();
 		});
 
-		this.slideView.loadSlideAsync(document.getDocument()).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
-			this.slideView.setSlide(document.getDocument());
-			this.slide.bind(document.documentProperty());
-		}));
+		this.slide.bind(document.documentProperty());
+		
+		// NOTE: this works because the SlideView will create a SlideNode from the given slide
+		//       the SlideNode is bound to the given slide, so any updates to the slide will update
+		//       the SlideView.
+		this.slideView.render(document.getDocument(), null, false);
+//		.thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
+//		}));
 		
 		Pane editContainer = new Pane();
 		editContainer.maxWidthProperty().bind(Bindings.createDoubleBinding(() -> {
