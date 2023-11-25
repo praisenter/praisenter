@@ -428,7 +428,7 @@ final class LibraryItemDetails extends VBox {
 			} else if (nv instanceof Slide) {
 				Slide sld = (Slide)nv;
 				Slide copy = sld.copy();
-				this.mostRecentSlide = sld;
+				this.mostRecentSlide = copy;
 				slide.render(copy, null, false).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
 					if (this.mostRecentSlide == copy) {
 						slide.setVisible(true);
