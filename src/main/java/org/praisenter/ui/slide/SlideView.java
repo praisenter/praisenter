@@ -336,11 +336,11 @@ public class SlideView extends Region implements Playable {
 		return this.prepare(slide, data).thenAccept((prepared) -> {
 			// at this point we need to know whether this one is old
 			// before attempting to present it
-			PreparedSlide ps = this.slide.get();
-			if (ps != null && ps.getTime().isAfter(prepared.getTime())) {
-				SlideNode node = ps.getNode();
+			PreparedSlide current = this.slide.get();
+			if (current != null && current.getTime().isAfter(prepared.getTime())) {
+				LOGGER.warn("Skipping render of '{}'. It's display time of '{}' is before the current slide's ('{}') display time '{}'", prepared.getSlide(), prepared.getTime(), current.getSlide(), current.getTime());
+				SlideNode node = prepared.getNode();
 				node.dispose();
-				LOGGER.debug("SKIPPING");
 				// skip this action
 				return;
 			}

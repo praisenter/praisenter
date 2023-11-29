@@ -340,7 +340,7 @@ public final class LifecycleHandler {
 			configuration.applicationHeightProperty().bind(Bindings.when(stage.maximizedProperty().not()).then(stage.heightProperty()).otherwise(configuration.getApplicationHeight()));
     		
     		stage.setOnCloseRequest((e) -> {
-    			LOGGER.debug("Request to close the stage received.");
+    			LOGGER.debug("Request to close the application received");
     			e.consume();
     			this.cleanUp(LOGGER, context).thenAccept((shouldContinue) -> {
     				if (shouldContinue) {

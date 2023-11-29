@@ -419,7 +419,7 @@ public final class GlobalContext {
 	 * @param reason the reason for the update
 	 */
 	private void onActionStateChanged(String reason) {
-		LOGGER.debug("Action State Updating: " + reason);
+		LOGGER.trace("Action State Updating: " + reason);
 
 		for (Action action : Action.values()) {
 			BooleanProperty isEnabled = this.isActionEnabled.get(action);

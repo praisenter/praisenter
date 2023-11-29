@@ -246,6 +246,8 @@ public final class DisplayManager {
 	}
 	
 	private DisplayState getDisplayState(DisplayConfiguration configuration, Screen screen) {
+		int id = configuration.getId() + 1;
+		
 		// if it's not assigned
 		if (configuration == null || configuration.getId() < 0) {
 			LOGGER.info("Display has not been initialized.");
@@ -254,7 +256,7 @@ public final class DisplayManager {
 		
 		// check if the screen index still exists
 		if (screen == null) {
-			LOGGER.info("Display {} no longer exists.", configuration.getId());
+			LOGGER.info("Display {} no longer exists.", id);
 			return DisplayState.SCREEN_INDEX_DOESNT_EXIST;
 		}
 		
@@ -264,14 +266,14 @@ public final class DisplayManager {
 		boolean positionChanged = false;
 		if ((int)bounds.getMinX() != configuration.getX() ||
 			(int)bounds.getMinY() != configuration.getY()) {
-			LOGGER.info("Display {} position has changed.", configuration.getId());
+			LOGGER.info("Display {} position has changed.", id);
 			positionChanged = true;
 		}
 		
 		boolean resolutionChanged = false;
 		if ((int)bounds.getWidth() != configuration.getWidth() ||
 			(int)bounds.getHeight() != configuration.getHeight()) {
-			LOGGER.info("Display {} resolution has changed.", configuration.getId());
+			LOGGER.info("Display {} resolution has changed.", id);
 			resolutionChanged = true;
 		}
 		

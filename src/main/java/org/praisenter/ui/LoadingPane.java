@@ -339,7 +339,7 @@ final class LoadingPane extends Pane {
 					LOGGER.warn("Failed to extract sample data: " + ex.getMessage(), ex);
 				}
 			} else {
-				LOGGER.info("Existing workspace detected, skipping this step");
+				LOGGER.info("Existing workspace detected, sample data import skipped");
 			}
 			
 			return future;
