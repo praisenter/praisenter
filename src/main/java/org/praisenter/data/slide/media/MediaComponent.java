@@ -30,6 +30,7 @@ import java.util.UUID;
 import org.praisenter.Watchable;
 import org.praisenter.data.Copyable;
 import org.praisenter.data.Identifiable;
+import org.praisenter.data.media.MediaType;
 import org.praisenter.data.slide.ReadOnlySlideComponent;
 import org.praisenter.data.slide.ReadOnlySlideRegion;
 import org.praisenter.data.slide.SlideComponent;
@@ -112,5 +113,19 @@ public final class MediaComponent extends SlideComponent implements ReadOnlyMedi
 	@Watchable(name = "media")
 	public ObjectProperty<MediaObject> mediaProperty() {
 		return this.media;
+	}
+	
+	@Override
+	public boolean hasPlayableMedia() {
+		boolean hasPlayableMedia = super.hasPlayableMedia();
+		if (hasPlayableMedia)
+			return true;
+		
+		MediaObject mo = this.media.get();
+		if (mo != null && mo.getMediaType() != MediaType.IMAGE) {
+			return true;
+		}
+		
+		return false;
 	}
 }

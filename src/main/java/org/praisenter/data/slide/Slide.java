@@ -622,4 +622,19 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 	public Set<UUID> getDependencies() {
 		return this.getReferencedMedia();
 	}
+	
+	@Override
+	public boolean hasPlayableMedia() {
+		boolean hasPlayableMedia = super.hasPlayableMedia();
+		if (hasPlayableMedia)
+			return true;
+		
+		for (SlideComponent component : this.components) {
+			if (component.hasPlayableMedia()) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
 }

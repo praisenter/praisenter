@@ -31,6 +31,7 @@ import java.util.UUID;
 import org.praisenter.Watchable;
 import org.praisenter.data.Copyable;
 import org.praisenter.data.Identifiable;
+import org.praisenter.data.media.MediaType;
 import org.praisenter.data.slide.graphics.Rectangle;
 import org.praisenter.data.slide.graphics.SlidePaint;
 import org.praisenter.data.slide.graphics.SlideStroke;
@@ -300,5 +301,17 @@ public class SlideRegion implements ReadOnlySlideRegion, Copyable, Identifiable 
 			}
 		}
 		return ids;
+	}
+	
+	@Override
+	public boolean hasPlayableMedia() {
+		SlidePaint bg = this.background.get();
+		if (bg != null && bg instanceof MediaObject) {
+			MediaObject mo = (MediaObject)bg;
+			if (mo.getMediaType() != MediaType.IMAGE) {
+				return true;
+			}
+		}
+		return false;
 	}
 }

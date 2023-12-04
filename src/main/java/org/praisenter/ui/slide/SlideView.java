@@ -11,6 +11,7 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -329,11 +330,10 @@ public class SlideView extends Region implements Playable {
 	 * @param transition whether to transition or swap
 	 * @return
 	 */
-	// sequenced helpers
-	
 	private CompletableFuture<Void> prepareThenRender(Slide slide, TextStore data, boolean transition) {
 		// handle new display
 		return this.prepare(slide, data).thenAccept((prepared) -> {
+			LOGGER.trace("Slide '{}' is prepared", slide);
 			// at this point we need to know whether this one is old
 			// before attempting to present it
 			PreparedSlide current = this.slide.get();
@@ -365,6 +365,7 @@ public class SlideView extends Region implements Playable {
 	 * @param transition
 	 */
 	private void renderPreparedSlide(PreparedSlide prepared, boolean transition) {
+		LOGGER.debug("Rendering prepared slide '{}'", prepared.getSlide());
 		boolean waitForTransition = this.context.getWorkspaceConfiguration().isWaitForTransitionsToCompleteEnabled();
 		boolean transitionInProgress = this.isTransitionInProgress();
 		
@@ -865,35 +866,78 @@ public class SlideView extends Region implements Playable {
 		Instant time = Instant.now();
 		LOGGER.trace("Preparing slide '{}' for view", slide);
 		Map<UUID, Path> mediaToLoad = this.getImagesToPreLoad(slide);
-		return CompletableFuture.runAsync(() -> {
-			// then on the same thread, load the images
-			this.preLoadImages(mediaToLoad);
-		}).thenCompose(AsyncHelper.onJavaFXThreadAndWait((v) -> {
-			// then on the JavaFX thread build the SlideNode
-			// and trigger the async setup of media
+		LOGGER.trace("Found {} images to preload", mediaToLoad.size());
+		
+		CompletableFuture<PreparedSlide> future;
+		
+		// if possible, try to handle everything on the same thread as switching from
+		// the thread-pool threads to the Java FX main thread (and back) takes a good
+		// bit of time since there's no guarantee when they will execute
+		if (mediaToLoad.isEmpty() && Platform.isFxApplicationThread()) { 
+			// there's nothing to load and we're on the JavaFX thread
+			// build the slide node and check if media is ready
 			SlideNode slideNode = this.buildSlideNode(slide);
-			
-			// the wait for media-ready code has been commented out because it
-			// didn't seem to effect the outcome - I was trying to wait until
-			// they were ready so there were no visual artifacts when you hit
-			// send - in particular laggy slide transitions that were choppy
-			
-			// it almost seemed like a spin up time to get the underlying
-			// Java FX player ready for the first time (GStreamer)
-			
-			return slideNode;
-		})).thenApplyAsync((slideNode) -> {
-			// then on a threadpool thread, wait for the media to be ready
-			this.waitForMediaReady(slideNode);
-			return slideNode;
-		}).thenComposeAsync(AsyncHelper.onJavaFXThreadAndWait((slideNode) -> {
-			
-			// then on the JavaFX thread, add to the prepared SlideNode to the
-			// prepared queue and signal it's ready
-			LOGGER.trace("Slide '{}' is ready for view", slide);
-			PreparedSlide ptr = new PreparedSlide(slide, data, slideNode, time);
-			return ptr;
-		})).exceptionally(t -> {
+			// there three conditions to go ahead and present:
+			// 1. the slide mode is NOT PRESENT, meaning we're only using the images (no video or audio will be used)
+			// 2. the slide doesn't have any playable (video/audio) media
+			// 3. the slide does have video or audio, but it's already ready to go
+			if (this.mode.get() != SlideMode.PRESENT || !slide.hasPlayableMedia() || slideNode.isReady()) {
+				LOGGER.trace("Slide '{}' is ready for view", slide);
+				future = CompletableFuture.completedFuture(new PreparedSlide(slide, data, slideNode, time));
+			} else {
+				// otherwise, we have to go into another thread to wait for media to spool
+				future = CompletableFuture.completedFuture(slideNode).thenRunAsync(() -> {
+					// then on a thread-pool thread, wait for the media to be ready
+					this.waitForMediaReady(slideNode);
+				}).thenComposeAsync(AsyncHelper.onJavaFXThreadAndWait((v) -> {
+					// then on the JavaFX thread, add to the prepared SlideNode to the
+					// prepared queue and signal it's ready
+					LOGGER.trace("Slide '{}' is ready for view", slide);
+					PreparedSlide ptr = new PreparedSlide(slide, data, slideNode, time);
+					return ptr;
+				}));
+			}
+		} else {
+			// if we have media to load or we're not in the JavaFX thread, then
+			// load the media asynchronously in an executor thread
+			future = CompletableFuture.runAsync(() -> {
+				// load the images
+				this.preLoadImages(mediaToLoad);
+			}).thenCompose((v) -> {
+				CompletableFuture<PreparedSlide> ps = new CompletableFuture<PreparedSlide>();
+				CompletableFuture<PreparedSlide> sn = new CompletableFuture<PreparedSlide>();
+				
+				Platform.runLater(() -> {
+					// then on the JavaFX thread build the SlideNode
+					// and trigger the async setup of media
+					SlideNode slideNode = this.buildSlideNode(slide);
+					// there three conditions to go ahead and present:
+					// 1. the slide mode is NOT PRESENT, meaning we're only using the images (no video or audio will be used)
+					// 2. the slide doesn't have any playable (video/audio) media
+					// 3. the slide does have video or audio, but it's already ready to go
+					if (this.mode.get() != SlideMode.PRESENT || !slide.hasPlayableMedia() || slideNode.isReady()) {
+						// if media is ready, then we can immediately return a completed future
+						LOGGER.trace("Slide '{}' is ready for view", slide);
+						ps.complete(new PreparedSlide(slide, data, slideNode, time));
+					} else {
+						CompletableFuture.completedFuture(slideNode).thenRunAsync(() -> {
+							// then on a thread-pool thread, wait for the media to be ready
+							this.waitForMediaReady(slideNode);
+						}).thenComposeAsync(AsyncHelper.onJavaFXThreadAndWait(() -> {
+							// then on the JavaFX thread, add to the prepared SlideNode to the
+							// prepared queue and signal it's ready
+							LOGGER.trace("Slide '{}' is ready for view", slide);
+							PreparedSlide ptr = new PreparedSlide(slide, data, slideNode, time);
+							sn.complete(ptr);
+						}));
+					}
+				});
+				
+				return sn.applyToEither(ps, Function.identity());
+			});
+		}
+
+		return future.exceptionally(t -> {
 			LOGGER.error("Failed to prepare slide: ", t);
 			return null;
 		});
@@ -943,7 +987,7 @@ public class SlideView extends Region implements Playable {
 		LOGGER.trace("Creating JavaFX nodes");
 		SlideNode node = new SlideNode(this.context, slide);
 		
-		LOGGER.trace("Chaning mode to: {}", this.mode.get());
+		LOGGER.trace("Changing mode to: {}", this.mode.get());
 		node.setMode(this.mode.get());
 		node.isReady();
 		
