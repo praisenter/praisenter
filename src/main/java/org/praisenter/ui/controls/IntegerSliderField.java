@@ -42,7 +42,7 @@ public final class IntegerSliderField extends HBox {
 		double smax = max * scale;
 		double svalue = value * scale;
 		
-		int ticks = (int)(smax - smin) - 1;
+		int ticks = (int)(smax - smin);
 		Slider sldOpacity = new Slider(smin, smax, svalue);
 		sldOpacity.setSnapToTicks(true);
 		sldOpacity.setMinorTickCount(ticks);
