@@ -164,6 +164,13 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 		//       the SlideView.
 		this.slideView.render(document.getDocument(), null, false).thenCompose(AsyncHelper.onJavaFXThreadAndWait(() -> {
 			this.slide.bind(document.documentProperty());
+			// NOTE: this is here because from the time of loading the slide and binding it
+			// if there's a countdown or current time component, their generated text property
+			// may change.  Since these component inherit from the more general text component
+			// the text property is watched.  It would be nice if you could un-annotate in a sub
+			// class, but that's not a thing.  Instead, we just want to make sure the undo manager
+			// is in a clean state after load and binding
+			this.undoManager.reset();
 		}));
 		
 		Pane editContainer = new Pane();

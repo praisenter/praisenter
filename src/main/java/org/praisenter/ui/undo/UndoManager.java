@@ -121,6 +121,7 @@ public final class UndoManager {
 		
 		this.target.addListener((obs, ov, nv) -> {
 			if (ov != null) {
+				this.watcher.unregister();
 				this.reset();
 			}
 			if (nv != null) {
@@ -237,7 +238,6 @@ public final class UndoManager {
 	public void reset() {
 		this.undos.clear();
 		this.redos.clear();
-		this.watcher.unregister();
 		this.batchName = null;
 		this.batch = null;
 		this.isBatching = false;
