@@ -16,11 +16,13 @@ public interface ReadOnlyDisplayConfiguration extends Copyable {
 	public boolean isPrimary();
 	public boolean isActive();
 	public String getName();
+	public DisplayType getType();
 	public String getDefaultName();
 	public int getX();
 	public int getY();
 	public int getWidth();
 	public int getHeight();
+	public int getFramesPerSecond();
 	
 	public UUID getBibleTemplateId();
 	public UUID getSongTemplateId();
@@ -33,11 +35,13 @@ public interface ReadOnlyDisplayConfiguration extends Copyable {
 	public ReadOnlyBooleanProperty primaryProperty();
 	public ReadOnlyBooleanProperty activeProperty();
 	public ReadOnlyStringProperty nameProperty();
+	public ReadOnlyObjectProperty<DisplayType> typeProperty();
 	public ReadOnlyStringProperty defaultNameProperty();
 	public ReadOnlyIntegerProperty xProperty();
 	public ReadOnlyIntegerProperty yProperty();
 	public ReadOnlyIntegerProperty widthProperty();
 	public ReadOnlyIntegerProperty heightProperty();
+	public ReadOnlyIntegerProperty framesPerSecondProperty();
 	
 	public ReadOnlyObjectProperty<UUID> bibleTemplateIdProperty();
 	public ReadOnlyObjectProperty<UUID> songTemplateIdProperty();

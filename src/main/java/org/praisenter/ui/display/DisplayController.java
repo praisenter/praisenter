@@ -19,6 +19,7 @@ import org.praisenter.data.slide.Slide;
 import org.praisenter.data.slide.SlideReference;
 import org.praisenter.data.song.SongReferenceTextStore;
 import org.praisenter.data.workspace.DisplayConfiguration;
+import org.praisenter.data.workspace.DisplayType;
 import org.praisenter.ui.Action;
 import org.praisenter.ui.ActionPane;
 import org.praisenter.ui.GlobalContext;
@@ -137,6 +138,7 @@ public final class DisplayController extends BorderPane implements ActionPane {
 	    		configuration.setName(newName);
 	    	}
 		});
+		mnuSetName.setVisible(target.getDisplayConfiguration().getType() != DisplayType.NDI);
 		
 		final DisplayIdentifier identify = new DisplayIdentifier(configuration);
 		MenuItem mnuIdentify = new MenuItem(Translations.get("display.identify"));
@@ -160,6 +162,7 @@ public final class DisplayController extends BorderPane implements ActionPane {
 				tx.play();
 			}
 		});
+		mnuIdentify.setVisible(target.getDisplayConfiguration().getType() != DisplayType.NDI);
 		
 		CheckMenuItem mnuPrimary = new CheckMenuItem(Translations.get("display.primary"));
 		mnuPrimary.selectedProperty().bindBidirectional(configuration.primaryProperty());
@@ -170,8 +173,23 @@ public final class DisplayController extends BorderPane implements ActionPane {
 			}
 		});
 		
-		MenuItem mnuHide = new MenuItem(Translations.get("display.remove"));
+		MenuItem mnuHide = new MenuItem(Translations.get("display.hide"));
 		mnuHide.setOnAction(e -> {
+			// if so, we need to confirm with the user before we do it
+			Alert alert = Dialogs.yesNoCancel(
+					context.getStage(), 
+					Modality.WINDOW_MODAL, 
+					Translations.get("display.hide.title"), 
+					Translations.get("display.hide.header"), 
+					Translations.get("display.hide.text"));
+			Optional<ButtonType> result = alert.showAndWait();
+			if (result.isPresent() && result.get() == ButtonType.YES) {
+				configuration.setActive(false);
+			}
+		});
+		
+		MenuItem mnuDelete = new MenuItem(Translations.get("display.remove"));
+		mnuDelete.setOnAction(e -> {
 			// if so, we need to confirm with the user before we do it
 			Alert alert = Dialogs.yesNoCancel(
 					context.getStage(), 
@@ -181,16 +199,18 @@ public final class DisplayController extends BorderPane implements ActionPane {
 					Translations.get("display.remove.text"));
 			Optional<ButtonType> result = alert.showAndWait();
 			if (result.isPresent() && result.get() == ButtonType.YES) {
-				configuration.setActive(false);
+				this.context.getWorkspaceConfiguration().getDisplayConfigurations().remove(configuration);
 			}
 		});
-
+		mnuDelete.setVisible(target.getDisplayConfiguration().getType() == DisplayType.NDI);
+		
 		MenuButton mnuActions = new MenuButton(Translations.get("display.actions"));
 		mnuActions.getItems().addAll(
 			mnuSetName,
 			mnuPrimary,
 			mnuIdentify,
-			mnuHide);
+			mnuHide,
+			mnuDelete);
 		
 		Robot robot = new Robot();
 		WritableImage image = robot.getScreenCapture(null, 
@@ -557,6 +577,12 @@ public final class DisplayController extends BorderPane implements ActionPane {
 		btnClearNotification.setOnAction(e -> {
 			target.displayNotification(null, null);
 		});
+		
+		// disable some things when the user is on the notification tab
+		btnShow.disableProperty().bind(tabs.getSelectionModel().selectedIndexProperty().isEqualTo(3));
+		btnQueueAdd.disableProperty().bind(tabs.getSelectionModel().selectedIndexProperty().isEqualTo(3));
+		chkAutoShow.disableProperty().bind(tabs.getSelectionModel().selectedIndexProperty().isEqualTo(3));
+		chkPreviewTransition.disableProperty().bind(tabs.getSelectionModel().selectedIndexProperty().isEqualTo(3));
 		
 		cmbBibleSlideTemplate.getItems().addListener((Change<? extends Slide> c) -> {
 			Slide cv = cmbBibleSlideTemplate.getValue();

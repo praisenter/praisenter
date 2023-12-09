@@ -1,5 +1,6 @@
 package org.praisenter.data.workspace;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -139,6 +140,23 @@ public final class WorkspaceConfiguration implements ReadOnlyWorkspaceConfigurat
 		dc.setId(id);
 		this.displayConfigurations.add(dc);
 		return dc;
+	}
+	
+	@Override
+	public DisplayConfiguration getPrimaryDisplayConfiguration() {
+		List<DisplayConfiguration> configurations = new ArrayList<>(this.displayConfigurations);
+		for (DisplayConfiguration configuration : configurations) {
+			if (configuration.isPrimary()) {
+				return configuration;
+			}
+		}
+		
+		if (configurations.size() > 0) {
+			// then just use the first
+			return configurations.get(0);
+		}
+		
+		return null;
 	}
 
 	@Override

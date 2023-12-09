@@ -46,6 +46,7 @@ import org.praisenter.ui.controls.IntegerSliderField;
 import org.praisenter.ui.controls.LastValueNumberStringConverter;
 import org.praisenter.ui.controls.LongSpinnerValueFactory;
 import org.praisenter.ui.controls.SimpleDateFormatConverter;
+import org.praisenter.ui.controls.WidthHeightPicker;
 import org.praisenter.ui.controls.TagListView;
 import org.praisenter.ui.controls.TextInputFieldEventFilter;
 import org.praisenter.ui.controls.TimeStringConverter;
@@ -57,7 +58,6 @@ import org.praisenter.ui.slide.controls.SlideFontPicker;
 import org.praisenter.ui.slide.controls.SlidePaddingPicker;
 import org.praisenter.ui.slide.controls.SlidePaintPicker;
 import org.praisenter.ui.slide.controls.SlideShadowPicker;
-import org.praisenter.ui.slide.controls.SlideSizePicker;
 import org.praisenter.ui.slide.controls.SlideStrokePicker;
 import org.praisenter.ui.slide.convert.TimeFormatConverter;
 import org.praisenter.ui.translations.Translations;
@@ -206,8 +206,8 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 			option.nameProperty().bind(Bindings.createStringBinding(() -> {
 				boolean isNative = this.isNativeResolution(r);
 				return isNative 
-						? Translations.get("slide.resolution.native", r.getWidth(), r.getHeight())
-						: Translations.get("slide.resolution", r.getWidth(), r.getHeight());
+						? Translations.get("resolution.native", r.getWidth(), r.getHeight())
+						: Translations.get("resolution", r.getWidth(), r.getHeight());
 			}, Screen.getScreens()));
 			return option;
 		});
@@ -503,9 +503,9 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 			}
 		});
 		
-		SlideSizePicker pkrSlideSize = new SlideSizePicker();
-		pkrSlideSize.slideWidthProperty().bindBidirectional(this.width);
-		pkrSlideSize.slideHeightProperty().bindBidirectional(this.height);
+		WidthHeightPicker pkrSlideSize = new WidthHeightPicker();
+		pkrSlideSize.selectedWidthProperty().bindBidirectional(this.width);
+		pkrSlideSize.selectedHeightProperty().bindBidirectional(this.height);
 		
 		Spinner<Long> spnTime = new Spinner<>(0, Long.MAX_VALUE, 0, 5);
 		spnTime.setEditable(true);

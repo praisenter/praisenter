@@ -68,4 +68,5 @@ public interface ReadOnlyWorkspaceConfiguration extends MediaConfiguration, Slid
 	public ObservableList<? extends ReadOnlyDisplayConfiguration> getDisplayConfigurationsUnmodifiable();
 	
 	public ReadOnlyDisplayConfiguration getDisplayConfigurationById(int id);
+	public ReadOnlyDisplayConfiguration getPrimaryDisplayConfiguration();
 }

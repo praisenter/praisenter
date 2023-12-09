@@ -23,6 +23,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import me.walkerknapp.devolay.Devolay;
 
 final class AboutPane extends BorderPane {
 	private static final Logger LOGGER = LogManager.getLogger();
@@ -89,6 +90,7 @@ final class AboutPane extends BorderPane {
 		tv.getItems().add(new DataPoint(Translations.get("about.version.lucene"), org.apache.lucene.util.Version.LATEST.toString()));
 		tv.getItems().add(new DataPoint(Translations.get("about.os"), RuntimeProperties.OPERATING_SYSTEM));
 		tv.getItems().add(new DataPoint(Translations.get("about.arch"), RuntimeProperties.ARCHITECTURE));
+		tv.getItems().add(new DataPoint(Translations.get("ndi.version"), Devolay.getNDIVersion()));
 		
 		tv.setPrefHeight(175);
 		tv.setPrefWidth(100);
@@ -123,6 +125,10 @@ final class AboutPane extends BorderPane {
 				}
 			});
 		});
+		
+		// per NDI license requirements
+		Label lblNDITrademark = new Label(Translations.get("ndi.trademark"));
+		layout.getChildren().add(lblNDITrademark);
 		
 		this.setLeft(left);
 		this.setCenter(layout);

@@ -8,6 +8,7 @@ import java.util.Map;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.data.workspace.DisplayConfiguration;
+import org.praisenter.data.workspace.DisplayType;
 import org.praisenter.ui.GlobalContext;
 
 import javafx.collections.FXCollections;
@@ -26,13 +27,20 @@ public final class DisplayManager {
 	private final ObservableList<DisplayTarget> targetsUnmodifiable;
 	
 	private final ListChangeListener<? super Screen> screenListener;
-
+	private final ListChangeListener<? super DisplayConfiguration> ndiListener;
+	
 	public DisplayManager(GlobalContext context) {
 		this.context = context;
+		
 		this.targets = FXCollections.observableArrayList();
-		this.targetsUnmodifiable = FXCollections.unmodifiableObservableList(this.targets);
+		this.targetsUnmodifiable = this.targets.sorted();
+
 		this.screenListener = (Change<? extends Screen> c) -> {
 			this.onScreensChanged();
+		};
+		
+		this.ndiListener = (Change<? extends DisplayConfiguration> c) -> {
+			this.onDisplayConfigurationChanged(c);
 		};
 	}
 	
@@ -40,8 +48,19 @@ public final class DisplayManager {
 		// listen for screen changes
 		Screen.getScreens().addListener(this.screenListener);
 		
-		// seed the display targets
+		// listen for NDI changes
+		this.context.getWorkspaceConfiguration().getDisplayConfigurations().addListener(this.ndiListener);
+		
+		// seed the screen display targets
 		this.onScreensChanged();
+		
+		// seed the NDI display targets
+		for (DisplayConfiguration ndiDisplayConfiguration : this.context.getWorkspaceConfiguration().getDisplayConfigurations()) {
+			if (ndiDisplayConfiguration.getType() == DisplayType.NDI) {
+				NDIDisplayTarget target = new NDIDisplayTarget(this.context, ndiDisplayConfiguration);
+				this.targets.add(target);
+			}
+		}
 		
 		// reset the focus on the primary stage
 		this.context.getStage().requestFocus();
@@ -52,12 +71,17 @@ public final class DisplayManager {
 	 */
 	public void dispose() {
 		Screen.getScreens().removeListener(this.screenListener);
-		for (DisplayTarget screen : this.targets) {
-			screen.dispose();
+		this.context.getWorkspaceConfiguration().getDisplayConfigurations().removeListener(this.ndiListener);
+		
+		for (DisplayTarget target : this.targets) {
+			target.dispose();
 		}
+		
 		this.targets.clear();
 	}
 
+	// ScreenDisplayTarget
+	
 	private DesktopState onScreensChanged() {
 		DesktopState whatHappened = DesktopState.NO_CHANGE;
 		List<Screen> screens = new ArrayList<Screen>(Screen.getScreens());
@@ -82,14 +106,14 @@ public final class DisplayManager {
 			for (int i = 0; i < sSize; i++) {
 				boolean isPrimary = this.isPrimaryScreen(i, sSize);
 
-				DisplayConfiguration newConfiguration = this.createDisplayConfiguration(screens.get(i), i, isPrimary);
+				DisplayConfiguration newConfiguration = this.createDisplayConfigurationFromScreen(screens.get(i), i, isPrimary);
 				if (isPrimary && sSize > 1) {
 					newConfiguration.setActive(true);
 				}
 				
 				configurations.add(newConfiguration);
 
-				this.targets.add(new DisplayTarget(this.context, newConfiguration));
+				this.targets.add(new ScreenDisplayTarget(this.context, newConfiguration));
 			}
 			whatHappened = DesktopState.NO_INITIAL_CONFIGURATION;
 		} else {
@@ -125,7 +149,7 @@ public final class DisplayManager {
 				}
 				
 				boolean isPrimary = this.isPrimaryScreen(i, sSize);
-				DisplayState state = this.getDisplayState(configuration, screen);
+				DisplayState state = this.getScreenDisplayState(configuration, screen);
 				
 				switch (state) {
 					case SCREEN_INDEX_DOESNT_EXIST:
@@ -144,35 +168,35 @@ public final class DisplayManager {
 						this.removeDisplayTargetForDisplayConfiguration(configuration);
 						
 						// update the configuration
-						this.updateConfiguration(screen, configuration);
+						this.updateScreenConfiguration(screen, configuration);
 						
 						// add a new target for the updated configuration
-						this.targets.add(new DisplayTarget(this.context, configuration));
+						this.targets.add(new ScreenDisplayTarget(this.context, configuration));
 						
 						whatHappened = DesktopState.DISPLAY_POSITION_OR_RESOLUTION_CHANGED;
 						break;
 					case VALID:
 					case POSITION_CHANGED:
 						// update the configuration
-						this.updateConfiguration(screen, configuration);
+						this.updateScreenConfiguration(screen, configuration);
 						
 						// check to make sure a target exists
-						DisplayTarget target = this.getDisplayTargetForDisplayConfiguration(configuration);
+						ScreenDisplayTarget target = (ScreenDisplayTarget)this.getDisplayTargetForDisplayConfiguration(configuration);
 						if (target == null) {
-							target = new DisplayTarget(this.context, configuration);
+							target = new ScreenDisplayTarget(this.context, configuration);
 							this.targets.add(target);
 						}
 						
 						// check if the target is at the correct position
-						this.updateLocation(target);
+						this.updateScreenLocation(target);
 						break;
 					case SCREEN_NOT_ASSIGNED:
 						// create a new configuration for the new target
-						DisplayConfiguration newConfiguration = this.createDisplayConfiguration(screen, index, isPrimary);
+						DisplayConfiguration newConfiguration = this.createDisplayConfigurationFromScreen(screen, index, isPrimary);
 						configurations.add(newConfiguration);
 						
 						// add the new target
-						this.targets.add(new DisplayTarget(this.context, newConfiguration));
+						this.targets.add(new ScreenDisplayTarget(this.context, newConfiguration));
 						
 						whatHappened = DesktopState.DISPLAY_COUNT_INCREASED;
 						break;
@@ -198,7 +222,7 @@ public final class DisplayManager {
 		return false;
 	}
 	
-	private DisplayConfiguration createDisplayConfiguration(Screen screen, int index, boolean isPrimary) {
+	private DisplayConfiguration createDisplayConfigurationFromScreen(Screen screen, int index, boolean isPrimary) {
 		DisplayConfiguration display = new DisplayConfiguration();
 		display.setHeight((int)screen.getBounds().getHeight());
 		display.setId(index);
@@ -206,34 +230,19 @@ public final class DisplayManager {
 		display.setWidth((int)screen.getBounds().getWidth());
 		display.setX((int)screen.getBounds().getMinX());
 		display.setY((int)screen.getBounds().getMinY());
+		display.setType(DisplayType.SCREEN);
+		display.setFramesPerSecond(-1);
 		return display;
 	}
 	
-	private void updateConfiguration(Screen screen, DisplayConfiguration configuration) {
+	private void updateScreenConfiguration(Screen screen, DisplayConfiguration configuration) {
 		configuration.setHeight((int)screen.getBounds().getHeight());
 		configuration.setWidth((int)screen.getBounds().getWidth());
 		configuration.setX((int)screen.getBounds().getMinX());
 		configuration.setY((int)screen.getBounds().getMinY());
 	}
-	
-	private DisplayTarget getDisplayTargetForDisplayConfiguration(DisplayConfiguration configuration) {
-		for (DisplayTarget target : this.targets) {
-			if (target.getDisplayConfiguration() == configuration) {
-				return target;
-			}
-		}
-		return null;
-	}
-	
-	private void removeDisplayTargetForDisplayConfiguration(DisplayConfiguration configuration) {
-		DisplayTarget toRemove = this.getDisplayTargetForDisplayConfiguration(configuration);
-		if (toRemove != null) {
-			toRemove.dispose();
-			this.targets.remove(toRemove);
-		}
-	}
-	
-	private void updateLocation(DisplayTarget target) {
+
+	private void updateScreenLocation(ScreenDisplayTarget target) {
 		int tx = target.getDisplayConfiguration().getX();
 		int ty = target.getDisplayConfiguration().getY();
 		int cx = (int)target.getX();
@@ -245,7 +254,7 @@ public final class DisplayManager {
 		}
 	}
 	
-	private DisplayState getDisplayState(DisplayConfiguration configuration, Screen screen) {
+	private DisplayState getScreenDisplayState(DisplayConfiguration configuration, Screen screen) {
 		int id = configuration.getId() + 1;
 		
 		// if it's not assigned
@@ -286,6 +295,51 @@ public final class DisplayManager {
 		}
 		
 		return DisplayState.VALID;
+	}
+	
+	// NDIDisplayTarget
+	
+	private void onDisplayConfigurationChanged(Change<? extends DisplayConfiguration> c) {
+		while (c.next()) {
+			// first check if the slide we currently have selected was
+			// added (updated)
+			List<? extends DisplayConfiguration> as = c.getAddedSubList();
+			for (DisplayConfiguration add : as) {
+				NDIDisplayTarget target = new NDIDisplayTarget(this.context, add);
+				this.targets.add(target);
+			}
+			
+			// next check if the slide we currently have selected was
+			// removed (deleted)
+			List<? extends DisplayConfiguration> rs = c.getRemoved();
+			for (DisplayConfiguration rm : rs) {
+				DisplayTarget found = this.getDisplayTargetForDisplayConfiguration(rm);
+				
+				if (found != null) {
+					this.targets.remove(found);
+					found.dispose();
+				}
+			}
+		}
+	}
+	
+	// general
+	
+	private DisplayTarget getDisplayTargetForDisplayConfiguration(DisplayConfiguration configuration) {
+		for (DisplayTarget target : this.targets) {
+			if (target.getDisplayConfiguration() == configuration) {
+				return target;
+			}
+		}
+		return null;
+	}
+	
+	private void removeDisplayTargetForDisplayConfiguration(DisplayConfiguration configuration) {
+		DisplayTarget toRemove = this.getDisplayTargetForDisplayConfiguration(configuration);
+		if (toRemove != null) {
+			toRemove.dispose();
+			this.targets.remove(toRemove);
+		}
 	}
 	
 	public ObservableList<DisplayTarget> getDisplayTargets() {

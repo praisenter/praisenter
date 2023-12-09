@@ -54,6 +54,7 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.util.Duration;
+import me.walkerknapp.devolay.Devolay;
 
 public final class LifecycleHandler {
 	/** The array of Java FX features that Praisenter uses */
@@ -363,6 +364,29 @@ public final class LifecycleHandler {
     		stage.setOnHidden((e) -> {
     			Platform.exit();
     		});
+
+    		// load NDI libraries
+    		// as far as testing go, it appears that I can do this many times without issue
+    		// ideally this is only done once on app start up, but it could be called again
+    		// if the user is switching workspaces.
+    		try {
+    			if (Devolay.isSupportedCpu()) {
+		            int result = Devolay.loadLibraries();
+		            if (result == 0) {
+		            	// all is well
+		            	LOGGER.info("NDI libraries loaded successfully");
+		            	context.setNDIReady(true);
+		            } else if (result == 1) {
+		            	LOGGER.error("NDI libraries couldn't be found");
+		            } else if (result == 2) {
+		            	LOGGER.error("NDI libraries failed to load");
+		            } else {
+		            	LOGGER.error("NDI libraries failed to load with result: {}", result);
+		            }
+    			}
+    		} catch (Exception ex) {
+    			LOGGER.error("NDI libraries failed to load", ex);
+    		}
     		
     		// build the loading UI
     		LoadingPane loadingPane = new LoadingPane(context, installer);

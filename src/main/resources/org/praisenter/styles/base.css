@@ -485,6 +485,11 @@
 	-fx-background-repeat: repeat;
 }
 
+/* NDI DISPLAY SETTINGS PANE */
+.p-ndi-display-settings-pane {
+	-fx-padding: 1em;
+}
+
 /* SLIDE LIST */
 .p-slide-list {
 	-fx-pref-width: 17em; /* ~200px */

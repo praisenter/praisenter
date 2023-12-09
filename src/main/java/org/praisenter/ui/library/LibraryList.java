@@ -29,6 +29,7 @@ import org.praisenter.data.slide.graphics.ScaleType;
 import org.praisenter.data.slide.graphics.SlideColor;
 import org.praisenter.data.slide.media.MediaComponent;
 import org.praisenter.data.slide.media.MediaObject;
+import org.praisenter.data.workspace.ReadOnlyDisplayConfiguration;
 import org.praisenter.ui.Action;
 import org.praisenter.ui.ActionPane;
 import org.praisenter.ui.DataFormats;
@@ -41,7 +42,6 @@ import org.praisenter.ui.controls.FlowListCell;
 import org.praisenter.ui.controls.FlowListSelectionModel;
 import org.praisenter.ui.controls.FlowListView;
 import org.praisenter.ui.controls.WindowHelper;
-import org.praisenter.ui.display.DisplayTarget;
 import org.praisenter.ui.events.ActionStateChangedEvent;
 import org.praisenter.ui.events.FlowListViewSelectionEvent;
 import org.praisenter.ui.translations.Translations;
@@ -618,18 +618,13 @@ public final class LibraryList extends BorderPane implements ActionPane {
 			return;
 		}
 		
+		double width = 1920;
+		double height = 1080;
 		// default the size of the slide to the primary display target
-		List<DisplayTarget> targets = new ArrayList<>(this.context.getDisplayManager().getDisplayTargets());
-		DisplayTarget defaultTarget = targets.get(0);
-		double width = defaultTarget.getDisplayConfiguration().getWidth();
-		double height = defaultTarget.getDisplayConfiguration().getHeight();
-		
-		for (DisplayTarget target : targets) {
-			if (target.getDisplayConfiguration().isPrimary()) {
-				width = target.getDisplayConfiguration().getHeight();
-				height = target.getDisplayConfiguration().getWidth();
-				break;
-			}
+		ReadOnlyDisplayConfiguration primary = this.context.getWorkspaceConfiguration().getPrimaryDisplayConfiguration();
+		if (primary != null) {
+			width = primary.getWidth();
+			height = primary.getHeight();
 		}
 		
 		// build the background

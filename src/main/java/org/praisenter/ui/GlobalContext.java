@@ -47,11 +47,11 @@ import org.praisenter.data.song.Author;
 import org.praisenter.data.song.Lyrics;
 import org.praisenter.data.song.Section;
 import org.praisenter.data.song.Song;
+import org.praisenter.data.workspace.ReadOnlyDisplayConfiguration;
 import org.praisenter.data.workspace.Resolution;
 import org.praisenter.data.workspace.WorkspaceConfiguration;
 import org.praisenter.data.workspace.WorkspaceManager;
 import org.praisenter.ui.display.DisplayManager;
-import org.praisenter.ui.display.DisplayTarget;
 import org.praisenter.ui.document.DocumentContext;
 import org.praisenter.ui.events.ActionStateChangedEvent;
 import org.praisenter.ui.pages.Page;
@@ -134,6 +134,7 @@ public final class GlobalContext {
 	// other
 	
 	private final ObjectProperty<Version> latestVersion;
+	private final BooleanProperty ndiReady;
 
 	// listeners (tracking them here so we can clean up)
 	
@@ -194,6 +195,7 @@ public final class GlobalContext {
 		this.backgroundTaskName = new SimpleStringProperty();
 		
 		this.latestVersion = new SimpleObjectProperty<Version>(Version.VERSION);
+		this.ndiReady = new SimpleBooleanProperty(false);
 		
 		this.fontSizeListeners = new ArrayList<>();
 		this.accentListeners = new ArrayList<>();
@@ -1138,22 +1140,13 @@ public final class GlobalContext {
 		slide.setBackground(new SlideColor(1, 1, 1, 1));
 		
 		// default the size of the slide to the primary display target
-		boolean foundPrimary = false;
-		List<DisplayTarget> targets = new ArrayList<>(this.displayManager.getDisplayTargets());
-		for (DisplayTarget target : targets) {
-			if (target.getDisplayConfiguration().isPrimary()) {
-				foundPrimary = true;
-				slide.setHeight(target.getDisplayConfiguration().getHeight());
-				slide.setWidth(target.getDisplayConfiguration().getWidth());
-				break;
-			}
-		}
-		
-		if (!foundPrimary) {
-			// then just use the first
-			DisplayTarget target = targets.get(0);
-			slide.setHeight(target.getDisplayConfiguration().getHeight());
-			slide.setWidth(target.getDisplayConfiguration().getWidth());
+		ReadOnlyDisplayConfiguration primary = this.getWorkspaceConfiguration().getPrimaryDisplayConfiguration();
+		if (primary != null) {
+			slide.setWidth(primary.getWidth());
+			slide.setHeight(primary.getHeight());
+		} else {
+			slide.setWidth(1920);
+			slide.setHeight(1080);
 		}
 		
 		this.openDocument(slide, true);
@@ -1442,6 +1435,18 @@ public final class GlobalContext {
 	
 	public ObjectProperty<Version> latestVersionProperty() {
 		return this.latestVersion;
+	}
+
+	public boolean isNDIReady() {
+		return this.ndiReady.get();
+	}
+	
+	public void setNDIReady(boolean flag) {
+		this.ndiReady.set(flag);
+	}
+	
+	public BooleanProperty ndiReadyProperty() {
+		return this.ndiReady;
 	}
 	
 	public int getCurrentPage() {

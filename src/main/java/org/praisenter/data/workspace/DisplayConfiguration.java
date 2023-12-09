@@ -27,11 +27,13 @@ public final class DisplayConfiguration implements BibleConfiguration, ReadOnlyD
 	private final BooleanProperty active;
 	private final StringProperty name;
 	private final StringProperty defaultName;
+	private final ObjectProperty<DisplayType> type;
 	
 	private final IntegerProperty x;
 	private final IntegerProperty y;
 	private final IntegerProperty width;
 	private final IntegerProperty height;
+	private final IntegerProperty framesPerSecond;
 	
 	private final ObjectProperty<UUID> bibleTemplateId;
 	private final ObjectProperty<UUID> songTemplateId;
@@ -52,11 +54,13 @@ public final class DisplayConfiguration implements BibleConfiguration, ReadOnlyD
 		this.name = new SimpleStringProperty();
 		this.defaultName = new SimpleStringProperty();
 		this.active = new SimpleBooleanProperty(false);
+		this.type = new SimpleObjectProperty<>();
 		
 		this.x = new SimpleIntegerProperty();
 		this.y = new SimpleIntegerProperty();
 		this.width = new SimpleIntegerProperty();
 		this.height = new SimpleIntegerProperty();
+		this.framesPerSecond = new SimpleIntegerProperty();
 		
 		this.bibleTemplateId = new SimpleObjectProperty<>();
 		this.songTemplateId = new SimpleObjectProperty<>();
@@ -82,10 +86,12 @@ public final class DisplayConfiguration implements BibleConfiguration, ReadOnlyD
 		dc.id.set(this.id.get());
 		dc.primary.set(this.primary.get());
 		dc.name.set(this.name.get());
+		dc.type.set(this.type.get());
 		dc.x.set(this.x.get());
 		dc.y.set(this.y.get());
 		dc.width.set(this.width.get());
 		dc.height.set(this.height.get());
+		dc.framesPerSecond.set(this.framesPerSecond.get());
 		dc.bibleTemplateId.set(this.bibleTemplateId.get());
 		dc.songTemplateId.set(this.songTemplateId.get());
 		dc.notificationTemplateId.set(this.notificationTemplateId.get());
@@ -162,6 +168,22 @@ public final class DisplayConfiguration implements BibleConfiguration, ReadOnlyD
 	}
 	
 	@Override
+	@JsonProperty
+	public DisplayType getType() {
+		return this.type.get();
+	}
+	
+	@JsonProperty
+	public void setType(DisplayType type) {
+		this.type.set(type);
+	}
+	
+	@Override
+	public ObjectProperty<DisplayType> typeProperty() {
+		return this.type;
+	}
+	
+	@Override
 	public String getDefaultName() {
 		return this.defaultName.get();
 	}
@@ -233,6 +255,22 @@ public final class DisplayConfiguration implements BibleConfiguration, ReadOnlyD
 	@Override
 	public IntegerProperty heightProperty() {
 		return this.height;
+	}
+	
+	@Override
+	@JsonProperty
+	public int getFramesPerSecond() {
+		return this.framesPerSecond.get();
+	}
+	
+	@JsonProperty
+	public void setFramesPerSecond(int fps) {
+		this.framesPerSecond.set(fps);
+	}
+	
+	@Override
+	public IntegerProperty framesPerSecondProperty() {
+		return this.framesPerSecond;
 	}
 	
 	@Override
