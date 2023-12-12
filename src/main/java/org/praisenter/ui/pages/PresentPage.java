@@ -102,17 +102,17 @@ public final class PresentPage extends BorderPane implements Page {
 		
 		this.dlgNDIDisplay = Dialogs.createStageDialog(
 				context, 
-				Translations.get("action.export"), 
+				Translations.get("display.add.ndi.new"), 
 				StageStyle.DECORATED, 
 				Modality.WINDOW_MODAL, 
 				lep, 
 				btnCancel, btnOk);
 		
 		this.dlgNDIDisplay.setResizable(true);
-		this.dlgNDIDisplay.setMinWidth(600);
-		this.dlgNDIDisplay.setMinHeight(450);
-		this.dlgNDIDisplay.setWidth(600);
-		this.dlgNDIDisplay.setHeight(450);
+		this.dlgNDIDisplay.setMinWidth(500);
+		this.dlgNDIDisplay.setMinHeight(600);
+		this.dlgNDIDisplay.setWidth(500);
+		this.dlgNDIDisplay.setHeight(600);
 		btnCancel.setOnAction(e -> {
 			this.dlgNDIDisplay.hide();
 		});
@@ -143,8 +143,8 @@ public final class PresentPage extends BorderPane implements Page {
 		mnuNDINone.visibleProperty().bind(Bindings.size(inactiveNDIDisplayTargets).lessThanOrEqualTo(0));
 		MenuItem mnuAddNewNDI = new MenuItem(Translations.get("display.add.ndi.new"));
 		mnuAddNewNDI.setOnAction(e -> {
-			this.dlgNDIDisplay.setWidth(600);
-			this.dlgNDIDisplay.setHeight(450);
+			this.dlgNDIDisplay.setWidth(500);
+			this.dlgNDIDisplay.setHeight(600);
 			this.dlgNDIDisplay.setMaximized(false);
 			WindowHelper.centerOnParent(this.getScene().getWindow(), this.dlgNDIDisplay);
 		    this.dlgNDIDisplay.showAndWait();
