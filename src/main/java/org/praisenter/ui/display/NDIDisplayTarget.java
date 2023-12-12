@@ -9,6 +9,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.data.TextStore;
 import org.praisenter.data.slide.Slide;
+import org.praisenter.data.slide.SlideComponent;
+import org.praisenter.data.slide.graphics.SlidePaint;
+import org.praisenter.data.slide.media.MediaComponent;
+import org.praisenter.data.slide.media.MediaObject;
 import org.praisenter.data.workspace.DisplayConfiguration;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.slide.SlideMode;
@@ -59,6 +63,21 @@ public final class NDIDisplayTarget implements DisplayTarget {
     private boolean disposed;
     private boolean sentHideFrame;
     
+    // NDI Consumer state
+    
+	// always render NDI at 60 fps
+	// I noticed when we didn't send 60 fps, it had the appearance of being very laggy
+    
+    // create buffers to write to NDI
+    // Use two frame buffers because one will typically be in flight (being used by NDI send) while the other is being filled.
+    
+    private long lastFrameNumber = -1;
+    private final int NDIFPS = 60;
+    private final DevolayVideoFrame videoFrame;
+    private final byte[] convertBuffer;
+    private final ByteBuffer[] frameBuffers;
+    private int bufferIndex = 0;
+    
 	public NDIDisplayTarget(GlobalContext context, DisplayConfiguration configuration) {
 		this.context = context;
 		this.configuration = configuration;
@@ -70,6 +89,19 @@ public final class NDIDisplayTarget implements DisplayTarget {
 		
 		this.container = new StackPane();
 		this.container.setBackground(null);
+		
+		this.videoFrame = new DevolayVideoFrame();
+		this.videoFrame.setResolution(this.width, this.height);
+		this.videoFrame.setFourCCType(DevolayFrameFourCCType.BGRA);
+		this.videoFrame.setLineStride(this.width * this.pixelDepth);
+		this.videoFrame.setFrameRate(NDIFPS, 1);
+	    
+	    int nbytes = this.width * this.height * this.pixelDepth;
+	    this.convertBuffer = new byte[nbytes];
+	    this.frameBuffers = new ByteBuffer[] { 
+			ByteBuffer.allocateDirect(nbytes),
+	        ByteBuffer.allocateDirect(nbytes) 
+	    };
 		
 		// setup debug mode notification
 		if (context.getWorkspaceConfiguration().isDebugModeEnabled()) {
@@ -121,6 +153,14 @@ public final class NDIDisplayTarget implements DisplayTarget {
 		params.setViewport(new Rectangle2D(0, 0, this.width, this.height));
 		params.setFill(Color.TRANSPARENT);
 		
+		// reasons to continuously generate frames:
+		// 1. Slide or Notification views are transitioning
+		// 2. Slide or Notification views are swapped
+		// 3. Slide or Notification views have video media
+		// 4. Slide or notification slide nulled
+		// 5. always render when old slide != new slide (track old slide here)?  The problem here is that we may not update until after the swap/transition?
+		// 6. always render X time after new slide requested based on slide transition time + some fixed amount?
+
 		this.frameProducer = new FramesPerSecondTimer(configuration.getFramesPerSecond(), (frame) -> {
 			if (configuration.isActive()) {
 				this.javafxGenerateLoop(params, frame);
@@ -144,36 +184,10 @@ public final class NDIDisplayTarget implements DisplayTarget {
 	}
 	
 	private final void ndiSendLoop() {
-		long lastFrameNumber = -1;
-		
-		// always render NDI at 60 fps
-		// I noticed when we didn't send 60 fps, it had the appearance of being very laggy
-		final int NDIFPS = 60;
-		
-		final DevolayVideoFrame videoFrame = new DevolayVideoFrame();
-        videoFrame.setResolution(this.width, this.height);
-        videoFrame.setFourCCType(DevolayFrameFourCCType.BGRA);
-        videoFrame.setLineStride(this.width * this.pixelDepth);
-        videoFrame.setFrameRate(NDIFPS, 1);
-
-        // compute the number of bytes needed to store the images
-        final int nbytes = this.width * this.height * this.pixelDepth;
-        
-        // create a buffer to write the Java FX image into
-        byte[] convertBuffer = new byte[nbytes];
-        
-        // create buffers to write to NDI
-        // Use two frame buffers because one will typically be in flight (being used by NDI send) while the other is being filled.
-        ByteBuffer[] frameBuffers = { 
-    		ByteBuffer.allocateDirect(nbytes),
-            ByteBuffer.allocateDirect(nbytes) 
-        };
-        
         // define the amount of time to wait for a frame from the Java FX producer thread
-        final long frameWaitTime = 1000 / NDIFPS;
+        final long frameWaitTime = 1000 / this.NDIFPS;
         
         // now run forever, pushing any frames we receive to NDI
-        int bufferIndex = 0;
         long startTime = System.nanoTime();
         while (!this.disposed) {
         	// attempt to get a frame from the frame queue
@@ -189,55 +203,65 @@ public final class NDIDisplayTarget implements DisplayTarget {
         	if (frame == null) {
         		// it's fine, just start waiting again
         		continue;
-        	} else if (frame.getFrameNumber() <= lastFrameNumber) {
+        	} else if (frame.getFrameNumber() <= this.lastFrameNumber) {
         		// in the case that we get an old frame for some reason
         		// just drop the frame and report it - this shouldn't ever happen
-        		LOGGER.warn("Dropping frame {} it came in after frame {}", frame.getFrameNumber(), lastFrameNumber);
+        		LOGGER.warn("Dropping frame {} it came in after frame {}", frame.getFrameNumber(), this.lastFrameNumber);
         		continue;
         	}
         	
         	// keep track of the last frame number
-        	lastFrameNumber = frame.getFrameNumber();
+        	this.lastFrameNumber = frame.getFrameNumber();
         	
             // Use the buffer that currently isn't in flight
-            ByteBuffer buffer = frameBuffers[bufferIndex];
+            ByteBuffer buffer = this.frameBuffers[this.bufferIndex];
 
             // Fill in the buffer for one frame.
-            fillFrame(frame.getImage(), convertBuffer, buffer);
-            videoFrame.setData(buffer);
+            writeImageToBuffer(frame.getImage(), buffer);
+            this.videoFrame.setData(buffer);
 
             // Submit the frame asynchronously.
             // This call will return immediately and the API will "own" the buffer until a synchronizing event.
             // A synchronizing event is one of: DevolaySender#sendVideoFrameAsync, DevolaySender#sendVideoFrame, DevolaySender#close
-            this.ndiTarget.sendVideoFrameAsync(videoFrame);
+            this.ndiTarget.sendVideoFrameAsync(this.videoFrame);
 
             // Give an FPS message every 30 frames submitted
-            if(frame.getFrameNumber() % NDIFPS == 0) {
+            if(frame.getFrameNumber() % this.NDIFPS == 0) {
             	long now = System.nanoTime();
             	double seconds = (now - startTime) / (double)1e9;
             	
-            	LOGGER.trace("Sent {} frames. Average FPS: {}", NDIFPS, (NDIFPS / seconds));
+            	LOGGER.trace("Sent {} frames. Average FPS: {}", this.NDIFPS, (this.NDIFPS / seconds));
                 startTime = now;
             }
             
-            bufferIndex++;
-            if (bufferIndex > 1) {
-            	bufferIndex = 0;
+            this.bufferIndex++;
+            if (this.bufferIndex > 1) {
+            	this.bufferIndex = 0;
             }
         }
         
         LOGGER.debug("Stopping NDI consumer thread. disposed={}", this.disposed);
 	}
 	
-	private final void fillFrame(WritableImage image, byte[] buffer, ByteBuffer data) {
+	private final void writeImageToBuffer(WritableImage image, ByteBuffer data) {
         data.position(0);
 
         final int w = (int)image.getWidth();
         final int h = (int)image.getHeight();
         
         PixelReader pr = image.getPixelReader();
-        pr.getPixels(0, 0, w, h, PixelFormat.getByteBgraInstance(), buffer, 0, w * 4);
-        data.put(buffer);
+        pr.getPixels(0, 0, w, h, PixelFormat.getByteBgraInstance(), convertBuffer, 0, w * 4);
+        data.put(convertBuffer);
+        data.flip();
+    }
+	
+	private final void writeTransparentToBuffer(ByteBuffer data) {
+        data.position(0);
+        // it's always 4 bytes per pixel so we can do this and guarantee
+        // that we'll fully fill the buffer and not over/under fill it
+        for (int i = 0; i < data.capacity(); i+=4) {
+        	data.putInt(0);
+        }
         data.flip();
     }
 	
@@ -248,7 +272,8 @@ public final class NDIDisplayTarget implements DisplayTarget {
 	        videoFrame.setFourCCType(DevolayFrameFourCCType.BGRA);
 	        videoFrame.setLineStride(this.width * this.pixelDepth);
 	        videoFrame.setFrameRate(this.configuration.getFramesPerSecond(), 1);
-	        ByteBuffer buffer = ByteBuffer.allocateDirect(this.width * this.height * this.pixelDepth);
+	        ByteBuffer buffer = frameBuffers[bufferIndex];
+	        writeTransparentToBuffer(buffer);
 	        videoFrame.setData(buffer);
 			this.ndiTarget.sendVideoFrameAsync(videoFrame);
 		}
@@ -260,9 +285,6 @@ public final class NDIDisplayTarget implements DisplayTarget {
 	}
 	
 	public void dispose() {
-		// send one last clear frame
-		this.sendClearFrame();
-		
 		this.slideView.dispose();
 		this.container.getChildren().clear();
 		
@@ -280,6 +302,9 @@ public final class NDIDisplayTarget implements DisplayTarget {
 				LOGGER.warn("Waiting for the NDI consumer thread to complete was interrupted.");
 			}
 		}
+		
+		// send one last clear frame
+		this.sendClearFrame();
 		
 		// release the NDI natives
 		this.ndiTarget.close();
@@ -307,6 +332,7 @@ public final class NDIDisplayTarget implements DisplayTarget {
 		double h = this.configuration.getHeight();
 		
 		copy.fit(w, h);
+		this.muteAllAudio(copy);
 		
 		this.slideView.render(copy, copy.getPlaceholderData(), transtion);
 	}
@@ -332,8 +358,40 @@ public final class NDIDisplayTarget implements DisplayTarget {
 		double h = this.configuration.getHeight();
 		
 		copy.fit(w, h);
+		this.muteAllAudio(copy);
 
 		this.notificationView.render(copy, copy.getPlaceholderData(), transtion);
+	}
+	
+	private void muteAllAudio(Slide slide) {
+		SlidePaint sp = slide.getBackground();
+		if (sp != null && sp instanceof MediaObject) {
+			MediaObject mo = ((MediaObject) sp);
+			if (mo != null) {
+				mo.setMuted(true);
+			}
+		}
+		
+		for (SlideComponent sc : slide.getComponents()) {
+			if (sc == null) {
+				continue;
+			}
+			
+			SlidePaint scsp = sc.getBackground();
+			if (scsp != null && scsp instanceof MediaObject) {
+				MediaObject mo = ((MediaObject) sp);
+				if (mo != null) {
+					mo.setMuted(true);
+				}
+			}
+			
+			if (sc instanceof MediaComponent) {
+				MediaObject mo = ((MediaComponent) sc).getMedia();
+				if (mo != null) {
+					mo.setMuted(true);
+				}
+			}
+		}
 	}
 	
 	@Override
