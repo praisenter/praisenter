@@ -399,7 +399,7 @@ public class SlideView extends Region implements Playable {
 	 * Returns true if there's a transition currently in progress.
 	 * @return boolean
 	 */
-	private boolean isTransitionInProgress() {
+	public boolean isTransitionInProgress() {
 		return this.currentTransition != null && this.currentTransition.getStatus() != Status.STOPPED;
 	}
 	
@@ -537,7 +537,6 @@ public class SlideView extends Region implements Playable {
 		final PreparedSlide oldPreparedSlide = this.slide.get();
 		final Slide oldSlide = oldPreparedSlide == null ? null : oldPreparedSlide.getSlide();
 		final SlideNode oldNode = oldPreparedSlide == null ? null : oldPreparedSlide.getNode();
-		final TextStore oldData = oldPreparedSlide == null ? null : oldPreparedSlide.getData();
 		
 		final Slide newSlide = prepared.getSlide();
 		final SlideNode newNode = prepared.getNode();
@@ -545,7 +544,7 @@ public class SlideView extends Region implements Playable {
 		
 		// figure out what to do with it
 		if (this.isPlaceholderTransitionOnly(oldSlide, newSlide)) {
-			PreparedSlide oldPrepared = new PreparedSlide(oldSlide, oldData, oldNode, prepared.getTime());
+			PreparedSlide oldPrepared = new PreparedSlide(oldSlide, newData, oldNode, prepared.getTime());
 			// do placeholders only
 			if (behavior == null || behavior == PlaceholderTransitionBehavior.PLACEHOLDERS) {
 				this.transitionPlaceholders(newData);
@@ -1022,8 +1021,23 @@ public class SlideView extends Region implements Playable {
 	
 	
 	// properties
-		
-
+	
+	public Slide getCurrentSlide() {
+		PreparedSlide slide = this.slide.get();
+		if (slide != null) {
+			return slide.getSlide();
+		}
+		return null;
+	}
+	
+	public Instant getCurrentSlideEnqueueTime() {
+		PreparedSlide slide = this.slide.get();
+		if (slide != null) {
+			return slide.getTime();
+		}
+		return null;
+	}
+	
 	public SlideMode getViewMode() {
 		return this.mode.get();
 	}
