@@ -29,6 +29,8 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.control.Separator;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
@@ -98,6 +100,9 @@ public final class NDIDisplaySettingsPane extends BorderPane {
 		IntegerSliderField sldFps = new IntegerSliderField(1.0, 60.0, 24.0, 1.0);
 		sldFps.valueProperty().bindBidirectional(this.fps);
 		
+		Label lblDescription = new Label(Translations.get("ndi.support"));
+		lblDescription.setWrapText(true);
+		
 		EditorField fldName = new EditorField(
 				Translations.get("ndi.display.name"), 
 				Translations.get("ndi.display.name.description"), 
@@ -122,6 +127,8 @@ public final class NDIDisplaySettingsPane extends BorderPane {
 				EditorField.LAYOUT_HORIZONTAL);
 		
 		VBox layout = new VBox(
+				lblDescription,
+				new Separator(),
 				fldName,
 				fldFps,
 				new EditorDivider(Translations.get("ndi.display.size")),
