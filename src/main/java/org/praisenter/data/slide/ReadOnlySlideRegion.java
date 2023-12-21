@@ -34,4 +34,6 @@ public interface ReadOnlySlideRegion extends Copyable, Identifiable {
 	public boolean isMediaReferenced(UUID... ids);
 	public Set<UUID> getReferencedMedia();
 	public boolean hasPlayableMedia();
+	public boolean hasVideoMedia();
+	public boolean hasAnimatedContent();
 }

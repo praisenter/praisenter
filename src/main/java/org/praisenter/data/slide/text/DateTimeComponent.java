@@ -98,4 +98,9 @@ public final class DateTimeComponent extends TimedTextComponent implements ReadO
 	public ObjectProperty<SimpleDateFormat> dateTimeFormatProperty() {
 		return this.dateTimeFormat;
 	}
+	
+	@Override
+	public boolean hasAnimatedContent() {
+		return true;
+	}
 }

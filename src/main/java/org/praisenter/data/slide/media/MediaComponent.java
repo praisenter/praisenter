@@ -128,4 +128,23 @@ public final class MediaComponent extends SlideComponent implements ReadOnlyMedi
 		
 		return false;
 	}
+
+	@Override
+	public boolean hasVideoMedia() {
+		boolean hasVideoMedia = super.hasVideoMedia();
+		if (hasVideoMedia)
+			return true;
+		
+		MediaObject mo = this.media.get();
+		if (mo != null && mo.getMediaType() == MediaType.VIDEO) {
+			return true;
+		}
+		
+		return false;
+	}
+
+	@Override
+	public boolean hasAnimatedContent() {
+		return this.hasVideoMedia();
+	}
 }

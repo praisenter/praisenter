@@ -1019,7 +1019,6 @@ public class SlideView extends Region implements Playable {
 		LOGGER.trace("Media players are ready!");
 	}
 	
-	
 	// properties
 	
 	public Slide getCurrentSlide() {
@@ -1036,6 +1035,24 @@ public class SlideView extends Region implements Playable {
 			return slide.getTime();
 		}
 		return null;
+	}
+	
+	public boolean hasVideoMedia() {
+		PreparedSlide slide = this.slide.get();
+		if (slide != null) {
+			Slide s = slide.getSlide();
+			return s != null && s.hasVideoMedia();
+		}
+		return false;
+	}
+	
+	public boolean hasAnimatedContent() {
+		PreparedSlide slide = this.slide.get();
+		if (slide != null) {
+			Slide s = slide.getSlide();
+			return s != null && s.hasAnimatedContent();
+		}
+		return false;
 	}
 	
 	public SlideMode getViewMode() {

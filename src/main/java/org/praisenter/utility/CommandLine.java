@@ -8,7 +8,6 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.Constants;
-import org.praisenter.data.media.tools.MediaToolExecutionException;
 
 public final class CommandLine {
 	private static final Logger LOGGER = LogManager.getLogger();
@@ -21,9 +20,9 @@ public final class CommandLine {
 	 * @return String
 	 * @throws IOException if an IO error occurs
 	 * @throws InterruptedException if the waiting is interrupted
-	 * @throws MediaToolExecutionException if the tool returned an exit code of something other than zero
+	 * @throws CommandLineExecutionException if the tool returned an exit code of something other than zero
 	 */
-	public static final String execute(List<String> command) throws IOException, InterruptedException, MediaToolExecutionException {
+	public static final String execute(List<String> command) throws IOException, InterruptedException, CommandLineExecutionException {
 		// remove empty list elements because of 
 		// https://bugs.java.com/bugdatabase/view_bug.do?bug_id=JDK-8268939
 		command.removeIf(s -> s == null || s.isBlank() || s.isEmpty());
@@ -64,7 +63,7 @@ public final class CommandLine {
         	if (exitCode != 0) {
         		String message = s.toString();
         		LOGGER.error(message);
-    			throw new MediaToolExecutionException(message);
+    			throw new CommandLineExecutionException(exitCode, message);
     		}
         	
         	return s.toString();

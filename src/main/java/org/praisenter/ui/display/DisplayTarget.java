@@ -28,7 +28,7 @@ public interface DisplayTarget extends Comparable<DisplayTarget> {
 		if (tType == oType) {
 			// then sort by id
 			int tId = this.getDisplayConfiguration().getId();
-			int oId = this.getDisplayConfiguration().getId();
+			int oId = o.getDisplayConfiguration().getId();
 			return tId - oId;
 		} else if (tType == DisplayType.NDI) {
 			// then this one is larger

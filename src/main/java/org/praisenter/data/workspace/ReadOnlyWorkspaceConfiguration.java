@@ -32,6 +32,9 @@ public interface ReadOnlyWorkspaceConfiguration extends MediaConfiguration, Slid
 	public boolean isWaitForTransitionsToCompleteEnabled();
 	public PlaceholderTransitionBehavior getPlaceholderTransitionBehavior();
 	
+	public int getNDIFramesPerSecond();
+	public boolean isNDIRenderOptimizationsEnabled();
+	
 	public ReadOnlyStringProperty formatProperty();
 	public ReadOnlyStringProperty versionProperty();
 	
@@ -63,6 +66,9 @@ public interface ReadOnlyWorkspaceConfiguration extends MediaConfiguration, Slid
 
 	public ReadOnlyBooleanProperty waitForTransitionsToCompleteEnabledProperty();
 	public ReadOnlyObjectProperty<PlaceholderTransitionBehavior> placeholderTransitionBehaviorProperty();
+	
+	public ReadOnlyIntegerProperty ndiFramesPerSecondProperty();
+	public ReadOnlyBooleanProperty ndiRenderOptimizationsEnabledProperty();
 	
 	public ObservableList<? extends ReadOnlyResolution> getResolutionsUnmodifiable();
 	public ObservableList<? extends ReadOnlyDisplayConfiguration> getDisplayConfigurationsUnmodifiable();

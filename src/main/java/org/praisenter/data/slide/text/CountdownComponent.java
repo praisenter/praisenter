@@ -200,4 +200,9 @@ public final class CountdownComponent extends TimedTextComponent implements Read
 	public BooleanProperty countdownTimeOnlyProperty() {
 		return this.countdownTimeOnly;
 	}
+	
+	@Override
+	public boolean hasAnimatedContent() {
+		return true;
+	}
 }

@@ -146,6 +146,8 @@ public final class PresentPage extends BorderPane implements Page {
 			this.dlgNDIDisplay.setWidth(500);
 			this.dlgNDIDisplay.setHeight(600);
 			this.dlgNDIDisplay.setMaximized(false);
+			lep.resetValue();
+			lep.requestFocus();
 			WindowHelper.centerOnParent(this.getScene().getWindow(), this.dlgNDIDisplay);
 		    this.dlgNDIDisplay.showAndWait();
 		});

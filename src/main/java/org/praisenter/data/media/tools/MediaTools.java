@@ -182,7 +182,7 @@ public final class MediaTools {
 	 * @param target the target file
 	 * @throws IOException if an IO error occurs
 	 * @throws InterruptedException if the process is interrupted while waiting for it to complete
-	 * @throws MediaToolExecutionException if the tools fails to perform its action
+	 * @throws CommandLineExecutionException if the tools fails to perform its action
 	 */
 	public void ffmpegTranscode(TranscodeSettings settings, Path source, Path target) throws IOException, InterruptedException {
 		Map<String, String> parameters = new HashMap<String, String>();
@@ -232,7 +232,7 @@ public final class MediaTools {
 	 * @return BufferedImage
 	 * @throws IOException if an IO error occurs
 	 * @throws InterruptedException if the process is interrupted while waiting for it to complete
-	 * @throws MediaToolExecutionException if the tools fails to perform its action
+	 * @throws CommandLineExecutionException if the tools fails to perform its action
 	 */
 	public BufferedImage ffmpegExtractFrame(String template, Path media) throws IOException, InterruptedException {
 		// create a unique identifer for naming;
@@ -301,7 +301,7 @@ public final class MediaTools {
 	 * @return int
 	 * @throws IOException if an IO error occurs
 	 * @throws InterruptedException if the process is interrupted while waiting for it to complete
-	 * @throws MediaToolExecutionException if the tools fails to perform its action
+	 * @throws CommandLineExecutionException if the tools fails to perform its action
 	 */
 	public int ffmpegGetNormalizedDecibelOffset(Path media, final double targetMeanVolume) throws IOException, InterruptedException {
 		Map<String, String> parameters = new HashMap<String, String>();
@@ -363,7 +363,7 @@ public final class MediaTools {
 	 * @return {@link FFProbeMediaMetadata}
 	 * @throws IOException if an IO error occurs
 	 * @throws InterruptedException if the process is interrupted while waiting for it to complete
-	 * @throws MediaToolExecutionException if the tools fails to perform its action
+	 * @throws CommandLineExecutionException if the tools fails to perform its action
 	 */
 	public FFProbeMediaMetadata ffprobeExtractMetadata(Path media) throws IOException, InterruptedException {
 		// create a unique identifer for naming;

@@ -1,7 +1,9 @@
 package org.praisenter.ui.display;
 
 import java.nio.ByteBuffer;
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
@@ -42,7 +44,6 @@ import me.walkerknapp.devolay.DevolayVideoFrame;
 public final class NDIDisplayTarget implements DisplayTarget {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
-	@SuppressWarnings("unused")
 	private final GlobalContext context;
 	private final DisplayConfiguration configuration;
 	
@@ -71,12 +72,17 @@ public final class NDIDisplayTarget implements DisplayTarget {
     // create buffers to write to NDI
     // Use two frame buffers because one will typically be in flight (being used by NDI send) while the other is being filled.
     
-    private long lastFrameNumber = -1;
-    private final int NDIFPS = 60;
+    private final int NDIFPS;
     private final DevolayVideoFrame videoFrame;
     private final byte[] convertBuffer;
     private final ByteBuffer[] frameBuffers;
+    
+    private long lastFrameNumber = -1;
     private int bufferIndex = 0;
+    
+    private Instant lastSlide;
+    private Instant lastNotification;
+    private long transitionCooldownCounter;
     
 	public NDIDisplayTarget(GlobalContext context, DisplayConfiguration configuration) {
 		this.context = context;
@@ -87,6 +93,13 @@ public final class NDIDisplayTarget implements DisplayTarget {
 		this.disposed = false;
 		this.sentHideFrame = false;
 		
+		// NOTE: when running on the laptop, it didn't matter what the NDI frame rate was
+		// but when running docked with two monitors it mattered, so instead of
+		
+		// NOTE: we always want NDI ahead of Java FX so that the frame queue rarely has
+		// anything queued (which is why we +1 to the FPS)
+		this.NDIFPS = Math.max(configuration.getFramesPerSecond() + 1, context.getWorkspaceConfiguration().getNDIFramesPerSecond());
+		
 		this.container = new StackPane();
 		this.container.setBackground(null);
 		
@@ -94,7 +107,7 @@ public final class NDIDisplayTarget implements DisplayTarget {
 		this.videoFrame.setResolution(this.width, this.height);
 		this.videoFrame.setFourCCType(DevolayFrameFourCCType.BGRA);
 		this.videoFrame.setLineStride(this.width * this.pixelDepth);
-		this.videoFrame.setFrameRate(NDIFPS, 1);
+		this.videoFrame.setFrameRate(this.NDIFPS, 1);
 	    
 	    int nbytes = this.width * this.height * this.pixelDepth;
 	    this.convertBuffer = new byte[nbytes];
@@ -153,19 +166,15 @@ public final class NDIDisplayTarget implements DisplayTarget {
 		params.setViewport(new Rectangle2D(0, 0, this.width, this.height));
 		params.setFill(Color.TRANSPARENT);
 		
-		// reasons to continuously generate frames:
-		// 1. Slide or Notification views are transitioning
-		// 2. Slide or Notification views are swapped
-		// 3. Slide or Notification views have video media
-		// 4. Slide or notification slide nulled
-		// 5. always render when old slide != new slide (track old slide here)?  The problem here is that we may not update until after the swap/transition?
-		// 6. always render X time after new slide requested based on slide transition time + some fixed amount?
-
 		this.frameProducer = new FramesPerSecondTimer(configuration.getFramesPerSecond(), (frame) -> {
 			if (configuration.isActive()) {
-				this.javafxGenerateLoop(params, frame);
+				// optimization: try to predict if we can avoid rendering or not
+				boolean render = this.renderRequired();
+				if (render) {
+					this.generateFrame(params, frame);
+				}
 			} else if (!this.sentHideFrame) {
-				this.javafxGenerateLoop(params, frame);
+				this.generateFrame(params, frame);
 				this.sentHideFrame = true;
 			}
 		});
@@ -178,7 +187,52 @@ public final class NDIDisplayTarget implements DisplayTarget {
 		this.frameConsumer.start();
 	}
 	
-	private final void javafxGenerateLoop(SnapshotParameters params, long frameNumber) {
+	private final boolean renderRequired() {
+		boolean renderOptimizationsEnabled = this.context.getWorkspaceConfiguration().isNDIRenderOptimizationsEnabled();
+		if (!renderOptimizationsEnabled) {
+			return true;
+		}
+		
+		// if either have video, we have to keep rendering
+		if (this.slideView.hasAnimatedContent() || this.notificationView.hasAnimatedContent()) {
+			return true;
+		}
+		
+		// if either are transitioning, we have to keep rendering
+		if (this.slideView.isTransitionInProgress() || this.notificationView.isTransitionInProgress()) {
+			// set the cooldown to 24 frames
+			// this will be used after transition
+			// ends to make sure we capture all the
+			// frames
+			this.transitionCooldownCounter = this.NDIFPS;
+			return true;
+		}
+		
+		// if the slide has changed
+		Instant s = this.slideView.getCurrentSlideEnqueueTime();
+		if (!Objects.equals(s, this.lastSlide)) {
+			this.lastSlide = s;
+			return true;
+		}
+		
+		// if the notification has changed
+		Instant n = this.notificationView.getCurrentSlideEnqueueTime();
+		if (!Objects.equals(n, this.lastNotification)) {
+			this.lastNotification = n;
+			return true;
+		}
+		
+		// finally, check if we have a cooldown period
+		// from a recent animation that we need run through
+		if (this.transitionCooldownCounter > 0) {
+			this.transitionCooldownCounter--;
+			return true;
+		}
+		
+		return false;
+	}
+	
+	private final void generateFrame(SnapshotParameters params, long frameNumber) {
 		WritableImage image = this.container.snapshot(params, null);
 		this.frameQueue.offer(new NDIVideoFrame(image, frameNumber));
 	}
@@ -272,16 +326,22 @@ public final class NDIDisplayTarget implements DisplayTarget {
 	        videoFrame.setFourCCType(DevolayFrameFourCCType.BGRA);
 	        videoFrame.setLineStride(this.width * this.pixelDepth);
 	        videoFrame.setFrameRate(this.configuration.getFramesPerSecond(), 1);
+	        
 	        ByteBuffer buffer = frameBuffers[bufferIndex];
 	        writeTransparentToBuffer(buffer);
 	        videoFrame.setData(buffer);
 			this.ndiTarget.sendVideoFrameAsync(videoFrame);
+			
+			this.bufferIndex++;
+            if (this.bufferIndex > 1) {
+            	this.bufferIndex = 0;
+            }
 		}
 	}
 	
 	@Override
 	public String toString() {
-		return this.configuration.getDefaultName();
+		return this.configuration.getName();
 	}
 	
 	public void dispose() {

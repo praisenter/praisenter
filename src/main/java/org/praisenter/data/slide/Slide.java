@@ -637,4 +637,34 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 		
 		return false;
 	}
+	
+	@Override
+	public boolean hasVideoMedia() {
+		boolean hasVideoMedia = super.hasVideoMedia();
+		if (hasVideoMedia)
+			return true;
+		
+		for (SlideComponent component : this.components) {
+			if (component.hasVideoMedia()) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
+
+	@Override
+	public boolean hasAnimatedContent() {
+		boolean hasAnimatedContent = super.hasAnimatedContent();
+		if (hasAnimatedContent)
+			return true;
+		
+		for (SlideComponent component : this.components) {
+			if (component.hasAnimatedContent()) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
 }

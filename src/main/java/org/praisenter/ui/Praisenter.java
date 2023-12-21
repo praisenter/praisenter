@@ -15,7 +15,7 @@ import javafx.stage.Stage;
 // JAVABUG (L) 05/31/17 Java FX just chooses the last image in the set of stage icons rather than choosing the best bugs.openjdk.java.net/browse/JDK-8091186, bugs.openjdk.java.net/browse/JDK-8087459
 // JAVABUG (L) 10/23/23 [workaround] Adding TIKA parsers to pom gave errors about java.xml be loaded twice https://stackoverflow.com/a/63456316
 
-// FEATURE (M) 12/17/23 Deploy MSI on Windows Store https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/overview?pivots=store-installer-msi-exe
+// FEATURE (M-M) Deploy MSI on Windows Store https://learn.microsoft.com/en-us/windows/apps/publish/publish-your-app/overview?pivots=store-installer-msi-exe
 
 public final class Praisenter extends Application {
     static void main(String[] args) {

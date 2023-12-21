@@ -70,6 +70,9 @@ public final class WorkspaceConfiguration implements ReadOnlyWorkspaceConfigurat
 	private final BooleanProperty waitForTransitionsToCompleteEnabled;
 	private final ObjectProperty<PlaceholderTransitionBehavior> placeholderTransitionBehavior;
 	
+	private final IntegerProperty ndiFramesPerSecond;
+	private final BooleanProperty ndiRenderOptimizationsEnabled;
+	
 	private final ObservableList<Resolution> resolutions;
 	private final ObservableList<Resolution> resolutionsReadOnly;
 	private final ObservableList<DisplayConfiguration> displayConfigurations;
@@ -108,6 +111,9 @@ public final class WorkspaceConfiguration implements ReadOnlyWorkspaceConfigurat
 
 		this.waitForTransitionsToCompleteEnabled = new SimpleBooleanProperty();
 		this.placeholderTransitionBehavior = new SimpleObjectProperty<>(PlaceholderTransitionBehavior.PLACEHOLDERS);
+		
+		this.ndiFramesPerSecond = new SimpleIntegerProperty(60);
+		this.ndiRenderOptimizationsEnabled = new SimpleBooleanProperty(true);
 		
 		this.resolutions = FXCollections.observableArrayList(Resolution.DEFAULT_RESOLUTIONS);
 		this.resolutionsReadOnly = FXCollections.unmodifiableObservableList(this.resolutions);
@@ -605,6 +611,38 @@ public final class WorkspaceConfiguration implements ReadOnlyWorkspaceConfigurat
 	@Override
 	public ObjectProperty<PlaceholderTransitionBehavior> placeholderTransitionBehaviorProperty() {
 		return this.placeholderTransitionBehavior;
+	}
+	
+	@Override
+	@JsonProperty
+	public int getNDIFramesPerSecond() {
+		return this.ndiFramesPerSecond.get();
+	}
+	
+	@JsonProperty
+	public void setNDIFramesPerSecond(int framesPerSecond) {
+		this.ndiFramesPerSecond.set(framesPerSecond);
+	}
+	
+	@Override
+	public IntegerProperty ndiFramesPerSecondProperty() {
+		return this.ndiFramesPerSecond;
+	}
+	
+	@Override
+	@JsonProperty
+	public boolean isNDIRenderOptimizationsEnabled() {
+		return this.ndiRenderOptimizationsEnabled.get();
+	}
+	
+	@JsonProperty
+	public void setNDIRenderOptimizationsEnabled(boolean enabled) {
+		this.ndiRenderOptimizationsEnabled.set(enabled);
+	}
+	
+	@Override
+	public BooleanProperty ndiRenderOptimizationsEnabledProperty() {
+		return this.ndiRenderOptimizationsEnabled;
 	}
 
 	@JsonProperty

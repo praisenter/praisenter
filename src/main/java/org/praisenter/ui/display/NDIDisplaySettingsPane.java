@@ -49,6 +49,8 @@ public final class NDIDisplaySettingsPane extends BorderPane {
 	private final StringProperty name;
 	
 	private final ObjectProperty<DisplayConfiguration> value;
+	
+	private final TextField txtName;
 
 	public NDIDisplaySettingsPane(GlobalContext context) {
 		this.context = context;
@@ -94,8 +96,8 @@ public final class NDIDisplaySettingsPane extends BorderPane {
 		pkrSize.selectedWidthProperty().bindBidirectional(this.width);
 		pkrSize.selectedHeightProperty().bindBidirectional(this.height);
 		
-		TextField txtName = new TextField();
-		txtName.textProperty().bindBidirectional(this.name);
+		this.txtName = new TextField();
+		this.txtName.textProperty().bindBidirectional(this.name);
 		
 		IntegerSliderField sldFps = new IntegerSliderField(1.0, 60.0, 24.0, 1.0);
 		sldFps.valueProperty().bindBidirectional(this.fps);
@@ -106,7 +108,7 @@ public final class NDIDisplaySettingsPane extends BorderPane {
 		EditorField fldName = new EditorField(
 				Translations.get("ndi.display.name"), 
 				Translations.get("ndi.display.name.description"), 
-				txtName, 
+				this.txtName, 
 				EditorField.LAYOUT_HORIZONTAL);
 		
 		EditorField fldSizeOptions = new EditorField(
@@ -262,5 +264,17 @@ public final class NDIDisplaySettingsPane extends BorderPane {
 	
 	public ObjectProperty<DisplayConfiguration> valueProperty() {
 		return this.value;
+	}
+	
+	public void resetValue() {
+		this.width.set(1920);
+		this.height.set(1080);
+		this.name.set(null);
+		this.fps.set(24);
+	}
+	
+	@Override
+	public void requestFocus() {
+		this.txtName.requestFocus();
 	}
 }

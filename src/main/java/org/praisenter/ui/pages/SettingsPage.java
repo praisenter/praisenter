@@ -282,6 +282,25 @@ public final class SettingsPage extends BorderPane implements Page {
 		tglDebugMode.selectedProperty().addListener((obs, ov, nv) -> {
 			configuration.setDebugModeEnabled(nv);
 		});
+		
+		// NDI FPS
+		Spinner<Integer> spnNDIFPS = new Spinner<>(5, 200, configuration.getNDIFramesPerSecond(), 5);
+		spnNDIFPS.setEditable(true);
+		spnNDIFPS.getValueFactory().setConverter(LastValueNumberStringConverter.forInteger((originalValueText) -> {
+			Platform.runLater(() -> {
+				spnNDIFPS.getEditor().setText(originalValueText);
+			});
+		}));
+		spnNDIFPS.valueProperty().addListener((obs, ov, nv) -> {
+			configuration.setNDIFramesPerSecond(nv);
+		});
+		
+		// NDI Optimizations
+		ToggleSwitch tglNDIRenderOptimizations = new ToggleSwitch();
+		tglNDIRenderOptimizations.setSelected(configuration.isNDIRenderOptimizationsEnabled());
+		tglNDIRenderOptimizations.selectedProperty().addListener((obs, ov, nv) -> {
+			configuration.setNDIRenderOptimizationsEnabled(nv);
+		});
 
 		Label lblGeneral = new Label(Translations.get("settings.general"));
 		lblGeneral.getStyleClass().add(Styles.TITLE_3);
@@ -374,6 +393,17 @@ public final class SettingsPage extends BorderPane implements Page {
 				tleVideoFrameExtractCommand,
 				txtVideoExtractCommand);
 		
+		Label lblNDI = new Label(Translations.get("settings.ndi"));
+		lblNDI.getStyleClass().add(Styles.TITLE_3);
+		Tile tleNDIFPS = new Tile(Translations.get("settings.ndi.fps"), Translations.get("settings.ndi.fps.description"));
+		tleNDIFPS.setAction(spnNDIFPS);
+		tleNDIFPS.setActionHandler(spnNDIFPS::requestFocus);
+		Tile tleNDIRenderOpts = new Tile(Translations.get("settings.ndi.optimizations"), Translations.get("settings.ndi.optimizations.description"));
+		tleNDIRenderOpts.setAction(tglNDIRenderOptimizations);
+		tleNDIRenderOpts.setActionHandler(tglNDIRenderOptimizations::fire);
+		Tile tleNDITrademark = new Tile(Translations.get("ndi.trademark"), null);
+		VBox boxNDI = new VBox(lblNDI, new Separator(Orientation.HORIZONTAL), tleNDIFPS, tleNDIRenderOpts, tleNDITrademark);
+		
 		Label lblSettings = new Label(Translations.get("area.settings"));
 		lblSettings.getStyleClass().add(Styles.TITLE_2);
 
@@ -383,9 +413,10 @@ public final class SettingsPage extends BorderPane implements Page {
 		boxMedia.getStyleClass().addAll(SETTINGS_PAGE_GROUP_CLASS);
 		boxMediaAudio.getStyleClass().addAll(SETTINGS_PAGE_GROUP_CLASS);
 		boxMediaVideo.getStyleClass().addAll(SETTINGS_PAGE_GROUP_CLASS);
+		boxNDI.getStyleClass().addAll(SETTINGS_PAGE_GROUP_CLASS);
 		
 		FlowPane flow = new FlowPane(Orientation.HORIZONTAL,
-				boxGeneral, boxSlide, boxBible, boxMedia, boxMediaAudio, boxMediaVideo);
+				boxGeneral, boxSlide, boxBible, boxMedia, boxMediaAudio, boxMediaVideo, boxNDI);
 		flow.getStyleClass().addAll(SETTINGS_PAGE_FLOW_CLASS);
 		
 		ScrollPane scrLayout = new FastScrollPane(flow, 2.0);

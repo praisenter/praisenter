@@ -314,4 +314,28 @@ public class SlideRegion implements ReadOnlySlideRegion, Copyable, Identifiable 
 		}
 		return false;
 	}
+	
+	@Override
+	public boolean hasVideoMedia() {
+		SlidePaint bg = this.background.get();
+		if (bg != null && bg instanceof MediaObject) {
+			MediaObject mo = (MediaObject)bg;
+			if (mo.getMediaType() == MediaType.VIDEO) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	@Override
+	public boolean hasAnimatedContent() {
+		SlidePaint bg = this.background.get();
+		if (bg != null && bg instanceof MediaObject) {
+			MediaObject mo = (MediaObject)bg;
+			if (mo.getMediaType() == MediaType.VIDEO) {
+				return true;
+			}
+		}
+		return false;
+	}
 }

@@ -378,8 +378,6 @@ public final class LifecycleHandler {
 		            	context.setNDIReady(true);
 		            } else if (result == 1) {
 		            	LOGGER.error("NDI libraries couldn't be found");
-		            } else if (result == 2) {
-		            	LOGGER.error("NDI libraries failed to load");
 		            } else {
 		            	LOGGER.error("NDI libraries failed to load with result: {}", result);
 		            }
