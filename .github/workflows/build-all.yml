@@ -36,7 +36,8 @@ jobs:
           $parts = $os.Split('-')
           $name = $parts[0].ToLowerInvariant()
           Write-Host "OS_NAME: $name"
-          Write-Host "OS_NAME=$name" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
+          echo "OS_NAME=$name" >> $GITHUB_ENV
+# Write-Host "OS_NAME=$name" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
 
       # This pulls the next version number from the next-version.txt file
       - name: Read next version
@@ -45,7 +46,8 @@ jobs:
         run: |
           $content = Get-Content next-version.txt
           Write-Host "VERSION_NUMBER: $content"
-          Write-Host "VERSION_NUMBER=$content" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
+          echo "VERSION_NUMBER=$content" >> $GITHUB_ENV
+# Write-Host "VERSION_NUMBER=$content" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
 
       # This generates a build number prefix using the pattern OS-VERSION
       - name: Generate build number prefix
@@ -56,7 +58,8 @@ jobs:
           $vn = "${{ env.VERSION_NUMBER }}"
           $prefix = "$os-$vn"
           Write-Host "BUILD_NUMBER_PREFIX: $prefix"
-          Write-Host "BUILD_NUMBER_PREFIX=$prefix" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
+          echo "BUILD_NUMBER_PREFIX=$prefix" >> $GITHUB_ENV
+# Write-Host "BUILD_NUMBER_PREFIX=$prefix" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
 
       # This gets the next build number for the version + os combination
       - name: Generate build number
@@ -76,12 +79,13 @@ jobs:
       - name: Build tag name
         shell: pwsh
         run: |
-          $os = $env:OS_NAME
-          $vn = $env:VERSION_NUMBER
-          $bn = $env:BUILD_NUMBER
+          $os = "${{ env.OS_NAME }}"
+          $vn = "${{ env.VERSION_NUMBER }}"
+          $bn = "${{ env.BUILD_NUMBER }}"
           $tag = "$os-$vn-b$bn"
           Write-Host "TAG_NAME: $tag"
-          Write-Host "TAG_NAME=$tag" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
+          echo "TAG_NAME=$tag" >> $GITHUB_ENV
+# Write-Host "TAG_NAME=$tag" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
 
       - name: Download Wix
         uses: i3h/download-release-asset@v1
