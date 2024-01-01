@@ -23,6 +23,9 @@ jobs:
         os: [ubuntu-latest, windows-latest] # macos-latest
     runs-on: ${{ matrix.os }}
     steps:
+      # Get latest from the current branch
+      - uses: actions/checkout@v2
+      
       # Get the simplified os name
       - name: Get OS Name
         id: osname
@@ -75,7 +78,6 @@ jobs:
       - name: Add Wix to Path
         run: echo "$HOME/target/wix" >> $GITHUB_PATH
         if: matrix.os == 'windows-latest'
-      - uses: actions/checkout@v2
       - name: Set up JDK 21
         uses: actions/setup-java@v2
         with:
