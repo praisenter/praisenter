@@ -47,19 +47,36 @@ jobs:
           Write-Host "VERSION_NUMBER: $content"
           Write-Host "VERSION_NUMBER=$content" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
 
+      # This generates a build number prefix using the pattern OS-VERSION
+      - name: Generate build number prefix
+        id: buildprefix
+        shell: pwsh
+        run: |
+          $prefix = "${{ env.OS_NAME }}-${{ env.VERSION_NUMBER }}"
+          Write-Host "VERSION_NUMBER: $prefix"
+          Write-Host "BUILD_NUMBER_PREFIX=$prefix" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
+
       # This gets the next build number for the version + os combination
       - name: Generate build number
         id: getbuildnumber
         uses: onyxmueller/build-tag-number@v1
         with:
           token: ${{ secrets.github_token }}
-          prefix: ${{ env.OS_NAME }}-${{ env.VERSION_NUMBER }}
+          prefix: "${{ BUILD_NUMBER_PREFIX }}"
 
       # Write the build number
       - name: Output build number
         shell: pwsh
         run: |
           Write-Host "BUILD_NUMBER: ${{ env.BUILD_NUMBER }}"
+
+      # Build the tag name
+      - name: Build tag name
+        shell: pwsh
+        run: |
+          $tag = "${{ env.OS_NAME }}-${{ env.VERSION_NUMBER }}-b${{ env.BUILD_NUMBER }}"
+          Write-Host "TAG_NAME: $tag"
+          Write-Host "TAG_NAME=$tag" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
 
       - name: Download Wix
         uses: i3h/download-release-asset@v1
@@ -145,7 +162,7 @@ jobs:
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN}}"
           # automatic_release_tag: ${{ matrix.os }}
-          automatic_release_tag: ${{ env.OS_NAME }}-${{ env.VERSION_NUMBER }}-b${{ env.BUILD_NUMBER }}
+          automatic_release_tag: ${{ env.TAG_NAME }}
           prerelease: true
           title: ${{ matrix.os }} Development Build
           files: | 
