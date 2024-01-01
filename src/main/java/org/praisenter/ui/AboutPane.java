@@ -109,10 +109,10 @@ final class AboutPane extends BorderPane {
 		
 		StackPane.setAlignment(logo, Pos.TOP_CENTER);
 		
-		Hyperlink link = new Hyperlink(Constants.WEBSITE);
-		layout.getChildren().add(link);
+		Hyperlink lnkPraisenter = new Hyperlink(Constants.WEBSITE);
+		layout.getChildren().add(lnkPraisenter);
 		
-		link.setOnAction(e -> {
+		lnkPraisenter.setOnAction(e -> {
 			// Desktop must be used from the AWT EventQueue
 			// https://stackoverflow.com/a/65863422
 			EventQueue.invokeLater(() -> {
@@ -129,6 +129,23 @@ final class AboutPane extends BorderPane {
 		// per NDI license requirements
 		Label lblNDITrademark = new Label(Translations.get("ndi.trademark"));
 		layout.getChildren().add(lblNDITrademark);
+		
+		Hyperlink lnkNDI = new Hyperlink(Translations.get("ndi.link"));
+		layout.getChildren().add(lnkNDI);
+		
+		lnkNDI.setOnAction(e -> {
+			// Desktop must be used from the AWT EventQueue
+			// https://stackoverflow.com/a/65863422
+			EventQueue.invokeLater(() -> {
+				if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+					try {
+					    Desktop.getDesktop().browse(new URI(Translations.get("ndi.link")));
+					} catch (Exception ex) {
+						LOGGER.error("Failed to open default browser for URL: " + Translations.get("ndi.link"), ex);
+					}
+				}
+			});
+		});
 		
 		this.setLeft(left);
 		this.setCenter(layout);
