@@ -2,7 +2,7 @@
 # This workflow will build a Java project with Maven
 # For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-maven
 
-name: Build All
+name: Build All Pre-release
 
 on:
   #  push:
@@ -43,7 +43,7 @@ jobs:
         id: readversion
         shell: pwsh
         run: |
-          $content = Get-Content release-version.txt
+          $content = Get-Content next-version.txt
           Write-Host "VERSION_NUMBER: $content"
           echo "VERSION_NUMBER=$content" >> $Env:GITHUB_ENV
 
