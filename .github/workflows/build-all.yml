@@ -53,7 +53,7 @@ jobs:
         shell: pwsh
         run: |
           $prefix = "${{ env.OS_NAME }}-${{ env.VERSION_NUMBER }}"
-          Write-Host "VERSION_NUMBER: $prefix"
+          Write-Host "BUILD_NUMBER_PREFIX: $prefix"
           Write-Host "BUILD_NUMBER_PREFIX=$prefix" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
 
       # This gets the next build number for the version + os combination
@@ -62,7 +62,7 @@ jobs:
         uses: onyxmueller/build-tag-number@v1
         with:
           token: ${{ secrets.github_token }}
-          prefix: "${{ BUILD_NUMBER_PREFIX }}"
+          prefix: "${{ env.BUILD_NUMBER_PREFIX }}"
 
       # Write the build number
       - name: Output build number
