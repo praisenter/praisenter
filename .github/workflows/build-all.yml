@@ -54,8 +54,8 @@ jobs:
         id: buildprefix
         shell: pwsh
         run: |
-          $os = "${{ env.OS_NAME }}"
-          $vn = "${{ env.VERSION_NUMBER }}"
+          $os = $env:OS_NAME
+          $vn = $env:VERSION_NUMBER
           $prefix = "$os-$vn"
           Write-Host "BUILD_NUMBER_PREFIX: $prefix"
           echo "BUILD_NUMBER_PREFIX=$prefix" >> $GITHUB_ENV
