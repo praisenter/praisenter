@@ -1,5 +1,8 @@
 package org.praisenter.ui.pages;
 
+import java.awt.Desktop;
+import java.awt.EventQueue;
+import java.net.URI;
 import java.util.List;
 import java.util.Locale;
 
@@ -36,6 +39,7 @@ import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.ScrollPane.ScrollBarPolicy;
@@ -301,6 +305,22 @@ public final class SettingsPage extends BorderPane implements Page {
 		tglNDIRenderOptimizations.selectedProperty().addListener((obs, ov, nv) -> {
 			configuration.setNDIRenderOptimizationsEnabled(nv);
 		});
+		
+		// NDI link
+		Hyperlink ndiLink = new Hyperlink(Translations.get("ndi.link"));		
+		ndiLink.setOnAction(e -> {
+			// Desktop must be used from the AWT EventQueue
+			// https://stackoverflow.com/a/65863422
+			EventQueue.invokeLater(() -> {
+				if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+					try {
+					    Desktop.getDesktop().browse(new URI(Translations.get("ndi.link")));
+					} catch (Exception ex) {
+						LOGGER.error("Failed to open default browser for URL: " + Translations.get("ndi.link"), ex);
+					}
+				}
+			});
+		});
 
 		Label lblGeneral = new Label(Translations.get("settings.general"));
 		lblGeneral.getStyleClass().add(Styles.TITLE_3);
@@ -402,6 +422,8 @@ public final class SettingsPage extends BorderPane implements Page {
 		tleNDIRenderOpts.setAction(tglNDIRenderOptimizations);
 		tleNDIRenderOpts.setActionHandler(tglNDIRenderOptimizations::fire);
 		Tile tleNDITrademark = new Tile(Translations.get("ndi.trademark"), null);
+		tleNDITrademark.setAction(ndiLink);
+		
 		VBox boxNDI = new VBox(lblNDI, new Separator(Orientation.HORIZONTAL), tleNDIFPS, tleNDIRenderOpts, tleNDITrademark);
 		
 		Label lblSettings = new Label(Translations.get("area.settings"));
