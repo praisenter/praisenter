@@ -177,9 +177,9 @@ jobs:
         uses: marvinpinto/action-automatic-releases@latest
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN}}"
-          automatic_release_tag: ${{ env.TAG_NAME }}
+          automatic_release_tag: ${{ matrix.os }}
           prerelease: false
-          title: ${{ env.TAG_NAME }}
+          title: ${{ matrix.os }}
           files: | 
             ${{ env.DMG_PATH }}
             ./target/*.msi
