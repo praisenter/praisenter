@@ -52,7 +52,9 @@ jobs:
         id: buildprefix
         shell: pwsh
         run: |
-          $prefix = "${env:OS_NAME}-${env:VERSION_NUMBER}"
+          $os = ${{ env.OS_NAME }}
+          $vn = ${{ env.VERSION_NUMBER }}
+          $prefix = "$os-$vn"
           Write-Host "BUILD_NUMBER_PREFIX: $prefix"
           Write-Host "BUILD_NUMBER_PREFIX=$prefix" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
 
@@ -74,7 +76,10 @@ jobs:
       - name: Build tag name
         shell: pwsh
         run: |
-          $tag = "${env:OS_NAME}-${env:VERSION_NUMBER}-b${env:BUILD_NUMBER}"
+          $os = ${{ env.OS_NAME }}
+          $vn = ${{ env.VERSION_NUMBER }}
+          $bn = ${{ env.BUILD_NUMBER }}
+          $tag = "$os-$vn-b$bn"
           Write-Host "TAG_NAME: $tag"
           Write-Host "TAG_NAME=$tag" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
 
