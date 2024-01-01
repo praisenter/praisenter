@@ -12,9 +12,9 @@ on:
   workflow_dispatch:
     branches: [ master ]
 
-env:
-  DEV_IDENTITY: BXPZTQZ35S # Your Apple Dev identity, something like BXPZTQZ35S
-  PRIMARY_BUNDLE_ID: com.example.App # Unique to your app, often the launcher class
+# env:
+#   DEV_IDENTITY: BXPZTQZ35S # Your Apple Dev identity, something like BXPZTQZ35S
+#   PRIMARY_BUNDLE_ID: com.example.App # Unique to your app, often the launcher class
 
 jobs:
   build:
@@ -23,6 +23,41 @@ jobs:
         os: [ubuntu-latest, windows-latest] # macos-latest
     runs-on: ${{ matrix.os }}
     steps:
+      # Get the simplified os name
+      - name: Get OS Name
+        id: osname
+        shell: pwsh
+        run: |
+          $os = "${{ matrix.os }}"
+          Write-Output $os
+          $parts = $os.Split('-')
+          $name = $parts[0].ToLowerInvariant()
+          Write-Output "OS_NAME: $name"
+          Write-Output "::set-env name=OS_NAME::$name"
+
+      # This pulls the next version number from the next-version.txt file
+      - name: Read next version
+        id: readversion
+        shell: pwsh
+        run: |
+          $content = Get-Content next-version.txt
+          Write-Output "VERSION_NUMBER: $content"
+          Write-Output "::set-env name=VERSION_NUMBER::$content"
+
+      # This gets the next build number for the version + os combination
+      - name: Generate build number
+        id: getbuildnumber
+        uses: onyxmueller/build-tag-number@v1
+        with:
+          token: ${{ secrets.github_token }}
+          prefix: ${{ env.OS_NAME }}-${{ env.VERSION_NUMBER }}
+
+      # Write the build number
+      - name: Output build number
+        shell: pwsh
+        run: |
+          Write-Output "BUILD_NUMBER: ${{ env.BUILD_NUMBER }}"
+
       - name: Download Wix
         uses: i3h/download-release-asset@v1
         if: matrix.os == 'windows-latest'
@@ -107,7 +142,8 @@ jobs:
         uses: marvinpinto/action-automatic-releases@latest
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN}}"
-          automatic_release_tag: ${{ matrix.os }}
+          # automatic_release_tag: ${{ matrix.os }}
+          automatic_release_tag: ${{ env.OS_NAME }}-${{ env.VERSION_NUMBER }}-b${{ env.BUILD_NUMBER }}
           prerelease: true
           title: ${{ matrix.os }} Development Build
           files: | 
