@@ -52,12 +52,9 @@ jobs:
         id: buildprefix
         shell: pwsh
         run: |
-          $prefix = "$OS_NAME-$VERSION_NUMBER"
+          $prefix = "${env:OS_NAME}-${env:VERSION_NUMBER}"
           Write-Host "BUILD_NUMBER_PREFIX: $prefix"
           Write-Host "BUILD_NUMBER_PREFIX=$prefix" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
-        env:
-          OS_NAME: ${{ env.OS_NAME }}
-          VERSION_NUMBER: ${{ env.VERSION_NUMBER }}
 
       # This gets the next build number for the version + os combination
       - name: Generate build number
@@ -77,13 +74,9 @@ jobs:
       - name: Build tag name
         shell: pwsh
         run: |
-          $tag = "$OS_NAME-$VERSION_NUMBER-b$BUILD_NUMBER"
+          $tag = "${env:OS_NAME}-${env:VERSION_NUMBER}-b${env:BUILD_NUMBER}"
           Write-Host "TAG_NAME: $tag"
           Write-Host "TAG_NAME=$tag" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
-        env:
-          OS_NAME: ${{ env.OS_NAME }}
-          VERSION_NUMBER: ${{ env.VERSION_NUMBER }}
-          BUILD_NUMBER: ${{ env.BUILD_NUMBER }}
 
       - name: Download Wix
         uses: i3h/download-release-asset@v1
