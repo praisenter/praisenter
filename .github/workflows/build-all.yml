@@ -178,7 +178,7 @@ jobs:
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN}}"
           automatic_release_tag: ${{ env.TAG_NAME }}
-          prerelease: true
+          prerelease: false
           title: ${{ env.TAG_NAME }}
           files: | 
             ${{ env.DMG_PATH }}
