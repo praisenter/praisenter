@@ -243,10 +243,16 @@ jobs:
 
       # Now update the versioned release with the same body
       - name: Copy release notes
-        uses: irongut/EditRelease@v1.2.0
+        uses: meeDamian/github-release@2.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          id: ${{ steps.release.outputs.id }}
+          tag: ${{ env.VERSION_NUMBER }}
           body: ${{ steps.release.outputs.body }}
-          replacebody: true
+          allow_override: true
+      #   uses: irongut/EditRelease@v1.2.0
+      #   with:
+      #     token: ${{ secrets.GITHUB_TOKEN }}
+      #     id: ${{ steps.release.outputs.id }}
+      #     body: ${{ steps.release.outputs.body }}
+      #     replacebody: true
 
