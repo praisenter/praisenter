@@ -241,11 +241,11 @@ jobs:
           tag: latest
 
       # Now update the versioned release with the same body
-      - name: Update release notes
-        id: update_release
-        uses: tubone24/update_release@v1.0
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          TAG_NAME: ${{ env.VERSION_NUMBER }}
+      - name: Copy release notes
+        uses: irongut/EditRelease@v1.2.0
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          id: steps.release.outputs.id
           body: steps.release.outputs.body
+          replacebody: true
+          
