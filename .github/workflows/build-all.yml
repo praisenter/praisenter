@@ -38,8 +38,8 @@ jobs:
           Write-Host "OS_NAME: $name"
           echo "OS_NAME=$name" >> $Env:GITHUB_ENV
 
-      # This pulls the next version number from the next-version.txt file
-      - name: Read next version
+      # This pulls the version number from the release-version.txt file
+      - name: Read version
         id: readversion
         shell: pwsh
         run: |
@@ -59,6 +59,8 @@ jobs:
           echo "BUILD_NUMBER_PREFIX=$prefix" >> $Env:GITHUB_ENV
 
       # This gets the next build number for the version + os combination
+      # NOTE: this actually searches for tags with the specified prefix, increments the build number
+      #       then creates a new tag and removes the old tag
       - name: Generate build number
         id: getbuildnumber
         uses: onyxmueller/build-tag-number@v1
@@ -172,17 +174,59 @@ jobs:
       #   with:
       #     product-path: ${{ env.DMG_PATH }}
 
-      # Publish a release on GitHub
+      - name: Publish artifacts
+          uses: actions/upload-artifact@v3
+          with:
+            name: dist-${{ matrix.os }}
+            path: |
+              ./target/*.msi
+              ./target/*.deb
+            # ${{ env.DMG_PATH }}
+
+  deploy:
+    needs: build
+    runs-on: windows-latest
+    steps:
+      # Get latest from the current branch
+      - uses: actions/checkout@v2
+
+      # This pulls the version number from the release-version.txt file
+      - name: Read version
+        id: readversion
+        shell: pwsh
+        run: |
+          $content = Get-Content release-version.txt
+          Write-Host "VERSION_NUMBER: $content"
+          echo "VERSION_NUMBER=$content" >> $Env:GITHUB_ENV
+
+      # Download all artifacts
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        # with:
+        #   name: my-artifact
+
+      # Create one release called 3.2.1 (for example)
       - name: Update Automatic Release
         uses: marvinpinto/action-automatic-releases@latest
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN}}"
-          automatic_release_tag: ${{ matrix.os }}
+          automatic_release_tag: latest
           prerelease: false
-          title: ${{ matrix.os }}
+          title: ${{ env.VERSION_NUMBER }}
           files: | 
-            ${{ env.DMG_PATH }}
-            ./target/*.msi
-            ./target/*.deb
+            ./dist-windows-latest/*.msi
+            ./dist-ubuntu-latest/*.deb
+          # ./dist-macos-latest/*.dmg
 
-          # ./target/*.dmg
+      # Now create the LATEST release
+      - name: Update Automatic Release
+        uses: marvinpinto/action-automatic-releases@latest
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN}}"
+          automatic_release_tag: latest
+          prerelease: false
+          title: latest
+          files: | 
+            ./dist-windows-latest/*.msi
+            ./dist-ubuntu-latest/*.deb
+          # ./dist-macos-latest/*.dmg
