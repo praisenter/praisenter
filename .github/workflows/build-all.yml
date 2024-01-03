@@ -205,21 +205,8 @@ jobs:
         # with:
         #   name: my-artifact
 
-      # Create one release called 3.2.1 (for example)
-      - name: Update Automatic Release
-        uses: marvinpinto/action-automatic-releases@latest
-        with:
-          repo_token: "${{ secrets.GITHUB_TOKEN}}"
-          automatic_release_tag: latest
-          prerelease: false
-          title: ${{ env.VERSION_NUMBER }}
-          files: | 
-            ./dist-windows-latest/*.msi
-            ./dist-ubuntu-latest/*.deb
-          # ./dist-macos-latest/*.dmg
-
       # Now create the LATEST release
-      - name: Update Automatic Release
+      - name: Update Latest Release
         uses: marvinpinto/action-automatic-releases@latest
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN}}"
@@ -230,3 +217,35 @@ jobs:
             ./dist-windows-latest/*.msi
             ./dist-ubuntu-latest/*.deb
           # ./dist-macos-latest/*.dmg
+
+      # Create one release called 3.2.1 (for example)
+      - name: Create Versioned Release
+        uses: marvinpinto/action-automatic-releases@latest
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN}}"
+          automatic_release_tag: ${{ env.VERSION_NUMBER }}
+          prerelease: false
+          title: ${{ env.VERSION_NUMBER }}
+          files: | 
+            ./dist-windows-latest/*.msi
+            ./dist-ubuntu-latest/*.deb
+          # ./dist-macos-latest/*.dmg
+
+      # Now pull the latest release body
+      - name: Read release notes
+        id: release
+        uses: cardinalby/git-get-release-action@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          tag: latest
+
+      # Now update the versioned release with the same body
+      - name: Update release notes
+        id: update_release
+        uses: tubone24/update_release@v1.0
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ env.VERSION_NUMBER }}
+        with:
+          body: steps.release.outputs.body
