@@ -246,7 +246,7 @@ jobs:
         uses: irongut/EditRelease@v1.2.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          id: steps.release.outputs.id
-          body: steps.release.outputs.body
+          id: ${{ steps.release.outputs.id }}
+          body: ${{ steps.release.outputs.body }}
           replacebody: true
 
