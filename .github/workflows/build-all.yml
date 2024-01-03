@@ -185,7 +185,8 @@ jobs:
 
   deploy:
     needs: build
-    runs-on: windows-latest
+    # NOTE: we have to use ubuntu-latest since the task "irongut/EditRelease@v1.2.0" runs on linux only
+    runs-on: ubuntu-latest
     steps:
       # Get latest from the current branch
       - uses: actions/checkout@v2
@@ -248,4 +249,4 @@ jobs:
           id: steps.release.outputs.id
           body: steps.release.outputs.body
           replacebody: true
-          
+
