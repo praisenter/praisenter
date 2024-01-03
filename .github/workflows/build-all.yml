@@ -26,64 +26,64 @@ jobs:
       # Get latest from the current branch
       - uses: actions/checkout@v2
       
-      # Get the simplified os name
-      - name: Get OS Name
-        id: osname
-        shell: pwsh
-        run: |
-          $os = "${{ matrix.os }}"
-          Write-Host $os
-          $parts = $os.Split('-')
-          $name = $parts[0].ToLowerInvariant()
-          Write-Host "OS_NAME: $name"
-          echo "OS_NAME=$name" >> $Env:GITHUB_ENV
+      # # Get the simplified os name
+      # - name: Get OS Name
+      #   id: osname
+      #   shell: pwsh
+      #   run: |
+      #     $os = "${{ matrix.os }}"
+      #     Write-Host $os
+      #     $parts = $os.Split('-')
+      #     $name = $parts[0].ToLowerInvariant()
+      #     Write-Host "OS_NAME: $name"
+      #     echo "OS_NAME=$name" >> $Env:GITHUB_ENV
 
-      # This pulls the version number from the release-version.txt file
-      - name: Read version
-        id: readversion
-        shell: pwsh
-        run: |
-          $content = Get-Content release-version.txt
-          Write-Host "VERSION_NUMBER: $content"
-          echo "VERSION_NUMBER=$content" >> $Env:GITHUB_ENV
+      # # This pulls the version number from the release-version.txt file
+      # - name: Read version
+      #   id: readversion
+      #   shell: pwsh
+      #   run: |
+      #     $content = Get-Content release-version.txt
+      #     Write-Host "VERSION_NUMBER: $content"
+      #     echo "VERSION_NUMBER=$content" >> $Env:GITHUB_ENV
 
-      # This generates a build number prefix using the pattern OS-VERSION
-      - name: Generate build number prefix
-        id: buildprefix
-        shell: pwsh
-        run: |
-          $os = "${{ env.OS_NAME }}"
-          $vn = "${{ env.VERSION_NUMBER }}"
-          $prefix = "$os-$vn"
-          Write-Host "BUILD_NUMBER_PREFIX: $prefix"
-          echo "BUILD_NUMBER_PREFIX=$prefix" >> $Env:GITHUB_ENV
+      # # This generates a build number prefix using the pattern OS-VERSION
+      # - name: Generate build number prefix
+      #   id: buildprefix
+      #   shell: pwsh
+      #   run: |
+      #     $os = "${{ env.OS_NAME }}"
+      #     $vn = "${{ env.VERSION_NUMBER }}"
+      #     $prefix = "$os-$vn"
+      #     Write-Host "BUILD_NUMBER_PREFIX: $prefix"
+      #     echo "BUILD_NUMBER_PREFIX=$prefix" >> $Env:GITHUB_ENV
 
-      # This gets the next build number for the version + os combination
-      # NOTE: this actually searches for tags with the specified prefix, increments the build number
-      #       then creates a new tag and removes the old tag
-      - name: Generate build number
-        id: getbuildnumber
-        uses: onyxmueller/build-tag-number@v1
-        with:
-          token: ${{ secrets.github_token }}
-          prefix: "${{ env.BUILD_NUMBER_PREFIX }}"
+      # # This gets the next build number for the version + os combination
+      # # NOTE: this actually searches for tags with the specified prefix, increments the build number
+      # #       then creates a new tag and removes the old tag
+      # - name: Generate build number
+      #   id: getbuildnumber
+      #   uses: onyxmueller/build-tag-number@v1
+      #   with:
+      #     token: ${{ secrets.github_token }}
+      #     prefix: "${{ env.BUILD_NUMBER_PREFIX }}"
 
-      # Write the build number
-      - name: Output build number
-        shell: pwsh
-        run: |
-          Write-Host "BUILD_NUMBER: ${{ env.BUILD_NUMBER }}"
+      # # Write the build number
+      # - name: Output build number
+      #   shell: pwsh
+      #   run: |
+      #     Write-Host "BUILD_NUMBER: ${{ env.BUILD_NUMBER }}"
 
-      # Build the tag name
-      - name: Build tag name
-        shell: pwsh
-        run: |
-          $os = "${{ env.OS_NAME }}"
-          $vn = "${{ env.VERSION_NUMBER }}"
-          $bn = "${{ env.BUILD_NUMBER }}"
-          $tag = "$os-$vn-b$bn"
-          Write-Host "TAG_NAME: $tag"
-          echo "TAG_NAME=$tag" >> $Env:GITHUB_ENV
+      # # Build the tag name
+      # - name: Build tag name
+      #   shell: pwsh
+      #   run: |
+      #     $os = "${{ env.OS_NAME }}"
+      #     $vn = "${{ env.VERSION_NUMBER }}"
+      #     $bn = "${{ env.BUILD_NUMBER }}"
+      #     $tag = "$os-$vn-b$bn"
+      #     Write-Host "TAG_NAME: $tag"
+      #     echo "TAG_NAME=$tag" >> $Env:GITHUB_ENV
 
       # Download WIX toolset (WINDOWS)
       - name: Download Wix
@@ -213,7 +213,7 @@ jobs:
           repo_token: "${{ secrets.GITHUB_TOKEN}}"
           automatic_release_tag: latest
           prerelease: false
-          title: latest
+          title: Praisenter Latest
           files: | 
             ./dist-windows-latest/*.msi
             ./dist-ubuntu-latest/*.deb
@@ -226,7 +226,7 @@ jobs:
           repo_token: "${{ secrets.GITHUB_TOKEN}}"
           automatic_release_tag: ${{ env.VERSION_NUMBER }}
           prerelease: false
-          title: ${{ env.VERSION_NUMBER }}
+          title: Praisenter v${{ env.VERSION_NUMBER }}
           files: | 
             ./dist-windows-latest/*.msi
             ./dist-ubuntu-latest/*.deb
@@ -249,10 +249,4 @@ jobs:
           tag: ${{ env.VERSION_NUMBER }}
           body: ${{ steps.release.outputs.body }}
           allow_override: true
-      #   uses: irongut/EditRelease@v1.2.0
-      #   with:
-      #     token: ${{ secrets.GITHUB_TOKEN }}
-      #     id: ${{ steps.release.outputs.id }}
-      #     body: ${{ steps.release.outputs.body }}
-      #     replacebody: true
 
