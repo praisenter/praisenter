@@ -175,13 +175,13 @@ jobs:
       #     product-path: ${{ env.DMG_PATH }}
 
       - name: Publish artifacts
-          uses: actions/upload-artifact@v3
-          with:
-            name: dist-${{ matrix.os }}
-            path: |
-              ./target/*.msi
-              ./target/*.deb
-            # ${{ env.DMG_PATH }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: dist-${{ matrix.os }}
+          path: |
+            ./target/*.msi
+            ./target/*.deb
+          # ${{ env.DMG_PATH }}
 
   deploy:
     needs: build
