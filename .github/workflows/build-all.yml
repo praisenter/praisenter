@@ -92,13 +92,15 @@ jobs:
         if: matrix.os == 'windows-latest'
         shell: pwsh
         run: |
-          Copy-Item -Path "./target/installer-work/images/win-msi.image/Praisenter/*" -Destination "./stores/microsoft/Praisenter/App" -Recurse
+          Copy-Item -Path "./target/installer-work/images/win-msi.image/Praisenter/*" -Destination "./packaging/windows64/msix/Praisenter/App" -Recurse
 
       - name: Build MSIX package
         if: matrix.os == 'windows-latest'
         shell: pwsh
         run: |
+          Push-Location -Path ./packaging/windows64/msix/Praisenter
           MSBuild.exe /nologo /restore /p:AppxBundle=Never /p:UapAppxPackageBuildMode=Sideloading  /p:Configuration=Release;Platform="x64" /p:AppxPackageDir=.\target\ /p:AppxPackageSigningEnabled=false
+          Pop-Location
 
       # - name: "Build with Maven (macOS No Signing)"
       #   env:
