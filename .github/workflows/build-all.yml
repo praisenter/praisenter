@@ -58,6 +58,11 @@ jobs:
         run: echo "$HOME/target/wix" >> $GITHUB_PATH
         if: matrix.os == 'windows-latest'
 
+      # Add MSBuild (WINDOWS)
+      - name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@v1.1
+        if: matrix.os == 'windows-latest'
+
       # Setup Java w/ JavaFX
       - name: Set up JDK 21
         uses: actions/setup-java@v2
