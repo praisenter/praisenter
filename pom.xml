@@ -63,7 +63,7 @@
         <maven.build.timestamp.format>yy.w.WWkkmm</maven.build.timestamp.format>
         
         <!-- This should be replaced by the build profile -->
-        <app.version>1.0.0</app.version>
+        <app.version>${project.version}</app.version>
 
 		<!-- This property is used to specify the modules included in the (custom) JVM image. -->
         <!-- Reminder: javafx.web (the embedded browser component) is not included in this project by default due
@@ -250,27 +250,16 @@
 
 	<build>
         <resources>
+        	<!-- Here we are processing the platform-specific jpackage command files, adding in Maven properties for configuration. -->
             <resource>
-                <!-- Here we are processing the platform-specific jpackage command files, adding in Maven
-                 properties for configuration. -->
-                <directory>${project.basedir}/package</directory>
+                <directory>${project.basedir}/packaging</directory>
                 <filtering>true</filtering>
                 <targetPath>${project.build.directory}/packaging</targetPath>
                 <includes>
-                	<include>${platform}/**/*.*</include>
-                </includes>
-                <excludes>
-                	<exclude>${platform}/**/*.jmod</exclude>
-                </excludes>
-            </resource>
-<!--             <resource>
-                <directory>${project.basedir}/package</directory>
-                <targetPath>${project.build.directory}/packaging</targetPath>
-                <includes>
-                	<include>${platform}/**/*.jmod</include>
+                	<include>${platform}/${package}/*.*</include>
                 </includes>
             </resource>
-            -->
+
             <!-- Add the default resource path back in - by overriding above it disables the default -->
             <resource>
                 <directory>${project.basedir}/src/main/resources</directory>
@@ -390,7 +379,7 @@
                             <writeErrorsToLog>true</writeErrorsToLog>
                             <failOnError>true</failOnError>
                             <removeDirectories>${project.build.directory}/installer-work</removeDirectories>
-                            <args>@${project.build.directory}/packaging/${platform}/jpackage.args</args>
+                            <args>@${project.build.directory}/packaging/${platform}/{package}/jpackage.args</args>
                         </configuration>
                     </execution>
                 </executions>
@@ -423,13 +412,6 @@
                     <artifactId>maven-jar-plugin</artifactId>
                     <version>3.2.2</version>
                 </plugin>
-                <!-- 
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-project-info-reports-plugin</artifactId>
-                    <version>3.1.1</version>
-                </plugin>
-                 -->
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-resources-plugin</artifactId>
@@ -448,53 +430,9 @@
                 </plugin>
             </plugins>
         </pluginManagement>
-	<!-- 
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.8.1</version>
-				<configuration>
-					<release>11</release>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.openjfx</groupId>
-				<artifactId>javafx-maven-plugin</artifactId>
-				<version>0.0.4</version>
-				<configuration>
-					<mainClass>org.praisenter.ui.Praisenter</mainClass>
-				</configuration>
-			</plugin>
-		</plugins>
-		 -->
 	</build>
 	
 	 <profiles>
-         <profile>
-            <id>GitHub Run</id>
-            <activation>
-                <property>
-                    <name>env.GITHUB_ACTIONS</name>
-                </property>
-            </activation>
-            <properties>
-                <!--suppress UnresolvedMavenProperty -->
-                <app.version>3.1.2</app.version>
-            </properties>
-        </profile>
-        <profile>
-            <id>Local Development Run</id>
-            <activation>
-                <property>
-                    <name>!env.GITHUB_ACTIONS</name>
-                </property>
-            </activation>
-            <properties>
-                <app.version>3.1.2</app.version>
-            </properties>
-        </profile>
-        
         <!-- We use the built-in Maven profile activation system to set the platform property.
         These properties are then use to build the directory paths to the platform specific resources.
         It would be great if Maven automatically added the os family as a property by default
@@ -509,6 +447,7 @@
             <properties>
                 <platform>linux64</platform>
                 <jfx.platform>linux</jfx.platform>
+                <package>deb</package>
             </properties>
         </profile>
         
@@ -522,40 +461,9 @@
             <properties>
                 <platform>windows64</platform>
                 <jfx.platform>win</jfx.platform>
+                <package>msi</package>
             </properties>
         </profile>
-        
-        <profile>
-            <id>mac-active</id>
-            <activation>
-                <os>
-                    <family>mac</family>
-                </os>
-            </activation>
-            <properties>
-                <platform>macos64</platform>
-                <jfx.platform>mac</jfx.platform>
-                <macos.sign>--mac-sign</macos.sign>
-                <!-- You will have to replace this with your own dev information from your Apple identity -->
-                <macos.sign.identity>--mac-signing-key-user-name "Company Name, Inc. (BXPXTXC35S)"</macos.sign.identity>
-            </properties>
-        </profile>
-        
-         <profile>
-            <id>m1-active</id>
-            <activation>
-                <os>
-                    <family>mac</family>
-                </os>
-            </activation>
-            <properties>
-                <platform>macaarch64</platform>
-                <jfx.platform>mac-aarch64</jfx.platform>
-                <macos.sign>--mac-sign</macos.sign>
-                <!-- You will have to replace this with your own dev information from your Apple identity -->
-                <macos.sign.identity>--mac-signing-key-user-name "Company Name, Inc. (BXPXTXC35S)"</macos.sign.identity>
-            </properties>
-        </profile>
-	        
+
     </profiles>
 </project>

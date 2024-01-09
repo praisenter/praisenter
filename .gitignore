@@ -1,3 +1,13 @@
 /target/
 /bin-gpl/
 /bin/
+.vs/
+obj/
+*.user
+# files ending in .cache can be ignored
+*.[Cc]ache
+# but keep track of directories ending in .cache
+!*.[Cc]ache/
+packaging/windows64/msix/Praisenter/App/
+packaging/windows64/msix/Praisenter/bin/
+packaging/windows64/msix/Praisenter/obj/

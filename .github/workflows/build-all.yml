@@ -26,64 +26,14 @@ jobs:
       # Get latest from the current branch
       - uses: actions/checkout@v2
       
-      # # Get the simplified os name
-      # - name: Get OS Name
-      #   id: osname
-      #   shell: pwsh
-      #   run: |
-      #     $os = "${{ matrix.os }}"
-      #     Write-Host $os
-      #     $parts = $os.Split('-')
-      #     $name = $parts[0].ToLowerInvariant()
-      #     Write-Host "OS_NAME: $name"
-      #     echo "OS_NAME=$name" >> $Env:GITHUB_ENV
-
-      # # This pulls the version number from the release-version.txt file
-      # - name: Read version
-      #   id: readversion
-      #   shell: pwsh
-      #   run: |
-      #     $content = Get-Content release-version.txt
-      #     Write-Host "VERSION_NUMBER: $content"
-      #     echo "VERSION_NUMBER=$content" >> $Env:GITHUB_ENV
-
-      # # This generates a build number prefix using the pattern OS-VERSION
-      # - name: Generate build number prefix
-      #   id: buildprefix
-      #   shell: pwsh
-      #   run: |
-      #     $os = "${{ env.OS_NAME }}"
-      #     $vn = "${{ env.VERSION_NUMBER }}"
-      #     $prefix = "$os-$vn"
-      #     Write-Host "BUILD_NUMBER_PREFIX: $prefix"
-      #     echo "BUILD_NUMBER_PREFIX=$prefix" >> $Env:GITHUB_ENV
-
-      # # This gets the next build number for the version + os combination
-      # # NOTE: this actually searches for tags with the specified prefix, increments the build number
-      # #       then creates a new tag and removes the old tag
-      # - name: Generate build number
-      #   id: getbuildnumber
-      #   uses: onyxmueller/build-tag-number@v1
-      #   with:
-      #     token: ${{ secrets.github_token }}
-      #     prefix: "${{ env.BUILD_NUMBER_PREFIX }}"
-
-      # # Write the build number
-      # - name: Output build number
-      #   shell: pwsh
-      #   run: |
-      #     Write-Host "BUILD_NUMBER: ${{ env.BUILD_NUMBER }}"
-
-      # # Build the tag name
-      # - name: Build tag name
-      #   shell: pwsh
-      #   run: |
-      #     $os = "${{ env.OS_NAME }}"
-      #     $vn = "${{ env.VERSION_NUMBER }}"
-      #     $bn = "${{ env.BUILD_NUMBER }}"
-      #     $tag = "$os-$vn-b$bn"
-      #     Write-Host "TAG_NAME: $tag"
-      #     echo "TAG_NAME=$tag" >> $Env:GITHUB_ENV
+      # This pulls the version number from the release-version.txt file
+      - name: Read version
+        id: readversion
+        shell: pwsh
+        run: |
+          $content = Get-Content release-version.txt
+          Write-Host "VERSION_NUMBER: $content"
+          echo "VERSION_NUMBER=$content" >> $Env:GITHUB_ENV
 
       # Download WIX toolset (WINDOWS)
       - name: Download Wix
@@ -121,6 +71,34 @@ jobs:
       - name: "Build with Maven"
         if: matrix.os != 'macos-latest'
         run: mvn -B clean install --file pom.xml
+
+      # Now attempt to build the msix
+      - name: "Set appxmanifest version number"
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          $filePath = "./packaging/windows64/msix/Praisenter/Package.appxmanifest"
+          $xml = [xml](Get-Content -Path $filePath)
+          $nodes = $xml.SelectSingleNode('Package/Identity')
+          foreach($node in $nodes) {
+              $node.SetAttribute("Name", "${{ secrets.MSIX_IDENTITY_NAME }}");
+              $node.SetAttribute("Publisher", "${{ secrets.MSIX_IDENTITY_PUBLISHER }}");
+              $node.SetAttribute("Version", "${{ env.VERSION_NUMBER }}.0");
+          }
+          $xml.Save($filePath)
+
+      # Copy all the build artifacts to the /App folder
+      - name: "Copy application msix location"
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          Copy-Item -Path "./target/installer-work/images/win-msi.image/Praisenter/*" -Destination "./stores/microsoft/Praisenter/App" -Recurse
+
+      - name: Build MSIX package
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          MSBuild.exe /nologo /restore /p:AppxBundle=Never /p:UapAppxPackageBuildMode=Sideloading  /p:Configuration=Release;Platform="x64" /p:AppxPackageDir=.\target\ /p:AppxPackageSigningEnabled=false
 
       # - name: "Build with Maven (macOS No Signing)"
       #   env:
@@ -180,12 +158,12 @@ jobs:
           name: dist-${{ matrix.os }}
           path: |
             ./target/*.msi
+            ./target/*.msix
             ./target/*.deb
           # ${{ env.DMG_PATH }}
 
   deploy:
     needs: build
-    # NOTE: we have to use ubuntu-latest since the task "irongut/EditRelease@v1.2.0" runs on linux only
     runs-on: ubuntu-latest
     steps:
       # Get latest from the current branch
@@ -203,8 +181,6 @@ jobs:
       # Download all artifacts
       - name: Download artifacts
         uses: actions/download-artifact@v3
-        # with:
-        #   name: my-artifact
 
       # Now create the LATEST release
       - name: Update Latest Release
@@ -214,8 +190,9 @@ jobs:
           automatic_release_tag: latest
           prerelease: false
           title: Praisenter Latest
-          files: | 
+          files: |
             ./dist-windows-latest/*.msi
+            ./dist-windows-latest/*.msix
             ./dist-ubuntu-latest/*.deb
           # ./dist-macos-latest/*.dmg
 
@@ -229,6 +206,7 @@ jobs:
           title: Praisenter v${{ env.VERSION_NUMBER }}
           files: | 
             ./dist-windows-latest/*.msi
+            ./dist-windows-latest/*.msix
             ./dist-ubuntu-latest/*.deb
           # ./dist-macos-latest/*.dmg
 
