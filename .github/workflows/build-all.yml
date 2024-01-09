@@ -92,6 +92,7 @@ jobs:
         if: matrix.os == 'windows-latest'
         shell: pwsh
         run: |
+          New-Item -ItemType Directory -Force -Path "./packaging/windows64/msix/Praisenter/App"
           Copy-Item -Path "./target/installer-work/images/win-msi.image/Praisenter/*" -Destination "./packaging/windows64/msix/Praisenter/App" -Recurse
 
       - name: Build MSIX package
