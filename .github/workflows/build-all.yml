@@ -84,7 +84,7 @@ jobs:
         run: |
           $filePath = "./packaging/windows64/msix/Praisenter/Package.appxmanifest"
           $xml = [xml](Get-Content -Path $filePath)
-          $nodes = $xml.SelectSingleNode('Package/Identity')
+          $nodes = $xml.SelectSingleNode('Identity')
           foreach($node in $nodes) {
               $node.SetAttribute("Name", "${{ secrets.MSIX_IDENTITY_NAME }}");
               $node.SetAttribute("Publisher", "${{ secrets.MSIX_IDENTITY_PUBLISHER }}");
@@ -105,7 +105,7 @@ jobs:
         shell: pwsh
         run: |
           Push-Location -Path ./packaging/windows64/msix/Praisenter
-          MSBuild.exe /nologo /restore /p:AppxBundle=Never /p:UapAppxPackageBuildMode=Sideloading  /p:Configuration=Release /p:Platform=x64 /p:AppxPackageDir=.\target\ /p:AppxPackageSigningEnabled=false
+          MSBuild.exe /nologo /restore /p:AppxBundle=Never /p:UapAppxPackageBuildMode=Sideloading  /p:Configuration=Release /p:Platform=x64 /p:AppxPackageDir=..\..\..\..\target\ /p:AppxPackageSigningEnabled=false
           Pop-Location
 
       # - name: "Build with Maven (macOS No Signing)"
