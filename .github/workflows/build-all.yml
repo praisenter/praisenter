@@ -84,12 +84,9 @@ jobs:
         run: |
           $filePath = "./packaging/windows64/msix/Praisenter/Package.appxmanifest"
           $xml = [xml](Get-Content -Path $filePath)
-          $nodes = $xml.SelectSingleNode('Identity')
-          foreach($node in $nodes) {
-              $node.SetAttribute("Name", "${{ secrets.MSIX_IDENTITY_NAME }}");
-              $node.SetAttribute("Publisher", "${{ secrets.MSIX_IDENTITY_PUBLISHER }}");
-              $node.SetAttribute("Version", "${{ env.VERSION_NUMBER }}.0");
-          }
+          $xml.Package.Identity.Name = "${{ secrets.MSIX_IDENTITY_NAME }}"
+          $xml.Package.Identity.Publisher = "${{ secrets.MSIX_IDENTITY_PUBLISHER }}"
+          $xml.Package.Identity.Version = "${{ env.VERSION_NUMBER }}.0"
           $xml.Save($filePath)
 
       # Copy all the build artifacts to the /App folder
@@ -105,7 +102,7 @@ jobs:
         shell: pwsh
         run: |
           Push-Location -Path ./packaging/windows64/msix/Praisenter
-          MSBuild.exe /nologo /restore /p:AppxBundle=Never /p:UapAppxPackageBuildMode=Sideloading  /p:Configuration=Release /p:Platform=x64 /p:AppxPackageDir=..\..\..\..\target\ /p:AppxPackageSigningEnabled=false
+          MSBuild.exe /nologo /restore /p:AppxBundle=Never /p:UapAppxPackageBuildMode=StoreUpload  /p:Configuration=Release /p:Platform=x64 /p:AppxPackageDir=..\..\..\..\target\ /p:AppxPackageSigningEnabled=false
           Pop-Location
 
       # - name: "Build with Maven (macOS No Signing)"
@@ -166,7 +163,7 @@ jobs:
           name: dist-${{ matrix.os }}
           path: |
             ./target/*.msi
-            ./target/*.msix
+            ./target/*.msixupload
             ./target/*.deb
           # ${{ env.DMG_PATH }}
 
@@ -200,7 +197,7 @@ jobs:
           title: Praisenter Latest
           files: |
             ./dist-windows-latest/*.msi
-            ./dist-windows-latest/*.msix
+            ./dist-windows-latest/*.msixupload
             ./dist-ubuntu-latest/*.deb
           # ./dist-macos-latest/*.dmg
 
@@ -214,7 +211,7 @@ jobs:
           title: Praisenter v${{ env.VERSION_NUMBER }}
           files: | 
             ./dist-windows-latest/*.msi
-            ./dist-windows-latest/*.msix
+            ./dist-windows-latest/*.msixupload
             ./dist-ubuntu-latest/*.deb
           # ./dist-macos-latest/*.dmg
 
