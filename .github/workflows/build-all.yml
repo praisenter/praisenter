@@ -125,25 +125,30 @@ jobs:
           $xml.component.releases.release.date = "$date"
           $xml.Save($filePath)
 
-      # Install snapcraft (UBUNTU)
-      - name: Install Snapcraft
-        uses: samuelmeuli/action-snapcraft@v2
-
-      # Build the snap file (UBUNTU)
+      # # Install snapcraft (UBUNTU)
+      # - name: Install Snapcraft
+      #   uses: samuelmeuli/action-snapcraft@v2
       - name: Build snap file
-        if: matrix.os == 'ubuntu-latest'
-        shell: pwsh
-        run: |
-          Push-Location -Path ./packaging/linux64/snap/
-          snapcraft
-          Pop-Location
+        id: snapcraft
+        uses: snapcore/action-build@v1
+        with:
+          path: ./packaging/linux64/snap/
+
+      # # Build the snap file (UBUNTU)
+      # - name: Build snap file
+      #   if: matrix.os == 'ubuntu-latest'
+      #   shell: pwsh
+      #   run: |
+      #     Push-Location -Path ./packaging/linux64/snap/
+      #     snapcraft
+      #     Pop-Location
 
       # Copy snap to target folder (UBUNTU)
       - name: Copy snap to target folder
         if: matrix.os == 'ubuntu-latest'
         shell: pwsh
         run: |
-          Copy-Item "./packaging/linux64/snap/praisenter.snap" "./target/praisenter_${{ env.VERSION_NUMBER }}_amd64.snap"
+          Copy-Item "${{ steps.snapcraft.outputs.snap }}" "./target/praisenter_${{ env.VERSION_NUMBER }}_amd64.snap"
 
       # - name: "Build with Maven (macOS No Signing)"
       #   env:
