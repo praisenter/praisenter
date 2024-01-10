@@ -10,7 +10,7 @@ adopt-info: praisenter
 icon: icon.svg
 grade: stable
 confinement: devmode # must be strict
-base: core18 # based on ubuntu 18.04 LTS
+base: core22
 
 apps:
   praisenter:
