@@ -8,7 +8,7 @@ A free and open source presentation software package for Churches, providing dis
 ## Requirements:
 * Windows 10 x64 (where most testing occurs)
 * Ubuntu 22.04 x64 or higher
-* Mac OS 11 x64 or higher
+* Mac OS 11 x64 or higher (coming...)
 * Plenty of RAM (4 or more)
 * A decent/recent multicore CPU
 * At least 2 video outputs
@@ -31,41 +31,50 @@ A free and open source presentation software package for Churches, providing dis
 * Support for bulk editing Bible verses/song lyrics
 
 ## Screenshots:
-Workspace Selection
 
-![Workspace Selection](https://github.com/wnbittle/praisenter/blob/master/images/workspace-selection.png)
+**Workspace Selection**
+Workspaces allow you to collect all your assests (Bibles, song lyrics, videos, pictures, etc.) in a single location. You could create one workspace for Bible study nights and separate workspace for worship services or a third workspace for youth services or special events.
 
-Single Output
+**Multiple Outputs**
+Praisenter allows you to send content to each display independently. The number of displays is dependent on the number of video outputs your system supports.
 
-![Single Output](https://github.com/wnbittle/praisenter/blob/master/images/present-single-output.png)
+![Multiple Output](https://praisenter.org/assets/img/features/multiple-display.png)
 
-Sample Output
+**Sample Output**
+Display Bible verses, song lyrics, pictures, videos, custom slides, and notifications.
 
-![Sample Output](https://github.com/wnbittle/praisenter/blob/master/images/sample-output.png)
+![Sample Output](https://praisenter.org/assets/img/features/sample-output.png)
 
-Relevance Searching
+**Two-Language Display**
+Present side-by-side two languages (or two versions) when presenting Bible verses or song lyrics.
 
-![Relevance Searching](https://github.com/wnbittle/praisenter/blob/master/images/relevance-searching.png)
+![Two Language Display](https://praisenter.org/assets/img/features/dual-language.png)
 
-Application Zoom
+**Editing**
+With Praisenter you can create Bibles, song lyrics, and slides that include pictures, videos, and audio. Slides can have backgrounds, static text, dynamic text, the current date/time, count downs, pictures, animations, and more.
 
-![Application Zoom](https://github.com/wnbittle/praisenter/blob/master/images/application-zoom.png)
+![Editing](https://praisenter.org/assets/img/features/editing.png)
 
-Bible Editing
+**Export/Import**
+Since Praisenter is free, you can download it anywhere, and build content. After building that content you can export it and import it 
+on another computer. This is a great way to prepare content ahead of time.
 
-![Bible Editing](https://github.com/wnbittle/praisenter/blob/master/images/bible-editing.png)
+![Export and Import](https://praisenter.org/assets/img/features/import.png)
 
-Slide Editing
+**Relevance Searching**
+Other features include Bible searching, edit safety, notification overlays, slide queuing, text scaling, and more.
 
-![Slide Editing](https://github.com/wnbittle/praisenter/blob/master/images/slide-editing.png)
+![Relevance Searching](https://praisenter.org/assets/img/features/searching.png)
 
-Light Mode
+** Media Support **
+Praisenter can import hundreds of different media file formats. Upon importing, Praisenter will convert them to an optimized form. You can change (or turn off) this feature to fit your workflow.
 
-![Light Mode](https://github.com/wnbittle/praisenter/blob/master/images/light-mode.png)
+![Media Formats](https://praisenter.org/assets/img/features/formats.png)
 
-JavaFX Mode
+**Bulk Editing**
+Bibles and songs lyrics support bulk editing for easy copy/paste from other sources or fast transcription.
 
-![JavaFX Mode](https://github.com/wnbittle/praisenter/blob/master/images/javafx-mode.png)
+![Bulk Editing](https://praisenter.org/assets/img/features/bulk-edit.png)
 
 ## Building
 Install WiX Toolset 3.x:
