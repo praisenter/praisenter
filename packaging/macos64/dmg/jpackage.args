@@ -1,6 +1,6 @@
 --type dmg
 --name ${app.name}
---icon "${project.basedir}/package/macos64/app-icon.icns"
+--icon "${project.basedir}/packaging/macos64/dmg/app-icon.icns"
 --dest "${project.build.directory}"
 --main-jar ${project.build.finalName}.jar
 --main-class ${main-class}

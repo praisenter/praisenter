@@ -1,6 +1,6 @@
 --type msi
 --name ${app.name}
---icon "${project.basedir}/package/windows64/praisenter.ico"
+--icon "${project.basedir}/packaging/windows64/msi/praisenter.ico"
 --dest "${project.build.directory}"
 --main-jar ${project.build.finalName}.jar
 --main-class ${main-class}
