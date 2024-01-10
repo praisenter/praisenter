@@ -1,7 +1,7 @@
 name: praisenter
 adopt-info: praisenter
 
-icon: icon.svg
+icon: ./icon.svg
 grade: stable
 confinement: devmode # must be strict
 base: core22
