@@ -134,7 +134,9 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         shell: pwsh
         run: |
+          Push-Location -Path ./packaging/linux64/snap/
           snapcraft
+          Pop-Location
 
       # Copy snap to target folder (UBUNTU)
       - name: Copy snap to target folder
