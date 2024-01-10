@@ -129,6 +129,7 @@ jobs:
       # - name: Install Snapcraft
       #   uses: samuelmeuli/action-snapcraft@v2
       - name: Build snap file
+        if: matrix.os == 'ubuntu-latest'
         id: snapcraft
         uses: snapcore/action-build@v1
         with:
