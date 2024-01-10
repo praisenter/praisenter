@@ -1,10 +1,4 @@
 name: praisenter
-version: '3.2.1'
-
-source-code: https://github.com/praisenter/praisenter
-issues: https://github.com/praisenter/praisenter/discussions
-website: https://praisenter.org/
-license: BSD-3-Clause
 adopt-info: praisenter
 
 icon: icon.svg

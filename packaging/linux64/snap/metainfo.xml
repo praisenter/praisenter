@@ -16,7 +16,6 @@
     connected device whether it be a TV, projector, or monitor, limited only to 
     the number of connected devices.
   </description>
-  <icon type="local">icon.svg</icon>
   <!-- <launchable type="desktop-id">
     com.example.sampleapp.desktop
   </launchable> -->
