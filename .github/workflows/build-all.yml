@@ -119,8 +119,10 @@ jobs:
         shell: pwsh
         run: |
           $filePath = "./packaging/linux64/snap/metainfo.xml"
+          $date = Get-Date -Format "yyyy-MM-dd"
           $xml = [xml](Get-Content -Path $filePath)
-          $xml.component.releases[0].version = "${{ env.VERSION_NUMBER }}"
+          $xml.component.releases.release.version = "${{ env.VERSION_NUMBER }}"
+          $xml.component.releases.release.date = "$date"
           $xml.Save($filePath)
 
       # Install snapcraft (UBUNTU)
