@@ -1,5 +1,21 @@
 name: praisenter
-adopt-info: praisenter
+title: Praisenter
+summary: A presentation software package for churches
+description: |
+  Praisenter is a user-friendly presentation management tool designed to 
+  streamline the creation and delivery of presentations tailored to churches. 
+  With a focus on simplicity and functionality, Praisenter allows users to 
+  create slides and templates with embedded images and videos with full 
+  control of the content position, font size, colors, and more.  Templates 
+  can be used to show Bible verses and song lyrics from the library.  Bibles 
+  and song lyrics can be imported from a few source formats, but can also be 
+  created from within the app.  Templates also support showing up to two 
+  languages at the same time.  Praisenter supports presenting content on any 
+  connected device whether it be a TV, projector, or monitor, limited only to 
+  the number of connected devices.
+version: 1.0.0
+#adopt-info: metadata
+#icon: icon.svg
 
 grade: stable
 confinement: devmode # must be strict
@@ -7,8 +23,18 @@ base: core22
 
 apps:
   praisenter:
-    command: desktop-launch $SNAP/opt/praisenter/bin/Praisenter
+    # NOTE the command here  (used to be something like 
+    # "desktop-launch $SNAP/..." which just didn't work
+    # https://forum.snapcraft.io/t/missing-libraries-for-deb-using-core22-base/38436
+    command: opt/praisenter/bin/Praisenter
     desktop: opt/praisenter/lib/praisenter-Praisenter.desktop
+    # Add the gnome extension to provide for a large portion of the missing
+    # libraries reported by snapcraft
+    # https://forum.snapcraft.io/t/missing-libraries-for-deb-using-core22-base/38436
+    # https://snapcraft.io/docs/supported-extensions
+    extensions: [gnome]
+    # I chose these based on the description of their purpose
+    # https://snapcraft.io/docs/supported-interfaces
     plugs:
       - home
       - network
@@ -24,40 +50,30 @@ apps:
 
 parts:
   praisenter:
+    after: [lib]
     # The assumption is that the .deb file has been moved to the 
     # current directory of this yaml file and renamed so we don't
     # have to manually change any versioning
     source: ./praisenter.deb
     plugin: dump
     source-type: deb
-    parse-info: [metainfo.xml]
-    # override-build: |
-    #   snapcraftctl build
-      
-    # #fix icon path
-    # sed -i 's|Icon=iotacooler|Icon=${SNAP}/usr/share/pixmaps/iotacooler.png|g' $SNAPCRAFT_PART_INSTALL/usr/share/applications/iotacooler.desktop
-    # stage-packages:
-    #   - dbus
-    # after: [desktop-qt5]
+    
+  lib:
+    plugin: nil
+    # NOTE: these were the only missing libraries as reported by
+    # snapcraft during build (there were other versions of them
+    # missing, but I think you only need to stage the latest)
 
-  # desktop-qt5: # custom define becasue no remote parts are supported when using a base (at least not on 16.04), https://github.com/ubuntu/snapcraft-desktop-helpers
-  #   source: https://github.com/ubuntu/snapcraft-desktop-helpers.git
-  #   source-subdir: qt
-  #   plugin: make
-  #   make-parameters: ["FLAVOR=qt5"]
-  #   build-packages:
-  #     - qtbase5-dev
-  #     - dpkg-dev
-  #   stage-packages:
-  #     - libxkbcommon0
-  #     - ttf-ubuntu-font-family
-  #     - dmz-cursor-theme
-  #     - light-themes
-  #     - adwaita-icon-theme
-  #     - gnome-themes-standard
-  #     - shared-mime-info
-  #     - libqt5gui5
-  #     - libgdk-pixbuf2.0-0
-  #     - libqt5svg5 # for loading icon themes which are svg
-  #     - try: [appmenu-qt5] # not available on core18
-  #     - locales-all
+    # May need to switch to libavcodec60 when ubuntu-latest goes
+    # to Ubuntu 23.x
+    # https://stackoverflow.com/questions/77663867/error-creating-javafx-mediaplayer-using-mp3-on-ubuntu-23-10
+    # https://bugs.openjdk.org/browse/JDK-8317508
+    stage-packages:
+    - libavcodec58
+    - libavformat58
+
+#  metadata:
+#    # I'm using this to pull in the version, icon, description, title properties
+#    plugin: dump
+#    source: .
+#    parse-info: [metainfo.xml]
