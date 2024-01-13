@@ -118,7 +118,7 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         shell: pwsh
         run: |
-          $filePath = "./packaging/linux64/snap/metainfo.xml"
+          $filePath = "./packaging/linux64/snap/praisenter.metainfo.xml"
           $date = Get-Date -Format "yyyy-MM-dd"
           $xml = [xml](Get-Content -Path $filePath)
           $xml.component.releases.release.version = "${{ env.VERSION_NUMBER }}"
