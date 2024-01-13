@@ -13,12 +13,10 @@ description: |
   languages at the same time.  Praisenter supports presenting content on any 
   connected device whether it be a TV, projector, or monitor, limited only to 
   the number of connected devices.
-version: 1.0.0
-#adopt-info: metadata
-#icon: icon.svg
+adopt-info: metadata
 
 grade: stable
-confinement: devmode # must be strict
+confinement: strict
 base: core22
 
 apps:
@@ -72,8 +70,10 @@ parts:
     - libavcodec58
     - libavformat58
 
-#  metadata:
-#    # I'm using this to pull in the version, icon, description, title properties
-#    plugin: dump
-#    source: .
-#    parse-info: [metainfo.xml]
+  metadata:
+    # I'm using this to pull in the version only
+    plugin: dump
+    source: .
+    # NOTE: this has to be *.metainfo.xml or *.appinfo.xml for whatever reason
+    # https://github.com/snapcore/snapcraft/blob/ffbdabf53de21606d9d12e15f16d4bca5e4423a5/snapcraft/meta/appstream.py#L93
+    parse-info: [praisenter.metainfo.xml]
