@@ -1,14 +1,9 @@
 package org.praisenter.ui;
 
-import java.awt.Desktop;
-import java.awt.EventQueue;
-import java.net.URI;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.praisenter.Constants;
 import org.praisenter.Version;
 import org.praisenter.ui.translations.Translations;
+import org.praisenter.utility.DesktopLauncher;
 import org.praisenter.utility.RuntimeProperties;
 
 import javafx.beans.property.ReadOnlyStringWrapper;
@@ -26,8 +21,6 @@ import javafx.scene.layout.VBox;
 import me.walkerknapp.devolay.Devolay;
 
 final class AboutPane extends BorderPane {
-	private static final Logger LOGGER = LogManager.getLogger();
-	
 	private static final String ABOUT_CSS = "p-about";
 	private static final String ABOUT_RIGHT_CSS = "p-about-right";
 	private static final String ABOUT_LEFT_CSS = "p-about-left";
@@ -51,17 +44,7 @@ final class AboutPane extends BorderPane {
 		
 		Hyperlink lnkPraisenter = new Hyperlink(Constants.WEBSITE);
 		lnkPraisenter.setOnAction(e -> {
-			// Desktop must be used from the AWT EventQueue
-			// https://stackoverflow.com/a/65863422
-			EventQueue.invokeLater(() -> {
-				if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-					try {
-					    Desktop.getDesktop().browse(new URI(Constants.WEBSITE));
-					} catch (Exception ex) {
-						LOGGER.error("Failed to open default browser for URL: " + Constants.WEBSITE, ex);
-					}
-				}
-			});
+			DesktopLauncher.browse(Constants.WEBSITE);
 		});
 		
 		TableView<DataPoint> tv = new TableView<>();
@@ -130,17 +113,7 @@ final class AboutPane extends BorderPane {
 		lblFFmpeg.setWrapText(true);
 		Hyperlink lnkFFmpeg = new Hyperlink(Translations.get("ffmpeg.link"));
 		lnkFFmpeg.setOnAction(e -> {
-			// Desktop must be used from the AWT EventQueue
-			// https://stackoverflow.com/a/65863422
-			EventQueue.invokeLater(() -> {
-				if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-					try {
-					    Desktop.getDesktop().browse(new URI(Translations.get("ffmpeg.link")));
-					} catch (Exception ex) {
-						LOGGER.error("Failed to open default browser for URL: " + Translations.get("ffmpeg.link"), ex);
-					}
-				}
-			});
+			DesktopLauncher.browse(Translations.get("ffmpeg.link"));
 		});
 		
 		// per NDI license requirements
@@ -148,17 +121,7 @@ final class AboutPane extends BorderPane {
 		lblNDITrademark.setWrapText(true);
 		Hyperlink lnkNDI = new Hyperlink(Translations.get("ndi.link"));
 		lnkNDI.setOnAction(e -> {
-			// Desktop must be used from the AWT EventQueue
-			// https://stackoverflow.com/a/65863422
-			EventQueue.invokeLater(() -> {
-				if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-					try {
-					    Desktop.getDesktop().browse(new URI(Translations.get("ndi.link")));
-					} catch (Exception ex) {
-						LOGGER.error("Failed to open default browser for URL: " + Translations.get("ndi.link"), ex);
-					}
-				}
-			});
+			DesktopLauncher.browse(Translations.get("ndi.link"));
 		});
 		
 		layout.getChildren().addAll(lblFFmpeg, lnkFFmpeg, lblNDITrademark, lnkNDI);

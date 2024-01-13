@@ -1,8 +1,5 @@
 package org.praisenter.ui.pages;
 
-import java.awt.Desktop;
-import java.awt.EventQueue;
-import java.net.URI;
 import java.util.List;
 import java.util.Locale;
 
@@ -23,6 +20,7 @@ import org.praisenter.ui.themes.ThemeListCell;
 import org.praisenter.ui.themes.ThemeType;
 import org.praisenter.ui.themes.Theming;
 import org.praisenter.ui.translations.Translations;
+import org.praisenter.utility.DesktopLauncher;
 import org.praisenter.utility.StringManipulator;
 
 import atlantafx.base.controls.Tile;
@@ -309,17 +307,7 @@ public final class SettingsPage extends BorderPane implements Page {
 		// NDI link
 		Hyperlink ndiLink = new Hyperlink(Translations.get("ndi.link"));		
 		ndiLink.setOnAction(e -> {
-			// Desktop must be used from the AWT EventQueue
-			// https://stackoverflow.com/a/65863422
-			EventQueue.invokeLater(() -> {
-				if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-					try {
-					    Desktop.getDesktop().browse(new URI(Translations.get("ndi.link")));
-					} catch (Exception ex) {
-						LOGGER.error("Failed to open default browser for URL: " + Translations.get("ndi.link"), ex);
-					}
-				}
-			});
+			DesktopLauncher.browse(Translations.get("ndi.link"));
 		});
 
 		Label lblGeneral = new Label(Translations.get("settings.general"));

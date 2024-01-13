@@ -4,7 +4,6 @@ import java.awt.Desktop;
 import java.awt.EventQueue;
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
@@ -22,6 +21,7 @@ import org.praisenter.ui.controls.Dialogs;
 import org.praisenter.ui.controls.WindowHelper;
 import org.praisenter.ui.translations.Translations;
 import org.praisenter.ui.upgrade.UpgradeChecker;
+import org.praisenter.utility.DesktopLauncher;
 
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
@@ -253,13 +253,13 @@ final class MainMenu extends MenuBar {
 				this.checkForUpdate();
 				return;
 			case DOWNLOAD_ZEFANIA_BIBLES:
-				this.openUrl("https://sourceforge.net/projects/zefania-sharp/files/Bibles/");
+				DesktopLauncher.browse("https://sourceforge.net/projects/zefania-sharp/files/Bibles/");
 				return;
 			case DOWNLOAD_UNBOUND_BIBLES: 
-				this.openUrl("https://github.com/wnbittle/unbound-bible-archive");
+				DesktopLauncher.browse("https://github.com/wnbittle/unbound-bible-archive");
 				return;
 			case DOWNLOAD_OPENSONG_BIBLES:
-				this.openUrl("https://www.opensong.info/index.php/downloads");
+				DesktopLauncher.browse("https://www.opensong.info/index.php/downloads");
 				return;
 			case ABOUT:
 				this.showAbout();
@@ -375,20 +375,6 @@ final class MainMenu extends MenuBar {
 				alert.show();
 			});
 			return null;
-		});
-	}
-	
-	private void openUrl(String url) {
-		// Desktop must be used from the AWT EventQueue
-		// https://stackoverflow.com/a/65863422
-		EventQueue.invokeLater(() -> {
-			if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-				try {
-				    Desktop.getDesktop().browse(new URI(url));
-				} catch (Exception e) {
-					LOGGER.error("Failed to open default browser for URL: " + url, e);
-				}
-			}
 		});
 	}
 	

@@ -16,10 +16,7 @@
     connected device whether it be a TV, projector, or monitor, limited only to 
     the number of connected devices.
   </description>
-  <!-- <launchable type="desktop-id">
-    com.example.sampleapp.desktop
-  </launchable> -->
   <releases>
-    <release date="2024-01-01" version="1.0.0.0"/>
+    <release date="2024-01-01" version="1.0.0"/>
   </releases>
 </component>

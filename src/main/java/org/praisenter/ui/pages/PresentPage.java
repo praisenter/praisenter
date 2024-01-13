@@ -1,13 +1,8 @@
 package org.praisenter.ui.pages;
 
-import java.awt.Desktop;
-import java.awt.EventQueue;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.praisenter.data.workspace.DisplayConfiguration;
 import org.praisenter.data.workspace.DisplayType;
 import org.praisenter.ui.GlobalContext;
@@ -21,6 +16,7 @@ import org.praisenter.ui.display.DisplayController;
 import org.praisenter.ui.display.DisplayTarget;
 import org.praisenter.ui.display.NDIDisplaySettingsPane;
 import org.praisenter.ui.translations.Translations;
+import org.praisenter.utility.DesktopLauncher;
 
 import javafx.beans.Observable;
 import javafx.beans.binding.Bindings;
@@ -43,8 +39,6 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
 public final class PresentPage extends BorderPane implements Page {
-	private static final Logger LOGGER = LogManager.getLogger();
-	
 	private static final String PRESENT_PAGE_CLASS = "p-present-page";
 	
 	private static final String PRESENT_PAGE_CONTROLLER_LIST_CSS = "p-present-page-controller-list";
@@ -154,7 +148,7 @@ public final class PresentPage extends BorderPane implements Page {
 		
 		MenuItem mnuNDILink = new MenuItem(Translations.get("ndi.link"));
 		mnuNDILink.setOnAction(e -> {
-			openUrl(Translations.get("ndi.link"));
+			DesktopLauncher.browse(Translations.get("ndi.link"));
 		});
 		
 		List<MenuItem> mnuBefore = new ArrayList<>();
@@ -220,19 +214,5 @@ public final class PresentPage extends BorderPane implements Page {
 		if (this.displayControllers.size() > 0) {
 			this.displayControllers.get(0).setDefaultFocus();
 		}
-	}
-	
-	private void openUrl(String url) {
-		// Desktop must be used from the AWT EventQueue
-		// https://stackoverflow.com/a/65863422
-		EventQueue.invokeLater(() -> {
-			if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-				try {
-				    Desktop.getDesktop().browse(new URI(url));
-				} catch (Exception e) {
-					LOGGER.error("Failed to open default browser for URL: " + url, e);
-				}
-			}
-		});
 	}
 }
