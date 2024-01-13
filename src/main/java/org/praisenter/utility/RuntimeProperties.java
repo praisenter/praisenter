@@ -58,6 +58,11 @@ public final class RuntimeProperties {
 	 */
 	public static final String USER_HOME = getUserHomeDirectory();
 	
+	/**
+	 * Returns the path to the application home directory
+	 */
+	public static final String APP_HOME = getApplicationHome();
+	
 	/** The path to where the JVM was started from */
 	public static final String JAVA_HOME = getJavaHomeDirectory();
 	
@@ -252,6 +257,21 @@ public final class RuntimeProperties {
 			sb.append(argument).append(" ");
 		}
 		return sb.toString();
+	}
+	
+	private static final String getLinuxSnapHome() {
+		return System.getenv("SNAP_USER_COMMON");
+	}
+	
+	private static final String getApplicationHome() {
+		if (RuntimeProperties.IS_LINUX_OS) {
+			String snapHome = getLinuxSnapHome();
+			if (snapHome != null && !snapHome.isEmpty()) {
+				return snapHome;
+			}
+		}
+		
+		return RuntimeProperties.USER_HOME;
 	}
 	
 	// FEATURE (L-L) We could get better OS name using a command line:

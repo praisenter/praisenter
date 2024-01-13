@@ -45,11 +45,11 @@ public final class Constants {
 	public static final String ROOT_RELATIVE_PATH = ".praisenter3" + RuntimeProperties.PATH_SEPARATOR;
 	
 	/** The absolute path to the root of all the Praisenter files */
-	public static final String ROOT_PATH = RuntimeProperties.USER_HOME.isEmpty() ? 
+	public static final String ROOT_PATH = RuntimeProperties.APP_HOME.isEmpty() ? 
 			// Praisenter3/
 			ROOT_RELATIVE_PATH :
 			// /user/home/dir/Praisenter3/
-			RuntimeProperties.USER_HOME + RuntimeProperties.PATH_SEPARATOR + ROOT_RELATIVE_PATH;
+			RuntimeProperties.APP_HOME + RuntimeProperties.PATH_SEPARATOR + ROOT_RELATIVE_PATH;
 	
 	public static final String WEBSITE = "https://praisenter.org/";
 	
