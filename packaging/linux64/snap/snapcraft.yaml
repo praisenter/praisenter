@@ -19,6 +19,10 @@ grade: stable
 confinement: strict
 base: core22
 
+# use lzo compression to speed up open time (makes the package larger though)
+# https://snapcraft.io/docs/snapcraft-top-level-metadata
+compression: lzo
+
 apps:
   praisenter:
     # NOTE the command here  (used to be something like 
