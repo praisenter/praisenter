@@ -49,6 +49,7 @@ apps:
       - desktop-legacy
       - audio-playback
       - hardware-observe
+      - gsettings  # theme detection
 
 parts:
   praisenter:
