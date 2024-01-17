@@ -80,7 +80,21 @@ Bibles and songs lyrics support bulk editing for easy copy/paste from other sour
 Install WiX Toolset 3.x:
 https://github.com/wixtoolset/wix3/releases
 
-Run Maven build:
+### Maven
 ```shell
 mvn clean install
 ```
+
+### Ubuntu Snap
+```shell
+# to build the snap, navigate to the /snapcraft folder, copy the praisenter.deb there, then run
+snapcraft
+# to install a locally built snap
+sudo snap install --devmode ./praisenter.snap
+# to uninstall a snap
+sudo snap remove praisenter
+# to upload a new snap to the snapstore
+snapcraft login
+snapcraft upload ./praisenter_3.1.3_amd64.snap
+```
+
