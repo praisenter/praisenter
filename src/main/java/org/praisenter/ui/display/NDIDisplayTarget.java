@@ -167,6 +167,9 @@ public final class NDIDisplayTarget implements DisplayTarget {
 		params.setFill(Color.TRANSPARENT);
 		
 		this.frameProducer = new FramesPerSecondTimer(configuration.getFramesPerSecond(), (frame) -> {
+			if (this.disposed) {
+				return;
+			}
 			if (configuration.isActive()) {
 				// optimization: try to predict if we can avoid rendering or not
 				boolean render = this.renderRequired();
@@ -321,6 +324,7 @@ public final class NDIDisplayTarget implements DisplayTarget {
 	
 	private final void sendClearFrame() {
 		if (this.ndiTarget != null) {
+			LOGGER.debug("Sending clear frame to NDI");
 			final DevolayVideoFrame videoFrame = new DevolayVideoFrame();
 	        videoFrame.setResolution(this.width, this.height);
 	        videoFrame.setFourCCType(DevolayFrameFourCCType.BGRA);
@@ -330,7 +334,7 @@ public final class NDIDisplayTarget implements DisplayTarget {
 	        ByteBuffer buffer = frameBuffers[bufferIndex];
 	        writeTransparentToBuffer(buffer);
 	        videoFrame.setData(buffer);
-			this.ndiTarget.sendVideoFrameAsync(videoFrame);
+			this.ndiTarget.sendVideoFrame(videoFrame);
 			
 			this.bufferIndex++;
             if (this.bufferIndex > 1) {
@@ -367,7 +371,10 @@ public final class NDIDisplayTarget implements DisplayTarget {
 		this.sendClearFrame();
 		
 		// release the NDI natives
+		LOGGER.debug("Releasing NDI resources");
 		this.ndiTarget.close();
+		
+		this.frameQueue.clear();
 	}
 
 
