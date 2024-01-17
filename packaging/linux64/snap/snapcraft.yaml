@@ -38,18 +38,20 @@ apps:
     # I chose these based on the description of their purpose
     # https://snapcraft.io/docs/supported-interfaces
     plugs:
-      - home
-      - network
-      - opengl
-      - removable-media
-      - unity7
-      - x11
-      - wayland
-      - desktop
-      - desktop-legacy
-      - audio-playback
-      - hardware-observe
-      - gsettings  # theme detection
+      - home                        # NO
+      - network                     # AUTO-CONNECT
+      - network-bind                # AUTO-CONNECT (for NDI)
+      - avahi-control               # NO (for NDI)
+      - opengl                      # AUTO-CONNECT
+      - removable-media             # NO
+      - unity7                      # AUTO-CONNECT
+      - x11                         # AUTO-CONNECT
+      - wayland                     # AUTO-CONNECT
+      - desktop                     # AUTO-CONNECT
+      - desktop-legacy              # AUTO-CONNECT
+      - audio-playback              # AUTO-CONNECT
+      - hardware-observe            # NO
+      - gsettings                   # AUTO-CONNECT (for theme detection)
 
 parts:
   praisenter:
