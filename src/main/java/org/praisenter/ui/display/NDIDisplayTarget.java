@@ -4,6 +4,7 @@ import java.nio.ByteBuffer;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
@@ -349,32 +350,40 @@ public final class NDIDisplayTarget implements DisplayTarget {
 	}
 	
 	public void dispose() {
+		LOGGER.debug("Marking NDI display target as disposed");
+		this.disposed = true;
+		
 		this.slideView.dispose();
 		this.container.getChildren().clear();
-		
 		this.configuration.activeProperty().removeListener(this.activeListener);
 		
 		// stop the frame producer
 		this.frameProducer.stop();
+		LOGGER.debug("NDI Frame producer stopped");
 		
-		// stop the frame consumer
-		this.disposed = true;
-		if (this.frameConsumer != null) {
-			try {
-				this.frameConsumer.join();
-			} catch (InterruptedException e) {
-				LOGGER.warn("Waiting for the NDI consumer thread to complete was interrupted.");
+		CompletableFuture.runAsync(() -> {
+			// stop the frame consumer
+			if (this.frameConsumer != null) {
+				try {
+					this.frameConsumer.join();
+					LOGGER.debug("NDI frame consumer stopped");
+				} catch (InterruptedException e) {
+					LOGGER.warn("Waiting for the NDI consumer thread to complete was interrupted.");
+				}
 			}
-		}
-		
-		// send one last clear frame
-		this.sendClearFrame();
-		
-		// release the NDI natives
-		LOGGER.debug("Releasing NDI resources");
-		this.ndiTarget.close();
-		
-		this.frameQueue.clear();
+			
+			// send one last clear frame
+			this.sendClearFrame();
+			
+			// release the NDI natives
+			LOGGER.debug("Releasing NDI resources");
+			this.ndiTarget.close();
+			
+			LOGGER.debug("Clearing NDI frame queue");
+			this.frameQueue.clear();
+			
+			LOGGER.debug("NDI clean up complete");
+		});
 	}
 
 
