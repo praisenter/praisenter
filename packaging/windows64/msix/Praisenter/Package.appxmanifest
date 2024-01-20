@@ -3,6 +3,8 @@
 <Package
   xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
   xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  xmlns:uap10="http://schemas.microsoft.com/appx/manifest/uap/windows10/10" 
+  xmlns:desktop7="http://schemas.microsoft.com/appx/manifest/desktop/windows10/7"
   xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
   IgnorableNamespaces="uap rescap">
 
@@ -15,24 +17,27 @@
     <DisplayName>Praisenter</DisplayName>
     <PublisherDisplayName>William Bittle</PublisherDisplayName>
     <Logo>Images\StoreLogo.png</Logo>
+    <Description>Praisenter</Description>
+    <uap10:PackageIntegrity>
+      <uap10:Content Enforcement="on" />
+    </uap10:PackageIntegrity>
   </Properties>
 
   <Dependencies>
-    <TargetDeviceFamily Name="Windows.Universal" MinVersion="10.0.0.0" MaxVersionTested="10.0.0.0" />
-    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.14393.0" MaxVersionTested="10.0.14393.0" />
+    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.17763.0" MaxVersionTested="10.0.19041.0" />
   </Dependencies>
 
   <Resources>
-    <Resource Language="x-generate"/>
+    <Resource Language="en-us"/>
   </Resources>
 
   <Applications>
-    <Application Id="App"
+    <Application Id="PRAISENTER"
       Executable="App\Praisenter.exe"
-      EntryPoint="$targetentrypoint$">
+      EntryPoint="Windows.FullTrustApplication">
       <uap:VisualElements
         DisplayName="Praisenter"
-        Description="Praisenter is a user-friendly presentation management tool designed to streamline the creation and delivery of presentations tailored to churches. With a focus on simplicity and functionality, Praisenter allows users to create slides and templates with embedded images and videos with full control of the content position, font size, colors, and more.  Templates can be used to show Bible verses and song lyrics from the library.  Bibles and song lyrics can be imported from a few source formats, but can also be created from within the app.  Templates also support showing up to two languages at the same time.  Praisenter supports presenting content on any connected device whether it be a TV, projector, or monitor, limited only to the number of connected devices."
+        Description="Praisenter"
         BackgroundColor="transparent"
         Square150x150Logo="Images\Square150x150Logo.png"
         Square44x44Logo="Images\Square44x44Logo.png">
