@@ -113,7 +113,7 @@ final class UnboundBibleFormatProvider implements ImportExportProvider<Bible> {
 		// find the book first
 		Map<String, Book> bookMap = null;
 		// NOTE: Native java.util.zip package can't support zips 4GB or bigger or elements 2GB or bigger
-        try (ZipFile zipFile = new ZipFile(path)) {
+        try (ZipFile zipFile = ZipFile.builder().setPath(path).get()) {
         	Enumeration<ZipArchiveEntry> entries = zipFile.getEntries();
         	while (entries.hasMoreElements()) {
         		ZipArchiveEntry entry = entries.nextElement();
@@ -143,7 +143,7 @@ final class UnboundBibleFormatProvider implements ImportExportProvider<Bible> {
 		
 		// read the zip file for Verses
 		// NOTE: Native java.util.zip package can't support zips 4GB or bigger or elements 2GB or bigger
-        try (ZipFile zipFile = new ZipFile(path)) {
+        try (ZipFile zipFile = ZipFile.builder().setPath(path).get()) {
         	Enumeration<ZipArchiveEntry> entries = zipFile.getEntries();
         	while (entries.hasMoreElements()) {
         		ZipArchiveEntry entry = entries.nextElement();

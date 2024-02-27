@@ -116,7 +116,7 @@ final class PraisenterMediaFormatProvider extends PraisenterFormatProvider<Media
 		List<String> files = new ArrayList<>();
 		
 		// NOTE: Native java.util.zip package can't support zips 4GB or bigger or elements 2GB or bigger
-        try (ZipFile zipFile = new ZipFile(path)) {
+        try (ZipFile zipFile = ZipFile.builder().setPath(path).get()) {
         	Enumeration<ZipArchiveEntry> entries = zipFile.getEntries();
         	while (entries.hasMoreElements()) {
         		ZipArchiveEntry entry = entries.nextElement();
@@ -240,7 +240,7 @@ final class PraisenterMediaFormatProvider extends PraisenterFormatProvider<Media
 				LOGGER.trace("Extracting files from zip for '{}'", media.getName());
 				boolean success = true;
 				// NOTE: Native java.util.zip package can't support zips 4GB or bigger or elements 2GB or bigger
-		        try (ZipFile zipFile = new ZipFile(path)) {
+		        try (ZipFile zipFile = ZipFile.builder().setPath(path).get()) {
 		        	Enumeration<ZipArchiveEntry> entries = zipFile.getEntries();
 		        	while (entries.hasMoreElements()) {
 		        		ZipArchiveEntry entry = entries.nextElement();

@@ -267,7 +267,7 @@ public abstract class AbstractPersistAdapter<T extends Persistable, E extends Pa
 	
 	private void unzip(Path zip, Path folder) throws IOException {
 		// JAVABUG (L) 11/01/23 [workaround] Native java.util.zip package can't support zips 4GB or bigger or elements 2GB or bigger
-        try (ZipFile zipFile = new ZipFile(zip)) {
+        try (ZipFile zipFile = ZipFile.builder().setPath(zip).get()) {
         	Enumeration<ZipArchiveEntry> entries = zipFile.getEntries();
         	while (entries.hasMoreElements()) {
         		ZipArchiveEntry entry = entries.nextElement();

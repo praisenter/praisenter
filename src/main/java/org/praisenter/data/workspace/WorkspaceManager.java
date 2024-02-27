@@ -296,29 +296,29 @@ public final class WorkspaceManager {
 		}));
 	}
 	
-	@SuppressWarnings("unchecked")
-	public <T extends Persistable> CompletableFuture<DataImportResult<T>> importData(Path path, Class<T> clazz) {
-		PersistentStore<T> store = (PersistentStore<T>)this.adapters.get(clazz);
-		if (store == null) throw new UnsupportedOperationException("A persistence adapter was not found for class '" + clazz + "'.");
-		return store.importData(path, true).thenCompose(AsyncHelper.onJavaFXThreadAndWait((result) -> {
-			// add created lookups
-			for (Persistable item : result.getCreated()) {
-				this.itemLookup.put(item.getId(), item);
-			}
-			
-			// add created
-			this.items.addAll(result.getCreated());
-			
-			// update updated
-			for (Persistable item : result.getUpdated()) {
-				this.updateListItem(item);
-			}
-			
-			// make sure we capture any new tags from the import
-			this.addDataImportResultTags(result);
-			return result;
-		}));
-	}
+//	@SuppressWarnings("unchecked")
+//	public <T extends Persistable> CompletableFuture<DataImportResult<T>> importData(Path path, Class<T> clazz) {
+//		PersistentStore<T> store = (PersistentStore<T>)this.adapters.get(clazz);
+//		if (store == null) throw new UnsupportedOperationException("A persistence adapter was not found for class '" + clazz + "'.");
+//		return store.importData(path, true).thenCompose(AsyncHelper.onJavaFXThreadAndWait((result) -> {
+//			// add created lookups
+//			for (Persistable item : result.getCreated()) {
+//				this.itemLookup.put(item.getId(), item);
+//			}
+//			
+//			// add created
+//			this.items.addAll(result.getCreated());
+//			
+//			// update updated
+//			for (Persistable item : result.getUpdated()) {
+//				this.updateListItem(item);
+//			}
+//			
+//			// make sure we capture any new tags from the import
+//			this.addDataImportResultTags(result);
+//			return result;
+//		}));
+//	}
 	
 	public CompletableFuture<List<Persistable>> importData(Path path, Class<?>... classes) {
 		final List<CompletableFuture<DataImportResult<? extends Persistable>>> futures = new ArrayList<>();

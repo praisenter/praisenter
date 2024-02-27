@@ -929,11 +929,26 @@ public final class GlobalContext {
 			bt.setType(MimeType.get(file.toPath()));
 			this.addBackgroundTask(bt);
 			
+			// NOTE: we have to sequence the import of Slides AFTER media so that when it generates a new thumbnail
+			// the media is available.  The WorkspaceManager.importData method imports the content in parallel, so we
+			// just call it twice, once to pull out non-dependent things, and second to pull out the slides.
 			LOGGER.info("Beginning import of '{}'", file.toPath().toAbsolutePath().toString());
-			CompletableFuture<Void> future = this.workspaceManager.importData(file.toPath(), Bible.class, Slide.class, Media.class, Song.class).thenAccept((r) -> {
+			CompletableFuture<Void> future = this.workspaceManager.importData(file.toPath(), Bible.class, Media.class, Song.class).thenAccept((r) -> {
+				bt.setProgress(0.5);
+				results.addAll(r);
+			}).thenCompose((v) -> {
+				return this.workspaceManager.importData(file.toPath(), Slide.class);
+			}).thenAccept((r) -> {
 				bt.setProgress(1.0);
 				results.addAll(r);
 			}).exceptionally(t -> {
+				// NOTE: since we have to import in two stages, make sure that the total imported
+				// was zero before showing an error message
+				if (results.size() > 0) {
+					bt.setProgress(1.0);
+					return null;
+				}
+				
 				LOGGER.error("Failed to import file '" + file.toPath().toAbsolutePath().toString() + "' due to: " + t.getMessage(), t);
 				bt.setException(t);
 				
@@ -1020,9 +1035,20 @@ public final class GlobalContext {
 		LOGGER.debug("Detecting dependencies of {} selected items", items.size());
 		
 		// get all dependent items
+		Set<UUID> itemIds = new HashSet<>();
+		for (Persistable item : items) {
+			itemIds.add(item.getId());
+		}
+		
+		// get all dependent items
 		Set<UUID> dependencies = new HashSet<>();
 		for (Persistable item : items) {
-			dependencies.addAll(item.getDependencies());
+			// only add the dependency if it hasn't already been selected
+			for (UUID dependency : item.getDependencies()) {
+				if (!itemIds.contains(dependency)) {
+					dependencies.add(dependency);
+				}
+			}
 		}
 		
 		// export the dependencies
@@ -1031,9 +1057,8 @@ public final class GlobalContext {
 				.collect(Collectors.toList());
 		
 		LOGGER.debug("Found {} dependencies for the {} selected items", dependentItems.size(), items.size());
-		
 		return CompletableFuture.runAsync(() -> {
-			try (ZipArchiveOutputStream zos = new ZipArchiveOutputStream(path, StandardOpenOption.TRUNCATE_EXISTING)) {
+			try (ZipArchiveOutputStream zos = new ZipArchiveOutputStream(path, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE)) {
 				// export the items selected
 				LOGGER.info("Attempting export of {} selected items", items.size());
 				this.workspaceManager.exportData(format, zos, items);

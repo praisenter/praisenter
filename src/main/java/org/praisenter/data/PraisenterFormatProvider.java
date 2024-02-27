@@ -33,7 +33,6 @@ import java.io.OutputStream;
 import java.nio.file.Path;
 import java.util.Enumeration;
 
-import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.commons.compress.archivers.zip.ZipFile;
@@ -93,7 +92,7 @@ public class PraisenterFormatProvider<T extends Persistable> implements ImportEx
 	@Override
 	public void exp(PersistAdapter<T> adapter, ZipArchiveOutputStream stream, T data) throws IOException {
 		Path path = adapter.getPathResolver().getExportPath(data);
-		ArchiveEntry entry = new ZipArchiveEntry(FilenameUtils.separatorsToUnix(path.toString()));
+		ZipArchiveEntry entry = new ZipArchiveEntry(FilenameUtils.separatorsToUnix(path.toString()));
 		stream.putArchiveEntry(entry);
 		JsonIO.write(stream, data);
 		stream.closeArchiveEntry();
@@ -111,7 +110,7 @@ public class PraisenterFormatProvider<T extends Persistable> implements ImportEx
 			if (MimeType.ZIP.check(path)) {
 				LOGGER.trace("Reading as ZIP");
 				// NOTE: Native java.util.zip package can't support zips 4GB or bigger or elements 2GB or bigger
-		        try (ZipFile zipFile = new ZipFile(path)) {
+		        try (ZipFile zipFile = ZipFile.builder().setPath(path).get()) {
 		        	Enumeration<ZipArchiveEntry> entries = zipFile.getEntries();
 		        	while (entries.hasMoreElements()) {
 		        		ZipArchiveEntry entry = entries.nextElement();
