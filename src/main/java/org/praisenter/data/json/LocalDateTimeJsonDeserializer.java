@@ -38,7 +38,7 @@ import com.fasterxml.jackson.databind.JsonDeserializer;
 /**
  * Json deserializer for the java LocalDateTime class.
  * @author William Bittle
- * @version 3.0.0
+ * @version 3.1.5
  */
 public final class LocalDateTimeJsonDeserializer extends JsonDeserializer<LocalDateTime> {
 	/** The class-level logger */
@@ -54,7 +54,7 @@ public final class LocalDateTimeJsonDeserializer extends JsonDeserializer<LocalD
 			try {
 				return LocalDateTime.parse(data);
 			} catch (Exception ex) {
-				LOGGER.warn("Failed to parse string '" + data + "' from property '" + parser.getCurrentName() + "' as a LocalDateTime.", ex);
+				LOGGER.warn("Failed to parse string '" + data + "' from property '" + parser.currentName() + "' as a LocalDateTime.", ex);
 			}
 		}
 		return null;

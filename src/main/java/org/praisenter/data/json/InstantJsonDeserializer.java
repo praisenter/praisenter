@@ -38,7 +38,7 @@ import com.fasterxml.jackson.databind.JsonDeserializer;
 /**
  * Json deserializer for the java Instant class.
  * @author William Bittle
- * @version 3.0.0
+ * @version 3.1.5
  */
 public final class InstantJsonDeserializer extends JsonDeserializer<Instant> {
 	/** The class-level logger */
@@ -54,7 +54,7 @@ public final class InstantJsonDeserializer extends JsonDeserializer<Instant> {
 			try {
 				return Instant.parse(data);
 			} catch (Exception ex) {
-				LOGGER.warn("Failed to parse string '" + data + "' from property '" + parser.getCurrentName() + "' as an Instant.", ex);
+				LOGGER.warn("Failed to parse string '" + data + "' from property '" + parser.currentName() + "' as an Instant.", ex);
 			}
 		}
 		return null;

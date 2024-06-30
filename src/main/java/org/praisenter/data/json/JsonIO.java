@@ -34,9 +34,11 @@ import org.praisenter.Constants;
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
+import com.fasterxml.jackson.core.JsonFactoryBuilder;
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.StreamReadConstraints;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -46,7 +48,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 /**
  * Helper class for serializing and deserializing between Java objects and JSON.
  * @author William Bittle
- * @version 3.0.0
+ * @version 3.1.5
  */
 public final class JsonIO {
 	/** The mapper */
@@ -57,7 +59,18 @@ public final class JsonIO {
 	 * @return ObjectMapper
 	 */
 	private static final ObjectMapper createObjectMapper() {
-		ObjectMapper mapper = new ObjectMapper();
+		ObjectMapper mapper = new ObjectMapper(new JsonFactoryBuilder()
+				.streamReadConstraints(StreamReadConstraints.builder()
+					.maxDocumentLength(0)
+//					.maxNameLength(0)
+//					.maxNestingDepth(0)
+//					.maxNumberLength(0)
+//					.maxStringLength(0)
+					.build())
+//				.streamWriteConstraints(StreamWriteConstraints.builder()
+//					.maxNestingDepth(0)
+//					.build())
+			.build());
 		// pretty print
 		mapper.enable(SerializationFeature.INDENT_OUTPUT);
 		// just skip unknown properties

@@ -41,7 +41,7 @@ import com.fasterxml.jackson.databind.JsonDeserializer;
 /**
  * Json deserializer for a BufferedImage that is a Base64 encoded string.
  * @author William Bittle
- * @version 3.0.0
+ * @version 3.1.5
  */
 public final class BufferedImagePngJsonDeserializer extends JsonDeserializer<BufferedImage> {
 	/** The class-level logger */
@@ -57,7 +57,7 @@ public final class BufferedImagePngJsonDeserializer extends JsonDeserializer<Buf
 			try {
 				return ImageIO.read(new ByteArrayInputStream(data));
 			} catch (Exception ex) {
-				LOGGER.warn("Failed to read byte array as image at '" + parser.getCurrentName() + "'.", ex);
+				LOGGER.warn("Failed to read byte array as image at '" + parser.currentName() + "'.", ex);
 			}
 		}
 		return null;
