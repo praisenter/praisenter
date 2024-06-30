@@ -49,6 +49,7 @@ final class LibraryExportPane extends BorderPane {
 		formatOptions.add(new Option<>(Translations.get("action.export.format." + ImportExportFormat.RAW), ImportExportFormat.RAW));
 		ChoiceBox<Option<ImportExportFormat>> cbExportFormat = new ChoiceBox<>(formatOptions);
 		cbExportFormat.setMaxWidth(Double.MAX_VALUE);
+		cbExportFormat.setValue(new Option<>("", ImportExportFormat.PRAISENTER3));
 		BindingHelper.bindBidirectional(cbExportFormat.valueProperty(), this.exportFormat);
 		
 		TextField txtExportPath = new TextField();

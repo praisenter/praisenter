@@ -66,6 +66,7 @@ public final class SlidePaintPicker extends EditorFieldGroup {
 			cbType.setValue(types.get(0));
 		BindingHelper.bindBidirectional(cbType.valueProperty(), this.type);
 		
+		// JAVABUG (H) 06/07/2024 Using custom color minimizes wrong stage https://bugs.openjdk.org/browse/JDK-8260024
 		ColorPicker pkrColor = new ColorPicker();
 		pkrColor.valueProperty().bindBidirectional(this.color);
 		pkrColor.setMaxWidth(Double.MAX_VALUE);

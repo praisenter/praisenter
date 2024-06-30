@@ -118,36 +118,43 @@ public final class DisplayManager {
 			whatHappened = DesktopState.NO_INITIAL_CONFIGURATION;
 		} else {
 			// map the screens by index
-			Map<Integer, Screen> s = new HashMap<>();
+			Map<Integer, Screen> screenMap = new HashMap<>();
 			for (int i = 0; i < sSize; i++) {
-				s.put(i, screens.get(i));
+				screenMap.put(i, screens.get(i));
 			}
 			
 			// verify each display's state
 			int n = Math.max(sSize, dSize);
 			for (int i = 0; i < n; i++) {
+				// get the configuration for this screen number
 				DisplayConfiguration configuration = null;
 				if (i < dSize) {
 					configuration = configurations.get(i);
 				}
 				
+				// get the screen for this screen number
 				int index = -1;
 				Screen screen = null;
 				if (configuration != null) {
+					// find the screen for the configuration
 					index = configuration.getId();
-					screen = s.remove(index);
+					screen = screenMap.remove(index);
 				} else {
-					for (Integer j : s.keySet()) 
+					// there isn't a configuration for it, so
+					// we need to grab the next screen in the
+					// keyset
+					for (Integer j : screenMap.keySet()) 
 					{
 						index = j;
-						screen = s.get(j);
+						screen = screenMap.get(j);
 						break;
 					}
 					if (index >= 0) {
-						s.remove(index);
+						screenMap.remove(index);
 					}
 				}
 				
+				// at this point screen/configuration could be null
 				boolean isPrimary = this.isPrimaryScreen(i, sSize);
 				DisplayState state = this.getScreenDisplayState(configuration, screen);
 				
@@ -255,13 +262,13 @@ public final class DisplayManager {
 	}
 	
 	private DisplayState getScreenDisplayState(DisplayConfiguration configuration, Screen screen) {
-		int id = configuration.getId() + 1;
-		
 		// if it's not assigned
 		if (configuration == null || configuration.getId() < 0) {
 			LOGGER.info("Display has not been initialized.");
 			return DisplayState.SCREEN_NOT_ASSIGNED;
 		}
+		
+		int id = configuration.getId() + 1;
 		
 		// check if the screen index still exists
 		if (screen == null) {

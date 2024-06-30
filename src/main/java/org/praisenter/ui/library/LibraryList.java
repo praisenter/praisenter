@@ -439,9 +439,18 @@ public final class LibraryList extends BorderPane implements ActionPane {
 		btnOk.setOnAction(e -> {
 			ExportRequest request = lep.getValue();
 			this.exportRequest.set(request);
+			lep.setValue(new ExportRequest(request.getFormat(), null));
 			this.dlgExport.hide();
 		});
-		btnOk.disableProperty().bind(lep.valueProperty().isNull());
+		
+		btnOk.disableProperty().bind(Bindings.createBooleanBinding(() -> {
+			ExportRequest er = lep.getValue();
+			if (er == null)
+				return true;
+			if (er.getPath() == null)
+				return true;
+			return false;
+		}, lep.valueProperty()));
 	}
 
 	private MenuItem createMenuItem(Action action) {
@@ -899,7 +908,7 @@ public final class LibraryList extends BorderPane implements ActionPane {
 		    
 		    LOGGER.trace("User cancelled or completed export dialog");
 		    ExportRequest value = this.exportRequest.get();
-		    if (value != null) {
+		    if (value != null && value.getPath() != null) {
 		    	Path path = value.getPath();
 		    	ImportExportFormat format = value.getFormat();
 		    	LOGGER.debug("User selected format '{}' and path '{}' for export of {} items", format, path, n);

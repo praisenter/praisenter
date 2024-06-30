@@ -148,7 +148,7 @@ public final class LifecycleHandler {
     		if (!Platform.isSupported(feature)) {
     			// not supported, attempt to show the user an error message
     			Alert a = Dialogs.exception(
-    					stage.getOwner(),
+    					stage,
     					Translations.get("init.feature.missing.title"), 
     					Translations.get("init.feature.missing.header"), 
     					feature.name());
