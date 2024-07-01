@@ -79,7 +79,9 @@ final class WorkspaceSelectionPane extends VBox {
 				LOGGER.warn("Failed to parse path '" + p + "': " + ex.getMessage(), ex);
 				return null;
 			}
-		}).filter(p -> p != null).collect(Collectors.toList());
+		}).filter(p -> p != null).sorted((a, b) -> { 
+			return a.toAbsolutePath().toString().compareTo(b.toAbsolutePath().toString());
+		}).collect(Collectors.toList());
 		this.workspacePaths.addAll(paths);
 		
 		Path lastSelectedPath = null;
