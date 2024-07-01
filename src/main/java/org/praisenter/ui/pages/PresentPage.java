@@ -112,7 +112,7 @@ public final class PresentPage extends BorderPane implements Page {
 		});
 		btnOk.setOnAction(e -> {
 			DisplayConfiguration dc = lep.getValue();
-			context.getWorkspaceConfiguration().getDisplayConfigurations().add(dc);
+			context.getDisplayManager().addNDIDisplay(dc);
 			this.dlgNDIDisplay.hide();
 		});
 		btnOk.disableProperty().bind(Bindings.createBooleanBinding(() -> {

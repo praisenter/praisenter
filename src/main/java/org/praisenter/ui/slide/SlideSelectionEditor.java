@@ -34,6 +34,7 @@ import org.praisenter.data.workspace.Resolution;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.Icons;
 import org.praisenter.ui.Option;
+import org.praisenter.ui.ScreenHelper;
 import org.praisenter.ui.bind.BindingHelper;
 import org.praisenter.ui.bind.MappedList;
 import org.praisenter.ui.bind.ObjectConverter;
@@ -917,8 +918,7 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 		// add any screen sizes based on the current displays
 		List<Resolution> nr = new ArrayList<>();
 		for (Screen screen : Screen.getScreens()) {
-			Rectangle2D bounds = screen.getBounds();
-			Resolution r = new Resolution((int)Math.ceil(bounds.getWidth()), (int)Math.ceil(bounds.getHeight()));
+			Resolution r = ScreenHelper.getResolution(screen);
 			int index = resolutions.indexOf(r);
 			if (index < 0) {
 				// doesn't exist
@@ -930,7 +930,7 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 	
 	private boolean isNativeResolution(Resolution r) {
 		for (Screen screen : Screen.getScreens()) {
-			Rectangle2D bounds = screen.getBounds();
+			Rectangle2D bounds = ScreenHelper.getScaledScreenBounds(screen);
 			if ((int)bounds.getWidth() == r.getWidth() && (int)bounds.getHeight() == r.getHeight()) {
 				return true;
 			}

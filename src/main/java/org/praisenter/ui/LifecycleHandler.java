@@ -505,7 +505,7 @@ public final class LifecycleHandler {
     private boolean isInScreenBounds(double x, double y, double w, double h) {
     	Rectangle2D bounds = new Rectangle2D(x, y, w, h);
         for (Screen screen : Screen.getScreens()) {
-            Rectangle2D sb = screen.getBounds();
+            Rectangle2D sb = ScreenHelper.getScaledScreenBounds(screen);
             if (bounds.intersects(sb)) {
             	return true;
             }

@@ -83,7 +83,6 @@ import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.EventHandler;
-import javafx.geometry.Rectangle2D;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.IndexRange;
@@ -401,8 +400,7 @@ public final class GlobalContext {
 	 */
 	private void addMissingResolutionsBasedOnHost() {
 		for (Screen screen : Screen.getScreens()) {
-			Rectangle2D bounds = screen.getBounds();
-			Resolution res = new Resolution((int)bounds.getWidth(), (int)bounds.getHeight());
+			Resolution res = ScreenHelper.getResolution(screen);
 			boolean found = false;
 			for (Resolution r : this.workspaceManager.getWorkspaceConfiguration().getResolutions()) {
 				if (r.equals(res)) {

@@ -142,10 +142,7 @@ public final class WorkspaceConfiguration implements ReadOnlyWorkspaceConfigurat
 		if (result.isPresent()) {
 			return result.get();
 		}
-		DisplayConfiguration dc = new DisplayConfiguration();
-		dc.setId(id);
-		this.displayConfigurations.add(dc);
-		return dc;
+		return null;
 	}
 	
 	@Override

@@ -10,6 +10,7 @@ import org.apache.logging.log4j.Logger;
 import org.praisenter.data.workspace.DisplayConfiguration;
 import org.praisenter.data.workspace.DisplayType;
 import org.praisenter.ui.GlobalContext;
+import org.praisenter.ui.ScreenHelper;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
@@ -27,7 +28,7 @@ public final class DisplayManager {
 	private final ObservableList<DisplayTarget> targetsUnmodifiable;
 	
 	private final ListChangeListener<? super Screen> screenListener;
-	private final ListChangeListener<? super DisplayConfiguration> ndiListener;
+//	private final ListChangeListener<? super DisplayConfiguration> ndiListener;
 	
 	public DisplayManager(GlobalContext context) {
 		this.context = context;
@@ -39,20 +40,17 @@ public final class DisplayManager {
 			this.onScreensChanged();
 		};
 		
-		this.ndiListener = (Change<? extends DisplayConfiguration> c) -> {
-			this.onDisplayConfigurationChanged(c);
-		};
+//		this.ndiListener = (Change<? extends DisplayConfiguration> c) -> {
+//			this.onNDIDisplayConfigurationChanged(c);
+//		};
 	}
 	
 	public void initialize() {
-		// listen for screen changes
-		Screen.getScreens().addListener(this.screenListener);
-		
-		// listen for NDI changes
-		this.context.getWorkspaceConfiguration().getDisplayConfigurations().addListener(this.ndiListener);
-		
 		// seed the screen display targets
 		this.onScreensChanged();
+
+		// listen for screen changes
+		Screen.getScreens().addListener(this.screenListener);
 		
 		// seed the NDI display targets
 		for (DisplayConfiguration ndiDisplayConfiguration : this.context.getWorkspaceConfiguration().getDisplayConfigurations()) {
@@ -61,6 +59,9 @@ public final class DisplayManager {
 				this.targets.add(target);
 			}
 		}
+		
+		// listen for NDI changes
+//		this.context.getWorkspaceConfiguration().getDisplayConfigurations().addListener(this.ndiListener);
 		
 		// reset the focus on the primary stage
 		this.context.getStage().requestFocus();
@@ -71,7 +72,7 @@ public final class DisplayManager {
 	 */
 	public void dispose() {
 		Screen.getScreens().removeListener(this.screenListener);
-		this.context.getWorkspaceConfiguration().getDisplayConfigurations().removeListener(this.ndiListener);
+//		this.context.getWorkspaceConfiguration().getDisplayConfigurations().removeListener(this.ndiListener);
 		
 		for (DisplayTarget target : this.targets) {
 			target.dispose();
@@ -89,11 +90,11 @@ public final class DisplayManager {
 		
 		// get the configured displays
 		ObservableList<DisplayConfiguration> configurations = this.context.getWorkspaceConfiguration().getDisplayConfigurations();
-		int dSize = configurations.size();
+		int dSize = configurations.filtered(dc -> dc.getType() == DisplayType.SCREEN).size();
 		
 		LOGGER.info("Last screen state: ");
-		for (DisplayConfiguration configuration : configurations) {
-			LOGGER.info(configuration);
+		for (DisplayTarget target : this.targets) {
+			LOGGER.info(target.getDisplayConfiguration());
 		}
 		
 		// check if the screen count changed
@@ -127,10 +128,13 @@ public final class DisplayManager {
 			int n = Math.max(sSize, dSize);
 			for (int i = 0; i < n; i++) {
 				// get the configuration for this screen number
-				DisplayConfiguration configuration = null;
-				if (i < dSize) {
-					configuration = configurations.get(i);
+				DisplayConfiguration configuration = this.context.getWorkspaceConfiguration().getDisplayConfigurationById(i);
+				if (configuration != null && configuration.getType() == DisplayType.NDI) {
+					throw new IllegalStateException("The NDI id matched the screen id");
 				}
+//				if (i < dSize) {
+//					configuration = configurations.get(i);
+//				}
 				
 				// get the screen for this screen number
 				int index = -1;
@@ -216,8 +220,8 @@ public final class DisplayManager {
 		
 		LOGGER.info("Screen update result: " + whatHappened);
 		LOGGER.info("New screen state: ");
-		for (DisplayConfiguration configuration : configurations) {
-			LOGGER.info(configuration);
+		for (DisplayTarget target : this.targets) {
+			LOGGER.info(target.getDisplayConfiguration());
 		}
 
 		return whatHappened;
@@ -230,11 +234,12 @@ public final class DisplayManager {
 	}
 	
 	private DisplayConfiguration createDisplayConfigurationFromScreen(Screen screen, int index, boolean isPrimary) {
+		Rectangle2D bounds = ScreenHelper.getScaledScreenBounds(screen);
 		DisplayConfiguration display = new DisplayConfiguration();
-		display.setHeight((int)screen.getBounds().getHeight());
+		display.setHeight((int)bounds.getHeight());
 		display.setId(index);
 		display.setPrimary(isPrimary);
-		display.setWidth((int)screen.getBounds().getWidth());
+		display.setWidth((int)bounds.getWidth());
 		display.setX((int)screen.getBounds().getMinX());
 		display.setY((int)screen.getBounds().getMinY());
 		display.setType(DisplayType.SCREEN);
@@ -243,8 +248,9 @@ public final class DisplayManager {
 	}
 	
 	private void updateScreenConfiguration(Screen screen, DisplayConfiguration configuration) {
-		configuration.setHeight((int)screen.getBounds().getHeight());
-		configuration.setWidth((int)screen.getBounds().getWidth());
+		Rectangle2D bounds = ScreenHelper.getScaledScreenBounds(screen);
+		configuration.setHeight((int)bounds.getHeight());
+		configuration.setWidth((int)bounds.getWidth());
 		configuration.setX((int)screen.getBounds().getMinX());
 		configuration.setY((int)screen.getBounds().getMinY());
 	}
@@ -278,7 +284,7 @@ public final class DisplayManager {
 		
 		// otherwise, it needs to be in the list of screens with the
 		// same index and must have the same dimensions and position
-		Rectangle2D bounds = screen.getBounds();
+		Rectangle2D bounds = ScreenHelper.getScaledScreenBounds(screen);
 		boolean positionChanged = false;
 		if ((int)bounds.getMinX() != configuration.getX() ||
 			(int)bounds.getMinY() != configuration.getY()) {
@@ -306,27 +312,16 @@ public final class DisplayManager {
 	
 	// NDIDisplayTarget
 	
-	private void onDisplayConfigurationChanged(Change<? extends DisplayConfiguration> c) {
-		while (c.next()) {
-			// first check if the slide we currently have selected was
-			// added (updated)
-			List<? extends DisplayConfiguration> as = c.getAddedSubList();
-			for (DisplayConfiguration add : as) {
-				NDIDisplayTarget target = new NDIDisplayTarget(this.context, add);
-				this.targets.add(target);
-			}
+	public void addNDIDisplay(DisplayConfiguration dc) {
+		this.context.getWorkspaceConfiguration().getDisplayConfigurations().add(dc);
+		this.targets.add(new NDIDisplayTarget(context, dc));
+	}
+	
+	public void removeNDIDisplay(DisplayConfiguration dc) {
+		if (dc.getType() == DisplayType.NDI) {
+			this.context.getWorkspaceConfiguration().getDisplayConfigurations().remove(dc);
+			this.removeDisplayTargetForDisplayConfiguration(dc);
 			
-			// next check if the slide we currently have selected was
-			// removed (deleted)
-			List<? extends DisplayConfiguration> rs = c.getRemoved();
-			for (DisplayConfiguration rm : rs) {
-				DisplayTarget found = this.getDisplayTargetForDisplayConfiguration(rm);
-				
-				if (found != null) {
-					this.targets.remove(found);
-					found.dispose();
-				}
-			}
 		}
 	}
 	

@@ -200,7 +200,7 @@ public final class DisplayController extends BorderPane implements ActionPane {
 			Optional<ButtonType> result = alert.showAndWait();
 			if (result.isPresent() && result.get() == ButtonType.YES) {
 				configuration.setActive(false);
-				this.context.getWorkspaceConfiguration().getDisplayConfigurations().remove(configuration);
+				this.context.getDisplayManager().removeNDIDisplay(configuration);
 			}
 		});
 		mnuDelete.setVisible(target.getDisplayConfiguration().getType() == DisplayType.NDI);
