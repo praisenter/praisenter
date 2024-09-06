@@ -204,7 +204,7 @@ jobs:
       #     product-path: ${{ env.DMG_PATH }}
 
       - name: Publish artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: dist-${{ matrix.os }}
           retention-days: 1
@@ -233,7 +233,7 @@ jobs:
 
       # Download all artifacts
       - name: Download artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
 
       # Now create the LATEST release
       - name: Update Latest Release
@@ -301,6 +301,6 @@ jobs:
 
       # Download all artifacts
       - name: Download artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
 
       # now push to the stores
