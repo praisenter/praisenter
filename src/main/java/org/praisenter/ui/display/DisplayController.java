@@ -20,6 +20,7 @@ import org.praisenter.data.slide.SlideReference;
 import org.praisenter.data.song.SongReferenceTextStore;
 import org.praisenter.data.workspace.DisplayConfiguration;
 import org.praisenter.data.workspace.DisplayType;
+import org.praisenter.data.workspace.ReadOnlyDisplayConfiguration;
 import org.praisenter.ui.Action;
 import org.praisenter.ui.ActionPane;
 import org.praisenter.ui.GlobalContext;
@@ -39,12 +40,19 @@ import atlantafx.base.theme.Styles;
 import javafx.animation.PauseTransition;
 import javafx.animation.Transition;
 import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.DoubleBinding;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
+import javafx.event.ActionEvent;
 import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
@@ -52,6 +60,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.Tab;
@@ -74,6 +83,8 @@ import javafx.stage.Modality;
 import javafx.util.Duration;
 
 public final class DisplayController extends BorderPane implements ActionPane {
+	private static final String TAG_CSS = "p-tag";
+	
 	private static final String DISPLAY_CONTROLLER_CSS = "p-display-controller";
 	private static final String DISPLAY_CONTROLLER_HEADER_CSS = "p-display-controller-header";
 	private static final String DISPLAY_CONTROLLER_NAME_CSS = "p-display-controller-name";
@@ -87,8 +98,6 @@ public final class DisplayController extends BorderPane implements ActionPane {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
 	private final GlobalContext context;
-	
-	@SuppressWarnings("unused")
 	private final DisplayTarget target;
 	
 	private final DoubleBinding leftMaxWidth;
@@ -105,6 +114,19 @@ public final class DisplayController extends BorderPane implements ActionPane {
 	
 	private boolean selectingQueuedSlide = false;
 	
+	/** True if this display is linked (controlled by another) */
+	private final StringProperty controllerDisplayName;
+	private final BooleanProperty isControlled;
+	
+	private final ObservableList<DisplayTarget> watchableDisplays;
+	
+	/** The list of targets that this controller controls */
+	private final ObservableList<DisplayTarget> controlledDisplays;
+	
+	/** The list of targets that could be controlled */
+	private final ObservableList<DisplayTarget> controllableDisplays;
+	private final ObservableList<MenuItem> displayMenuItems;
+	
 	public DisplayController(GlobalContext context, DisplayTarget target) {
 		this.getStyleClass().add(DISPLAY_CONTROLLER_CSS);
 		
@@ -113,9 +135,98 @@ public final class DisplayController extends BorderPane implements ActionPane {
 		
 		this.slides = FXCollections.observableArrayList();
 		this.lastTabIndex = new SimpleIntegerProperty(0);
-
+		
+		
 		DisplayConfiguration configuration = target.getDisplayConfiguration();
 
+		this.controllerDisplayName = new SimpleStringProperty();
+		this.controllerDisplayName.bind(Bindings.createStringBinding(() -> {
+			int id = configuration.getControllingDisplayId();
+			if (id == ReadOnlyDisplayConfiguration.NOT_CONTROLLED) {
+				return "";
+			} else {
+				DisplayTarget tgt = getDisplayTargetForId(id);
+				if (tgt != null) {
+					String name = "";
+					DisplayConfiguration config = tgt.getDisplayConfiguration();
+					if (StringManipulator.isNullOrEmpty(config.getName())) {
+						name = config.getDefaultName();
+					}
+					name = config.getName();
+					return Translations.get("display.controlledby", name);
+				}
+			}
+			return "";
+		}, configuration.controllingDisplayIdProperty()));
+		
+		this.watchableDisplays = FXCollections.observableArrayList(dt -> new ObservableValue[] {
+			dt.getDisplayConfiguration().controllingDisplayIdProperty()
+		});
+		Bindings.bindContent(this.watchableDisplays, context.getDisplayManager().getDisplayTargets());
+		
+		this.isControlled = new SimpleBooleanProperty();
+		this.isControlled.bind(Bindings.createBooleanBinding(() -> {
+			return configuration.getControllingDisplayId() != ReadOnlyDisplayConfiguration.NOT_CONTROLLED;
+		}, configuration.controllingDisplayIdProperty()));
+		
+		this.controlledDisplays = this.watchableDisplays.filtered(dt -> {
+			return dt.getDisplayConfiguration().getControllingDisplayId() == configuration.getId();
+		});
+		
+		this.controllableDisplays = this.watchableDisplays.filtered(dt -> {
+			return dt != target;
+		});
+		this.displayMenuItems = new MappedList<>(this.controllableDisplays, (tgt) -> {
+			var config = tgt.getDisplayConfiguration();
+			
+			CheckMenuItem itm = new CheckMenuItem();
+			itm.setOnAction((ActionEvent e) -> {
+				if (config.getControllingDisplayId() == ReadOnlyDisplayConfiguration.NOT_CONTROLLED) {
+					config.setControllingDisplayId(configuration.getId());
+				} else {
+					config.setControllingDisplayId(ReadOnlyDisplayConfiguration.NOT_CONTROLLED);
+				}
+				
+				try {
+					context.saveConfiguration();
+				} catch (Exception ex) {
+					// just log it i guess
+					LOGGER.error("Failed to save display configuration for linked display change", ex);
+				}
+			});
+			itm.setSelected(config.getControllingDisplayId() == configuration.getId());
+			
+			BooleanBinding disable = Bindings.createBooleanBinding(() -> {
+				// disable ALL linking if this display is controlled
+				if (configuration.getControllingDisplayId() != ReadOnlyDisplayConfiguration.NOT_CONTROLLED) {
+					return true;
+				}
+				
+				// disable linking of this target if it's controlled and not by this display
+				int controller = config.getControllingDisplayId();
+				if (controller != ReadOnlyDisplayConfiguration.NOT_CONTROLLED && controller != configuration.getId()) {
+					return true;
+				}
+				
+				// finally, don't allow controlling another display that is controlling something else
+				if (this.watchableDisplays.stream().anyMatch(tmp -> tmp.getDisplayConfiguration().getControllingDisplayId() == config.getId())) {
+					return true;
+				}
+				
+				return false;
+			}, configuration.controllingDisplayIdProperty(), config.controllingDisplayIdProperty(), this.watchableDisplays);
+			
+			itm.disableProperty().bind(disable);
+			itm.textProperty().bind(Bindings.createStringBinding(() -> {
+				if (StringManipulator.isNullOrEmpty(config.getName())) {
+					return config.getDefaultName();
+				}
+				return config.getName();
+			}, config.nameProperty(), config.defaultNameProperty()));
+			
+			return itm;
+		});
+		
 		// Action menu
 		// set name
 		// set role
@@ -205,10 +316,14 @@ public final class DisplayController extends BorderPane implements ActionPane {
 		});
 		mnuDelete.setVisible(target.getDisplayConfiguration().getType() == DisplayType.NDI);
 		
+		Menu mnuLink = new Menu(Translations.get("display.link"));
+		Bindings.bindContent(mnuLink.getItems(), this.displayMenuItems);
+		
 		MenuButton mnuActions = new MenuButton(Translations.get("display.actions"));
 		mnuActions.getItems().addAll(
 			mnuSetName,
 			mnuPrimary,
+			mnuLink,
 			mnuIdentify,
 			mnuHide,
 			mnuDelete);
@@ -451,10 +566,18 @@ public final class DisplayController extends BorderPane implements ActionPane {
 			return defaultName;
 		}, configuration.nameProperty(), configuration.defaultNameProperty()));
 		
+		final Button btn = new Button();
+		btn.textProperty().bind(this.controllerDisplayName);
+		btn.getStyleClass().add(TAG_CSS);
+		btn.setDisable(true);
+		btn.getStyleClass().addAll(Styles.ROUNDED, Styles.SMALL);
+		btn.visibleProperty().bind(this.controllerDisplayName.isNotNull());
+		btn.managedProperty().bind(btn.visibleProperty());
+		
 		HBox spacer = new HBox();
 		spacer.setMaxWidth(Double.MAX_VALUE);
-		HBox header = new HBox(lblHeader, lblDefaultName, spacer, mnuActions);
-		header.setAlignment(Pos.BASELINE_LEFT);
+		HBox header = new HBox(lblHeader, lblDefaultName, btn, spacer, mnuActions);
+		header.setAlignment(Pos.CENTER_LEFT);
 		header.getStyleClass().add(DISPLAY_CONTROLLER_HEADER_CSS);
 		HBox.setHgrow(spacer, Priority.ALWAYS);
 		
@@ -464,7 +587,7 @@ public final class DisplayController extends BorderPane implements ActionPane {
 		configuration.activeProperty().addListener((obs, ov, nv) -> {
 			if (!nv) {
 				// clear the screen
-				target.clear();
+				clearTarget();
 			}
 		});
 		
@@ -537,11 +660,11 @@ public final class DisplayController extends BorderPane implements ActionPane {
 				LOGGER.warn("Tab index '" + index + "' is not supported.");
 			}
 			
-			target.displaySlide(slide, data);
+			displaySlideOnTarget(slide, data);
 		});
 		
 		btnClear.setOnAction(e -> {
-			target.displaySlide(null, null);
+			displaySlideOnTarget(null, null);
 		});
 		
 		btnPreviewNotification.setOnAction(e -> {
@@ -571,12 +694,12 @@ public final class DisplayController extends BorderPane implements ActionPane {
 			Slide newSlide = cmbNotificationTemplate.getValue();
 			String message = txtNotification.getText();
 			if (newSlide != null && !StringManipulator.isNullOrEmpty(message)) {
-				target.displayNotification(newSlide, new StringTextStore(message));
+				displayNotificationOnTarget(newSlide, new StringTextStore(message));
 			}
 		});
 		
 		btnClearNotification.setOnAction(e -> {
-			target.displayNotification(null, null);
+			displayNotificationOnTarget(null, null);
 		});
 		
 		// disable some things when the user is on the notification tab
@@ -650,7 +773,7 @@ public final class DisplayController extends BorderPane implements ActionPane {
 			
 			// update the display (if auto-show enabled)
 			if (autoShow && change == DisplayChange.DATA) {
-				target.displaySlide(slide, data);
+				displaySlideOnTarget(slide, data);
 			}
 		};
 		
@@ -855,6 +978,61 @@ public final class DisplayController extends BorderPane implements ActionPane {
 		}
 		
 		// otherwise, keep the current value
+		return null;
+	}
+	
+	private void displaySlideOnTarget(final Slide slide, final TextStore data) {
+		this.target.displaySlide(slide, data);
+		for (DisplayTarget target : this.controlledDisplays) {
+			target.displaySlide(slide, data);
+		}
+	}
+	
+	@SuppressWarnings("unused")
+	private void displaySlideOnTarget(final Slide slide, final TextStore data, boolean transition) {
+		this.target.displaySlide(slide, data, transition);
+		for (DisplayTarget target : this.controlledDisplays) {
+			target.displaySlide(slide, data, transition);
+		}
+	}
+	
+	private void clearTarget() {
+		this.target.clear();
+		for (DisplayTarget target : this.controlledDisplays) {
+			target.clear();
+		}
+	}
+	
+	@SuppressWarnings("unused")
+	private void clearTarget(boolean transition) {
+		this.target.clear(transition);
+		for (DisplayTarget target : this.controlledDisplays) {
+			target.clear(transition);
+		}
+	}
+	
+	private void displayNotificationOnTarget(final Slide slide, final TextStore data) {
+		this.target.displayNotification(slide, data);
+		for (DisplayTarget target : this.controlledDisplays) {
+			target.displayNotification(slide, data);
+		}
+	}
+	
+	@SuppressWarnings("unused")
+	private void displayNotificationOnTarget(final Slide slide, final TextStore data, boolean transition) {
+		this.target.displayNotification(slide, data, transition);
+		for (DisplayTarget target : this.controlledDisplays) {
+			target.displayNotification(slide, data, transition);
+		}
+	}
+	
+	private DisplayTarget getDisplayTargetForId(Integer id) {
+		var targets = new ArrayList<>(this.context.getDisplayManager().getDisplayTargets());
+		for (var target : targets) {
+			if (target.getDisplayConfiguration().getId() == id) {
+				return target;
+			}
+		}
 		return null;
 	}
 	

@@ -28,6 +28,7 @@ public final class DisplayConfiguration implements BibleConfiguration, ReadOnlyD
 	private final StringProperty name;
 	private final StringProperty defaultName;
 	private final ObjectProperty<DisplayType> type;
+	private final IntegerProperty controllingDisplayId;
 	
 	private final IntegerProperty x;
 	private final IntegerProperty y;
@@ -55,6 +56,7 @@ public final class DisplayConfiguration implements BibleConfiguration, ReadOnlyD
 		this.defaultName = new SimpleStringProperty();
 		this.active = new SimpleBooleanProperty(false);
 		this.type = new SimpleObjectProperty<>();
+		this.controllingDisplayId = new SimpleIntegerProperty(NOT_CONTROLLED);
 		
 		this.x = new SimpleIntegerProperty();
 		this.y = new SimpleIntegerProperty();
@@ -76,7 +78,7 @@ public final class DisplayConfiguration implements BibleConfiguration, ReadOnlyD
 		this.queuedSlidesReadOnly = FXCollections.unmodifiableObservableList(this.queuedSlides);
 		
 		this.defaultName.bind(Bindings.createStringBinding(() -> {
-			return "#" + (this.id.get() + 1) + " (" + this.x.get() + "," + this.y.get() + ") " + this.width.get() + "x" + this.height.get();
+			return (this.id.get() + 1) + " (" + this.x.get() + "," + this.y.get() + ") " + this.width.get() + "x" + this.height.get();
 		}, this.id, this.x, this.y, this.width, this.height));
 	}
 	
@@ -87,6 +89,7 @@ public final class DisplayConfiguration implements BibleConfiguration, ReadOnlyD
 		dc.primary.set(this.primary.get());
 		dc.name.set(this.name.get());
 		dc.type.set(this.type.get());
+		dc.controllingDisplayId.set(this.controllingDisplayId.get());
 		dc.x.set(this.x.get());
 		dc.y.set(this.y.get());
 		dc.width.set(this.width.get());
@@ -191,6 +194,22 @@ public final class DisplayConfiguration implements BibleConfiguration, ReadOnlyD
 	@Override
 	public ReadOnlyStringProperty defaultNameProperty() {
 		return this.defaultName;
+	}
+	
+	@Override
+	@JsonProperty
+	public int getControllingDisplayId() {
+		return this.controllingDisplayId.get();
+	}
+	
+	@JsonProperty
+	public void setControllingDisplayId(int displayId) {
+		this.controllingDisplayId.set(displayId);
+	}
+
+	@Override
+	public IntegerProperty controllingDisplayIdProperty() {
+		return this.controllingDisplayId;
 	}
 	
 	@Override

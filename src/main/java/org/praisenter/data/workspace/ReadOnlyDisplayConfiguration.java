@@ -12,12 +12,15 @@ import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.collections.ObservableList;
 
 public interface ReadOnlyDisplayConfiguration extends Copyable {
+	public static final int NOT_CONTROLLED = -1;
+	
 	public int getId();
 	public boolean isPrimary();
 	public boolean isActive();
 	public String getName();
 	public DisplayType getType();
 	public String getDefaultName();
+	public int getControllingDisplayId();
 	public int getX();
 	public int getY();
 	public int getWidth();
@@ -42,6 +45,7 @@ public interface ReadOnlyDisplayConfiguration extends Copyable {
 	public ReadOnlyIntegerProperty widthProperty();
 	public ReadOnlyIntegerProperty heightProperty();
 	public ReadOnlyIntegerProperty framesPerSecondProperty();
+	public ReadOnlyIntegerProperty controllingDisplayIdProperty();
 	
 	public ReadOnlyObjectProperty<UUID> bibleTemplateIdProperty();
 	public ReadOnlyObjectProperty<UUID> songTemplateIdProperty();

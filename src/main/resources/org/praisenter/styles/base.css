@@ -442,6 +442,14 @@
 	-fx-stroke: -color-fg-default;
 }
 
+/** TAG */
+.p-tag {
+	-fx-stroke: -color-fg-default;
+	/* -fx-stroke: -color-accent-muted;
+	-fx-background-color: -color-accent-fg; */
+	-fx-color-fx-text-fill: -color-warning-fg;
+}
+
 /* DISPLAY CONTROLLER */
 .p-display-controller {
 	-fx-min-width: 52em;
