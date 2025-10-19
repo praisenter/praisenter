@@ -85,6 +85,9 @@ https://github.com/wixtoolset/wix3/releases
 mvn clean install
 ```
 
+### Microsoft Store
+https://partner.microsoft.com/en-us/dashboard/products
+
 ### Ubuntu Snap
 ```shell
 # to build the snap, navigate to the /snapcraft folder, copy the praisenter.deb there, then run

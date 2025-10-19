@@ -5,7 +5,7 @@
 
 	<groupId>org.praisenter</groupId>
 	<artifactId>praisenter</artifactId>
-	<version>3.1.6</version>
+	<version>3.1.7</version>
 	<packaging>jar</packaging>
 
 	<!-- General Project Information -->
@@ -74,11 +74,11 @@
         <!-- Set the project to UTF-8, avoiding warnings in the build logs -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
+        <maven.compiler.source>25</maven.compiler.source>
+        <maven.compiler.target>25</maven.compiler.target>
 
         <!-- Used to set both the path to find the JavaFX modules and also the versions for Maven dependencies -->
-        <javafx.version>21</javafx.version>
+        <javafx.version>25</javafx.version>
 
         <!-- Replace this UUID with a custom one for your project. This ID is used by the Windows installer system
         to know that an installer is intended to replace/upgrade an earlier version. The easiest thing to do is
@@ -103,17 +103,17 @@
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
-			<version>2.16.1</version>
+			<version>2.20.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-api</artifactId>
-			<version>2.23.1</version>
+			<version>2.25.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-core</artifactId>
-			<version>2.23.1</version>
+			<version>2.25.2</version>
 		</dependency>
 		<dependency>
 			<groupId>com.drewnoakes</groupId>
@@ -123,42 +123,42 @@
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
-			<version>3.14.0</version>
+			<version>3.19.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-jpeg</artifactId>
-			<version>3.10.1</version>
+			<version>3.12.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-tiff</artifactId>
-			<version>3.10.1</version>
+			<version>3.12.0</version>
 		</dependency>
 		<dependency>
 		    <groupId>com.twelvemonkeys.imageio</groupId>
 		    <artifactId>imageio-bmp</artifactId>
-		    <version>3.10.1</version>
+		    <version>3.12.0</version>
 		</dependency>
 		<dependency>
 		    <groupId>com.twelvemonkeys.imageio</groupId>
 		    <artifactId>imageio-webp</artifactId>
-		    <version>3.10.1</version>
+		    <version>3.12.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.tika</groupId>
 			<artifactId>tika-core</artifactId>
-			<version>2.9.2</version>
+			<version>3.2.3</version>
 		</dependency>
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
-			<version>2.17.1</version>
+			<version>2.20.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.pdfbox</groupId>
 			<artifactId>pdfbox</artifactId>
-			<version>2.0.31</version>
+			<version>3.0.6</version>
 		</dependency>
 		<dependency>
 			<groupId>com.sun.activation</groupId>
@@ -168,77 +168,77 @@
 		<dependency>
 			<groupId>org.openjfx</groupId>
 			<artifactId>javafx-base</artifactId>
-			<version>22</version>
+			<version>25</version>
 			<classifier>${jfx.platform}</classifier>
 		</dependency>
 		<dependency>
 			<groupId>org.openjfx</groupId>
 			<artifactId>javafx-controls</artifactId>
-			<version>22</version>
+			<version>25</version>
 			<classifier>${jfx.platform}</classifier>
 		</dependency>
 		<dependency>
 			<groupId>org.openjfx</groupId>
 			<artifactId>javafx-media</artifactId>
-			<version>22</version>
+			<version>25</version>
 			<classifier>${jfx.platform}</classifier>
 		</dependency>
 		<dependency>
 			<groupId>org.openjfx</groupId>
 			<artifactId>javafx-swing</artifactId>
-			<version>22</version>
+			<version>25</version>
 			<classifier>${jfx.platform}</classifier>
 		</dependency>
 		<dependency>
 			<groupId>org.openjfx</groupId>
 			<artifactId>javafx-web</artifactId>
-			<version>22</version>
+			<version>25</version>
 			<classifier>${jfx.platform}</classifier>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-text</artifactId>
-			<version>1.12.0</version>
+			<version>1.14.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.lucene</groupId>
 			<artifactId>lucene-core</artifactId>
-			<version>9.11.0</version>
+			<version>10.3.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.lucene</groupId>
 			<artifactId>lucene-memory</artifactId>
-			<version>9.11.0</version>
+			<version>10.3.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.lucene</groupId>
 			<artifactId>lucene-highlighter</artifactId>
-			<version>9.11.0</version>
+			<version>10.3.1</version>
 		</dependency>
 		<dependency>
 			<groupId>io.github.mkpaz</groupId>
 			<artifactId>atlantafx-base</artifactId>
-			<version>2.0.1</version>
+			<version>2.1.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.lucene</groupId>
 			<artifactId>lucene-queries</artifactId>
-			<version>9.11.0</version>
+			<version>10.3.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.lucene</groupId>
 			<artifactId>lucene-backward-codecs</artifactId>
-			<version>9.11.0</version>
+			<version>10.3.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-slf4j2-impl</artifactId>
-			<version>2.23.1</version>
+			<version>2.25.2</version>
 		</dependency>
 		<dependency>
 		    <groupId>org.apache.commons</groupId>
 		    <artifactId>commons-compress</artifactId>
-		    <version>1.26.2</version>
+		    <version>1.28.0</version>
 		</dependency>
 		<dependency>
 		  <groupId>me.walkerknapp</groupId>

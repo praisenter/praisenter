@@ -25,5 +25,6 @@
 --java-options "--add-exports=javafx.base/com.sun.javafx.runtime=ALL-UNNAMED"
 --java-options "--add-opens=javafx.controls/javafx.scene.control.skin=ALL-UNNAMED"
 --java-options "--add-opens=javafx.graphics/javafx.scene=ALL-UNNAMED"
+--java-options "--enable-native-access=ALL-UNNAMED"
 ${macos.sign}
 ${macos.sign.identity}

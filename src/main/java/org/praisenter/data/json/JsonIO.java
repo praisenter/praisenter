@@ -78,7 +78,7 @@ public final class JsonIO {
 		// make sure we have explicitly mark the properties we want serialized/deserialized
 		mapper.setVisibility(PropertyAccessor.ALL, Visibility.NONE);
 		// don't include empty properties
-		mapper.setSerializationInclusion(Include.NON_EMPTY);
+		mapper.setDefaultPropertyInclusion(Include.NON_EMPTY);
 		// make sure that the json generator doesn't close streams (we'll take care of it)
 		mapper.disable(JsonGenerator.Feature.AUTO_CLOSE_TARGET);
 		return mapper;

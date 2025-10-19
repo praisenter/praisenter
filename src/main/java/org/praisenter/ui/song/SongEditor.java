@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.praisenter.Constants;
@@ -236,7 +237,7 @@ public final class SongEditor extends BorderPane implements DocumentEditor<Song>
 
 				CompletableFuture.supplyAsync(() -> {
 					LOGGER.debug("Loading " + file.getAbsolutePath());
-					try (PDDocument doc = PDDocument.load(file)) {
+					try (PDDocument doc = Loader.loadPDF(file)) {
 			            if (!doc.isEncrypted()) {
 			            	LOGGER.debug("Document loaded");
 			                PDFTextStripper tStripper = new PDFTextStripper();

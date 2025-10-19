@@ -10,7 +10,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StringField;
@@ -249,8 +249,8 @@ public final class Song implements ReadOnlySong, Indexable, Persistable, Copyabl
 	@Override
 	public Lyrics getLyrics(String language, String transliteration) {
 		for (Lyrics lyrics : this.lyrics) {
-			if (StringUtils.equalsIgnoreCase(lyrics.getLanguage(), language) &&
-				StringUtils.equalsIgnoreCase(lyrics.getTransliteration(), transliteration)) {
+			if (Strings.CI.equals(lyrics.getLanguage(), language) &&
+				Strings.CI.equals(lyrics.getTransliteration(), transliteration)) {
 				return lyrics;
 			}
 		}
