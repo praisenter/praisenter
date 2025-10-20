@@ -95,7 +95,7 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path "./packaging/windows64/msix/Praisenter/App"
-          Copy-Item -Path "./target/installer-work/image/win-msi.image/Praisenter/*" -Destination "./packaging/windows64/msix/Praisenter/App" -Recurse
+          Copy-Item -Path "./target/installer-work/image/Praisenter/*" -Destination "./packaging/windows64/msix/Praisenter/App" -Recurse
 
       # Build the msixupload file (WINDOWS)
       - name: Build MSIX package
