@@ -235,21 +235,6 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v4
 
-      # Now create the LATEST release
-      - name: Update Latest Release
-        uses: marvinpinto/action-automatic-releases@latest
-        with:
-          repo_token: "${{ secrets.GITHUB_TOKEN}}"
-          automatic_release_tag: latest
-          prerelease: false
-          title: Praisenter Latest
-          files: |
-            ./dist-windows-latest/*.msi
-            ./dist-windows-latest/*.msixupload
-            ./dist-ubuntu-latest/*.deb
-            ./dist-ubuntu-latest/*.snap
-          # ./dist-macos-latest/*.dmg
-
       # Create one release called 3.2.1 (for example)
       - name: Create Versioned Release
         uses: marvinpinto/action-automatic-releases@latest
