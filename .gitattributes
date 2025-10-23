@@ -1,0 +1,6 @@
+src/main/resources/org/praisenter/data/media/tools/linux64/ffmpeg filter=lfs diff=lfs merge=lfs -text
+src/main/resources/org/praisenter/data/media/tools/linux64/ffprobe filter=lfs diff=lfs merge=lfs -text
+src/main/resources/org/praisenter/data/media/tools/macos64/ffprobe filter=lfs diff=lfs merge=lfs -text
+src/main/resources/org/praisenter/data/media/tools/macos64/ffmpeg filter=lfs diff=lfs merge=lfs -text
+src/main/resources/org/praisenter/data/media/tools/windows64/ffmpeg.exe filter=lfs diff=lfs merge=lfs -text
+src/main/resources/org/praisenter/data/media/tools/windows64/ffprobe.exe filter=lfs diff=lfs merge=lfs -text
