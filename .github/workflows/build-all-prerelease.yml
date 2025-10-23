@@ -259,7 +259,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
-          tag: latest
+          tag: ${{ env.VERSION_NUMBER }}
 
       # Now update the versioned release with the same body
       - name: Copy release notes

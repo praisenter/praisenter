@@ -101,3 +101,23 @@ snapcraft login
 snapcraft upload ./praisenter_3.1.3_amd64.snap
 ```
 
+### Git LFS
+The FFmpeg binaries are too large for GitHub to track so they are stored in Git LFS.
+
+To update the files, ensure that when you clone the repo that you initialize Git LFS:
+```shell
+git lfs install
+```
+
+To install Git LFS:
+https://docs.github.com/en/repositories/working-with-files/managing-large-files/installing-git-large-file-storage
+
+Current Git LFS tracked objects:
+```shell
+git lfs track src/main/resources/org/praisenter/data/media/tools/linux64/ffmpeg
+git lfs track src/main/resources/org/praisenter/data/media/tools/linux64/ffprobe
+git lfs track src/main/resources/org/praisenter/data/media/tools/macos64/ffmpeg
+git lfs track src/main/resources/org/praisenter/data/media/tools/macos64/ffprobe
+git lfs track src/main/resources/org/praisenter/data/media/tools/windows64/ffmpeg.exe
+git lfs track src/main/resources/org/praisenter/data/media/tools/windows64/ffprobe.exe
+```
