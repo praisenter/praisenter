@@ -37,36 +37,22 @@ jobs:
           Write-Host "VERSION_NUMBER: $content"
           echo "VERSION_NUMBER=$content" >> $Env:GITHUB_ENV
 
-      # Download WIX toolset (WINDOWS)
-      - name: Download Wix
-        uses: i3h/download-release-asset@v1
-        if: matrix.os == 'windows-latest'
-        with:
-          owner: wixtoolset
-          repo: wix3
-          tag: wix3112rtm
-          file: wix311-binaries.zip
-      
-      # Unzip WIX (WINDOWS)
-      - name: Decompress Wix
-        uses: DuckSoft/extract-7z-action@v1.0
-        if: matrix.os == 'windows-latest'
-        with:
-          pathSource: wix311-binaries.zip
-          pathTarget: ./target/wix
-
-      # Add WIX to the Path (WINDOWS)
-      - name: Add Wix to Path
-        run: echo "$HOME/target/wix" >> $GITHUB_PATH
-        if: matrix.os == 'windows-latest'
-
       # Add MSBuild (WINDOWS)
       - name: Add msbuild to PATH
-        uses: microsoft/setup-msbuild@v1.1
+        uses: microsoft/setup-msbuild@v2
+        if: matrix.os == 'windows-latest'
+
+      # Install Wix 6
+      # https://github.com/petr-panteleyev/jpackage-gradle-plugin/issues/38#issuecomment-2873402088
+      - name: Install WiX 6
+        run: |
+          dotnet tool install --global wix --version 6.0.2
+          wix extension add -g WixToolset.Util.wixext/6.0.2
+          wix extension add -g WixToolset.Ui.wixext/6.0.2
         if: matrix.os == 'windows-latest'
 
       # Setup Java w/ JavaFX
-      - name: Set up JDK 21
+      - name: Set up JDK 25
         uses: actions/setup-java@v5
         with:
           java-version: 25

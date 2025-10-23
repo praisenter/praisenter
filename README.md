@@ -29,6 +29,7 @@ A free and open source presentation software package for Churches, providing dis
 * Support for export/import of content (build at home, export, import at church)
 * Support for adding slides to a service queue (no auto-play yet)
 * Support for bulk editing Bible verses/song lyrics
+* And more!
 
 ## Screenshots:
 
@@ -76,9 +77,9 @@ Bibles and songs lyrics support bulk editing for easy copy/paste from other sour
 
 ![Bulk Editing](https://praisenter.org/assets/img/features/bulk-edit.png)
 
-## Building
-Install WiX Toolset 3.x:
-https://github.com/wixtoolset/wix3/releases
+## Building:
+Install WiX Toolset 6.x:
+https://github.com/wixtoolset/wix/releases
 
 ### Maven
 ```shell
@@ -100,6 +101,9 @@ sudo snap remove praisenter
 snapcraft login
 snapcraft upload ./praisenter_3.1.3_amd64.snap
 ```
+
+### FFmpeg Static Builds
+https://github.com/BtbN/FFmpeg-Builds
 
 ### Git LFS
 The FFmpeg binaries are too large for GitHub to track so they are stored in Git LFS.
