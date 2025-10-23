@@ -51,6 +51,7 @@ public final class InstallUpgradeHandler {
 		
 		this.upgradeHandlers = new ArrayList<>();
 		this.upgradeHandlers.add(new Upgrade300OrEarlier());
+		this.upgradeHandlers.add(new Upgrade316OrEarlier());
 	}
 	
 	public void performApplicationInstallOrUpgradeSteps() {
