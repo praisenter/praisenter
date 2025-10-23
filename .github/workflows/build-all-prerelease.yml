@@ -24,7 +24,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       # Get latest from the current branch
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
       
       # This pulls the version number from the release-version.txt file
       - name: Read version
@@ -268,24 +270,24 @@ jobs:
           body: ${{ steps.release.outputs.body }}
           allow_override: true
 
-  store-deploy:
-    needs: github-release
-    runs-on: ubuntu-latest
-    steps:
-      # Get latest from the current branch
-      - uses: actions/checkout@v2
+  # store-deploy:
+  #   needs: github-release
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     # Get latest from the current branch
+  #     - uses: actions/checkout@v2
 
-      # This pulls the version number from the release-version.txt file
-      - name: Read version
-        id: readversion
-        shell: pwsh
-        run: |
-          $content = Get-Content release-version.txt
-          Write-Host "VERSION_NUMBER: $content"
-          echo "VERSION_NUMBER=$content" >> $Env:GITHUB_ENV
+  #     # This pulls the version number from the release-version.txt file
+  #     - name: Read version
+  #       id: readversion
+  #       shell: pwsh
+  #       run: |
+  #         $content = Get-Content release-version.txt
+  #         Write-Host "VERSION_NUMBER: $content"
+  #         echo "VERSION_NUMBER=$content" >> $Env:GITHUB_ENV
 
-      # Download all artifacts
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
+  #     # Download all artifacts
+  #     - name: Download artifacts
+  #       uses: actions/download-artifact@v4
 
-      # now push to the stores
+  #     # now push to the stores
