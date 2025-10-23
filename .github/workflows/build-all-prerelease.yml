@@ -37,32 +37,37 @@ jobs:
           Write-Host "VERSION_NUMBER: $content"
           echo "VERSION_NUMBER=$content" >> $Env:GITHUB_ENV
 
-      # Download WIX toolset (WINDOWS)
-      - name: Download Wix
-        uses: i3h/download-release-asset@v1
-        if: matrix.os == 'windows-latest'
-        with:
-          owner: wixtoolset
-          repo: wix3
-          tag: wix3112rtm
-          file: wix311-binaries.zip
+      # # Download WIX toolset (WINDOWS)
+      # - name: Download Wix
+      #   uses: i3h/download-release-asset@v1
+      #   if: matrix.os == 'windows-latest'
+      #   with:
+      #     owner: wixtoolset
+      #     repo: wix3
+      #     tag: wix3112rtm
+      #     file: wix311-binaries.zip
       
-      # Unzip WIX (WINDOWS)
-      - name: Decompress Wix
-        uses: DuckSoft/extract-7z-action@v1.0
-        if: matrix.os == 'windows-latest'
-        with:
-          pathSource: wix311-binaries.zip
-          pathTarget: ./target/wix
+      # # Unzip WIX (WINDOWS)
+      # - name: Decompress Wix
+      #   uses: DuckSoft/extract-7z-action@v1.0
+      #   if: matrix.os == 'windows-latest'
+      #   with:
+      #     pathSource: wix311-binaries.zip
+      #     pathTarget: ./target/wix
 
-      # Add WIX to the Path (WINDOWS)
-      - name: Add Wix to Path
-        run: echo "$HOME/target/wix" >> $GITHUB_PATH
-        if: matrix.os == 'windows-latest'
+      # # Add WIX to the Path (WINDOWS)
+      # - name: Add Wix to Path
+      #   run: echo "$HOME/target/wix" >> $GITHUB_PATH
+      #   if: matrix.os == 'windows-latest'
 
       # Add MSBuild (WINDOWS)
       - name: Add msbuild to PATH
-        uses: microsoft/setup-msbuild@v1.1
+        uses: microsoft/setup-msbuild@v2
+        if: matrix.os == 'windows-latest'
+
+      # Install Wix 5
+      - name: Install WiX
+        run: dotnet tool install --global wix --version 5.0.2
         if: matrix.os == 'windows-latest'
 
       # Setup Java w/ JavaFX

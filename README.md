@@ -6,7 +6,7 @@
 A free and open source presentation software package for Churches, providing display of Bible verses, songs, notifications, and custom slides to a secondary displays, typically a projector, monitor or television.
 
 ## Requirements:
-* Windows 10 x64 (where most testing occurs)
+* Windows 10 x64 22H2 or higher (most testing occurs on Windows 11)
 * Ubuntu 22.04 x64 or higher
 * Mac OS 11 x64 or higher (coming...)
 * Plenty of RAM (4 or more)
@@ -66,7 +66,7 @@ Other features include Bible searching, edit safety, notification overlays, slid
 
 ![Relevance Searching](https://praisenter.org/assets/img/features/searching.png)
 
-** Media Support **
+**Media Support**
 Praisenter can import hundreds of different media file formats. Upon importing, Praisenter will convert them to an optimized form. You can change (or turn off) this feature to fit your workflow.
 
 ![Media Formats](https://praisenter.org/assets/img/features/formats.png)
