@@ -20,6 +20,7 @@ public interface ReadOnlyDisplayConfiguration extends Copyable {
 	public String getName();
 	public DisplayType getType();
 	public String getDefaultName();
+	public String getLabel();
 	public int getControllingDisplayId();
 	public int getX();
 	public int getY();
@@ -40,6 +41,7 @@ public interface ReadOnlyDisplayConfiguration extends Copyable {
 	public ReadOnlyStringProperty nameProperty();
 	public ReadOnlyObjectProperty<DisplayType> typeProperty();
 	public ReadOnlyStringProperty defaultNameProperty();
+	public ReadOnlyStringProperty labelProperty();
 	public ReadOnlyIntegerProperty xProperty();
 	public ReadOnlyIntegerProperty yProperty();
 	public ReadOnlyIntegerProperty widthProperty();

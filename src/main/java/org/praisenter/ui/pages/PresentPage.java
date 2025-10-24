@@ -160,7 +160,7 @@ public final class PresentPage extends BorderPane implements Page {
 		
 		this.inactiveNDIDisplayControllers = new AdditionalItemsList<>(new MappedList<MenuItem, DisplayTarget>(inactiveNDIDisplayTargets, (DisplayTarget target) -> {
 			MenuItem item = new MenuItem();
-			item.setText(target.getDisplayConfiguration().getName());
+			item.textProperty().bind(target.getDisplayConfiguration().labelProperty());
 			item.visibleProperty().bind(target.getDisplayConfiguration().activeProperty().not());
 			item.setOnAction(e -> {
 				target.getDisplayConfiguration().setActive(true);

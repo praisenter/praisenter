@@ -10,7 +10,6 @@ import org.praisenter.ui.controls.WindowHelper;
 import org.praisenter.ui.slide.SlideMode;
 import org.praisenter.ui.slide.SlideView;
 
-import javafx.beans.binding.Bindings;
 import javafx.beans.value.ChangeListener;
 import javafx.event.EventHandler;
 import javafx.scene.CacheHint;
@@ -111,12 +110,7 @@ public final class ScreenDisplayTarget extends Stage implements DisplayTarget {
 		this.setMaxWidth(configuration.getWidth());
 		this.setMaxHeight(configuration.getHeight());
 		
-		this.titleProperty().bind(Bindings.createStringBinding(() -> {
-			String name = configuration.getName();
-			String defaultName = configuration.getDefaultName();
-			if (name == null || name.isBlank()) return defaultName;
-			return name + " " + defaultName;
-		}, configuration.nameProperty(), configuration.defaultNameProperty()));
+		this.titleProperty().bind(configuration.labelProperty());
 		
 		if (configuration.isActive()) {
 			this.show();
@@ -139,7 +133,7 @@ public final class ScreenDisplayTarget extends Stage implements DisplayTarget {
 	
 	@Override
 	public String toString() {
-		return this.configuration.getDefaultName();
+		return this.configuration.getLabel();
 	}
 	
 	public void dispose() {

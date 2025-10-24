@@ -25,7 +25,9 @@ import org.praisenter.ui.Action;
 import org.praisenter.ui.ActionPane;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.bible.BibleNavigationPane;
+import org.praisenter.ui.bind.BindingHelper;
 import org.praisenter.ui.bind.MappedList;
+import org.praisenter.ui.bind.ObjectConverter;
 import org.praisenter.ui.controls.Dialogs;
 import org.praisenter.ui.slide.SlideList;
 import org.praisenter.ui.slide.SlideMode;
@@ -44,15 +46,16 @@ import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.DoubleBinding;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
 import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
@@ -115,6 +118,7 @@ public final class DisplayController extends BorderPane implements ActionPane {
 	private boolean selectingQueuedSlide = false;
 	
 	/** True if this display is linked (controlled by another) */
+	private final ObjectProperty<DisplayTarget> controller;
 	private final StringProperty controllerDisplayName;
 	private final BooleanProperty isControlled;
 	
@@ -136,66 +140,68 @@ public final class DisplayController extends BorderPane implements ActionPane {
 		this.slides = FXCollections.observableArrayList();
 		this.lastTabIndex = new SimpleIntegerProperty(0);
 		
-		
 		DisplayConfiguration configuration = target.getDisplayConfiguration();
 
+		this.controller = new SimpleObjectProperty<DisplayTarget>();
 		this.controllerDisplayName = new SimpleStringProperty();
-		this.controllerDisplayName.bind(Bindings.createStringBinding(() -> {
-			int id = configuration.getControllingDisplayId();
-			if (id == ReadOnlyDisplayConfiguration.NOT_CONTROLLED) {
-				return "";
-			} else {
-				DisplayTarget tgt = getDisplayTargetForId(id);
-				if (tgt != null) {
-					String name = "";
-					DisplayConfiguration config = tgt.getDisplayConfiguration();
-					if (StringManipulator.isNullOrEmpty(config.getName())) {
-						name = config.getDefaultName();
-					}
-					name = config.getName();
-					return Translations.get("display.controlledby", name);
-				}
-			}
-			return "";
-		}, configuration.controllingDisplayIdProperty()));
-		
-		this.watchableDisplays = FXCollections.observableArrayList(dt -> new ObservableValue[] {
-			dt.getDisplayConfiguration().controllingDisplayIdProperty()
-		});
-		Bindings.bindContent(this.watchableDisplays, context.getDisplayManager().getDisplayTargets());
-		
 		this.isControlled = new SimpleBooleanProperty();
+		
 		this.isControlled.bind(Bindings.createBooleanBinding(() -> {
 			return configuration.getControllingDisplayId() != ReadOnlyDisplayConfiguration.NOT_CONTROLLED;
 		}, configuration.controllingDisplayIdProperty()));
+
+		this.controller.addListener((obs, ov, nv) -> {
+			this.controllerDisplayName.unbind();
+			this.controllerDisplayName.setValue(null);
+			if (nv != null) {
+				this.controllerDisplayName.bind(Bindings.createStringBinding(() -> {
+					String name = nv.getDisplayConfiguration().getLabel();
+					return Translations.get("display.controlledby", name);
+				}, nv.getDisplayConfiguration().labelProperty()));
+			}
+		});
+
+		this.controller.bind(Bindings.createObjectBinding(() -> {
+			int id = configuration.getControllingDisplayId();
+			return getDisplayTargetForId(id);
+		}, configuration.controllingDisplayIdProperty()));
+		
+		this.watchableDisplays = FXCollections.observableArrayList(dt -> new ObservableValue[] {
+			dt.getDisplayConfiguration().controllingDisplayIdProperty(),
+			dt.getDisplayConfiguration().activeProperty()
+		});
+		Bindings.bindContent(this.watchableDisplays, context.getDisplayManager().getDisplayTargets());
 		
 		this.controlledDisplays = this.watchableDisplays.filtered(dt -> {
 			return dt.getDisplayConfiguration().getControllingDisplayId() == configuration.getId();
 		});
 		
 		this.controllableDisplays = this.watchableDisplays.filtered(dt -> {
-			return dt != target;
+			return dt != target && dt.getDisplayConfiguration().isActive();
 		});
 		this.displayMenuItems = new MappedList<>(this.controllableDisplays, (tgt) -> {
 			var config = tgt.getDisplayConfiguration();
 			
 			CheckMenuItem itm = new CheckMenuItem();
-			itm.setOnAction((ActionEvent e) -> {
-				if (config.getControllingDisplayId() == ReadOnlyDisplayConfiguration.NOT_CONTROLLED) {
-					config.setControllingDisplayId(configuration.getId());
-				} else {
-					config.setControllingDisplayId(ReadOnlyDisplayConfiguration.NOT_CONTROLLED);
+			BindingHelper.bindBidirectional(itm.selectedProperty(), config.controllingDisplayIdProperty(), new ObjectConverter<Boolean, Number>() {
+				@Override
+				public Number convertFrom(Boolean t) {
+					if (t) {
+						return configuration.getId();
+					} else {
+						return ReadOnlyDisplayConfiguration.NOT_CONTROLLED;
+					}
 				}
-				
-				try {
-					context.saveConfiguration();
-				} catch (Exception ex) {
-					// just log it i guess
-					LOGGER.error("Failed to save display configuration for linked display change", ex);
+
+				@Override
+				public Boolean convertTo(Number e) {
+					if (e != null && e.intValue() == configuration.getId()) {
+						return true;
+					} else {
+						return false;
+					}
 				}
 			});
-			itm.setSelected(config.getControllingDisplayId() == configuration.getId());
-			
 			BooleanBinding disable = Bindings.createBooleanBinding(() -> {
 				// disable ALL linking if this display is controlled
 				if (configuration.getControllingDisplayId() != ReadOnlyDisplayConfiguration.NOT_CONTROLLED) {
@@ -217,12 +223,7 @@ public final class DisplayController extends BorderPane implements ActionPane {
 			}, configuration.controllingDisplayIdProperty(), config.controllingDisplayIdProperty(), this.watchableDisplays);
 			
 			itm.disableProperty().bind(disable);
-			itm.textProperty().bind(Bindings.createStringBinding(() -> {
-				if (StringManipulator.isNullOrEmpty(config.getName())) {
-					return config.getDefaultName();
-				}
-				return config.getName();
-			}, config.nameProperty(), config.defaultNameProperty()));
+			itm.textProperty().bind(config.labelProperty());
 			
 			return itm;
 		});
@@ -296,6 +297,18 @@ public final class DisplayController extends BorderPane implements ActionPane {
 			Optional<ButtonType> result = alert.showAndWait();
 			if (result.isPresent() && result.get() == ButtonType.YES) {
 				configuration.setActive(false);
+				
+				// if you have being controlled, then remove the controller
+				configuration.setControllingDisplayId(ReadOnlyDisplayConfiguration.NOT_CONTROLLED);
+				
+				// if you are controlling something, stop controlling it
+				List<DisplayTarget> tgts = new ArrayList<>(context.getDisplayManager().getDisplayTargets());
+				for (DisplayTarget tgt : tgts) {
+					DisplayConfiguration config = tgt.getDisplayConfiguration();
+					if (config.getControllingDisplayId() == configuration.getId()) {
+						config.setControllingDisplayId(ReadOnlyDisplayConfiguration.NOT_CONTROLLED);
+					}
+				}
 			}
 		});
 		
@@ -546,24 +559,18 @@ public final class DisplayController extends BorderPane implements ActionPane {
 		
 		Label lblHeader = new Label();
 		lblHeader.textProperty().bind(Bindings.createStringBinding(() -> {
-			String name = configuration.getName();
-			String defaultName = configuration.getDefaultName();
-			if (name == null || name.isBlank()) {
-				return defaultName;
-			} else {
-				return "# " + name;				
-			}
-		}, configuration.nameProperty(), configuration.defaultNameProperty()));
+			String name = configuration.getLabel();
+			return "# " + name;
+		}, configuration.labelProperty()));
 		lblHeader.getStyleClass().addAll(Styles.TITLE_3, DISPLAY_CONTROLLER_NAME_CSS);
 		
 		Label lblDefaultName = new Label();
 		lblDefaultName.textProperty().bind(Bindings.createStringBinding(() -> {
 			String name = configuration.getName();
-			String defaultName = configuration.getDefaultName();
-			if (name == null || name.isBlank()) {
-				return "";
+			if (!StringManipulator.isNullOrEmpty(name)) {
+				return configuration.getDefaultName();
 			}
-			return defaultName;
+			return "";
 		}, configuration.nameProperty(), configuration.defaultNameProperty()));
 		
 		final Button btn = new Button();

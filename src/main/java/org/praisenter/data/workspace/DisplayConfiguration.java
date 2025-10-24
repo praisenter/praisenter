@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import org.praisenter.data.bible.BibleConfiguration;
 import org.praisenter.data.slide.SlideReference;
+import org.praisenter.utility.StringManipulator;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -27,6 +28,7 @@ public final class DisplayConfiguration implements BibleConfiguration, ReadOnlyD
 	private final BooleanProperty active;
 	private final StringProperty name;
 	private final StringProperty defaultName;
+	private final StringProperty label;
 	private final ObjectProperty<DisplayType> type;
 	private final IntegerProperty controllingDisplayId;
 	
@@ -54,6 +56,7 @@ public final class DisplayConfiguration implements BibleConfiguration, ReadOnlyD
 		this.primary = new SimpleBooleanProperty(false);
 		this.name = new SimpleStringProperty();
 		this.defaultName = new SimpleStringProperty();
+		this.label = new SimpleStringProperty();
 		this.active = new SimpleBooleanProperty(false);
 		this.type = new SimpleObjectProperty<>();
 		this.controllingDisplayId = new SimpleIntegerProperty(NOT_CONTROLLED);
@@ -78,8 +81,16 @@ public final class DisplayConfiguration implements BibleConfiguration, ReadOnlyD
 		this.queuedSlidesReadOnly = FXCollections.unmodifiableObservableList(this.queuedSlides);
 		
 		this.defaultName.bind(Bindings.createStringBinding(() -> {
-			return (this.id.get() + 1) + " (" + this.x.get() + "," + this.y.get() + ") " + this.width.get() + "x" + this.height.get();
+			return "ID=" + (this.id.get() + 1) + " (" + this.x.get() + "," + this.y.get() + ") " + this.width.get() + "x" + this.height.get();
 		}, this.id, this.x, this.y, this.width, this.height));
+		
+		this.label.bind(Bindings.createStringBinding(() -> {
+			String n = this.name.get();
+			if (StringManipulator.isNullOrEmpty(n)) {
+				n = this.defaultName.get();
+			}
+			return n;
+		}, this.name, this.defaultName));
 	}
 	
 	@Override
@@ -194,6 +205,16 @@ public final class DisplayConfiguration implements BibleConfiguration, ReadOnlyD
 	@Override
 	public ReadOnlyStringProperty defaultNameProperty() {
 		return this.defaultName;
+	}
+	
+	@Override
+	public String getLabel() {
+		return this.label.get();
+	}
+	
+	@Override
+	public ReadOnlyStringProperty labelProperty() {
+		return this.label;
 	}
 	
 	@Override
