@@ -7,8 +7,10 @@ import java.text.Collator;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -23,12 +25,14 @@ import org.praisenter.Constants;
 import org.praisenter.Editable;
 import org.praisenter.data.ImportExportFormat;
 import org.praisenter.data.Persistable;
+import org.praisenter.data.bible.Bible;
 import org.praisenter.data.media.Media;
 import org.praisenter.data.slide.Slide;
 import org.praisenter.data.slide.graphics.ScaleType;
 import org.praisenter.data.slide.graphics.SlideColor;
 import org.praisenter.data.slide.media.MediaComponent;
 import org.praisenter.data.slide.media.MediaObject;
+import org.praisenter.data.song.Song;
 import org.praisenter.data.workspace.ReadOnlyDisplayConfiguration;
 import org.praisenter.ui.Action;
 import org.praisenter.ui.ActionPane;
@@ -434,12 +438,13 @@ public final class LibraryList extends BorderPane implements ActionPane {
 		this.dlgExport.setHeight(350);
 		btnCancel.setOnAction(e -> {
 			this.exportRequest.set(null);
+			lep.setValue(ExportRequest.newDefaultRequest());
 			this.dlgExport.hide();
 		});
 		btnOk.setOnAction(e -> {
 			ExportRequest request = lep.getValue();
 			this.exportRequest.set(request);
-			lep.setValue(new ExportRequest(request.getFormat(), null));
+			lep.setValue(ExportRequest.newDefaultRequest());
 			this.dlgExport.hide();
 		});
 		
@@ -901,7 +906,7 @@ public final class LibraryList extends BorderPane implements ActionPane {
 			this.exportRequest.set(null);
 			
 			this.dlgExport.setWidth(600);
-			this.dlgExport.setHeight(350);
+			this.dlgExport.setHeight(600);
 			this.dlgExport.setMaximized(false);
 			WindowHelper.centerOnParent(this.getScene().getWindow(), this.dlgExport);
 		    this.dlgExport.showAndWait();
@@ -910,12 +915,17 @@ public final class LibraryList extends BorderPane implements ActionPane {
 		    ExportRequest value = this.exportRequest.get();
 		    if (value != null && value.getPath() != null) {
 		    	Path path = value.getPath();
-		    	ImportExportFormat format = value.getFormat();
-		    	LOGGER.debug("User selected format '{}' and path '{}' for export of {} items", format, path, n);
+		    	Map<Class<?>, ImportExportFormat> formats = new HashMap<>();
+		    	formats.put(Bible.class, value.getBibleFormat());
+		    	formats.put(Slide.class, value.getSlideFormat());
+		    	formats.put(Media.class, value.getMediaFormat());
+		    	formats.put(Song.class, value.getSongFormat());
+		    	LOGGER.debug("User selected formats Bible = '{}', Slide = '{}', Media = '{}', Song = '{}' and path '{}' for export of {} items", 
+		    			value.getBibleFormat(), value.getSlideFormat(), value.getMediaFormat(), value.getSongFormat(), path, n);
 		    	LOGGER.trace("Validating path '{}' (exists and is a regular file)", path);
 		    	if (Files.isRegularFile(path) || !Files.exists(path)) {
 		    		LOGGER.trace("Path '{}' is valid, attempting export", path);
-			    	return this.context.export(items, path, format).exceptionally(t -> {
+			    	return this.context.export(items, path, formats).exceptionally(t -> {
 		    			// get the root exception
 		    			if (t instanceof CompletionException) {
 		    				t = t.getCause();

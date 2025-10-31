@@ -43,7 +43,7 @@ application/json											json JSON
 
 # not supported by the media library but we still want to
 # show a correct mime type on the error report
-text/plain													txt TXT text TEXT log LOG
+text/plain													txt TXT text TEXT log LOG cho CHO crd CRD chopro CHOPRO chord CHORD cpm CPM chordpro CHORDPRO pro PRO
 text/html													htm HTM html HTML shtml SHTML
 text/css													css CSS
 text/csv													csv CSV

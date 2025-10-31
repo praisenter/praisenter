@@ -1,0 +1,23 @@
+{title: Sunset Drive}
+{artist: John Smith}
+{meta: genre=Country mood="Relaxed" tempo="85"}
+{key: G}
+{time: 6/8}
+{capo: 2}
+
+{start_of_intro}
+[G]Driving down the [C]road at [G]sunset,  
+<em>Shadows long and [D]golden.</em>
+{end_of_intro}
+
+{start_of_verse}
+[G]Hear the [C]crickets [Em]singing,  
+[D]time is slipping a[G]way.  
+{end_of_verse}
+
+{start_of_chorus}
+[C]Oh the [G]sun goes [D]down so [Em]slow,  
+<C>Memories of [C]you still [G]glow.</C>
+{end_of_chorus}
+
+{comment: recorded at Nashville Studio, 2022}

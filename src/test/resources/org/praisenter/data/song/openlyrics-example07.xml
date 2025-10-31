@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet href="../stylesheets/openlyrics.css" type="text/css"?>
+<song xmlns="http://openlyrics.info/namespace/2009/song" xml:lang="hu" version="0.9" chordNotation="hungarian">
+  <properties>
+    <titles>
+      <title>Testing 0.9</title>
+    </titles>
+    <verseOrder>i v1</verseOrder>
+    <authors>
+      <author>Csiszér László</author>
+      <author type="words">Flach Ferenc</author>
+      <author type="music">Flach Ferenc</author>
+      <author type="translation">Majoros Ildikó</author>
+      <author type="arrangement">Gellért Gyuris</author>
+    </authors>
+    <timeSignature>4/4</timeSignature>
+  </properties>
+  <lyrics>
+    <instrument name="i">
+      <lines>
+        <beat>
+          <chord root="C" structure="power"/>
+          <chord root="C"/>
+          <chord root="C" structure="min"/>
+          <chord root="C" structure="aug"/>
+          <chord root="C" structure="dim"/>
+          <chord root="C" structure="dom7"/>
+          <chord root="C" structure="maj7"/>
+          <chord root="C" structure="min7"/>
+          <chord root="C" structure="dim7"/>
+          <chord root="C" structure="halfdim7"/>
+          <chord root="C" structure="minmaj7"/>
+          <chord root="C" structure="augmaj7"/>
+          <chord root="C" structure="aug7"/>
+          <chord root="C" structure="maj6"/>
+          <chord root="C" structure="maj6b"/>
+          <chord root="C" structure="min6"/>
+          <chord root="C" structure="min6b"/>
+          <chord root="C" structure="dom9"/>
+          <chord root="C" structure="dom9b"/>
+          <chord root="C" structure="maj9"/>
+          <chord root="C" structure="min9"/>
+          <chord root="C" structure="minmaj9"/>
+          <chord root="C" structure="aug9"/>
+          <chord root="C" structure="halfdim9"/>
+          <chord root="C" structure="sus4"/>
+          <chord root="C" structure="sus2"/>
+          <chord root="C" structure="add9"/>
+        </beat>
+        <beat>
+          <chord root="C" structure="5"/>
+          <chord root="C" structure="3-5"/>
+          <chord root="C" structure="m3-5"/>
+          <chord root="C" structure="3-a5"/>
+          <chord root="C" structure="m3-d5"/>
+          <chord root="C" structure="3-5-m7"/>
+          <chord root="C" structure="3-5-7"/>
+          <chord root="C" structure="m3-5-m7"/>
+          <chord root="C" structure="m3-d5-d7"/>
+          <chord root="C" structure="m3-d5-m7"/>
+          <chord root="C" structure="m3-5-7"/>
+          <chord root="C" structure="3-a5-7"/>
+          <chord root="C" structure="3-d5-m7"/>
+          <chord root="C" structure="3-a5-m7"/>
+          <chord root="C" structure="m3-d5-7"/>
+          <chord root="C" structure="3-d5-7"/>
+          <chord root="C" structure="3-5-6"/>
+          <chord root="C" structure="3-5-m6"/>
+          <chord root="C" structure="m3-5-6"/>
+          <chord root="C" structure="m3-5-m6"/>
+          <chord root="C" structure="3-5-m7-9"/>
+          <chord root="C" structure="3-5-m7-m9"/>
+          <chord root="C" structure="3-5-7-9"/>
+          <chord root="C" structure="m3-5-m7-9"/>
+          <chord root="C" structure="m3-5-7-9"/>
+          <chord root="C" structure="3-a5-7-9"/>
+          <chord root="C" structure="3-a5-m7-9"/>
+          <chord root="C" structure="m3-d5-m7-9"/>
+          <chord root="C" structure="m3-d5-m7-m9"/>
+          <chord root="C" structure="m3-d5-d7-9"/>
+          <chord root="C" structure="m3-d5-d7-m9"/>
+          <chord root="C" structure="3-5-m7-m10"/>
+          <chord root="C" structure="3-5-m7-9-11"/>
+          <chord root="C" structure="3-5-7-9-11"/>
+          <chord root="C" structure="m3-5-m7-9-11"/>
+          <chord root="C" structure="m3-5-7-9-11"/>
+          <chord root="C" structure="3-5-m7-9-a11"/>
+          <chord root="C" structure="3-5-7-9-a11"/>
+          <chord root="C" structure="m3-5-m7-9-a11"/>
+          <chord root="C" structure="m3-5-7-9-a11"/>
+          <chord root="C" structure="3-a5-7-9-11"/>
+          <chord root="C" structure="3-a5-m7-9-11"/>
+          <chord root="C" structure="m3-d5-m7-m9-11"/>
+          <chord root="C" structure="m3-d5-d7-m9-d11"/>
+          <chord root="C" structure="3-5-m7-9-11-13"/>
+          <chord root="C" structure="3-5-7-9-11-13"/>
+          <chord root="C" structure="m3-5-m7-9-11-13"/>
+          <chord root="C" structure="m3-5-7-9-11-13"/>
+          <chord root="C" structure="3-5-m7-9-a11-13"/>
+          <chord root="C" structure="3-5-7-9-a11-13"/>
+          <chord root="C" structure="m3-5-m7-9-a11-13"/>
+          <chord root="C" structure="m3-5-7-9-a11-13"/>
+          <chord root="C" structure="3-a5-7-9-11-13"/>
+          <chord root="C" structure="3-a5-m7-9-11-13"/>
+          <chord root="C" structure="m3-d5-m7-m9-11-13"/>
+          <chord root="C" structure="4-5"/>
+          <chord root="C" structure="2-5"/>
+          <chord root="C" structure="3-5-m7-13"/>
+          <chord root="C" structure="3-5-6-9"/>
+          <chord root="C" structure="3-5-9"/>
+          <chord root="C" structure="m3-5-9"/>
+          <chord root="C" structure="3-a5-9"/>
+          <chord root="C" structure="4-5-6"/>
+          <chord root="C" structure="2-5-6"/>
+          <chord root="C" structure="4-5-m6"/>
+          <chord root="C" structure="2-5-m6"/>
+          <chord root="C" structure="4-5-m7"/>
+          <chord root="C" structure="2-5-m7"/>
+          <chord root="C" structure="4-5-7"/>
+          <chord root="C" structure="2-5-7"/>
+          <chord root="C" structure="4-a5-7"/>
+          <chord root="C" structure="2-a5-7"/>
+          <chord root="C" structure="4-d5-m7"/>
+          <chord root="C" structure="2-d5-m7"/>
+          <chord root="C" structure="4-d5-d7"/>
+          <chord root="C" structure="2-d5-d7"/>
+          <chord root="C" structure="4-d5-7"/>
+          <chord root="C" structure="2-d5-7"/>
+          <chord root="C" structure="4-5-m7-13"/>
+          <chord root="C" structure="2-5-m7-13"/>
+          <chord root="C" structure="4-5-m7-9"/>
+          <chord root="C" structure="4-5-m7-m9"/>
+          <chord root="C" structure="4-5-7-9"/>
+          <chord root="C" structure="4-a5-7-9"/>
+          <chord root="C" structure="4-a5-m7-9"/>
+        </beat>
+      </lines>
+    </instrument>
+    <verse name="v1">
+      <lines>
+        Testing 0.9.
+      </lines>
+    </verse>
+  </lyrics>
+</song>

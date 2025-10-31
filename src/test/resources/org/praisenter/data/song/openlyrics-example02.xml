@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet href="../stylesheets/openlyrics.css" type="text/css"?>
+<song xmlns="http://openlyrics.info/namespace/2009/song"
+      version="0.8"
+      createdIn="OpenLP 1.9.0"
+      modifiedIn="OpenLP 1.9.7"
+      modifiedDate="2012-04-10T22:00:00+10:00"><!-- date format: ISO 8601 -->
+  <properties>
+    <titles>
+      <title>Amazing Grace</title>
+    </titles>
+  </properties>
+  <format>
+    <tags application="OpenLP">
+      <tag name="red">
+        <open>&lt;span style="color:red"&lt;</open>
+        <close>&lt;/span&lt;</close>
+      </tag>
+      <tag name="bold">
+        <open>&lt;strong&lt;</open>
+        <close>&lt;/strong&lt;</close>
+      </tag>
+    </tags>
+  </format>
+  <lyrics>
+    <verse name="v1">
+      <lines break="optional">Amazing <tag name="red">grace!</tag> How sweet the sound<br/>That saved a wretch <tag name="strong">like</tag>me.</lines>
+      <lines>I once was lost, but now am found,<br/>Was blind but now I see.</lines>
+    </verse>
+  </lyrics>
+</song>

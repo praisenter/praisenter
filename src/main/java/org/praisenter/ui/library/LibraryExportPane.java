@@ -32,25 +32,55 @@ import javafx.stage.FileChooser.ExtensionFilter;
 final class LibraryExportPane extends BorderPane {
 	private static final String LIBRARY_LIST_EXPORT_PANE_CSS = "p-library-list-export-pane";
 	
-	private final ObjectProperty<ImportExportFormat> exportFormat;
+	private final ObjectProperty<ImportExportFormat> bibleExportFormat;
+	private final ObjectProperty<ImportExportFormat> songExportFormat;
+	private final ObjectProperty<ImportExportFormat> slideExportFormat;
+	private final ObjectProperty<ImportExportFormat> mediaExportFormat;
+	
 	private final ObjectProperty<Path> exportPath;
 	
 	private final ObjectProperty<ExportRequest> value;
 	
 	public LibraryExportPane(GlobalContext context) {
-		this.exportFormat = new SimpleObjectProperty<ImportExportFormat>(ImportExportFormat.PRAISENTER3);
+		this.bibleExportFormat = new SimpleObjectProperty<ImportExportFormat>(ImportExportFormat.PRAISENTER3);
+		this.songExportFormat = new SimpleObjectProperty<ImportExportFormat>(ImportExportFormat.PRAISENTER3);
+		this.slideExportFormat = new SimpleObjectProperty<ImportExportFormat>(ImportExportFormat.PRAISENTER3);
+		this.mediaExportFormat = new SimpleObjectProperty<ImportExportFormat>(ImportExportFormat.PRAISENTER3);
 		this.exportPath = new SimpleObjectProperty<>();
 		this.value = new SimpleObjectProperty<ExportRequest>();
 		
 		this.getStyleClass().add(LIBRARY_LIST_EXPORT_PANE_CSS);
 		
-		ObservableList<Option<ImportExportFormat>> formatOptions = FXCollections.observableArrayList();
-		formatOptions.add(new Option<>(Translations.get("action.export.format." + ImportExportFormat.PRAISENTER3), ImportExportFormat.PRAISENTER3));
-		formatOptions.add(new Option<>(Translations.get("action.export.format." + ImportExportFormat.RAW), ImportExportFormat.RAW));
-		ChoiceBox<Option<ImportExportFormat>> cbExportFormat = new ChoiceBox<>(formatOptions);
-		cbExportFormat.setMaxWidth(Double.MAX_VALUE);
-		cbExportFormat.setValue(new Option<>("", ImportExportFormat.PRAISENTER3));
-		BindingHelper.bindBidirectional(cbExportFormat.valueProperty(), this.exportFormat);
+		ObservableList<Option<ImportExportFormat>> bibleFormatOptions = FXCollections.observableArrayList();
+		bibleFormatOptions.add(new Option<>(Translations.get("action.export.format." + ImportExportFormat.PRAISENTER3), ImportExportFormat.PRAISENTER3));
+		ChoiceBox<Option<ImportExportFormat>> cbBibleExportFormat = new ChoiceBox<>(bibleFormatOptions);
+		cbBibleExportFormat.setMaxWidth(Double.MAX_VALUE);
+		cbBibleExportFormat.setValue(new Option<>("", ImportExportFormat.PRAISENTER3));
+		BindingHelper.bindBidirectional(cbBibleExportFormat.valueProperty(), this.bibleExportFormat);
+		
+		ObservableList<Option<ImportExportFormat>> slideFormatOptions = FXCollections.observableArrayList();
+		slideFormatOptions.add(new Option<>(Translations.get("action.export.format." + ImportExportFormat.PRAISENTER3), ImportExportFormat.PRAISENTER3));
+		ChoiceBox<Option<ImportExportFormat>> cbSlideExportFormat = new ChoiceBox<>(slideFormatOptions);
+		cbSlideExportFormat.setMaxWidth(Double.MAX_VALUE);
+		cbSlideExportFormat.setValue(new Option<>("", ImportExportFormat.PRAISENTER3));
+		BindingHelper.bindBidirectional(cbSlideExportFormat.valueProperty(), this.slideExportFormat);
+		
+		ObservableList<Option<ImportExportFormat>> mediaFormatOptions = FXCollections.observableArrayList();
+		mediaFormatOptions.add(new Option<>(Translations.get("action.export.format." + ImportExportFormat.PRAISENTER3), ImportExportFormat.PRAISENTER3));
+		mediaFormatOptions.add(new Option<>(Translations.get("action.export.format." + ImportExportFormat.RAW), ImportExportFormat.RAW));
+		ChoiceBox<Option<ImportExportFormat>> cbMediaExportFormat = new ChoiceBox<>(mediaFormatOptions);
+		cbMediaExportFormat.setMaxWidth(Double.MAX_VALUE);
+		cbMediaExportFormat.setValue(new Option<>("", ImportExportFormat.PRAISENTER3));
+		BindingHelper.bindBidirectional(cbMediaExportFormat.valueProperty(), this.mediaExportFormat);
+		
+		ObservableList<Option<ImportExportFormat>> songFormatOptions = FXCollections.observableArrayList();
+		songFormatOptions.add(new Option<>(Translations.get("action.export.format." + ImportExportFormat.PRAISENTER3), ImportExportFormat.PRAISENTER3));
+		songFormatOptions.add(new Option<>(Translations.get("action.export.format." + ImportExportFormat.OPENLYRICSSONG), ImportExportFormat.OPENLYRICSSONG));
+		songFormatOptions.add(new Option<>(Translations.get("action.export.format." + ImportExportFormat.CHORDPRO), ImportExportFormat.CHORDPRO));
+		ChoiceBox<Option<ImportExportFormat>> cbSongExportFormat = new ChoiceBox<>(songFormatOptions);
+		cbSongExportFormat.setMaxWidth(Double.MAX_VALUE);
+		cbSongExportFormat.setValue(new Option<>("", ImportExportFormat.PRAISENTER3));
+		BindingHelper.bindBidirectional(cbSongExportFormat.valueProperty(), this.songExportFormat);
 		
 		TextField txtExportPath = new TextField();
 		txtExportPath.textProperty().bind(Bindings.createStringBinding(() -> {
@@ -79,10 +109,28 @@ final class LibraryExportPane extends BorderPane {
 	    	}
 		});
 		
-		EditorField fldFormat = new EditorField(
-				Translations.get("action.export.format"), 
-				Translations.get("action.export.format.description"), 
-				cbExportFormat, 
+		EditorField fldBibleFormat = new EditorField(
+				Translations.get("action.export.format.bible"), 
+				Translations.get("action.export.format.bible.description"), 
+				cbBibleExportFormat, 
+				EditorField.LAYOUT_VERTICAL);
+
+		EditorField fldSlideFormat = new EditorField(
+				Translations.get("action.export.format.slide"), 
+				Translations.get("action.export.format.slide.description"), 
+				cbSlideExportFormat, 
+				EditorField.LAYOUT_VERTICAL);
+		
+		EditorField fldMediaFormat = new EditorField(
+				Translations.get("action.export.format.media"), 
+				Translations.get("action.export.format.media.description"), 
+				cbMediaExportFormat, 
+				EditorField.LAYOUT_VERTICAL);
+		
+		EditorField fldSongFormat = new EditorField(
+				Translations.get("action.export.format.song"), 
+				Translations.get("action.export.format.song.description"), 
+				cbSongExportFormat, 
 				EditorField.LAYOUT_VERTICAL);
 		
 		EditorField fldPath = new EditorField(
@@ -92,12 +140,15 @@ final class LibraryExportPane extends BorderPane {
 				EditorField.LAYOUT_VERTICAL);
 		
 		VBox layout = new VBox(
-				fldFormat,
+				fldBibleFormat,
+				fldSlideFormat,
+				fldMediaFormat,
+				fldSongFormat,
 				fldPath);
 		
 		this.setCenter(layout);
 		
-		BindingHelper.bindBidirectional(this.exportFormat, this.value, new ObjectConverter<ImportExportFormat, ExportRequest>() {
+		BindingHelper.bindBidirectional(this.bibleExportFormat, this.value, new ObjectConverter<ImportExportFormat, ExportRequest>() {
 			@Override
 			public ExportRequest convertFrom(ImportExportFormat t) {
 				return LibraryExportPane.this.getCurrentValue();
@@ -105,7 +156,43 @@ final class LibraryExportPane extends BorderPane {
 			@Override
 			public ImportExportFormat convertTo(ExportRequest e) {
 				if (e == null) return ImportExportFormat.PRAISENTER3;
-				return e.getFormat();
+				return e.getBibleFormat();
+			}
+		});
+		
+		BindingHelper.bindBidirectional(this.slideExportFormat, this.value, new ObjectConverter<ImportExportFormat, ExportRequest>() {
+			@Override
+			public ExportRequest convertFrom(ImportExportFormat t) {
+				return LibraryExportPane.this.getCurrentValue();
+			}
+			@Override
+			public ImportExportFormat convertTo(ExportRequest e) {
+				if (e == null) return ImportExportFormat.PRAISENTER3;
+				return e.getSlideFormat();
+			}
+		});
+		
+		BindingHelper.bindBidirectional(this.mediaExportFormat, this.value, new ObjectConverter<ImportExportFormat, ExportRequest>() {
+			@Override
+			public ExportRequest convertFrom(ImportExportFormat t) {
+				return LibraryExportPane.this.getCurrentValue();
+			}
+			@Override
+			public ImportExportFormat convertTo(ExportRequest e) {
+				if (e == null) return ImportExportFormat.PRAISENTER3;
+				return e.getMediaFormat();
+			}
+		});
+		
+		BindingHelper.bindBidirectional(this.songExportFormat, this.value, new ObjectConverter<ImportExportFormat, ExportRequest>() {
+			@Override
+			public ExportRequest convertFrom(ImportExportFormat t) {
+				return LibraryExportPane.this.getCurrentValue();
+			}
+			@Override
+			public ImportExportFormat convertTo(ExportRequest e) {
+				if (e == null) return ImportExportFormat.PRAISENTER3;
+				return e.getSongFormat();
 			}
 		});
 		
@@ -123,15 +210,27 @@ final class LibraryExportPane extends BorderPane {
 	}
 	
 	private ExportRequest getCurrentValue() {
-		ImportExportFormat format = this.exportFormat.get();
-		if (format == null)
+		ImportExportFormat bibleFormat = this.bibleExportFormat.get();
+		if (bibleFormat == null)
+			return null;
+		
+		ImportExportFormat slideFormat = this.slideExportFormat.get();
+		if (slideFormat == null)
+			return null;
+		
+		ImportExportFormat mediaFormat = this.mediaExportFormat.get();
+		if (mediaFormat == null)
+			return null;
+		
+		ImportExportFormat songFormat = this.songExportFormat.get();
+		if (songFormat == null)
 			return null;
 		
 		Path path = this.exportPath.get();
 		if (path == null)
 			return null;
 		
-		return new ExportRequest(format, path);
+		return new ExportRequest(bibleFormat, slideFormat, mediaFormat, songFormat, path);
 	}
 
 	public ExportRequest getValue() {

@@ -1022,7 +1022,7 @@ public final class GlobalContext {
 		});
 	}
 	
-	public CompletableFuture<Void> export(List<Persistable> items, Path path, ImportExportFormat format) {
+	public CompletableFuture<Void> export(List<Persistable> items, Path path, Map<Class<?>, ImportExportFormat> formats) {
 		BackgroundTask task = new BackgroundTask();
 		task.setName(Translations.get("action.export.task", items.size()));
 		task.setMessage(Translations.get("action.export.task", items.size()));
@@ -1059,9 +1059,9 @@ public final class GlobalContext {
 			try (ZipArchiveOutputStream zos = new ZipArchiveOutputStream(path, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE)) {
 				// export the items selected
 				LOGGER.info("Attempting export of {} selected items", items.size());
-				this.workspaceManager.exportData(format, zos, items);
+				this.workspaceManager.exportData(formats, zos, items);
 				LOGGER.info("Attempting export of {} dependent items", dependentItems.size());
-				this.workspaceManager.exportData(format, zos, dependentItems);
+				this.workspaceManager.exportData(formats, zos, dependentItems);
 			} catch (Exception ex) {
 				throw new CompletionException(ex);
 			}

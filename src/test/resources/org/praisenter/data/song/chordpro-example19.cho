@@ -1,0 +1,146 @@
+{title: My Song}
+{st: ख्रीष्टकहाँ आऊ साथी}
+{artist: "Hope & Harmony"}
+{columns: 2}
+{diagrams:top}
+{key: G}
+{time: 6/8}
+{capo: 2}
+{defined Gxxxxxxxx: base 1 frets 2 2 2 2 2 2}
+{meta: album Testing meta simple}
+{meta: genre=Country mood="Relaxed" tempo="85"}
+{meta: year=2023 track=4 producer='Sam Lee' copyright="CC-BY License"}
+{ccli: 12345}
+{image anchor="page" src="twelvedays-xmastree.jpg" scale="50%" x="100%" y="100%"}
+{+settings.notenames:1}
+{comment: This song is transposed two steps up for easier guitar playing.}
+{arranger: Mickey Mouse}
+{composer: Bugs Bunny}
+{lyricist: The Man}
+{book: Hymnals Unlimited}
+
+# Released under a CC-BY License.
+# Main Repo: github.com/peanutbutterandcrackers/music
+
+{start_of_abc spread=32 width="700"}
+X: 1
+M: 3/4
+L: 1/4
+K: G
+D | "G"GGG | "Em"G<BG | "Am"AAA|"D7"A<cA|"G"BAG|"Em"dcB|"A7"BAG | "D7"A2 D/2D/2 | 
+w: In Dub-lin's fair ci-ty where girls are so pret-ty, I first set my eyes on sweet Mol-ly Ma-lone as she
+"G"GGG|"Em"G<BG|"Am"AAA|"D7"A<cA/2A/2| 
+w: wheeled her wheel bar-row through streets broad and nar-row, cry-ing
+"G"B/d/-d c|"Em"B/d-d c|"A7"B>G"D7"A|"G"G2D|
+w: “Cock-les_ and Mus-sels,_ a-live a-live O!” A-
+P:Chorus
+"G"G>GG|"Em"G/B/-BG|"Am"A>AA|"D7"A/c/-cA/A/|"G"G/d/-dc|"Em"B/d/-d c|"A7"B>G"D7"A|"G"G2z |] 
+w: live, a-live O!_* A-live a-live O!_* Cry-ing “Cock-les* and Mus-sels* a-live a-live-O!”
+
+{end_of_abc}
+
+{transpose +2}
+{comment: key="C Major" tempo="120"}
+[C]This is <i>some</i> [Am7]text
+[Dm]Another line without <b>tags</b>
+
+{start_of_verse}
+[C]जीवनको [G7]रोटी उनै [Bdim]हुन - [G7]भोको मनलाई [Bdim]तृप्ति दि[C]ने
+[C]उनलाई [Em]तिमीले [Dm]खायौ [G7]भ[F]ने
+[Bdim]तिमी [Dm]कहिल्यै [G7]भोको [Em7]बन्दै[C]नौ
+[G]यु[G7]गानु-[Em]युग[Em7]सम्म[C]लाई
+{end_of_verse}
+
+{start_of_verse label="<img src='twelvedays-02.jpg' scale='20%' dy='-55'/>" test='<img src="test" />' hah=no}
+She [G]was a fish [Em]monger
+but [Am]sure, 'twas no [D7]wonder
+For [G]so were her [Em]father and [A7]mother be[D7]fore
+They [G]both wheeled their [Em]barrows
+through [Am]streets broad and [D7]narrow
+Crying [G]“Cockles and Mus[Em]sels, a[A7]live a[D7]live-[G]o”
+{end_of_verse}
+
+{start_of_textblock align=right flush=right}
+She died of the fever,
+and nothing could save her
+And that was the end of sweet Molly Malone
+But her ghost wheels a barrow
+through streets broad and narrow
+Crying “Cockles and Mussels, alive alive-o”
+{end_of_textblock}
+
+{soc}
+[F]Աշխարհը ե[C]կել է,   2x 
+[F]կուզե քեզ սեյր [C]անի.   2x
+[Gm]Յար ջան, սարի [Dm]եղնիկ ես,
+[Bb]Ինչպես հըպարտ [C]ջեյրա[Dm]նի։
+{eoc}
+
+{c:Chorus}
+{chorus}
+
+[*riff:  ] [c]–[f]–[f#]–[g]
+
+{sot}
+  F                F/B              Fm7              F/B
+E ----------------|----------------|----------------|----------------|
+B ------3---------|------3---------|------3---------|------3---------|
+G --1-------5-----|--1-------5-----|--1-------5-----|--1-------5-----|(repeat)
+D ----2-------6---|----2-------6---|----2-------6---|----2-------6---|
+A 0-------4-------|0-------4-------|0-------4-------|0-------4-------|
+E ----------------|----------------|----------------|----------------|
+{eot}
+
+{start_of_whatever-guitar}
+E-----------------------------------------------------
+B--5--5-5-5--5-8--8-5--8-5---0--0-0-0--0-1--1-0--1-0--
+G--5--5-5-5--5-9--9-5--9-5---0--0-0-0--0-1--1-0--1-0--
+D--0-------------------------0------------------------
+A-----------------------------------------------------
+E----------------------------3------------------------
+{end_of_whatever}
+
+
+{comment:INTRO:}
+VERSE 1:
+--------
+
+[E]  Lyrics are here   [Esus2/C#]yes they           [D]are
+
+[A]  test  test testtest  [Asus2/C#]test test test test  [G]test [A/G][G][A/G][G]
+
+{c: Key is %{key}%{key_actual|, actual %{}}%{key_from|, from %{}}}
+
+{new_song}
+{+settings.transcode:roman}
+{title: Roman D}
+{key: D}
+{keywords: test this song}
+
+[D]Hello, [G]World!
+
+{start_of_whatever-guitar}
+[A]This is for [B]Guitar
+{end_of_whatever}
+
+{start_of_grid 4x6}
+| C . . . . . | F . . . . . | G . . . . . | C . . . . . |
+| . . . . . . | F . . . . . | G . . . . . |
+{end_of_grid}
+
+{new_page}
+
+I [D]looked over Jordan, and [G]what did I [D]see,
+     “Comin’ for to carry me [A7]home.”
+A [D7]band of angels [G]comin’ after [D]me,
+     Comin’ for to [A7]carry me [D]home.     [G]     [D]     [G]
+     
+{+text.chorus.recall.quote 1}
+{ci:And a final chorus}
+
+<strong>[Bb]Rise [C]again, [F]rise [Dm]again!</strong>
+[Dm]Don’t you [Bb]fade a[C]way, my [F]friend.
+
+{comment: Verse 1}
+[D]I walked that [G]road so [A]many times,  
+[D]never found where it [G]leads.

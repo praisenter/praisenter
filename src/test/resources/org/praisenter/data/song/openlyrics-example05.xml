@@ -1,0 +1,48 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet href="../stylesheets/openlyrics.css" type="text/css"?>
+<song xmlns="http://openlyrics.info/namespace/2009/song"
+  xml:lang="en"
+  version="0.9">
+  <properties>
+    <titles>
+      <title>Laboratory rat</title>
+    </titles>
+    <authors>
+      <author>Gellért Gyuris</author>
+    </authors>
+    <songbooks>
+      <songbook name="Test book" entry="1"/>
+    </songbooks>
+    <verseOrder>i v1 v2</verseOrder>
+  </properties>
+  <lyrics>
+    <instrument name="i">
+      <lines>
+        <beat><chord root="D"/><chord root="D" structure="sus4" /></beat>
+        <beat><chord root="D"/><chord root="D" structure="sus4"/></beat>
+        <beat><chord root="G"/><chord root="A"/></beat>
+        <beat><chord root="D"/><chord root="D" structure="sus4" /></beat>
+      </lines>
+    </instrument>
+    <verse name="v1">
+      <lines>
+        <comment>normal 0.9-style chords mixed: &lt;chord&gt;text&lt;/chord&gt; &lt;chord/&gt;text</comment>
+        <chord root="D" upbeat="true">Lorem</chord> <chord root="E" structure="m3-5-7-9-a11-13" bass="C#">ipsum</chord> <chord root="D" structure="sus2" bass="C#">dolor sit amet,</chord><br/>
+        consectetur <chord root="B" structure="min7" upbeat="true">adipiscing elit</chord>. <chord root="G">Maecenas turpis</chord> <chord structure="3-5" root="D" bass="F#">tor</chord><chord bass="B" root="F">tor,</chord><br/>
+        <chord root="D" bass="F#" upbeat="true">tempor</chord> <chord root="D" structure="sus2" bass="C#">eget lacinia</chord> <chord root="G" structure="sus2">quis</chord>. <chord root="C" /><chord root="G" /><chord root="D" />
+      </lines>
+    </verse>
+    <verse name="v2">
+      <lines>
+        <comment>only empty chords in 0.9: &lt;chord/&gt;text</comment>
+        <chord root="G" bass="B"/>Accumsan <chord root="A" structure="sus2"/>eget neque.<br/>
+        <chord root="A" bass="C#" structure="sus2"/>Vestibulum <chord root="D"/>facilisis lacus non feugiat pulvinar. <chord root="A" structure="sus2"/><br/>
+        <chord root="D"/>Cras nulla leo, <chord root="G#"/>placerat a <chord root="B"/>bibendum ac, <chord root="F"/>efficitur vel dolor.<br/>
+        Praesent rhoncus turpis at libero faucibus euismod.<br/> 
+        Nulla congue fringilla nisi in auctor.<br/> 
+        Pellentesque laoreet arcu eu justo aliquam,<br/>
+        nec suscipit eros imperdiet. Nunc vel iaculis elit.
+      </lines>
+    </verse>
+  </lyrics>
+</song>

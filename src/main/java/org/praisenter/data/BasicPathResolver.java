@@ -75,6 +75,7 @@ public class BasicPathResolver<T extends Persistable> implements PathResolver<T>
 	
 	// friendly
 	
+	@Override
 	public Path getFriendlyFileName(T item, String extension) {
 		String cleansedFileName = StringManipulator.toFileName(item.getName(), "");
 		String ext = "";

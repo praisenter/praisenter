@@ -1,0 +1,434 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet href="../stylesheets/openlyrics.css" type="text/css"?>
+<song xmlns="http://openlyrics.info/namespace/2009/song" version="0.8" createdIn="Geany" modifiedIn="Geany" modifiedDate="2021-04-03T10:00:00+00:00">
+  <properties>
+    <titles>
+      <title>Testing 0.8 to 0.9 converting</title>
+    </titles>
+    <verseOrder>v1 v2 v3 v4 v5</verseOrder>
+    <authors>
+      <author type="translation" lang="en">Gellért Gyuris</author>
+    </authors>
+    <key>Esm</key>
+    <transposition>-6</transposition>
+  </properties>
+  <lyrics>
+    <verse name="v1">
+      <lines>
+        Testing 0.8.
+      </lines>
+    </verse>
+    <verse name="v2">
+      <lines>
+        A Te <chord name="D"/>nevedben mi együtt <chord name="D2"/>va<chord name="D"/>gyunk.<br/>
+        Jézus, <chord name="A"/>nevedben <chord name="A7"/>mi együtt <chord name="D"/>va<chord name="D7"/>gyunk.<br/>
+        Hallgasd <chord name="G"/>meg imánk, mikor hoz<chord name="D"/>zád <chord name="F#7"/>járu<chord name="Hm"/>lunk,<br/>
+        élő <chord name="Em7"/>igéddel <chord name="A"/>táplálj <chord name="A7"/>hű <chord name="D"/>Urunk!<chord name="G"/><chord name="D"/>
+      </lines>
+    </verse>
+    <verse name="v3">
+      <lines>
+        A Te <chord name="D"/>nevedben mi együtt <chord name="D2"/>va<chord name="D"/>gyunk.<br/>
+        Jézus, <chord name="A"/>nevedben <chord name="A7"/>mi együtt va<chord name="D"/>gyunk.<chord name="D7"/><br/>
+        ‖: Tégy <chord name="G"/>eggyé minket szentsé<chord name="D"/>gedben, <chord name="F#7"/>ez óha<chord name="Hm"/>junk!<br/>
+        Használj <chord name="Em7"/>munkádban <chord name="A"/>drága, <chord name="A7"/>hű U<chord name="D"/>runk!<chord name="G"/><chord name="D"/> :‖
+      </lines>
+    </verse>
+    <verse name="v4">
+      <lines>
+        ‖: <chord name="D"/>A-<chord name="G"/>a-<chord name="A"/>alle<chord name="D"/>luja, <chord name="G"/>dicsőség a <chord name="A"/>mennyben Iste<chord name="D"/>nünknek,<br/>
+        és <chord name="G"/>békes<chord name="A"/>ség a földön <chord name="G"/>néped<chord name="A"/>nek! :‖<br/>
+        <chord name="D"/>A<chord name="G"/>tyánk, <chord name="A"/>jóságos <chord name="D"/>Atya,<br/>
+        <chord name="G"/>minden <chord name="A"/>dicsőség a <chord name="D"/>Tiéd,<br/>
+        <chord name="G"/>szere<chord name="A"/>tő Atya <chord name="G"/>Is<chord name="A"/>ten!
+      </lines>
+    </verse>
+    <verse name="v5">
+      <!-- chords from https://github.com/openlyrics/openlyrics/blob/v0.8/chords.txt -->
+      <lines>
+        <chord name="C"/>
+        <chord name="C4"/>
+        <chord name="C5"/>
+        <chord name="C6"/>
+        <chord name="C7"/>
+        <chord name="C9"/>
+        <chord name="C11"/>
+        <chord name="C13"/>
+        <!-- buggy <chord name="C(addD)"/> -->
+        <!-- buggy <chord name="C(addE)"/> -->
+        <chord name="C(add9)"/>
+        <chord name="C+"/>
+        <chord name="C6(sus4)"/>
+        <chord name="C6sus4"/>
+        <chord name="C7(#9)"/>
+        <chord name="C7(11)"/>
+        <chord name="C7(b5)"/>
+        <chord name="C7(b9)"/>
+        <chord name="C7(sus4)"/>
+        <chord name="C7#9"/>
+        <chord name="C7+"/>
+        <chord name="C7b9"/>
+        <chord name="C7sus2"/>
+        <chord name="C7sus4"/>
+        <chord name="C9(11)"/>
+        <chord name="C9(add6)"/>
+        <chord name="C9add6"/>
+        <chord name="C9sus"/>
+        <!-- buggy <chord name="CaddD"/> -->
+        <!-- buggy <chord name="CaddE"/> -->
+        <!-- buggy <chord name="CaddG"/> -->
+        <chord name="Cadd2"/>
+        <chord name="Cadd9"/>
+        <chord name="Cdim"/>
+        <chord name="Cm"/>
+        <chord name="Cm(#5)"/>
+        <chord name="Cm(#7)"/>
+        <chord name="Cm(add9)"/>
+        <chord name="Cm(maj7)"/>
+        <chord name="Cm(sus4)"/>
+        <chord name="Cm(sus9)"/>
+        <chord name="Cm#5"/>
+        <chord name="Cm#7"/>
+        <chord name="Cm11"/>
+        <chord name="Cm6"/>
+        <chord name="Cm7"/>
+        <chord name="Cm7b5"/>
+        <chord name="Cm7sus4"/>
+        <chord name="Cm9"/>
+        <chord name="Cm9(maj7)"/>
+        <chord name="Cm9maj7"/>
+        <chord name="Cmadd9"/>
+        <chord name="Cmaj"/>
+        <chord name="Cmaj7"/>
+        <chord name="Cmaj7(#5)"/>
+        <chord name="Cmaj7sus4"/>
+        <chord name="Cmaj9"/>
+        <chord name="Cmmaj7"/>
+        <chord name="Cmsus4"/>
+        <chord name="Cmsus9"/>
+        <chord name="Csus"/>
+        <chord name="Csus2"/>
+        <chord name="Csus4"/>
+        <chord name="Csus9"/>
+      </lines>
+      <lines>
+        <chord name="D5"/>
+        <chord name="Domit3"/>
+        <chord name="Dm"/>
+        <chord name="D-"/>
+        <chord name="Dmin"/>
+        <chord name="D+"/>
+        <chord name="D5♯"/>
+        <chord name="D(♯5)"/>
+        <chord name="Dm,5♭"/>
+        <chord name="Dm(♭5)"/>
+        <chord name="D7"/>
+        <chord name="DΔ"/>
+        <chord name="DMaj7"/>
+        <chord name="DM7"/>
+        <chord name="DΔ7"/>
+        <chord name="Dm7"/>
+        <chord name="D-7"/>
+        <chord name="Dmin7"/>
+        <chord name="Dⵔ"/>
+        <chord name="Ddim7"/>
+        <chord name="Dⵔ7"/>
+        <chord name="Dⵁ"/>
+        <chord name="Dm7,5♭"/>
+        <chord name="Dm7(♭5)"/>
+        <chord name="D-7(♭5)"/>
+        <chord name="Dⵁ7"/>
+        <chord name="Dhalfdim"/>
+        <chord name="DmΔ"/>
+        <chord name="DmMaj7"/>
+        <chord name="DmM7"/>
+        <chord name="D-M7"/>
+        <chord name="D-Δ"/>
+        <chord name="D-Δ7"/>
+        <chord name="D+Δ"/>
+        <chord name="DMaj7(♯5)"/>
+        <chord name="D+Maj7"/>
+        <chord name="D+M7"/>
+        <chord name="D+Δ7"/>
+        <chord name="D7,5♭"/>
+        <chord name="D7(♭5)"/>
+        <chord name="D+7"/>
+        <chord name="D7,5♯"/>
+        <chord name="D7(♯5)"/>
+        <chord name="DmΔ,5♭"/>
+        <chord name="DmΔ(5♭)"/>
+        <chord name="DmMaj7(♭5)"/>
+        <chord name="DmM7(♭5)"/>
+        <chord name="D-Δ7(♭5)"/>
+        <chord name="DΔ,5♭"/>
+        <chord name="DΔ7(♭5)"/>
+        <chord name="DMaj7(♭5)"/>
+        <chord name="DM7(♭5)"/>
+        <chord name="D6"/>
+        <chord name="DM6"/>
+        <chord name="Dadd6"/>
+        <chord name="D6♭"/>
+        <chord name="D(♭6)"/>
+        <chord name="Dm6"/>
+        <chord name="Dm,add6"/>
+        <chord name="Dm6♭"/>
+        <chord name="Dm(♭6)"/>
+        <chord name="D9"/>
+        <chord name="D7,9"/>
+        <chord name="D7,9♭"/>
+        <chord name="D7(♭9)"/>
+        <chord name="DΔ9"/>
+        <chord name="DMaj9"/>
+        <chord name="DM9"/>
+        <chord name="Dm9"/>
+        <chord name="Dm7,9"/>
+        <chord name="D-9"/>
+        <chord name="Dmin9"/>
+        <chord name="DmΔ9"/>
+        <chord name="DmMaj9"/>
+        <chord name="DmM9"/>
+        <chord name="D-M9"/>
+        <chord name="D-Δ9"/>
+        <chord name="D+Δ9"/>
+        <chord name="DMaj9(♯5)"/>
+        <chord name="D+Maj9"/>
+        <chord name="D+M9"/>
+        <chord name="D+9"/>
+        <chord name="D+7,9"/>
+        <chord name="D9,5♯"/>
+        <chord name="D9(♯5)"/>
+        <chord name="Dⵁ9"/>
+        <chord name="Dm9,5♭"/>
+        <chord name="Dm9(♭5)"/>
+        <chord name="D-9(♭5)"/>
+        <chord name="Dhalfdim9"/>
+        <chord name="Dⵁ9♭"/>
+        <chord name="Dⵁ(♭9)"/>
+        <chord name="Dm7,9♭,5♭"/>
+        <chord name="Dm7(♭9,♭5)"/>
+        <chord name="D-7(♭9,♭5)"/>
+        <chord name="Dhalfdim(♭9)"/>
+        <chord name="D°9"/>
+        <chord name="Ddim9"/>
+        <chord name="D°9♭"/>
+        <chord name="D°(♭9)"/>
+        <chord name="Ddim7,9♭"/>
+        <chord name="D°7,9♭"/>
+        <chord name="D7,10♭"/>
+        <chord name="D7(♭10)"/>
+        <chord name="D11"/>
+        <chord name="DΔ11"/>
+        <chord name="DMaj11"/>
+        <chord name="DM11"/>
+        <chord name="Dm11"/>
+        <chord name="D-11"/>
+        <chord name="Dmin11"/>
+        <chord name="DmΔ11"/>
+        <chord name="DmMaj11"/>
+        <chord name="DmM11"/>
+        <chord name="D-M11"/>
+        <chord name="D-Δ11"/>
+        <chord name="D11♯"/>
+        <chord name="DΔ11♯"/>
+        <chord name="DΔ(♯11)"/>
+        <chord name="DMaj(♯11)"/>
+        <chord name="DM(♯11)"/>
+        <chord name="Dm11♯"/>
+        <chord name="Dm(♯11)"/>
+        <chord name="D-(♯11)"/>
+        <chord name="Dmin(♯11)"/>
+        <chord name="DmΔ11♯"/>
+        <chord name="DmΔ(♯11)"/>
+        <chord name="DmMaj(♯11)"/>
+        <chord name="DmM(♯11)"/>
+        <chord name="D-M(♯11)"/>
+        <chord name="D-Δ(♯11)"/>
+        <chord name="D+Δ11"/>
+        <chord name="DMaj11(♯5)"/>
+        <chord name="D+Maj11"/>
+        <chord name="D+M11"/>
+        <chord name="D+11"/>
+        <chord name="D11,5♯"/>
+        <chord name="D11(♯5)"/>
+        <chord name="Dⵁ11"/>
+        <chord name="Dm11,5♭"/>
+        <chord name="Dm11(♭5)"/>
+        <chord name="D-11(♭5)"/>
+        <chord name="Dhalfdim11"/>
+        <chord name="D°11"/>
+        <chord name="Ddim11"/>
+        <chord name="D13"/>
+        <chord name="DΔ13"/>
+        <chord name="DMaj13"/>
+        <chord name="DM13"/>
+        <chord name="Dm13"/>
+        <chord name="D-13"/>
+        <chord name="Dmin13"/>
+        <chord name="DmΔ13"/>
+        <chord name="DmMaj13"/>
+        <chord name="DmM13"/>
+        <chord name="D-M13"/>
+        <chord name="D-Δ13"/>
+        <chord name="D13(♯11)"/>
+        <chord name="DΔ13(♯11)"/>
+        <chord name="DMaj13(♯11)"/>
+        <chord name="DM13(♯11)"/>
+        <chord name="Dm13(♯11)"/>
+        <chord name="D-13(♯11)"/>
+        <chord name="Dmin13(♯11)"/>
+        <chord name="DmΔ13(♯11)"/>
+        <chord name="DmMaj13(♯11)"/>
+        <chord name="DmM13(♯11)"/>
+        <chord name="D-M13(♯11)"/>
+        <chord name="D-Δ13(♯11)"/>
+        <chord name="D+Δ13"/>
+        <chord name="DMaj13(♯5)"/>
+        <chord name="D+Maj13"/>
+        <chord name="D+M13"/>
+        <chord name="D+13"/>
+        <chord name="D13,5♯"/>
+        <chord name="D13(♯5)"/>
+        <chord name="Dⵁ13"/>
+        <chord name="Dm13,5♭"/>
+        <chord name="Dm13(♭5)"/>
+        <chord name="D-13(♭5)"/>
+        <chord name="Dhalfdim13"/>
+        <chord name="D4"/>
+        <chord name="Dsus4"/>
+        <chord name="Dsus"/>
+        <chord name="D2"/>
+        <chord name="Dsus2"/>
+        <chord name="D7,6"/>
+        <chord name="D7(add13)"/>
+        <chord name="D7(add6)"/>
+        <chord name="D6,9"/>
+        <chord name="D6(add9)"/>
+        <chord name="Dadd9"/>
+        <chord name="Dm(add9)"/>
+        <chord name="D+add9"/>
+        <chord name="D(♯5)add9"/>
+        <chord name="D6,4"/>
+        <chord name="D6(sus4)"/>
+        <chord name="D6,2"/>
+        <chord name="D6(sus2)"/>
+        <chord name="D6♭,4"/>
+        <chord name="D6♭(sus4)"/>
+        <chord name="D(♭6)sus4"/>
+        <chord name="D6♭,2"/>
+        <chord name="D6♭(sus2)"/>
+        <chord name="D(♭6)sus2"/>
+        <chord name="D7,4"/>
+        <chord name="D7sus4"/>
+        <chord name="D7,2"/>
+        <chord name="D7sus2"/>
+        <chord name="DΔ,4"/>
+        <chord name="DMaj7,4"/>
+        <chord name="DM7,4"/>
+        <chord name="DΔ7,4"/>
+        <chord name="DΔsus4"/>
+        <chord name="DM7sus4"/>
+        <chord name="DΔ,2"/>
+        <chord name="DMaj7,2"/>
+        <chord name="DM7,2"/>
+        <chord name="DΔ7,2"/>
+        <chord name="DΔsus2"/>
+        <chord name="DM7sus2"/>
+        <chord name="D+Δ,4"/>
+        <chord name="DMaj7(♯5)4"/>
+        <chord name="D+Maj7,4"/>
+        <chord name="D+M7,4"/>
+        <chord name="D+Δ7,4"/>
+        <chord name="DMaj7(♯5)4sus4"/>
+        <chord name="D+Maj7,4sus4"/>
+        <chord name="D+M7,4sus4"/>
+        <chord name="D+Δ7,4sus4"/>
+        <chord name="D+Δ,2"/>
+        <chord name="DMaj7(♯5)2"/>
+        <chord name="D+Maj7,2"/>
+        <chord name="D+M7,2"/>
+        <chord name="D+Δ7,2"/>
+        <chord name="DMaj7(♯5)2sus2"/>
+        <chord name="D+Maj7,2sus2"/>
+        <chord name="D+M7,2sus2"/>
+        <chord name="D+Δ7,2sus2"/>
+        <chord name="Dⵁ,4"/>
+        <chord name="D7,5♭,4"/>
+        <chord name="D7(♭5)4"/>
+        <chord name="Dⵁ7,4"/>
+        <chord name="Dhalfdim,4"/>
+        <chord name="D7,5♭,4sus4"/>
+        <chord name="D7(♭5)4sus4"/>
+        <chord name="Dⵁ7,4sus4"/>
+        <chord name="Dhalfdim,4sus4"/>
+        <chord name="Dⵁ,2"/>
+        <chord name="D7,5♭,2"/>
+        <chord name="D7(♭5)2"/>
+        <chord name="Dⵁ7,2"/>
+        <chord name="Dhalfdim,2"/>
+        <chord name="D7,5♭,2sus2"/>
+        <chord name="D7(♭5)2sus2"/>
+        <chord name="Dⵁ7,2sus2"/>
+        <chord name="Dhalfdim,2sus2"/>
+        <chord name="Dⵔ,4"/>
+        <chord name="Ddim7,4"/>
+        <chord name="Dⵔ7,4"/>
+        <chord name="Dⵔ(sus4)"/>
+        <chord name="Ddim7(sus4)"/>
+        <chord name="Dⵔ7(sus4)"/>
+        <chord name="Dⵔ,2"/>
+        <chord name="Ddim7,2"/>
+        <chord name="Dⵔ7,2"/>
+        <chord name="Dⵔ(sus2)"/>
+        <chord name="Ddim7(sus2)"/>
+        <chord name="Dⵔ7(sus2)"/>
+        <chord name="DΔ,5♭,4"/>
+        <chord name="DΔ7(♭5)4"/>
+        <chord name="DMaj7(♭5)4"/>
+        <chord name="DM7(♭5)4"/>
+        <chord name="DΔ7(♭5)4sus4"/>
+        <chord name="DMaj7(♭5)4sus4"/>
+        <chord name="DM7(♭5)4sus4"/>
+        <chord name="DΔ,5♭,2"/>
+        <chord name="DΔ7(♭5)2"/>
+        <chord name="DMaj7(♭5)2"/>
+        <chord name="DM7(♭5)2"/>
+        <chord name="DΔ7(♭5)2sus2"/>
+        <chord name="DMaj7(♭5)2sus2"/>
+        <chord name="DM7(♭5)2sus2"/>
+        <chord name="D7,6,4"/>
+        <chord name="D7(add13)4"/>
+        <chord name="D7(add6)4"/>
+        <chord name="D7,6sus4"/>
+        <chord name="D7(add13)sus4"/>
+        <chord name="D7(add6)sus4"/>
+        <chord name="D7,6,2"/>
+        <chord name="D7(add13)2"/>
+        <chord name="D7(add6)2"/>
+        <chord name="D7,6sus2"/>
+        <chord name="D7(add13)sus2"/>
+        <chord name="D7(add6)sus2"/>
+        <chord name="D9,4"/>
+        <chord name="D9sus4"/>
+        <chord name="D7,9♭,4"/>
+        <chord name="D7(♭9)4"/>
+        <chord name="D7,9♭,sus4"/>
+        <chord name="D7(♭9)sus4"/>
+        <chord name="DΔ9,4"/>
+        <chord name="DΔ9sus4"/>
+        <chord name="DMaj9,4"/>
+        <chord name="DM9,4"/>
+        <chord name="DMaj9sus4"/>
+        <chord name="DM9sus4"/>
+        <chord name="D+Δ9,4"/>
+        <chord name="D+Δ9sus4"/>
+        <chord name="DMaj9(♯5)4"/>
+        <chord name="D+M9,4"/>
+        <chord name="D+M9sus4"/>
+        <chord name="D+Maj9,4"/>
+        <chord name="D+9,4"/>
+        <chord name="D+9sus4"/>
+        <chord name="D9(♯5)sus4"/>
+      </lines>
+    </verse>
+  </lyrics>
+</song>

@@ -407,7 +407,7 @@ public final class WorkspaceManager {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public <T extends Persistable> void exportData(ImportExportFormat format, ZipArchiveOutputStream stream, List<T> items) throws IOException {
+	public <T extends Persistable> void exportData(Map<Class<?>, ImportExportFormat> formats, ZipArchiveOutputStream stream, List<T> items) throws IOException {
 		if (items == null || items.isEmpty()) return;
 		
 		// group by class
@@ -425,6 +425,7 @@ public final class WorkspaceManager {
 		// then iterate all the items exporting each set
 		for (Class<?> clazz : grouped.keySet()) {
 			PersistentStore<Persistable> store = (PersistentStore<Persistable>)this.adapters.get(clazz);
+			ImportExportFormat format = formats.get(clazz);
 			if (store == null) throw new UnsupportedOperationException("A persistence adapter was not found for class '" + clazz + "'.");
 			store.exportData(format, stream, grouped.get(clazz));
 		}

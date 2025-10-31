@@ -1,0 +1,5 @@
+{title: My Song}
+{artist: The Example Band}
+[C]This is <i>some</i> [Am7]text
+{comment: key="C Major" tempo="120"}
+[Dm]Another line without <b>tags</b>

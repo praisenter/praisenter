@@ -1,0 +1,74 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<?xml-stylesheet href="../stylesheets/openlyrics.xsl" type="text/xsl"?>
+<song xmlns="http://openlyrics.info/namespace/2009/song" version="0.8" createdIn="OpenLP 1.9.7" modifiedIn="OpenLP 1.9.7" modifiedDate="2012-04-10T22:00:00+10:00">
+  <properties>
+    <titles>
+      <title>Jezu Kriste, štědrý kněže</title>
+    </titles>
+    <authors>
+      <author>M. Jan Hus</author>
+    </authors>
+    <songbooks>
+      <songbook name="Jistebnický kancionál"/>
+    </songbooks>
+  </properties>
+  <format>
+    <tags application="OpenLP">
+      <tag name="r">
+        <open>&lt;span style="-webkit-text-fill-color:red"&gt;</open>
+        <close>&lt;/span&gt;</close>
+      </tag>
+      <tag name="bl">
+        <open>&lt;span style="-webkit-text-fill-color:blue"&gt;</open>
+        <close>&lt;/span&gt;</close>
+      </tag>
+      <tag name="y">
+        <open>&lt;span style="-webkit-text-fill-color:yellow"&gt;</open>
+        <close>&lt;/span&gt;</close>
+      </tag>
+      <tag name="o">
+        <open>&lt;span style="-webkit-text-fill-color:#FFA500"&gt;</open>
+        <close>&lt;/span&gt;</close>
+      </tag>
+      <tag name="st">
+        <open>&lt;strong&gt;</open>
+        <close>&lt;/strong&gt;</close>
+      </tag>
+      <tag name="it">
+        <open>&lt;em&gt;</open>
+        <close>&lt;/em&gt;</close>
+      </tag>
+      <tag name="g">
+        <open>&lt;span style="-webkit-text-fill-color:green"&gt;</open>
+        <close>&lt;/span&gt;</close>
+      </tag>
+      <tag name="aq">
+        <open>&lt;span style="-webkit-text-fill-color:#10F7E2"&gt;</open>
+        <close>&lt;/span&gt;</close>
+      </tag>
+      <tag name="br">
+        <open>&lt;br&gt;</open>
+      </tag>
+    </tags>
+  </format>
+  <lyrics>
+    <verse name="v1">
+      <lines><tag name="r">Jezu Kriste</tag>, štědrý kněže,<br/>s <tag name="bl">Otcem, Duchem</tag> jeden <tag name="y">Bože</tag>,<br/>štědrost Tvá je naše zboží,<br/>z <tag name="o"><tag name="st">Tvé</tag></tag> <tag name="it">milosti</tag>.</lines>
+    </verse>
+    <verse name="v2">
+      <lines><tag name="bl">Ty</tag> jsi v světě, bydlil s námi,<br/>Tvé tělo trpělo rány<br/>za nás za hříšné křesťany,<br/>z <tag name="bl">Tvé</tag> milosti.</lines>
+    </verse>
+    <verse name="v3">
+      <lines>Ó, <tag name="g">Tvá dobroto</tag> důstojná<br/>a k nám milosti přehojná!<br/>Dáváš nám bohatství mnohá<br/><tag name="st"><tag name="y">z Tvé milosti.</tag></tag></lines>
+    </verse>
+    <verse name="v4">
+      <lines>Ráčils nás sám zastoupiti,<br/><tag name="it">život za nás položiti,</tag><br/>tak smrt věčnou zahladiti,<br/>z Tvé milosti.</lines>
+    </verse>
+    <verse name="v5">
+      <lines><tag name="st">Ó, <tag name="r">křesťané</tag>, z bludů</tag> vstaňme,<br/>dané dobro nám poznejme,<br/>k <tag name="aq">Synu Božímu</tag> chvátejme,<br/>k té milosti!</lines>
+    </verse>
+    <verse name="v6">
+      <lines>Chvála<tag name="br"/>budiž<tag name="br"/>Bohu<tag name="br"/>Otci,<br/><tag name="st">Synu jeho téže moci,<br/>Duchu jeho rovné moci,<br/>z též milosti!</tag></lines>
+    </verse>
+  </lyrics>
+</song>

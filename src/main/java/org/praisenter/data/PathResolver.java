@@ -70,6 +70,14 @@ public interface PathResolver<T extends Persistable> {
 	/**
 	 * Returns a friendly file name for the item: {name}.{ext}
 	 * @param item the item
+	 * @param extension the extension
+	 * @return Path
+	 */
+	public Path getFriendlyFileName(T item, String extension);
+	
+	/**
+	 * Returns a friendly file name for the item: {name}.{ext}
+	 * @param item the item
 	 * @return Path
 	 */
 	public Path getFriendlyFileName(T item);

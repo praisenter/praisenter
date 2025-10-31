@@ -1,0 +1,19 @@
+{title: Broken Road}
+{artist: The Wanderers}
+{key: D}
+{transpose: +2}
+{comment: This song is transposed two steps up for easier guitar playing.}
+
+{comment: Verse 1}
+[D]I walked that [G]road so [A]many times,  
+[D]never found where it [G]leads.
+
+{comment: Chorus}
+[G]But I [D]kept on [A]walking,  
+<G>believing I’d [Bm]see your face.</G>
+
+{new_page}
+{comment: Bridge with XML emphasis}
+<italic>[Em]Now I [A]know, it was [D]you all a[G]long.</italic>
+
+{comment: End marker test}

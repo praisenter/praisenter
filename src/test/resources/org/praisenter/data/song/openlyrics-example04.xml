@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet href="../stylesheets/openlyrics.css" type="text/css"?>
+<song xmlns="http://openlyrics.info/namespace/2009/song"
+      version="0.8"
+      createdIn="OpenLP 1.9.0"
+      modifiedIn="ChangingSong 0.0.1"
+      modifiedDate="2012-04-10T22:00:00+10:00"><!-- date format: ISO 8601 -->
+  <properties>
+    <titles>
+      <title original="true" lang="en-US">Amazing Grace</title>
+      <title lang="en">Amazing Grace</title>
+      <title>Amazing</title>
+      <title lang="de-DE">Erstaunliche Anmut</title>
+    </titles>
+    <!--
+      -->
+    <!--
+      -->
+    <authors>
+      <author>John Newton</author>
+      <author type="words">Chris Rice</author>
+      <author type="music">Richard Wagner</author>
+      <author type="translation" lang="cs">František Foo</author>
+    </authors>
+    <copyright>public domain</copyright>
+    <ccliNo>4639462</ccliNo>
+    <released>1779</released>
+    <!-- move chords pitch up/down by a fixed number of semitones,
+         values: positive or negative integer -->
+    <transposition>2</transposition>
+    <!-- bpm (beats per minute, maybe 30-250) or some words like
+         Very Fast, Fast, Moderate, Slow, Very Slow -->
+    <tempo type="bpm">90</tempo>
+    <key>C#</key>
+    <variant>Newsboys</variant>
+    <publisher>Sparrow Records</publisher>
+    <version>0.99</version>
+    <keywords>something to help with more accurate results</keywords>
+    <!--
+      -->
+    <verseOrder>v1 v2  v3 c v4 c1 c2 b b1 b2</verseOrder>
+    <songbooks>
+      <songbook name="Songbook without Number"/>
+      <songbook name="Songbook with Number" entry="48"/>
+      <songbook name="Songbook with Letters in Entry Name" entry="153c"/>
+    </songbooks>
+    <themes>
+      <theme>Adoration</theme>
+      <theme lang="en-US">Grace</theme>
+      <theme lang="en-US">Praise</theme>
+      <theme lang="en-US">Salvation</theme>
+      <theme lang="pt-BR">Graça</theme>
+      <theme lang="pt-BR">Adoração</theme>
+      <theme lang="pt-BR">Salvação</theme>
+    </themes>
+
+    <comments>
+      <comment>This is one of the most popular songs in our congregation.</comment>
+    </comments>
+  </properties>
+
+  <lyrics>
+    <verse name="v1" lang="en">
+      <lines>Amazing grace how sweet the sound that saved a wretch like me;</lines>
+      <lines part="women">A b c<br/>D e f</lines>
+    </verse>
+
+    <verse name="v1" lang="de">
+      <lines><chord name="B"/>Erstaunliche Ahmut, wie</lines>
+    </verse>
+
+    <verse name="c">
+      <lines><comment>any comment</comment><br/>Line content.</lines>
+    </verse>
+
+    <verse name="v2" lang="en-US">
+      <lines part="men"><comment>any text</comment><br/>Amazing grace how sweet the sound that saved a wretch like me;<br/><comment>any text</comment><br/><chord name="D"/>Amazing grace how sweet <chord name="D"/>the sound that saved a wretch like me;<chord name="B7"/><br/>Amazing grace<chord name="G7"/> how sweet the sound that saved a wretch like me;</lines>
+      <lines part="women">A b c<br/><br/>D e f</lines>
+    </verse>
+
+    <verse name="emptyline" lang="de">
+      <lines><br/></lines>
+      <lines><br/><br/><br/><br></br></lines>
+    </verse>
+
+    <verse name="e" lang="de">
+      <lines>This is text of ending.</lines>
+    </verse>
+
+  </lyrics>
+</song>

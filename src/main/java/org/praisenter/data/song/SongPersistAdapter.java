@@ -32,6 +32,9 @@ public final class SongPersistAdapter extends AbstractPersistAdapter<Song, Basic
 		this.importExportProviders.put(ImportExportFormat.PRAISENTER2, new Praisenter2SongFormatProvider());
 		// XML not much to differentiate between other formats
 		this.importExportProviders.put(ImportExportFormat.PRAISENTER1, new Praisenter1SongFormatProvider());
+		// plain text
+		this.importExportProviders.put(ImportExportFormat.CHORDPRO, new ChordProSongFormatProvider());
+		// raw (export as-is from library)
 		this.importExportProviders.put(ImportExportFormat.RAW, new RawExportFormatProvider<Song>());
 	}
 	

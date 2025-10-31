@@ -1,0 +1,18 @@
+{title: Rise Again}
+{artist: "Hope & Harmony"}
+{meta: album="The Long Road" year=2023 track=4 producer="Sam Lee"}
+{key: F}
+{tempo: 95}
+{duration: 03:45}
+
+{comment: Intro riff}
+[F] [Bb] [C] [F]
+
+{start_of_verse}
+[F]When the [Bb]storm comes [C]crashing [F]down,  
+[Dm]Hold your [Bb]ground and [C]face the [F]rain.  
+{end_of_verse}
+
+{comment: Chorus (bold text for emphasis)}
+<strong>[Bb]Rise [C]again, [F]rise [Dm]again!</strong>
+[Dm]Don’t you [Bb]fade a[C]way, my [F]friend.

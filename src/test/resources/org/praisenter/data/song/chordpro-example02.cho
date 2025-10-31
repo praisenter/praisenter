@@ -1,0 +1,21 @@
+{title: Simple Love Song}
+{subtitle: An Easy Tune}
+{artist: Jane Doe}
+{key: C}
+{time: 4/4}
+
+{comment: Intro}
+[C]Love is in the [G]air,  
+[F]everywhere I [C]look around.  
+
+{comment: Verse 1}
+[C]Love is in the [Am]air,  
+[F]every sight and [G]every sound.
+
+{start_of_chorus}
+[F]And I [G]don’t [C]know if I’m [Am]dreaming,  
+[F]don’t [G]know if it’s [C]true.
+{end_of_chorus}
+
+{comment: Outro}
+[C]Love is in the [G]air, [F]oh [C]yeah!
