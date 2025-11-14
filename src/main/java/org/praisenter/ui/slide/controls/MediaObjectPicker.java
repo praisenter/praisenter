@@ -3,6 +3,7 @@ package org.praisenter.ui.slide.controls;
 import java.util.List;
 import java.util.stream.Stream;
 
+import org.praisenter.async.AsyncHelper;
 import org.praisenter.data.media.Media;
 import org.praisenter.data.media.MediaType;
 import org.praisenter.data.slide.effects.SlideColorAdjust;
@@ -21,6 +22,7 @@ import org.praisenter.ui.library.LibraryListType;
 import org.praisenter.ui.translations.Translations;
 
 import atlantafx.base.controls.ToggleSwitch;
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.BooleanProperty;
@@ -32,10 +34,14 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.Label;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.HBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -82,7 +88,7 @@ public final class MediaObjectPicker extends EditorFieldGroup {
 		
 		LibraryList lstMedia = new LibraryList(context, Orientation.HORIZONTAL, types);
 		lstMedia.setMultiSelectEnabled(false);
-
+		
 		FilteredList<Media> filtered = new FilteredList<>(context.getWorkspaceManager().getItemsUnmodifiable(Media.class));
 		filtered.setPredicate(m -> {
 			MediaType type = m.getMediaType();
@@ -111,6 +117,28 @@ public final class MediaObjectPicker extends EditorFieldGroup {
 		dlgMedia.setHeight(600);
 		dlgMedia.setMinWidth(850);
 		dlgMedia.setMinHeight(500);
+		
+		lstMedia.setOnDragOver(e -> {
+			// only accept drag n drop from outside of the application
+			if (e.getGestureSource() == null && e.getDragboard().hasFiles()) {
+				e.acceptTransferModes(TransferMode.COPY);
+			}
+		});
+		lstMedia.setOnDragDropped(e -> {
+			Dragboard db = e.getDragboard();
+			if (e.getGestureSource() == null && db.hasFiles()) {
+				context.importFiles(db.getFiles()).thenAccept((items) -> {
+					// nothing else to do with the items
+				}).exceptionallyCompose(AsyncHelper.onJavaFXThreadAndWait((t) -> {
+					Platform.runLater(() -> {
+						Alert alert = Dialogs.exception(dlgMedia, t);
+						alert.show();
+					});
+				}));
+				e.setDropCompleted(true);
+			}
+		});
+		
 		btnCancel.setOnAction(e -> {
 			dlgMedia.hide();
 		});
@@ -170,6 +198,16 @@ public final class MediaObjectPicker extends EditorFieldGroup {
 		EditorField fldScaleType = new EditorField(Translations.get("slide.media.scale.type"), cbScaleType);
 		EditorField fldColorAdjust = new EditorField(pkrColorAdjust);
 		
+		Label lblSelectedMedia = new Label();
+		lblSelectedMedia.textProperty().bind(Bindings.createStringBinding(() -> {
+			Media m = this.media.get();
+			if (m == null) {
+				return "No media selected";
+			}
+			return m.getName();
+		}, this.media));
+		EditorField fldMediaSelected = new EditorField(null, lblSelectedMedia);
+		
 		this.hasAudio = Bindings.createBooleanBinding(() -> {
 			Media media = this.media.get();
 			if (media == null) {
@@ -213,6 +251,7 @@ public final class MediaObjectPicker extends EditorFieldGroup {
 		
 		this.getChildren().addAll(
 				fldMedia,
+				fldMediaSelected,
 				fldLoop,
 				fldMute,
 				fldRepeat,
