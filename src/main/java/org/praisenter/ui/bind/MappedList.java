@@ -14,6 +14,13 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.TransformationList;
 
 // see https://gist.github.com/TomasMikula/8883719
+/**
+ * 
+ * @param <E>
+ * @param <F>
+ * @deprecated Use MappedList2 instead
+ */
+@Deprecated
 public final class MappedList<E, F> extends TransformationList<E, F> {
 	private static final Logger LOGGER = LogManager.getLogger();
 
