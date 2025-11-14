@@ -1,9 +1,7 @@
 package org.praisenter.ui.display;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -13,7 +11,10 @@ import org.apache.logging.log4j.Logger;
 import org.praisenter.TriConsumer;
 import org.praisenter.data.Persistable;
 import org.praisenter.data.StringTextStore;
+import org.praisenter.data.TextItem;
 import org.praisenter.data.TextStore;
+import org.praisenter.data.TextType;
+import org.praisenter.data.TextVariant;
 import org.praisenter.data.bible.BibleReferenceTextStore;
 import org.praisenter.data.slide.Slide;
 import org.praisenter.data.slide.SlideReference;
@@ -26,7 +27,7 @@ import org.praisenter.ui.ActionPane;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.bible.BibleNavigationPane;
 import org.praisenter.ui.bind.BindingHelper;
-import org.praisenter.ui.bind.MappedList;
+import org.praisenter.ui.bind.MappedList2;
 import org.praisenter.ui.bind.ObjectConverter;
 import org.praisenter.ui.controls.Dialogs;
 import org.praisenter.ui.slide.SlideList;
@@ -106,10 +107,7 @@ public final class DisplayController extends BorderPane implements ActionPane {
 	private final DoubleBinding leftMaxWidth;
 	private final DoubleBinding slidePreviewMaxHeight;
 	
-	private final ObservableList<Slide> slides;
 	private final Slide WAS_REMOVED = new Slide();
-	
-	private final ObservableList<SlideReference> slideToSlideReferenceMapping;
 	
 	private final IntegerProperty lastTabIndex;
 	
@@ -137,7 +135,6 @@ public final class DisplayController extends BorderPane implements ActionPane {
 		this.context = context;
 		this.target = target;
 		
-		this.slides = FXCollections.observableArrayList();
 		this.lastTabIndex = new SimpleIntegerProperty(0);
 		
 		DisplayConfiguration configuration = target.getDisplayConfiguration();
@@ -179,7 +176,7 @@ public final class DisplayController extends BorderPane implements ActionPane {
 		this.controllableDisplays = this.watchableDisplays.filtered(dt -> {
 			return dt != target && dt.getDisplayConfiguration().isActive();
 		});
-		this.displayMenuItems = new MappedList<>(this.controllableDisplays, (tgt) -> {
+		this.displayMenuItems = new MappedList2<>(this.controllableDisplays, (tgt) -> {
 			var config = tgt.getDisplayConfiguration();
 			
 			CheckMenuItem itm = new CheckMenuItem();
@@ -334,12 +331,12 @@ public final class DisplayController extends BorderPane implements ActionPane {
 		
 		MenuButton mnuActions = new MenuButton(Translations.get("display.actions"));
 		mnuActions.getItems().addAll(
+			mnuIdentify,
 			mnuSetName,
 			mnuPrimary,
-			mnuLink,
-			mnuIdentify,
 			mnuHide,
-			mnuDelete);
+			mnuDelete,
+			mnuLink);
 		
 		Robot robot = new Robot();
 		WritableImage image = robot.getScreenCapture(null, 
@@ -443,27 +440,6 @@ public final class DisplayController extends BorderPane implements ActionPane {
 		tabs.getTabs().add(new Tab(Translations.get("slide"), slideNavigationPane));
 		tabs.getTabs().add(new Tab(Translations.get("notification"), notificationTab));
 		
-		for (SlideReference sr : configuration.getQueuedSlidesUnmodifiable()) {
-			if (sr.getSlideId() != null) {
-				Persistable item = context.getWorkspaceManager().getPersistableById(sr.getSlideId());
-				if (item != null && item instanceof Slide) {
-					Slide slide = (Slide)item;
-					slide = slide.copy();
-					slide.setPlaceholderData(sr.getPlaceholderData());
-					slide.fit(configuration.getWidth(), configuration.getHeight());
-					this.slides.add(slide);
-				}
-			}
-		}
-		
-		this.slideToSlideReferenceMapping = new MappedList<>(this.slides, (s) -> {
-			SlideReference sr = new SlideReference();
-			sr.setSlideId(s.getId());
-			sr.setPlaceholderData(s.getPlaceholderData());
-			return sr;
-		});
-		Bindings.bindContent(configuration.getQueuedSlides(), this.slideToSlideReferenceMapping);
-		
 		// NOTE: we have to do a bidirectional binding here because the SlideList itself
 		// allows delete, copy, paste, and dnd
 		SlideList lstSlideQueue = new SlideList(context);
@@ -471,49 +447,29 @@ public final class DisplayController extends BorderPane implements ActionPane {
 		lblEmptySlideList.setWrapText(true);
 		lblEmptySlideList.setTextAlignment(TextAlignment.CENTER);
 		lstSlideQueue.setPlaceholder(lblEmptySlideList);
-		Bindings.bindContentBidirectional(lstSlideQueue.getItems(), this.slides);
+		Bindings.bindContentBidirectional(lstSlideQueue.getItems(), configuration.getQueuedSlides());
+		lstSlideQueue.slideWidthProperty().bind(configuration.widthProperty());
+		lstSlideQueue.slideHeightProperty().bind(configuration.heightProperty());
 		this.slideList = lstSlideQueue;
 		
-		// listen for changes to the slides (remove and update)
+		// listen for changes to the slides (removes)
 		context.getWorkspaceManager().getItemsUnmodifiable().addListener((Change<? extends Persistable> c) -> {
-			Map<Integer, Slide> toReplace = new HashMap<>();
-			List<Slide> toRemove = new ArrayList<>();
+			List<SlideReference> toRemove = new ArrayList<>();
+			List<SlideReference> queued = configuration.getQueuedSlidesUnmodifiable();
 			
 			while (c.next()) {
-				if (c.wasAdded()) {
-					for (Persistable p : c.getAddedSubList()) {
-						int i = 0;
-						for (Slide s : this.slides) {
-							if (p.getId().equals(s.getId())) {
-								// then it was updated
-								Slide s1 = (Slide)p.copy();
-								s1.setPlaceholderData(s.getPlaceholderData());
-								toReplace.put(i, s1);
-								break;
-							}
-							i++;
-						}
-					}
-				}
-				
 				if (c.wasRemoved()) {
 					for (Persistable p : c.getRemoved()) {
-						for (Slide s : this.slides) {
-							if (p.getId().equals(s.getId())) {
-								// then it was removed
+						for (SlideReference s : queued) {
+							if (p.getId().equals(s.getSlideId())) {
 								toRemove.add(s);
-								break;
 							}
 						}
 					}
 				}
 			}
 			
-			for (int key : toReplace.keySet()) {
-				this.slides.set(key, toReplace.get(key));
-			}
-			
-			this.slides.removeAll(toRemove);
+			configuration.getQueuedSlides().removeAll(toRemove);
 		});
 
 		StackPane stkSlideView = new StackPane(screen, slideView, notificationView);
@@ -620,18 +576,27 @@ public final class DisplayController extends BorderPane implements ActionPane {
 			}
 			
 			if (slide != null) {
-				slide = slide.copy();
-				slide.fit(configuration.getWidth(), configuration.getHeight());
-				slide.setPlaceholderData(data);
-				this.slides.add(slide);
+				String name = slide.getName();
+				if (data != null) {
+					TextItem pt = data.get(TextVariant.PRIMARY, TextType.TITLE);
+					if (pt != null && !StringManipulator.isNullOrEmpty(pt.getText())) {
+						name = pt.getText();
+					}
+				}
+				
+				SlideReference sr = new SlideReference();
+				sr.setSlideId(slide.getId());
+				sr.setPlaceholderData(data.copy());
+				sr.setName(name);
+				configuration.getQueuedSlides().add(sr);
 			}
 		});
 		
 		btnQueueRemoveSelected.setOnAction(e -> {
-			Slide selected = lstSlideQueue.getSelectionModel().getSelectedItem();
+			SlideReference selected = lstSlideQueue.getSelectionModel().getSelectedItem();
 			int index = -1;
-			for (int i = 0; i < this.slides.size(); i++) {
-				Slide s2 = this.slides.get(i);
+			for (int i = 0; i < configuration.getQueuedSlides().size(); i++) {
+				SlideReference s2 = configuration.getQueuedSlides().get(i);
 				if (selected == s2) {
 					index = i;
 					break;
@@ -640,12 +605,12 @@ public final class DisplayController extends BorderPane implements ActionPane {
 			
 			if (index >= 0) {
 				LOGGER.debug("Found index {} to remove", index);
-				this.slides.remove(index);
+				configuration.getQueuedSlides().remove(index);
 			}
 		});
 		
 		btnQueueRemoveAll.setOnAction(e -> {
-			this.slides.clear();
+			configuration.getQueuedSlides().clear();
 		});
 
 		btnShow.setOnAction(e -> {
@@ -886,21 +851,28 @@ public final class DisplayController extends BorderPane implements ActionPane {
 			
 			if (nv != null) {
 				this.selectingQueuedSlide = true;
-				// check for slide first
-				if (!nv.hasPlaceholders()) {
-					// then it's a slide
+				
+				UUID slideId = nv.getSlideId();
+				TextStore data = nv.getPlaceholderData();
+				
+				// find the slide
+				Slide slide = context.getWorkspaceManager().getItem(Slide.class, slideId);
+				if (slide == null) {
+					return;
+				}
+				
+				// check if the slide is just a normal slide
+				if (!slide.hasPlaceholders()) {
+					// select the slides tab
 					tabs.getSelectionModel().select(2);
-					Slide slide = context.getWorkspaceManager().getItem(Slide.class, nv.getId());
-					if (slide != null) {
-						slideNavigationPane.setValue(slide);
-					}
+					// set the selected slide in the slide list pane
+					slideNavigationPane.setValue(slide);
 					
 					this.selectingQueuedSlide = false;
 					return;
 				}
 				
 				// otherwise it has placeholder data
-				TextStore data = nv.getPlaceholderData();
 				if (data instanceof BibleReferenceTextStore) {
 					// set the bible fields
 					BibleReferenceTextStore brts = (BibleReferenceTextStore)data;
@@ -908,7 +880,7 @@ public final class DisplayController extends BorderPane implements ActionPane {
 					// set the tab index
 					tabs.getSelectionModel().select(0);
 					// set the template selector
-					Optional<Slide> template = cmbBibleSlideTemplate.getItems().stream().filter(t -> t.getId().equals(nv.getId())).findFirst();
+					Optional<Slide> template = cmbBibleSlideTemplate.getItems().stream().filter(t -> t.getId().equals(slideId)).findFirst();
 					if (template.isPresent()) {
 						cmbBibleSlideTemplate.setValue(template.get());
 					}
@@ -919,7 +891,7 @@ public final class DisplayController extends BorderPane implements ActionPane {
 					// set the tab index
 					tabs.getSelectionModel().select(1);
 					// set the template selector
-					Optional<Slide> template = cmbSongSlideTemplate.getItems().stream().filter(t -> t.getId().equals(nv.getId())).findFirst();
+					Optional<Slide> template = cmbSongSlideTemplate.getItems().stream().filter(t -> t.getId().equals(slideId)).findFirst();
 					if (template.isPresent()) {
 						cmbSongSlideTemplate.setValue(template.get());
 					}

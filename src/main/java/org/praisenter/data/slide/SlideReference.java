@@ -13,14 +13,18 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 
 public class SlideReference implements ReadOnlySlideReference {
 	private final ObjectProperty<UUID> slideId;
 	private final ObjectProperty<TextStore> placeholderData;
+	private final StringProperty name;
 	
 	public SlideReference() {
 		this.slideId = new SimpleObjectProperty<UUID>();
 		this.placeholderData = new SimpleObjectProperty<TextStore>();
+		this.name = new SimpleStringProperty();
 	}
 	
 	@Override
@@ -65,4 +69,21 @@ public class SlideReference implements ReadOnlySlideReference {
 	public ObjectProperty<TextStore> placeholderDataProperty() {
 		return this.placeholderData;
 	}
+	
+	@Override
+	@JsonProperty
+	public String getName() {
+		return this.name.get();
+	}
+	
+	@JsonProperty
+	public void setName(String name) {
+		this.name.set(name);
+	}
+	
+	@Override
+	public StringProperty nameProperty() {
+		return this.name;
+	}
+	
 }

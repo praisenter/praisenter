@@ -9,7 +9,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.Constants;
 import org.praisenter.data.json.JsonIO;
-import org.praisenter.data.slide.Slide;
+//import org.praisenter.data.slide.Slide;
+import org.praisenter.data.slide.SlideReference;
 import org.praisenter.ui.Action;
 import org.praisenter.ui.ActionPane;
 import org.praisenter.ui.DataFormats;
@@ -17,6 +18,8 @@ import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.events.ActionStateChangedEvent;
 import org.praisenter.ui.translations.Translations;
 
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.collections.ObservableList;
 import javafx.scene.CacheHint;
 import javafx.scene.SnapshotParameters;
@@ -32,18 +35,27 @@ import javafx.scene.input.Dragboard;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 
-public final class SlideList extends ListView<Slide> implements ActionPane {
+public final class SlideList extends ListView<SlideReference> implements ActionPane {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
 	private static final String SLIDE_LIST_CLASS = "p-slide-list";
 	
 	private final GlobalContext context;
 	
+	private final DoubleProperty slideWidth;
+	private final DoubleProperty slideHeight;
+	
 	public SlideList(GlobalContext context) {
 		this.context = context;
 
+		this.slideWidth = new SimpleDoubleProperty();
+		this.slideHeight = new SimpleDoubleProperty();
+		
 		this.setCellFactory(s -> {
 			SlideListCell cell = new SlideListCell(context);
+			
+			cell.slideWidthProperty().bind(this.slideWidth);
+			cell.slideHeightProperty().bind(this.slideHeight);
 			
 			// critical for performance for large lists of slides...
 			cell.setCache(true);
@@ -130,7 +142,7 @@ public final class SlideList extends ListView<Slide> implements ActionPane {
 				return !selection.isEmpty();
 			case PASTE:
 				Clipboard clipboard = Clipboard.getSystemClipboard();
-				return clipboard.hasContent(DataFormats.PRAISENTER_SLIDE_ARRAY);
+				return clipboard.hasContent(DataFormats.PRAISENTER_SLIDE_REFERENCE_ARRAY);
 			default:
 				return false;
 		}
@@ -147,7 +159,7 @@ public final class SlideList extends ListView<Slide> implements ActionPane {
 	}
 	
 	private CompletableFuture<Void> delete() {
-		List<Slide> selected = new ArrayList<>(this.getSelectionModel().getSelectedItems());
+		List<SlideReference> selected = new ArrayList<>(this.getSelectionModel().getSelectedItems());
 		
 		this.getSelectionModel().clearSelection();
 		this.getItems().removeAll(selected);
@@ -156,25 +168,25 @@ public final class SlideList extends ListView<Slide> implements ActionPane {
 	}
 	
 	private CompletableFuture<Void> copy() {
-		List<Slide> items = new ArrayList<>(this.getSelectionModel().getSelectedItems());
+		List<SlideReference> items = new ArrayList<>(this.getSelectionModel().getSelectedItems());
 		int n = items.size();
 		if (n > 0) {
 			// get all names
 			List<String> names = items.stream().map(i -> i.getName()).collect(Collectors.toList());
 
 			try {
-				String data = JsonIO.write(items.toArray(new Slide[0]));
+				String data = JsonIO.write(items.toArray(new SlideReference[0]));
 				
 				ClipboardContent content = new ClipboardContent();
 				content.putString(String.join(Constants.NEW_LINE, names));
-				content.put(DataFormats.PRAISENTER_SLIDE_ARRAY, data);
+				content.put(DataFormats.PRAISENTER_SLIDE_REFERENCE_ARRAY, data);
 				
 				Clipboard clipboard = Clipboard.getSystemClipboard();
 				clipboard.setContent(content);
 				
 				this.fireEvent(new ActionStateChangedEvent(this, this, ActionStateChangedEvent.CLIPBOARD));
 			} catch (Exception e) {
-				LOGGER.error("Failed to serialize the slide[] when copying: ", e);
+				LOGGER.error("Failed to serialize the SlideReference[] when copying: ", e);
 			}
 		}
 		
@@ -183,15 +195,15 @@ public final class SlideList extends ListView<Slide> implements ActionPane {
 	
 	private CompletableFuture<Void> paste() {
 		Clipboard clipboard = Clipboard.getSystemClipboard();
-		if (clipboard.hasContent(DataFormats.PRAISENTER_SLIDE_ARRAY)) {
-			Object data = clipboard.getContent(DataFormats.PRAISENTER_SLIDE_ARRAY);
+		if (clipboard.hasContent(DataFormats.PRAISENTER_SLIDE_REFERENCE_ARRAY)) {
+			Object data = clipboard.getContent(DataFormats.PRAISENTER_SLIDE_REFERENCE_ARRAY);
 			if (data != null && data instanceof String) {
 				try {
-					Slide[] slides = JsonIO.read((String)data, Slide[].class);
+					SlideReference[] slides = JsonIO.read((String)data, SlideReference[].class);
 					
 					this.getItems().addAll(slides);
 				} catch (Exception e) {
-					LOGGER.error("Failed to deserialize the slide[] when pasting: ", e);
+					LOGGER.error("Failed to deserialize the SlideReference[] when pasting: ", e);
 				}
 			}
 		}
@@ -200,25 +212,25 @@ public final class SlideList extends ListView<Slide> implements ActionPane {
 	}
 	
     private void dragDetected(MouseEvent event, SlideListCell cell) {
-    	Slide slide = cell.getItem();
+    	SlideReference slideReference = cell.getItem();
     	
-        if (slide == null) {
+        if (slideReference == null) {
             return;
         }
 
-        ObservableList<Slide> items = this.getItems();
+        ObservableList<SlideReference> items = this.getItems();
 
         Dragboard dragboard = startDragAndDrop(TransferMode.COPY_OR_MOVE);
         ClipboardContent content = new ClipboardContent();
 
         // set the content
 		try {
-			String data = JsonIO.write(new Slide[] { slide });
-			content.putString(slide.getName());
-			content.put(DataFormats.PRAISENTER_INDEX, items.indexOf(slide));
-			content.put(DataFormats.PRAISENTER_SLIDE_ARRAY, data);
+			String data = JsonIO.write(new SlideReference[] { slideReference });
+			content.putString(slideReference.getName());
+			content.put(DataFormats.PRAISENTER_INDEX, items.indexOf(slideReference));
+			content.put(DataFormats.PRAISENTER_SLIDE_REFERENCE_ARRAY, data);
 		} catch (Exception e) {
-			LOGGER.error("Failed to serialize the slide when starting drag-n-drop: ", e);
+			LOGGER.error("Failed to serialize the slide reference when starting drag-n-drop: ", e);
 		}
 		
 		SnapshotParameters params = new SnapshotParameters();
@@ -232,7 +244,7 @@ public final class SlideList extends ListView<Slide> implements ActionPane {
 
     private void dragOver(DragEvent event, SlideListCell cell) {
         if (event.getGestureSource() != cell &&
-               event.getDragboard().hasContent(DataFormats.PRAISENTER_SLIDE_ARRAY)) {
+               event.getDragboard().hasContent(DataFormats.PRAISENTER_SLIDE_REFERENCE_ARRAY)) {
             event.acceptTransferModes(TransferMode.COPY_OR_MOVE);
         }
 
@@ -241,14 +253,14 @@ public final class SlideList extends ListView<Slide> implements ActionPane {
 
     private void dragEntered(DragEvent event, SlideListCell cell) {
         if (event.getGestureSource() != cell &&
-                event.getDragboard().hasContent(DataFormats.PRAISENTER_SLIDE_ARRAY)) {
+                event.getDragboard().hasContent(DataFormats.PRAISENTER_SLIDE_REFERENCE_ARRAY)) {
             cell.setOpacity(0.3);
         }
     }
 
     private void dragExited(DragEvent event, SlideListCell cell) {
         if (event.getGestureSource() != cell &&
-                event.getDragboard().hasContent(DataFormats.PRAISENTER_SLIDE_ARRAY)) {
+                event.getDragboard().hasContent(DataFormats.PRAISENTER_SLIDE_REFERENCE_ARRAY)) {
             cell.setOpacity(1);
         }
     }
@@ -261,14 +273,14 @@ public final class SlideList extends ListView<Slide> implements ActionPane {
         boolean success = false;
         
         // confirm we have the proper content in the dragboard
-        if (db.hasContent(DataFormats.PRAISENTER_SLIDE_ARRAY) && db.hasContent(DataFormats.PRAISENTER_INDEX)) {
-            ObservableList<Slide> items = this.getItems();
+        if (db.hasContent(DataFormats.PRAISENTER_SLIDE_REFERENCE_ARRAY) && db.hasContent(DataFormats.PRAISENTER_INDEX)) {
+            ObservableList<SlideReference> items = this.getItems();
             
             int sourceIndex = (int)db.getContent(DataFormats.PRAISENTER_INDEX);
-            Object content = db.getContent(DataFormats.PRAISENTER_SLIDE_ARRAY);
+            Object content = db.getContent(DataFormats.PRAISENTER_SLIDE_REFERENCE_ARRAY);
             
             // is it being dragged from this list or another list?
-            ListView<Slide> sourceList = null;
+            ListView<SlideReference> sourceList = null;
     		boolean fromThis = false;
     		if (source instanceof SlideList) {
     			sourceList = (SlideList)source;
@@ -278,20 +290,17 @@ public final class SlideList extends ListView<Slide> implements ActionPane {
     		}
             
     		// get the source slide
-    		Slide sourceSlide = null; 
-    		if (fromThis) {
-    			// use the index to get the source slide
-    			sourceSlide = items.get(sourceIndex);
-    		} else if (content != null && content instanceof String) {
+    		SlideReference sourceSlideReference = null; 
+			if (content != null && content instanceof String) {
     			try {
-            		sourceSlide = JsonIO.read((String)content, Slide[].class)[0];
+            		sourceSlideReference = JsonIO.read((String)content, SlideReference[].class)[0];
     			} catch (Exception e) {
-    				LOGGER.error("Failed to deserialize the slide when accepting a drag-n-drop: ", e);
+    				LOGGER.error("Failed to deserialize the slide reference when accepting a drag-n-drop: ", e);
 				}
     		}
     		
     		// now figure out the target location
-    		if (sourceSlide != null) {
+    		if (sourceSlideReference != null) {
     			int targetOffset = 0;
     			int targetIndex = items.size();
     			
@@ -308,11 +317,11 @@ public final class SlideList extends ListView<Slide> implements ActionPane {
 	    			// check whether the target element is empty or not
 	    			// if it's empty, then we just append it to the end
 	    			// otherwise we need to find the index to place it
-		            Slide targetSlide = cell.getItem();
-		            if (targetSlide == null) {
+	    			SlideReference targetSlideReference = cell.getItem();
+		            if (targetSlideReference == null) {
 		            	targetIndex = items.size();
 		            } else {
-		            	targetIndex = items.indexOf(targetSlide);	
+		            	targetIndex = items.indexOf(targetSlideReference);	
 		            }
     			}
 	            
@@ -339,18 +348,14 @@ public final class SlideList extends ListView<Slide> implements ActionPane {
 	            
 	            // remove the item from the source
 	            if (txMode == TransferMode.MOVE) {
-		            if (fromThis) {
-		            	this.getItems().remove(sourceIndex);
-		            } else if (sourceList != null) {
-		            	sourceList.getItems().remove(sourceIndex);
-		            }
+	            	sourceList.getItems().remove(sourceIndex);
 	            }
 	            
 	            // add it to the target at the appropriate index
 	            if (targetIndex >= items.size()) {
-	            	this.getItems().add(sourceSlide);
+	            	this.getItems().add(sourceSlideReference);
 	            } else {
-	            	this.getItems().add(targetIndex, sourceSlide);
+	            	this.getItems().add(targetIndex, sourceSlideReference);
 	            }
 	            
 	            // select the item that we added
@@ -368,4 +373,28 @@ public final class SlideList extends ListView<Slide> implements ActionPane {
     private void dragDone(DragEvent event) {
     	event.consume();
     }
+
+	public double getSlideWidth() {
+		return this.slideWidth.get();
+	}
+	
+	public void setSlideWidth(double width) {
+		this.slideWidth.set(width);
+	}
+	
+	public DoubleProperty slideWidthProperty() {
+		return this.slideWidth;
+	}
+	
+	public double getSlideHeight() {
+		return this.slideHeight.get();
+	}
+	
+	public void setSlideHeight(double height) {
+		this.slideHeight.set(height);
+	}
+	
+	public DoubleProperty slideHeightProperty() {
+		return this.slideHeight;
+	}
 }
