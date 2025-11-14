@@ -41,8 +41,11 @@ final class ListEdit<T> implements Edit {
 	public void redo() {
 		for (Change change : this.change.changes) {
 			// handle permutation first
-			for (Moved moved : change.moved) {
-				this.list.set(moved.newIndex, moved.item);
+			if (change.permutation != null) {
+				// remove all the values first
+				this.list.remove(change.permutation.start, change.permutation.end);
+				// then reinsert them at the start index
+				this.list.addAll(change.permutation.start, change.permutation.newOrder);
 			}
 			
 			// handle remove
@@ -78,9 +81,11 @@ final class ListEdit<T> implements Edit {
 			}
 			
 			// handle permutation
-			for (int j = change.moved.size() - 1; j >= 0; j--) {
-				Moved moved = change.moved.get(j);
-				this.list.set(moved.oldIndex, moved.item);
+			if (change.permutation != null) {
+				// remove all the values first
+				this.list.remove(change.permutation.start, change.permutation.end);
+				// then reinsert them at the start index
+				this.list.addAll(change.permutation.start, change.permutation.oldOrder);
 			}
 		}
 	}
@@ -113,15 +118,21 @@ final class ListEdit<T> implements Edit {
 			
 			// copy the permutated items
 			if (change.wasPermutated()) {
+				Permutation p = new Permutation();
+				p.newOrder = new ArrayList<>();
+				p.oldOrder = new ArrayList<>();
+				p.start = change.getFrom();
+				p.end = change.getTo();
+				for (int newIndex = change.getFrom(); newIndex < change.getTo(); newIndex++) {
+					p.newOrder.add(change.getList().get(newIndex));
+				}
 				for (int oldIndex = change.getFrom(); oldIndex < change.getTo(); oldIndex++) {
 					int newIndex = change.getPermutation(oldIndex);
 					T item = change.getList().get(newIndex);
-					Moved m = new Moved();
-					m.item = item;
-					m.newIndex = newIndex;
-					m.oldIndex = oldIndex;
-					c.moved.add(m);
+					p.oldOrder.add(item);
 				}
+				
+				c.permutation = p;
 			}
 			
 			changes.changes.add(c);
@@ -138,7 +149,7 @@ final class ListEdit<T> implements Edit {
 	private class Change {
 		public List<Added> added = new ArrayList<>();
 		public List<Removed> removed = new ArrayList<>();
-		public List<Moved> moved = new ArrayList<>();
+		public Permutation permutation = null;
 	}
 	
 	private class Added {
@@ -151,9 +162,10 @@ final class ListEdit<T> implements Edit {
 		public T item;
 	}
 	
-	private class Moved {
-		public int oldIndex;
-		public int newIndex;
-		public T item;
+	private class Permutation {
+		public int start;
+		public int end;
+		public List<T> newOrder;
+		public List<T> oldOrder;
 	}
 }
