@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.Strings;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
+import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.praisenter.Constants;
@@ -50,6 +51,8 @@ import javafx.collections.ObservableSet;
 @Editable
 public final class Song implements ReadOnlySong, Indexable, Persistable, Copyable, Identifiable {
 	public static final String DATA_TYPE_SONG = "song";
+	public static final String FIELD_LYRICS_ID = "lyrics";
+	public static final String FIELD_SECTION_ID = "section";
 	
 	private final StringProperty format;
 	private final StringProperty version;
@@ -266,28 +269,22 @@ public final class Song implements ReadOnlySong, Indexable, Persistable, Copyabl
 		
 		StringBuilder text = new StringBuilder();
 		
-		// store the song text first so that when we highlight
-		// matched text we favor the song text above the name, title, keywords
-		for (Lyrics lyrics : this.lyrics) {
-			for (Section section : lyrics.getSections()) {
-				String sectionText = section.getText();
-				if (!StringManipulator.isNullOrEmpty(sectionText)) text.append(sectionText).append("\n");
-			}
-		}
-		
 		// store any lyrics titles
 		for (Lyrics lyrics : this.lyrics) {
 			String title = lyrics.getTitle();
-			if (!StringManipulator.isNullOrEmpty(title)) text.append(title).append("\n");
+			if (!StringManipulator.isNullOrEmpty(title)) 
+				text.append(title).append("\n");
 		}
 		
 		// store the song name
 		String name = this.getName();
-		if (!StringManipulator.isNullOrEmpty(name)) text.append(name).append("\n");
+		if (!StringManipulator.isNullOrEmpty(name)) 
+			text.append(name).append("\n");
 		
 		// store the song keywords
 		String keywords = this.getKeywords();
-		if (!StringManipulator.isNullOrEmpty(keywords)) text.append(keywords).append("\n");
+		if (!StringManipulator.isNullOrEmpty(keywords)) 
+			text.append(keywords).append("\n");
 		
 		// add the document for the whole song
 		{
@@ -307,6 +304,31 @@ public final class Song implements ReadOnlySong, Indexable, Persistable, Copyabl
 			
 			documents.add(document);
 		}
+		
+		// store the song text first so that when we highlight
+		// matched text we favor the song text above the name, title, keywords
+		for (Lyrics lyrics : this.lyrics) {
+			for (Section section : lyrics.getSections()) {
+				String sectionText = section.getText();
+				if (!StringManipulator.isNullOrEmpty(sectionText)) {
+					Document document = new Document();
+
+					// allow filtering by the song id
+					document.add(new StringField(FIELD_ID, this.getId().toString(), Field.Store.YES));
+					
+					// allow filtering by type
+					document.add(new StringField(FIELD_TYPE, DATA_TYPE_SONG, Field.Store.YES));
+
+					// stored data so we can look up the verse
+					document.add(new StoredField(FIELD_LYRICS_ID, lyrics.getId().toString()));
+					document.add(new StoredField(FIELD_SECTION_ID, section.getId().toString()));
+					document.add(new TextField(FIELD_TEXT, section.getText(), Field.Store.YES));
+					
+					documents.add(document);
+				}
+			}
+		}
+		
 		
 		String tags = this.tags.stream().map(t -> t.getName()).collect(Collectors.joining(" "));
 		if (!StringManipulator.isNullOrEmpty(tags)) {
