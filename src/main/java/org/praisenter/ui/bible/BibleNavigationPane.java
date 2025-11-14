@@ -277,24 +277,27 @@ public final class BibleNavigationPane extends GridPane {
 		btnFind.setOnMouseClicked((e) -> {
 			LocatedVerseTriplet triplet = getTripletForInput(FIND);
 			updateValue(triplet, e.isShortcutDown());
+			updateNextPrevious(triplet);
 		});
 		btnFind.setOnKeyPressed(e -> {
 			if (e.getCode() == KeyCode.ENTER || e.getCode() == KeyCode.SPACE) {
 				LocatedVerseTriplet triplet = getTripletForInput(FIND);
 				updateValue(triplet, false);
+				updateNextPrevious(triplet);
 			}
 		});
 		
 		Button next = new Button(Translations.get("bible.nav.next"));
 		next.setOnMouseClicked((e) -> {
-			
 			LocatedVerseTriplet triplet = getTripletForInput(NEXT);
 			updateValue(triplet, e.isShortcutDown());
+			updateNextPrevious(triplet);
 		});
 		next.setOnKeyPressed((e) -> {
 			if (e.getCode() == KeyCode.ENTER || e.getCode() == KeyCode.SPACE) {
 				LocatedVerseTriplet triplet = getTripletForInput(NEXT);
 				updateValue(triplet, false);
+				updateNextPrevious(triplet);
 			}
 		});
 		
@@ -302,11 +305,13 @@ public final class BibleNavigationPane extends GridPane {
 		prev.setOnMouseClicked((e) -> {
 			LocatedVerseTriplet triplet = getTripletForInput(PREVIOUS);
 			updateValue(triplet, e.isShortcutDown());
+			updateNextPrevious(triplet);
 		});
 		prev.setOnKeyPressed((e) -> {
 			if (e.getCode() == KeyCode.ENTER || e.getCode() == KeyCode.SPACE) {
 				LocatedVerseTriplet triplet = getTripletForInput(PREVIOUS);
 				updateValue(triplet, false);
+				updateNextPrevious(triplet);
 			}
 		});
 		
@@ -339,6 +344,7 @@ public final class BibleNavigationPane extends GridPane {
 						this.searchDialogFirstItemSelected = true;
 						
 						updateValue(triplet, isAppendEnabled);
+						updateNextPrevious(triplet);
 					}
 				});
 				
@@ -424,6 +430,9 @@ public final class BibleNavigationPane extends GridPane {
 				if (sBible != null) {
 					this.secondary.set(sBible);
 				}
+				
+				LocatedVerseTriplet triplet = getTripletForInput(FIND);
+				updateNextPrevious(triplet);
 			}
 		});
 
@@ -540,6 +549,7 @@ public final class BibleNavigationPane extends GridPane {
 		// set the initial value
 		LocatedVerseTriplet triplet = getTripletForInput(FIND);
 		updateValue(triplet, false);
+		updateNextPrevious(triplet);
 	}
 	
 	private LocatedVerseTriplet getTripletForInput(String type) {
@@ -599,20 +609,82 @@ public final class BibleNavigationPane extends GridPane {
 		this.verse.set(triplet.getCurrent().getVerse().getNumber());
 		
 		BibleReferenceTextStore value = null;
-		BibleReferenceTextStore previous = null;
-		BibleReferenceTextStore next = null;
+//		BibleReferenceTextStore previous = null;
+//		BibleReferenceTextStore next = null;
 		if (!append){
 			value = new BibleReferenceTextStore();
-			previous = new BibleReferenceTextStore();
-			next = new BibleReferenceTextStore();
+//			previous = new BibleReferenceTextStore();
+//			next = new BibleReferenceTextStore();
 		} else {
 			value = this.value.get().copy();
-			previous = new BibleReferenceTextStore();
-			next = new BibleReferenceTextStore();
+//			previous = new BibleReferenceTextStore();
+//			next = new BibleReferenceTextStore();
 		}
 		
 		// update the text stores
 		value.getVariant(TextVariant.PRIMARY).getReferenceVerses().add(toReference(triplet.getCurrent()));
+//		if (triplet.getPrevious() != null) {
+//			previous.getVariant(TextVariant.PRIMARY).getReferenceVerses().add(toReference(triplet.getPrevious()));
+//		}
+//		if (triplet.getNext() != null) {
+//			next.getVariant(TextVariant.PRIMARY).getReferenceVerses().add(toReference(triplet.getNext()));
+//		}
+		
+		// search for the secondary
+		ReadOnlyBible bible2 = this.secondary.getValue();
+		// only show the secondary if a different bible is chosen
+		if (bible2 != null && bible2.getId() != triplet.getCurrent().getBible().getId()) {
+			LocatedVerseTriplet matchingTriplet = bible2.getMatchingTriplet(triplet);
+			if (matchingTriplet != null) {
+				if (matchingTriplet.getCurrent() != null) {
+					value.getVariant(TextVariant.SECONDARY).getReferenceVerses().add(toReference(matchingTriplet.getCurrent()));
+				}
+//				if (matchingTriplet.getPrevious() != null) {
+//					previous.getVariant(TextVariant.SECONDARY).getReferenceVerses().add(toReference(matchingTriplet.getPrevious()));
+//				}
+//				if (matchingTriplet.getNext() != null) {
+//					next.getVariant(TextVariant.SECONDARY).getReferenceVerses().add(toReference(matchingTriplet.getNext()));
+//				}
+			}
+		}
+		
+		this.value.set(value);
+//		this.previous.set(previous);
+//		this.next.set(next);
+		
+		this.mutating = false;
+	}
+	
+	private void updateNextPrevious(LocatedVerseTriplet triplet) {
+		this.mutating = true;
+		
+		if (triplet == null) {
+			this.previous.get().clear();
+			this.next.get().clear();
+			return;
+		}
+		
+//		// make sure the fields are updated
+//		this.primary.set(triplet.getCurrent().getBible());
+//		this.book.set(triplet.getCurrent().getBook());
+//		this.chapter.set(triplet.getCurrent().getChapter().getNumber());
+//		this.verse.set(triplet.getCurrent().getVerse().getNumber());
+		
+//		BibleReferenceTextStore value = null;
+		BibleReferenceTextStore previous = null;
+		BibleReferenceTextStore next = null;
+//		if (!append){
+//			value = new BibleReferenceTextStore();
+			previous = new BibleReferenceTextStore();
+			next = new BibleReferenceTextStore();
+//		} else {
+//			value = this.value.get().copy();
+//			previous = new BibleReferenceTextStore();
+//			next = new BibleReferenceTextStore();
+//		}
+		
+		// update the text stores
+//		value.getVariant(TextVariant.PRIMARY).getReferenceVerses().add(toReference(triplet.getCurrent()));
 		if (triplet.getPrevious() != null) {
 			previous.getVariant(TextVariant.PRIMARY).getReferenceVerses().add(toReference(triplet.getPrevious()));
 		}
@@ -626,9 +698,9 @@ public final class BibleNavigationPane extends GridPane {
 		if (bible2 != null && bible2.getId() != triplet.getCurrent().getBible().getId()) {
 			LocatedVerseTriplet matchingTriplet = bible2.getMatchingTriplet(triplet);
 			if (matchingTriplet != null) {
-				if (matchingTriplet.getCurrent() != null) {
-					value.getVariant(TextVariant.SECONDARY).getReferenceVerses().add(toReference(matchingTriplet.getCurrent()));
-				}
+//				if (matchingTriplet.getCurrent() != null) {
+//					value.getVariant(TextVariant.SECONDARY).getReferenceVerses().add(toReference(matchingTriplet.getCurrent()));
+//				}
 				if (matchingTriplet.getPrevious() != null) {
 					previous.getVariant(TextVariant.SECONDARY).getReferenceVerses().add(toReference(matchingTriplet.getPrevious()));
 				}
@@ -638,7 +710,7 @@ public final class BibleNavigationPane extends GridPane {
 			}
 		}
 		
-		this.value.set(value);
+//		this.value.set(value);
 		this.previous.set(previous);
 		this.next.set(next);
 		
