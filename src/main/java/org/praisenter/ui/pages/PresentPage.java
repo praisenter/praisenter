@@ -8,7 +8,7 @@ import org.praisenter.data.workspace.DisplayType;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.bind.AdditionalItemsList;
 import org.praisenter.ui.bind.EmptyItemList;
-import org.praisenter.ui.bind.MappedList;
+import org.praisenter.ui.bind.MappedList2;
 import org.praisenter.ui.controls.Dialogs;
 import org.praisenter.ui.controls.FastScrollPane;
 import org.praisenter.ui.controls.WindowHelper;
@@ -75,7 +75,7 @@ public final class PresentPage extends BorderPane implements Page {
 		MenuItem mnuScreenNone = new MenuItem(Translations.get("display.screen.none"));
 		mnuScreenNone.visibleProperty().bind(Bindings.size(inactiveScreenDisplayTargets).lessThanOrEqualTo(0));
 		
-		this.inactiveScreenDisplayControllers = new EmptyItemList<>(new MappedList<MenuItem, DisplayTarget>(inactiveScreenDisplayTargets, (DisplayTarget target) -> {
+		this.inactiveScreenDisplayControllers = new EmptyItemList<>(new MappedList2<MenuItem, DisplayTarget>(inactiveScreenDisplayTargets, (DisplayTarget target) -> {
 			MenuItem item = new MenuItem();
 			item.setText(target.toString());
 			item.visibleProperty().bind(target.getDisplayConfiguration().activeProperty().not());
@@ -158,7 +158,7 @@ public final class PresentPage extends BorderPane implements Page {
 		mnuBefore.add(mnuNDINone);
 		List<MenuItem> mnuAfter = new ArrayList<>();
 		
-		this.inactiveNDIDisplayControllers = new AdditionalItemsList<>(new MappedList<MenuItem, DisplayTarget>(inactiveNDIDisplayTargets, (DisplayTarget target) -> {
+		this.inactiveNDIDisplayControllers = new AdditionalItemsList<>(new MappedList2<MenuItem, DisplayTarget>(inactiveNDIDisplayTargets, (DisplayTarget target) -> {
 			MenuItem item = new MenuItem();
 			item.textProperty().bind(target.getDisplayConfiguration().labelProperty());
 			item.visibleProperty().bind(target.getDisplayConfiguration().activeProperty().not());
@@ -180,7 +180,7 @@ public final class PresentPage extends BorderPane implements Page {
 			Bindings.bindContent(mnuAddController.getItems(), this.inactiveScreenDisplayControllers);
 		}
 		
-		this.displayControllers = new MappedList<DisplayController, DisplayTarget>(this.displayTargets, (DisplayTarget target) -> {
+		this.displayControllers = new MappedList2<DisplayController, DisplayTarget>(this.displayTargets, (DisplayTarget target) -> {
 			DisplayController dc = new DisplayController(context, target);
 			dc.visibleProperty().bind(target.getDisplayConfiguration().activeProperty());
 			dc.managedProperty().bind(dc.visibleProperty());

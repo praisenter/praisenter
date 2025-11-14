@@ -4,7 +4,7 @@ import org.praisenter.data.bible.Bible;
 import org.praisenter.data.bible.Book;
 import org.praisenter.data.bible.Chapter;
 import org.praisenter.data.bible.Verse;
-import org.praisenter.ui.bind.MappedList;
+import org.praisenter.ui.bind.MappedList2;
 
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleStringProperty;
@@ -79,7 +79,7 @@ final class BibleTreeItem extends TreeItem<Object> {
 			}
 			
 			if (data != null) {
-				this.children = new MappedList<TreeItem<Object>, Object>(data, (item) -> {
+				this.children = new MappedList2<TreeItem<Object>, Object>(data, (item) -> {
 					BibleTreeItem bti = new BibleTreeItem();
 	               	bti.setValue(item);
 					return bti;

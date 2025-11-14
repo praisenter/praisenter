@@ -11,7 +11,7 @@ import org.praisenter.data.slide.Slide;
 import org.praisenter.data.song.Song;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.bible.BibleSelectionEditor;
-import org.praisenter.ui.bind.MappedList;
+import org.praisenter.ui.bind.MappedList2;
 import org.praisenter.ui.slide.SlideSelectionEditor;
 import org.praisenter.ui.song.SongSelectionEditor;
 
@@ -29,7 +29,7 @@ public final class CurrentDocumentSelectionEditor extends VBox {
 	
 	private final ObservableList<DocumentSelectionEditor<?>> selectionEditors;
 	private final Map<Class<?>, DocumentSelectionEditor<?>> selectionEditorMapping;
-	private final MappedList<Node, DocumentSelectionEditor<?>> mapping;
+	private final MappedList2<Node, DocumentSelectionEditor<?>> mapping;
 	
 	public CurrentDocumentSelectionEditor(GlobalContext context) {
 		this.context = context;
@@ -55,7 +55,7 @@ public final class CurrentDocumentSelectionEditor extends VBox {
 			}
 		});
 		
-		this.mapping = new MappedList<Node, DocumentSelectionEditor<?>>(this.selectionEditors, (dse) -> {
+		this.mapping = new MappedList2<Node, DocumentSelectionEditor<?>>(this.selectionEditors, (dse) -> {
 			Node node = (Node)dse;
 			return node;
 		});

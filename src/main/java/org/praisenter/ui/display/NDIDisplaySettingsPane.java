@@ -10,7 +10,7 @@ import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.Option;
 import org.praisenter.ui.ScreenHelper;
 import org.praisenter.ui.bind.BindingHelper;
-import org.praisenter.ui.bind.MappedList;
+import org.praisenter.ui.bind.MappedList2;
 import org.praisenter.ui.bind.ObjectConverter;
 import org.praisenter.ui.controls.EditorDivider;
 import org.praisenter.ui.controls.EditorField;
@@ -71,7 +71,7 @@ public final class NDIDisplaySettingsPane extends BorderPane {
 		
 		Screen.getScreens().addListener((InvalidationListener)(obs -> this.updateScreenResolutions(resolutions)));
 		
-		this.resolutions = new MappedList<Option<Resolution>, Resolution>(resolutions.sorted(), r -> {
+		this.resolutions = new MappedList2<Option<Resolution>, Resolution>(resolutions.sorted(), r -> {
 			Option<Resolution> option = new Option<>(null, r);
 			option.nameProperty().bind(Bindings.createStringBinding(() -> {
 				boolean isNative = this.isNativeResolution(r);

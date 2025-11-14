@@ -28,7 +28,7 @@ import org.praisenter.data.slide.text.TextPlaceholderComponent;
 import org.praisenter.ui.Action;
 import org.praisenter.ui.DataFormats;
 import org.praisenter.ui.GlobalContext;
-import org.praisenter.ui.bind.MappedList;
+import org.praisenter.ui.bind.MappedList2;
 import org.praisenter.ui.document.DocumentContext;
 import org.praisenter.ui.document.DocumentEditor;
 import org.praisenter.ui.events.ActionStateChangedEvent;
@@ -74,7 +74,7 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 	private final GlobalContext context;
 	private final DocumentContext<Slide> document;
 	
-	private final MappedList<EditNode, SlideComponent> componentMapping;
+	private final MappedList2<EditNode, SlideComponent> componentMapping;
 	private final ObjectProperty<Slide> slide;
 	private final ObservableList<SlideComponent> components;
 	private final ObjectProperty<EditNode> selected;
@@ -114,7 +114,7 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 			}
 		});
 		
-		this.componentMapping = new MappedList<>(this.components, (c) -> {
+		this.componentMapping = new MappedList2<>(this.components, (c) -> {
 			EditNode n = new EditNode(document, c);
 			n.scaleProperty().bind(this.slideView.viewScaleFactorProperty());
 			n.snapToGridEnabledProperty().bind(context.snapToGridEnabledProperty());

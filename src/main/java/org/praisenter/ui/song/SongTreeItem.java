@@ -5,7 +5,7 @@ import org.praisenter.data.song.Lyrics;
 import org.praisenter.data.song.Section;
 import org.praisenter.data.song.Song;
 import org.praisenter.data.song.SongBook;
-import org.praisenter.ui.bind.MappedList;
+import org.praisenter.ui.bind.MappedList2;
 import org.praisenter.ui.translations.Translations;
 
 import javafx.beans.binding.Bindings;
@@ -91,7 +91,7 @@ final class SongTreeItem extends TreeItem<Object> {
 			}
 			
 			if (data != null) {
-				this.children = new MappedList<TreeItem<Object>, Object>(data, (item) -> {
+				this.children = new MappedList2<TreeItem<Object>, Object>(data, (item) -> {
 					SongTreeItem bti = new SongTreeItem();
 	               	bti.setValue(item);
 					return bti;

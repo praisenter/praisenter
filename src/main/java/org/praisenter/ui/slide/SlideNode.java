@@ -6,7 +6,7 @@ import org.praisenter.data.slide.media.MediaComponent;
 import org.praisenter.data.slide.text.TextComponent;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.Playable;
-import org.praisenter.ui.bind.MappedList;
+import org.praisenter.ui.bind.MappedList2;
 
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
@@ -15,7 +15,7 @@ import javafx.scene.layout.Pane;
 
 final class SlideNode extends SlideRegionNode<Slide> implements Playable {
 	private final Pane components;
-	private final MappedList<SlideComponentNode<?>, SlideComponent> mapping;
+	private final MappedList2<SlideComponentNode<?>, SlideComponent> mapping;
 	private final ObservableList<SlideComponentNode<?>> mappingUnmodifiable;
 	
 	public SlideNode(GlobalContext context, Slide region) {
@@ -23,7 +23,7 @@ final class SlideNode extends SlideRegionNode<Slide> implements Playable {
 
 		this.components = new Pane();
 		
-		this.mapping = new MappedList<SlideComponentNode<?>, SlideComponent>(region.getComponents(), (SlideComponent c) -> {
+		this.mapping = new MappedList2<SlideComponentNode<?>, SlideComponent>(region.getComponents(), (SlideComponent c) -> {
 			if (c instanceof TextComponent) {
 				TextComponentNode tcn = new TextComponentNode(context, (TextComponent)c);
 				tcn.modeProperty().bind(this.mode);

@@ -31,7 +31,7 @@ import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
-import org.praisenter.ui.bind.MappedList;
+import org.praisenter.ui.bind.MappedList2;
 import org.praisenter.ui.events.FlowListViewSelectionEvent;
 
 import javafx.application.Platform;
@@ -71,7 +71,7 @@ public final class FlowListSelectionModel<T> {
 	private final ObjectProperty<T> selection = new SimpleObjectProperty<T>();
 	
 	/** The mapping for the selected data from the selected cells */
-	private final MappedList<T, FlowListCell<T>> mapping;
+	private final MappedList2<T, FlowListCell<T>> mapping;
 	
 	/** The list of selected items */
 	private final ObservableList<T> selections = FXCollections.observableArrayList();
@@ -126,7 +126,7 @@ public final class FlowListSelectionModel<T> {
 		
 		// make sure we update the publicly facing selections when the 
 		// internal selections are changed
-		this.mapping = new MappedList<>(this.selected, (item) -> {
+		this.mapping = new MappedList2<>(this.selected, (item) -> {
 			return item.getData();
 		});
 		

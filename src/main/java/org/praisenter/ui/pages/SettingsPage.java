@@ -10,7 +10,7 @@ import org.praisenter.data.workspace.WorkspaceConfiguration;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.Icons;
 import org.praisenter.ui.Option;
-import org.praisenter.ui.bind.MappedList;
+import org.praisenter.ui.bind.MappedList2;
 import org.praisenter.ui.controls.FastScrollPane;
 import org.praisenter.ui.controls.LastValueNumberStringConverter;
 import org.praisenter.ui.themes.Accent;
@@ -60,7 +60,7 @@ public final class SettingsPage extends BorderPane implements Page {
 	private static final String SETTINGS_PAGE_FLOW_CLASS = "p-settings-page-flow";
 	
 	private final ObservableList<AtlantaFXTheme> themes;
-	private final MappedList<Node, Accent> accents;
+	private final MappedList2<Node, Accent> accents;
 	private final ObservableList<Locale> locales;
 	
 	public SettingsPage(GlobalContext context) {
@@ -113,7 +113,7 @@ public final class SettingsPage extends BorderPane implements Page {
 				return a.getThemeType() == theme.getType();
 			});
 		});
-		this.accents = new MappedList<>(filteredAccents, (Accent item) -> {
+		this.accents = new MappedList2<>(filteredAccents, (Accent item) -> {
 			String accent = item.getPseudoClass().getPseudoClassName();
 			
 			Button btnAccent = new Button();

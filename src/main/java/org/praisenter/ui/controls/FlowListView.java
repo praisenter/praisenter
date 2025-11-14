@@ -28,7 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.praisenter.ui.bind.MappedList;
+import org.praisenter.ui.bind.MappedList2;
 
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
@@ -84,7 +84,7 @@ public class FlowListView<T> extends FastScrollPane {
 	private final TilePane layout;
 	
 	/** The item nodes */
-	private final MappedList<FlowListCell<T>, T> mapping;
+	private final MappedList2<FlowListCell<T>, T> mapping;
 	
 	/** The drag selection node */
 	private final Rectangle dragRect;
@@ -155,7 +155,7 @@ public class FlowListView<T> extends FastScrollPane {
         // make the min height of the listing pane the height of the split pane 
  		//this.layout.minHeightProperty().bind(this.heightProperty().subtract(20));
         
- 		this.mapping = new MappedList<>(this.items, (T item) -> {
+ 		this.mapping = new MappedList2<>(this.items, (T item) -> {
  			return createCell(item);
  		});
  		
