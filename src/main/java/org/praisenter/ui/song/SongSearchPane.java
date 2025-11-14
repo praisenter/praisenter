@@ -15,6 +15,7 @@ import org.praisenter.data.json.JsonIO;
 import org.praisenter.data.search.SearchResult;
 import org.praisenter.data.search.SearchTextMatch;
 import org.praisenter.data.search.SearchType;
+import org.praisenter.data.song.ReadOnlyLyrics;
 import org.praisenter.data.song.ReadOnlySection;
 import org.praisenter.data.song.Song;
 import org.praisenter.data.song.SongSearchResult;
@@ -28,6 +29,7 @@ import org.praisenter.ui.controls.FastScrollPane;
 import org.praisenter.ui.controls.ProgressOverlay;
 import org.praisenter.ui.controls.SimpleSplitPaneSkin;
 import org.praisenter.ui.translations.Translations;
+import org.praisenter.utility.StringManipulator;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 
@@ -48,6 +50,7 @@ import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
@@ -78,6 +81,7 @@ public final class SongSearchPane extends VBox {
 	private static final String SONG_SEARCH_CSS = "p-song-search";
 	private static final String SONG_SEARCH_FILTERS_CSS = "p-song-search-filters";
 	private static final String SONG_SEARCH_CARD_CSS = "p-song-search-card";
+	private static final String SONG_SEARCH_CARD_SELECTED_CSS = "p-song-search-card-selected";
 	
 	private static final Logger LOGGER = LogManager.getLogger();
 
@@ -277,10 +281,16 @@ public final class SongSearchPane extends VBox {
 			scrSong.setVvalue(0);
 			
 			if (nv != null) {
+				VBox selectedCard = null;
+				
 				var lyrics = nv.getSong().getDefaultLyrics();
 				for (var verse : lyrics.getSectionsUnmodifiable()) {
 					VBox card = new VBox();
 					card.getStyleClass().add(SONG_SEARCH_CARD_CSS);
+					if (nv.getSection() != null && nv.getSection().getId() == verse.getId()) {
+						card.getStyleClass().add(SONG_SEARCH_CARD_SELECTED_CSS);
+						selectedCard = card;
+					}
 
 					String location = verse.getName();
 					String text = verse.getText();
@@ -324,6 +334,26 @@ public final class SongSearchPane extends VBox {
 					
 					card.getChildren().addAll(header, lblText);
 					right.getChildren().addAll(card, sepCard);
+				}
+				
+				if (selectedCard != null) {
+					final VBox card = selectedCard;
+					Platform.runLater(() -> {
+						// make sure layout has been applied
+						scrSong.applyCss();
+						scrSong.layout();
+						
+						// we want to scroll to the node's top
+						// so the user can see as much of the node
+						// as possible
+						Bounds bounds = card.getBoundsInParent();
+						double height = right.getHeight();
+						double vValue = bounds.getMinY() / (height - scrSong.getViewportBounds().getHeight());
+						vValue = Math.max(0.0, Math.min(1.0, vValue));
+						
+						// scroll to the location
+						scrSong.setVvalue(vValue);					
+					});
 				}
 			}
 		});
@@ -403,14 +433,51 @@ public final class SongSearchPane extends VBox {
 		for (SearchResult result : results) {
 			Document document = result.getDocument();
 			
-			Song song = this.context.getWorkspaceManager().getItem(Song.class, UUID.fromString(document.get(Song.FIELD_ID)));
+			UUID songId = null;
+			String sv = document.get(Song.FIELD_ID);
+			try {
+				songId = UUID.fromString(sv);
+			} catch (Exception ex) {
+				LOGGER.warn("Failed to parse value '{}' from field '{}'.  A re-index might fix this problem.", sv, Song.FIELD_ID);
+				continue;
+			}
+			
+			Song song = this.context.getWorkspaceManager().getItem(Song.class, songId);
 			if (song == null) {
 				LOGGER.warn("Unable to find song '{}'. A re-index might fix this problem.", document.get(Song.FIELD_ID));
 				continue;
 			}
 			
+			ReadOnlyLyrics lyrics = null;
+			ReadOnlySection section = null;
+			String lf = document.get(Song.FIELD_LYRICS_ID);
+			String sf = document.get(Song.FIELD_SECTION_ID);
+			if (!StringManipulator.isNullOrEmpty(lf) && !StringManipulator.isNullOrEmpty(sf)) {
+				// attempt to parse into UUIDs
+				try {
+					UUID lid = UUID.fromString(lf);
+					UUID sid = UUID.fromString(sf);
+					
+					lyrics = song.getLyricsById(lid);
+					if (lyrics != null) {
+						section = lyrics.getSectionById(sid);
+						if (section != null) {
+							
+						} else {
+							LOGGER.warn("Failed to find the section '{}' in lyrics '{}' in song '{}'.  A re-index might fix this problem.", sid, lid, songId);
+						}
+					} else {
+						LOGGER.warn("Failed to find the lyrics '{}' in song '{}'.  A re-index might fix this problem.", lid, songId);
+					}
+				} catch (Exception ex) {
+					LOGGER.warn("Failed to parse '{}' in field '{}' or '{}' in field '{}' when processing search result.  A re-index might fix this problem.", lf, Song.FIELD_LYRICS_ID, sf, Song.FIELD_SECTION_ID);
+				}
+			}
+			
 			output.add(new SongSearchResult(
 					song,
+					lyrics,
+					section,
 					result.getMatches(), 
 					result.getScore()));
 		}

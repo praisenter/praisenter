@@ -12,7 +12,7 @@ import org.praisenter.data.song.SongReferenceVerse;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.Icons;
 import org.praisenter.ui.bind.EmptyItemList;
-import org.praisenter.ui.bind.MappedList;
+import org.praisenter.ui.bind.MappedList2;
 import org.praisenter.ui.controls.Dialogs;
 import org.praisenter.ui.controls.WindowHelper;
 import org.praisenter.ui.translations.Translations;
@@ -110,7 +110,7 @@ public final class SongNavigationPane extends VBox {
 		cmbSecondaryLyrics.setPromptText(Translations.get("song.nav.secondary"));
 		Bindings.bindContent(cmbSecondaryLyrics.getItems(), this.lyricsWithEmptyOption);
 		
-		this.sectionsToNodesMapping = new MappedList<>(this.sections, (section) -> {
+		this.sectionsToNodesMapping = new MappedList2<>(this.sections, (section) -> {
 			Button btnSection = new Button(section.getName());
 			btnSection.setMaxWidth(Double.MAX_VALUE);
 //			btnSection.setMaxHeight(Double.MAX_VALUE);
@@ -200,6 +200,20 @@ public final class SongNavigationPane extends VBox {
 				pneSearch.valueProperty().addListener((obs, ov, nv) -> {
 					if (nv != null) {
 						this.song.set(nv.getSong());
+						ReadOnlyLyrics lyrics = nv.getLyrics();
+						ReadOnlySection section = nv.getSection();
+						if (lyrics != null && section != null) {
+							SongReferenceTextStore srts = new SongReferenceTextStore();
+							SongReferenceVerse srv = new SongReferenceVerse(
+								nv.getSong().getId(), 
+								lyrics.getId(),
+								section.getId(),
+								lyrics.getTitle(),
+								section.getName(),
+								section.getText());
+							srts.setVariant(TextVariant.PRIMARY, srv);
+							this.value.set(srts);
+						}
 						this.searchDialog.hide();
 					}
 				});
