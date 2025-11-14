@@ -521,6 +521,7 @@ public final class GlobalContext {
 		switch (action) {
 			case SAVE:
 			case SAVE_ALL:
+			case SAVE_AS:
 			case UNDO:
 			case REDO:
 				return this.openDocuments.size() > 0;
@@ -812,15 +813,23 @@ public final class GlobalContext {
 		return CompletableFuture.allOf(futures);
 	}
 	
-	public CompletableFuture<List<Throwable>> saveAll(Collection<Persistable> items) {
+	public CompletableFuture<List<Throwable>> saveAll(Action action, Collection<Persistable> items) {
 		int i = 0;
 		final CompletableFuture<?>[] futures = new CompletableFuture<?>[items.size()];
 		for (Persistable item : items) {
 
 			BackgroundTask task = new BackgroundTask();
 			task.setName(item.getName());
-			task.setMessage(Translations.get("action.paste.task", item.getName()));
-			task.setOperation(Translations.get("action.paste"));
+			if (action == Action.SAVE_AS) {
+				task.setMessage(Translations.get("action.saveas.task", item.getName()));
+				task.setOperation(Translations.get("action.saveas"));
+			} else if (action == Action.DUPLICATE) {
+				task.setMessage(Translations.get("action.duplicate.task", item.getName()));
+				task.setOperation(Translations.get("action.duplicate"));
+			} else {
+				task.setMessage(Translations.get("action.paste.task", item.getName()));
+				task.setOperation(Translations.get("action.paste"));
+			}
 			task.setType(this.getFriendlyItemType(item));
 			this.addBackgroundTask(task);
 			
@@ -995,6 +1004,7 @@ public final class GlobalContext {
 			}
 			return null;
 		}).thenApply(r -> {
+			bt.setProgress(1.0);
 			try {
 				Files.deleteIfExists(tempFile);
 			} catch (Exception ex) {

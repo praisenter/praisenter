@@ -101,6 +101,7 @@ final class MainMenu extends MenuBar {
 				new SeparatorMenuItem(),
 				this.createMenuItem(Action.SAVE),
 				this.createMenuItem(Action.SAVE_ALL),
+				this.createMenuItem(Action.SAVE_AS),
 				new SeparatorMenuItem(),
 				this.createMenuItem(Action.REINDEX),
 				new SeparatorMenuItem(),
@@ -129,8 +130,8 @@ final class MainMenu extends MenuBar {
 				this.createMenuItem(Action.RENAME),
 				this.createMenuItem(Action.DELETE),
 				new SeparatorMenuItem(),
-				this.createMenuItem(Action.RENUMBER),
 				this.createMenuItem(Action.REORDER),
+				this.createMenuItem(Action.RENUMBER),
 				new SeparatorMenuItem(),
 				this.createToggleMenuItem(Action.SLIDE_COMPONENT_SNAP_TO_GRID, context.snapToGridEnabledProperty()),
 				new SeparatorMenuItem(),
@@ -259,7 +260,7 @@ final class MainMenu extends MenuBar {
 				DesktopLauncher.browse("https://github.com/wnbittle/unbound-bible-archive");
 				return;
 			case DOWNLOAD_OPENSONG_BIBLES:
-				DesktopLauncher.browse("https://www.opensong.info/index.php/downloads");
+				DesktopLauncher.browse("https://opensong.org/downloads/#bibles");
 				return;
 			case ABOUT:
 				this.showAbout();

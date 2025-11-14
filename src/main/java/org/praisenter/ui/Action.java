@@ -13,6 +13,7 @@ import javafx.scene.input.KeyCombination;
 public enum Action {
 	SAVE("action.save", new KeyCodeCombination(KeyCode.S, KeyCombination.SHORTCUT_DOWN), getGraphicSupplier(Icons.SAVE)),
 	SAVE_ALL("action.saveall", new KeyCodeCombination(KeyCode.S, KeyCombination.SHIFT_DOWN, KeyCombination.SHORTCUT_DOWN), getGraphicSupplier(Icons.SAVE_ALL)),
+	SAVE_AS("action.saveas", getGraphicSupplier(Icons.SAVE_AS)),
 	RENAME("action.rename", new KeyCodeCombination(KeyCode.R, KeyCombination.SHORTCUT_DOWN), getGraphicSupplier(Icons.RENAME)),
 	DELETE("action.delete", new KeyCodeCombination(KeyCode.DELETE), getGraphicSupplier(Icons.DELETE)),
 	
