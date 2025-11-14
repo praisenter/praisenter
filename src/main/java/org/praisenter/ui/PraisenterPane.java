@@ -3,6 +3,7 @@ package org.praisenter.ui;
 import org.praisenter.async.AsyncHelper;
 import org.praisenter.ui.controls.Dialogs;
 import org.praisenter.ui.pages.EditorPage;
+import org.praisenter.ui.pages.ManualPage;
 import org.praisenter.ui.pages.LibraryPage;
 import org.praisenter.ui.pages.Page;
 import org.praisenter.ui.pages.PresentPage;
@@ -34,6 +35,7 @@ final class PraisenterPane extends BorderPane {
 	private static final String LEFT_NAVIGATION_ICON_EDITOR_CLASS = "p-left-navigation-editor-icon";
 	private static final String LEFT_NAVIGATION_ICON_SETTINGS_CLASS = "p-left-navigation-settings-icon";
 	private static final String LEFT_NAVIGATION_ICON_TASKS_CLASS = "p-left-navigation-tasks-icon";
+	private static final String LEFT_NAVIGATION_ICON_MANUAL_CLASS = "p-left-navigation-manual-icon";
 
 	private final GlobalContext context;
 	
@@ -76,7 +78,13 @@ final class PraisenterPane extends BorderPane {
 		taskHistoryTab.setTooltip(this.createTabTooltip(Translations.get("area.tasks")));
 		taskHistoryTab.setClosable(false);
 		
-		body.getTabs().addAll(presentTab, libraryTab, editorTab, settingsTab, taskHistoryTab);
+		Tab manualTab = new Tab(null, new ManualPage(context));
+		// TODO change icon
+		manualTab.setGraphic(this.createTabGraphic(LEFT_NAVIGATION_ICON_MANUAL_CLASS));
+		manualTab.setTooltip(this.createTabTooltip(Translations.get("area.manual")));
+		manualTab.setClosable(false);
+		
+		body.getTabs().addAll(presentTab, libraryTab, editorTab, settingsTab, taskHistoryTab, manualTab);
 		
 		context.currentPageProperty().addListener((obs, ov, nv) -> {
 			if (nv == null) {

@@ -208,6 +208,9 @@
 .p-left-navigation-editor-icon {
 	-fx-shape: -icon-pencil;
 }
+.p-left-navigation-manual-icon {
+	-fx-shape: -icon-manual;
+}
 
 /********************************************************************************/
 /********************************************************************************/
@@ -507,6 +510,16 @@
 	-fx-padding: 0.5em 0 0.8em 0;
 	-fx-pref-width: 14em;
 	-fx-cell-size: null;
+}
+.p-slide-list-cell:hover:empty { 
+	-fx-background-color: transparent;
+}
+.p-slide-list-cell:hover { 
+	-fx-background-color: -color-neutral-subtle;
+}
+.p-slide-list-cell:selected {
+	-fx-background-color: -color-neutral-muted;
+	-fx-text-fill: -color-fg-default;
 }
 .p-slide-list-cell-slide-view {
 	-fx-pref-width: 14.45em; /* ~170px */

@@ -32,6 +32,7 @@ public final class Icons {
 	public static final String VERTICAL_ALIGN_BOTTOM = "p-icon-valignbottom";
 	public static final String SAVE = "p-icon-save";
 	public static final String SAVE_ALL = "p-icon-saveall";
+	public static final String SAVE_AS = "p-icon-saveas";
 	public static final String RENAME = "p-icon-rename";
 	public static final String DELETE = "p-icon-delete";
 	public static final String COPY = "p-icon-copy";

@@ -282,6 +282,7 @@
                 	<include>org/praisenter/logo/*</include>
                 	<include>org/praisenter/styles/*</include>
                 	<include>org/praisenter/translations/*</include>
+                	<include>org/praisenter/help/**/*</include>
                 	<include>org/praisenter/data/media/tools/${platform}/*</include>
                 </includes>
             </resource>
