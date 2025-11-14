@@ -56,6 +56,7 @@ import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
@@ -361,13 +362,16 @@ public final class BibleSearchPane extends VBox {
 		table.getSelectionModel().selectedItemProperty().addListener((obs, ov, nv) -> {
 			right.getChildren().clear();
 			scrChapter.setVvalue(0);
-			
+
 			if (nv != null) {
+				VBox selectedCard = null;
+				
 				for (var verse : nv.getChapter().getVersesUnmodifiable()) {
 					VBox card = new VBox();
 					card.getStyleClass().add(BIBLE_SEARCH_CARD_CSS);
 					if (verse.getNumber() == nv.getVerse().getNumber()) {
 						card.getStyleClass().add(BIBLE_SEARCH_CARD_SELECTED_CSS);
+						selectedCard = card;
 					}
 					
 					String location = MessageFormat.format("{0} {1}:{2}", 
@@ -416,6 +420,26 @@ public final class BibleSearchPane extends VBox {
 					
 					card.getChildren().addAll(header, lblText);
 					right.getChildren().addAll(card, sepCard);
+				}
+				
+				if (selectedCard != null) {
+					final VBox card = selectedCard;
+					Platform.runLater(() -> {
+						// make sure layout has been applied
+						scrChapter.applyCss();
+						scrChapter.layout();
+						
+						// we want to scroll to the node's top
+						// so the user can see as much of the node
+						// as possible
+						Bounds bounds = card.getBoundsInParent();
+						double height = right.getHeight();
+						double vValue = bounds.getMinY() / (height - scrChapter.getViewportBounds().getHeight());
+						vValue = Math.max(0.0, Math.min(1.0, vValue));
+						
+						// scroll to the location
+						scrChapter.setVvalue(vValue);					
+					});
 				}
 			}
 		});
@@ -503,14 +527,11 @@ public final class BibleSearchPane extends VBox {
 			int chapterNumber = document.getField(Bible.FIELD_VERSE_CHAPTER).numericValue().intValue();
 			int verseNumber = document.getField(Bible.FIELD_VERSE_NUMBER).numericValue().intValue();
 			
-			LocatedVerse verse = null;
-			if (bible != null) {
-				verse = bible.getVerse(bookNumber, chapterNumber, verseNumber);
-			}
+			LocatedVerse verse = bible.getVerse(bookNumber, chapterNumber, verseNumber);
 			
 			// just continue if its not found
 			if (verse == null) {
-				LOGGER.warn("Unable to find {} {}:{} in '{}'. A re-index might fix this problem.", bookNumber, chapterNumber, verseNumber, bible != null ? bible.getName() : "null");
+				LOGGER.warn("Unable to find {} {}:{} in '{}'. A re-index might fix this problem.", bookNumber, chapterNumber, verseNumber, bible.getName());
 				continue;
 			}
 			
