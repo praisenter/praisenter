@@ -119,6 +119,7 @@ public final class LibraryList extends BorderPane implements ActionPane {
 	
 	private final ObservableList<Persistable> source;
 	private final FlowListView<Persistable> view;
+	private final ContextMenu menu;
 	
 	private final BooleanProperty detailsPaneVisible;
 	private final BooleanProperty filterVisible;
@@ -376,8 +377,8 @@ public final class LibraryList extends BorderPane implements ActionPane {
 		detailsScroller.getStyleClass().add(LIBRARY_LIST_RIGHT_CSS);
 		details.prefWidthProperty().bind(detailsScroller.widthProperty());
 		
-		ContextMenu menu = new ContextMenu();
-		menu.getItems().addAll(
+		this.menu = new ContextMenu();
+		this.menu.getItems().addAll(
 				this.createMenuItem(Action.OPEN),
 				this.createMenuItem(Action.DUPLICATE),
 				this.createMenuItem(Action.QUICK_SLIDE_FROM_MEDIA),
@@ -394,7 +395,19 @@ public final class LibraryList extends BorderPane implements ActionPane {
 				this.createMenuItem(Action.DELETE),
 				this.createMenuItem(Action.EXPORT)
 			);
-		this.view.setContextMenu(menu);
+		
+		// only show the context menu if the library list is
+		// in the same scene as the context.  We do this to 
+		// hide the context menu when it's shown in a different
+		// stage because the hotkeys and action enable/disable
+		// won't work from that stage
+		this.sceneProperty().addListener((obs, ov, nv) -> {
+			if (nv == context.getScene()) {
+				this.view.setContextMenu(this.menu);				
+			} else {
+				this.view.setContextMenu(null);
+			}
+		});
 		
 		SplitPane split = new SplitPane(this.view, detailsScroller);
 		split.setDividerPosition(0, 0.70);
@@ -599,7 +612,7 @@ public final class LibraryList extends BorderPane implements ActionPane {
 			copies.add(copy);
 		}
 		
-		this.context.saveAll(copies).thenAccept((exceptions) -> {
+		this.context.saveAll(Action.DUPLICATE, copies).thenAccept((exceptions) -> {
 			if (exceptions != null && exceptions.size() > 0) {
 				Platform.runLater(() -> {
 					Alert errorAlert = Dialogs.exception(
@@ -875,7 +888,7 @@ public final class LibraryList extends BorderPane implements ActionPane {
 					});
 				}
 				
-				return this.context.saveAll(items).thenAccept((exceptions) -> {
+				return this.context.saveAll(Action.PASTE, items).thenAccept((exceptions) -> {
 					if (exceptions != null && exceptions.size() > 0) {
 						Platform.runLater(() -> {
 							Alert errorAlert = Dialogs.exception(
