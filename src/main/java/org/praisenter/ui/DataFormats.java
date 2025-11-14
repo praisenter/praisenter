@@ -5,6 +5,7 @@ import org.praisenter.data.bible.Chapter;
 import org.praisenter.data.bible.Verse;
 import org.praisenter.data.slide.Slide;
 import org.praisenter.data.slide.SlideComponent;
+import org.praisenter.data.slide.SlideReference;
 import org.praisenter.data.song.Author;
 import org.praisenter.data.song.Lyrics;
 import org.praisenter.data.song.Section;
@@ -28,6 +29,7 @@ public final class DataFormats {
 	public static final DataFormat PRAISENTER_SONGBOOK_ARRAY = 			new DataFormat("application/x-praisenter-json-array;class=" + SongBook[].class.getName());
 	public static final DataFormat PRAISENTER_SLIDE_COMPONENT_ARRAY = 	new DataFormat("application/x-praisenter-json-array;class=" + SlideComponent[].class.getName());
 	public static final DataFormat PRAISENTER_SLIDE_ARRAY = 			new DataFormat("application/x-praisenter-json-array;class=" + Slide[].class.getName());
+	public static final DataFormat PRAISENTER_SLIDE_REFERENCE_ARRAY =	new DataFormat("application/x-praisenter-json-array;class=" + SlideReference[].class.getName());
 	
 	// an integer
 	public static final DataFormat PRAISENTER_INDEX = 					new DataFormat("application/x-praisenter-index");

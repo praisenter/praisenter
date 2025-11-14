@@ -65,15 +65,18 @@ public final class CountdownComponent extends TimedTextComponent implements Read
 	
 	private final ObjectProperty<LocalDateTime> countdownTarget;
 	private final BooleanProperty countdownTimeOnly;
+	private final BooleanProperty stopAtZeroEnabled;
 	private final StringProperty countdownFormat;
 	
 	public CountdownComponent() {
 		this.countdownTarget = new SimpleObjectProperty<>();
 		this.countdownTimeOnly = new SimpleBooleanProperty(false);
+		this.stopAtZeroEnabled = new SimpleBooleanProperty(true);
 		this.countdownFormat = new SimpleStringProperty(DEFAULT_FORMAT);
 		
 		this.text.bind(Bindings.createStringBinding(() -> {
 			boolean timeOnly = this.countdownTimeOnly.get();
+			boolean stopAtZero = this.stopAtZeroEnabled.get();
 			LocalDateTime target = this.countdownTarget.get();
 			LocalDateTime now = this.now.get();
 			String format = this.countdownFormat.get();
@@ -89,8 +92,9 @@ public final class CountdownComponent extends TimedTextComponent implements Read
 					target = target.plusDays(1);
 				}
 			}
-			return formatCountdown(format, target, now);
-		}, this.countdownTarget, this.countdownFormat, this.countdownTimeOnly, this.now));
+			
+			return formatCountdown(format, target, now, stopAtZero);
+		}, this.countdownTarget, this.countdownFormat, this.countdownTimeOnly, this.stopAtZeroEnabled, this.now));
 	}
 	
 	@Override
@@ -109,7 +113,7 @@ public final class CountdownComponent extends TimedTextComponent implements Read
 	 * @param target the target date/time
 	 * @return String
 	 */
-	private final String formatCountdown(String format, LocalDateTime target, LocalDateTime now) {
+	private final String formatCountdown(String format, LocalDateTime target, LocalDateTime now, boolean stopAtZero) {
 		long years = 0;
 		long months = 0;
 		long days = 0;
@@ -125,6 +129,15 @@ public final class CountdownComponent extends TimedTextComponent implements Read
 			hours	= now.until(target, ChronoUnit.HOURS); 	now = now.plusHours(hours);
 			minutes = now.until(target, ChronoUnit.MINUTES); 	now = now.plusMinutes(minutes);
 			seconds = now.until(target, ChronoUnit.SECONDS);
+		}
+		
+		if (stopAtZero) {
+			years = Math.max(years, 0);
+			months = Math.max(months, 0);
+			days = Math.max(days, 0);
+			hours = Math.max(hours, 0);
+			minutes = Math.max(minutes, 0);
+			seconds = Math.max(seconds, 0);
 		}
 		
 		if (format != null && format.trim().length() > 0) {
@@ -204,5 +217,21 @@ public final class CountdownComponent extends TimedTextComponent implements Read
 	@Override
 	public boolean hasAnimatedContent() {
 		return true;
+	}
+	
+	@JsonProperty
+	public void setStopAtZeroEnabled(boolean enabled) {
+		this.stopAtZeroEnabled.set(enabled);
+	}
+	
+	@Override
+	@Watchable(name = "stopAtZeroEnabled")
+	public BooleanProperty stopAtZeroEnabledProperty() {
+		return this.stopAtZeroEnabled;
+	}
+	
+	@Override
+	public boolean isStopAtZeroEnabled() {
+		return this.stopAtZeroEnabled.get();
 	}
 }
