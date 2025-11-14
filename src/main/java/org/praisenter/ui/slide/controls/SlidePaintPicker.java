@@ -19,6 +19,7 @@ import org.praisenter.ui.controls.EditorFieldGroup;
 import org.praisenter.ui.slide.convert.PaintConverter;
 import org.praisenter.ui.translations.Translations;
 
+import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
@@ -70,6 +71,13 @@ public final class SlidePaintPicker extends EditorFieldGroup {
 		ColorPicker pkrColor = new ColorPicker();
 		pkrColor.valueProperty().bindBidirectional(this.color);
 		pkrColor.setMaxWidth(Double.MAX_VALUE);
+		// this is a workaround for the javafx bug above 
+		pkrColor.setOnAction(e -> {
+			Platform.runLater(() -> {
+				context.getStage().toFront();	
+			});
+			
+		});
 		
 		SlideGradientPicker pkrGradient = new SlideGradientPicker();
 		pkrGradient.valueProperty().bindBidirectional(this.gradient);
