@@ -266,42 +266,36 @@ public final class Song implements ReadOnlySong, Indexable, Persistable, Copyabl
 	@Override
 	public List<Document> index() {
 		List<Document> documents = new ArrayList<Document>();
-		
-		StringBuilder text = new StringBuilder();
+
+		// store the song name
+		String name = this.getName();
+		if (!StringManipulator.isNullOrEmpty(name)){
+			Document document = new Document();
+			document.add(new StringField(FIELD_ID, this.getId().toString(), Field.Store.YES));
+			document.add(new StringField(FIELD_TYPE, DATA_TYPE_SONG, Field.Store.YES));
+			document.add(new TextField(FIELD_TEXT, name, Field.Store.YES));
+			documents.add(document);
+		}
 		
 		// store any lyrics titles
 		for (Lyrics lyrics : this.lyrics) {
 			String title = lyrics.getTitle();
-			if (!StringManipulator.isNullOrEmpty(title)) 
-				text.append(title).append("\n");
+			if (!StringManipulator.isNullOrEmpty(title)) {
+				Document document = new Document();
+				document.add(new StringField(FIELD_ID, this.getId().toString(), Field.Store.YES));
+				document.add(new StringField(FIELD_TYPE, DATA_TYPE_SONG, Field.Store.YES));
+				document.add(new TextField(FIELD_TEXT, title, Field.Store.YES));
+				documents.add(document);
+			}
 		}
-		
-		// store the song name
-		String name = this.getName();
-		if (!StringManipulator.isNullOrEmpty(name)) 
-			text.append(name).append("\n");
 		
 		// store the song keywords
 		String keywords = this.getKeywords();
-		if (!StringManipulator.isNullOrEmpty(keywords)) 
-			text.append(keywords).append("\n");
-		
-		// add the document for the whole song
-		{
+		if (!StringManipulator.isNullOrEmpty(keywords)){
 			Document document = new Document();
-	
-			// allow filtering by the song id
 			document.add(new StringField(FIELD_ID, this.getId().toString(), Field.Store.YES));
-			
-			// allow filtering by type
 			document.add(new StringField(FIELD_TYPE, DATA_TYPE_SONG, Field.Store.YES));
-	
-			// check the text
-			String alltext = text.toString();
-			if (!StringManipulator.isNullOrEmpty(alltext)) {
-				document.add(new TextField(FIELD_TEXT, alltext, Field.Store.YES));
-			}
-			
+			document.add(new TextField(FIELD_TEXT, keywords, Field.Store.YES));
 			documents.add(document);
 		}
 		
@@ -322,13 +316,12 @@ public final class Song implements ReadOnlySong, Indexable, Persistable, Copyabl
 					// stored data so we can look up the verse
 					document.add(new StoredField(FIELD_LYRICS_ID, lyrics.getId().toString()));
 					document.add(new StoredField(FIELD_SECTION_ID, section.getId().toString()));
-					document.add(new TextField(FIELD_TEXT, section.getText(), Field.Store.YES));
+					document.add(new TextField(FIELD_TEXT, sectionText, Field.Store.YES));
 					
 					documents.add(document);
 				}
 			}
 		}
-		
 		
 		String tags = this.tags.stream().map(t -> t.getName()).collect(Collectors.joining(" "));
 		if (!StringManipulator.isNullOrEmpty(tags)) {

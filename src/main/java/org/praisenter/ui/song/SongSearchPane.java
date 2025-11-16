@@ -54,6 +54,7 @@ import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
@@ -74,6 +75,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
+import javafx.scene.text.TextFlow;
 
 // FEATURE (M-M) add searching to the song editor for finding and editing easily
 
@@ -179,10 +181,15 @@ public final class SongSearchPane extends VBox {
 		// columns
 		TableColumn<SongSearchResult, Number> score = new TableColumn<SongSearchResult, Number>(Translations.get("search.score"));
 		TableColumn<SongSearchResult, String> song = new TableColumn<SongSearchResult, String>(Translations.get("song.search.results.song"));
+		TableColumn<SongSearchResult, String> section = new TableColumn<SongSearchResult, String>(Translations.get("song.search.results.section"));
 		TableColumn<SongSearchResult, SongSearchResult> sectionText = new TableColumn<SongSearchResult, SongSearchResult>(Translations.get("song.search.results.text"));
 		
 		score.setCellValueFactory(p -> new ReadOnlyFloatWrapper(p.getValue().getScore()));
 		song.setCellValueFactory(p -> new ReadOnlyStringWrapper(p.getValue().getSong().getName()));
+		section.setCellValueFactory(p -> {
+			ReadOnlySection sec = p.getValue().getSection();
+			return new ReadOnlyStringWrapper(sec != null ? sec.getName() : Translations.get("song.search.results.metadata"));
+		});
 		sectionText.setCellValueFactory(p -> new ReadOnlyObjectWrapper<SongSearchResult>(p.getValue()));
 		
 		score.setCellFactory(p -> new TableCell<SongSearchResult, Number>() {
@@ -200,6 +207,17 @@ public final class SongSearchPane extends VBox {
 			}
 		});
 		song.setCellFactory(p -> new TableCell<SongSearchResult, String>() {
+			@Override
+			protected void updateItem(String item, boolean empty) {
+				super.updateItem(item, empty);
+				if (item == null || empty) {
+					setText(null);
+				} else {
+					setText(item);
+				}
+			}
+		});
+		section.setCellFactory(p -> new TableCell<SongSearchResult, String>() {
 			@Override
 			protected void updateItem(String item, boolean empty) {
 				super.updateItem(item, empty);
@@ -229,26 +247,11 @@ public final class SongSearchPane extends VBox {
 					}
 					
 					// get the matched text
-					String highlighted = match.getMatchedText();
+					String matchedText = match.getMatchedText();
+					List<Text> texts = highlightMatchedText(matchedText);
 					HBox text = new HBox();
+					text.getChildren().addAll(texts);
 					text.setAlignment(Pos.CENTER_LEFT);
-					
-					// format the match text from Lucene to show what we matched on
-					String[] mparts = highlighted.replaceAll("\n\r?", " ").split("<B>");
-					for (String mpart : mparts) {
-						if (mpart.contains("</B>")) {
-							String[] nparts = mpart.split("</B>");
-							Text temp = new Text(nparts[0]);
-							temp.getStyleClass().add("p-search-highlight");
-							text.getChildren().add(temp);
-							// it's possible mpart could be "blah</B>" which would only give us one part
-							if (nparts.length > 1) {
-								text.getChildren().add(new Text(nparts[1]));
-							}
-						} else {
-							text.getChildren().add(new Text(mpart));
-						}
-					}
 					
 					setGraphic(text);
 				}
@@ -257,10 +260,12 @@ public final class SongSearchPane extends VBox {
 		
 		score.prefWidthProperty().bind(table.widthProperty().multiply(0.15));
 		song.prefWidthProperty().bind(table.widthProperty().multiply(0.20));
-		sectionText.prefWidthProperty().bind(table.widthProperty().multiply(0.60));
+		section.prefWidthProperty().bind(table.widthProperty().multiply(0.20));
+		sectionText.prefWidthProperty().bind(table.widthProperty().multiply(0.40));
 		
 		table.getColumns().add(score);
 		table.getColumns().add(song);
+		table.getColumns().add(section);
 		table.getColumns().add(sectionText);
 		table.setPlaceholder(new Label(Translations.get("song.search.results.none")));
 		
@@ -278,29 +283,38 @@ public final class SongSearchPane extends VBox {
 
 		table.getSelectionModel().selectedItemProperty().addListener((obs, ov, nv) -> {
 			right.getChildren().clear();
-			scrSong.setVvalue(0);
 			
 			if (nv != null) {
 				VBox selectedCard = null;
 				
-				var lyrics = nv.getSong().getDefaultLyrics();
+				var lyrics = nv.getLyrics();
+				if (lyrics == null)
+					lyrics = nv.getSong().getDefaultLyrics();
+				
 				for (var verse : lyrics.getSectionsUnmodifiable()) {
 					VBox card = new VBox();
 					card.getStyleClass().add(SONG_SEARCH_CARD_CSS);
-					if (nv.getSection() != null && nv.getSection().getId() == verse.getId()) {
+					boolean isSelectedSection = nv.getSection() != null && nv.getSection().getId() == verse.getId();
+					if (isSelectedSection) {
 						card.getStyleClass().add(SONG_SEARCH_CARD_SELECTED_CSS);
 						selectedCard = card;
 					}
+					
+					final SongSearchResult ssr = new SongSearchResult(nv.getSong(), lyrics, verse, nv.getMatches(), nv.getScore());
 
-					String location = verse.getName();
-					String text = verse.getText();
+					final String location = verse.getName();
+					final String text = verse.getText();
 					
 					Hyperlink link = new Hyperlink();
 					link.setText(location);
 					link.getStyleClass().add(Styles.TEXT_CAPTION);
 					link.setOnAction(e -> {
 						this.value.set(null);
-			        	this.value.set(nv);
+						if (isSelectedSection) {
+							this.value.set(nv);
+						} else {
+							this.value.set(ssr);
+						}
 					});
 					
 					Button btnCopy = new Button("", Icons.getIcon(Icons.COPY));
@@ -321,10 +335,29 @@ public final class SongSearchPane extends VBox {
 						Clipboard clipboard = Clipboard.getSystemClipboard();
 						clipboard.setContent(content);
 					});
+					
 
-					Label lblText = new Label();
-					lblText.setWrapText(true);
-					lblText.setText(text);
+					Node textNode = null;
+					List<SearchTextMatch> matches = nv.getMatches();
+					SearchTextMatch match = null;
+					if (matches != null && matches.size() > 0) {
+						match = matches.get(0);
+					}
+					
+					if (match == null || !isSelectedSection) {
+						Label lblText = new Label();
+						lblText.setWrapText(true);
+						lblText.setText(text);
+						textNode = lblText;
+					} else {
+						// get the matched text
+						String highlighted = match.getMatchedText();
+						List<Text> elements = highlightMatchedText(highlighted);
+
+						TextFlow tf = new TextFlow();
+						tf.getChildren().addAll(elements);
+						textNode = tf;
+					}
 
 					HBox header = new HBox(5, link, btnCopy);
 					header.setAlignment(Pos.CENTER_LEFT);
@@ -332,7 +365,7 @@ public final class SongSearchPane extends VBox {
 					Separator sepCard = new Separator(Orientation.HORIZONTAL);
 					sepCard.getStyleClass().add(Styles.SMALL);
 					
-					card.getChildren().addAll(header, lblText);
+					card.getChildren().addAll(header, textNode);
 					right.getChildren().addAll(card, sepCard);
 				}
 				
@@ -354,6 +387,8 @@ public final class SongSearchPane extends VBox {
 						// scroll to the location
 						scrSong.setVvalue(vValue);					
 					});
+				} else {
+					scrSong.setVvalue(0);
 				}
 			}
 		});
@@ -483,6 +518,29 @@ public final class SongSearchPane extends VBox {
 		}
 		
 		return output;
+	}
+
+	private List<Text> highlightMatchedText(String matchedText) {
+		List<Text> elements = new ArrayList<>();
+		// format the match text from Lucene to show what we matched on
+		String[] mparts = matchedText.replaceAll("\n\r?", " ").split("<B>");
+		for (String mpart : mparts) {
+			if (mpart.contains("</B>")) {
+				String[] nparts = mpart.split("</B>");
+				Text temp = new Text(nparts[0]);
+				temp.getStyleClass().add("p-search-highlight");
+				elements.add(temp);
+				// it's possible mpart could be "blah</B>" which would only give us one part
+				if (nparts.length > 1) {
+					Text part = new Text(nparts[1]);
+					elements.add(part);
+				}
+			} else {
+				Text part = new Text(mpart);
+				elements.add(part);
+			}
+		}
+		return elements;
 	}
 	
 	public void clear() {

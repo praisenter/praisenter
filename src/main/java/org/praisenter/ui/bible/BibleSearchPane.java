@@ -60,6 +60,7 @@ import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
@@ -83,6 +84,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
+import javafx.scene.text.TextFlow;
 
 // FEATURE (M-M) add searching to the bible editor for finding and editing easily
 
@@ -306,29 +308,12 @@ public final class BibleSearchPane extends VBox {
 					
 					// get the matched text
 					String highlighted = match.getMatchedText();
+					List<Text> elements = highlightMatchedText(highlighted);
 					HBox text = new HBox();
+					text.getChildren().addAll(elements);
 					text.setAlignment(Pos.CENTER_LEFT);
 //					text.setBorder(new Border(new BorderStroke(Color.RED, BorderStrokeStyle.SOLID, new CornerRadii(0), new BorderWidths(1))));
-					
-					// format the match text from Lucene to show what we matched on
-					String[] mparts = highlighted.replaceAll("\n\r?", " ").split("<B>");
-					for (String mpart : mparts) {
-						if (mpart.contains("</B>")) {
-							String[] nparts = mpart.split("</B>");
-							Text temp = new Text(nparts[0]);
-							temp.getStyleClass().add("p-search-highlight");
-							text.getChildren().add(temp);
-							// it's possible mpart could be "blah</B>" which would only give us one part
-							if (nparts.length > 1) {
-								Text part = new Text(nparts[1]);
-								text.getChildren().add(part);
-							}
-						} else {
-							Text part = new Text(mpart);
-							text.getChildren().add(part);
-						}
-					}
-					
+
 					setGraphic(text);
 				}
 			}
@@ -361,7 +346,6 @@ public final class BibleSearchPane extends VBox {
 		
 		table.getSelectionModel().selectedItemProperty().addListener((obs, ov, nv) -> {
 			right.getChildren().clear();
-			scrChapter.setVvalue(0);
 
 			if (nv != null) {
 				VBox selectedCard = null;
@@ -369,7 +353,9 @@ public final class BibleSearchPane extends VBox {
 				for (var verse : nv.getChapter().getVersesUnmodifiable()) {
 					VBox card = new VBox();
 					card.getStyleClass().add(BIBLE_SEARCH_CARD_CSS);
-					if (verse.getNumber() == nv.getVerse().getNumber()) {
+					
+					boolean isSelectedVerse = verse.getNumber() == nv.getVerse().getNumber(); 
+					if (isSelectedVerse) {
 						card.getStyleClass().add(BIBLE_SEARCH_CARD_SELECTED_CSS);
 						selectedCard = card;
 					}
@@ -408,9 +394,27 @@ public final class BibleSearchPane extends VBox {
 						clipboard.setContent(content);
 					});
 					
-					Label lblText = new Label();
-					lblText.setWrapText(true);
-					lblText.setText(text);
+					Node textNode = null;
+					List<SearchTextMatch> matches = nv.getMatches();
+					SearchTextMatch match = null;
+					if (matches != null && matches.size() > 0) {
+						match = matches.get(0);
+					}
+					
+					if (match == null || !isSelectedVerse) {
+						Label lblText = new Label();
+						lblText.setWrapText(true);
+						lblText.setText(text);
+						textNode = lblText;
+					} else {
+						// get the matched text
+						String highlighted = match.getMatchedText();
+						List<Text> elements = highlightMatchedText(highlighted);
+
+						TextFlow tf = new TextFlow();
+						tf.getChildren().addAll(elements);
+						textNode = tf;
+					}
 					
 					HBox header = new HBox(5, link, btnCopy);
 					header.setAlignment(Pos.CENTER_LEFT);
@@ -418,7 +422,7 @@ public final class BibleSearchPane extends VBox {
 					Separator sepCard = new Separator(Orientation.HORIZONTAL);
 					sepCard.getStyleClass().add(Styles.SMALL);
 					
-					card.getChildren().addAll(header, lblText);
+					card.getChildren().addAll(header, textNode);
 					right.getChildren().addAll(card, sepCard);
 				}
 				
@@ -440,6 +444,8 @@ public final class BibleSearchPane extends VBox {
 						// scroll to the location
 						scrChapter.setVvalue(vValue);					
 					});
+				} else {
+					scrChapter.setVvalue(0);
 				}
 			}
 		});
@@ -544,6 +550,29 @@ public final class BibleSearchPane extends VBox {
 					result.getScore()));
 		}
 		return output;
+	}
+	
+	private List<Text> highlightMatchedText(String matchedText) {
+		List<Text> elements = new ArrayList<>();
+		// format the match text from Lucene to show what we matched on
+		String[] mparts = matchedText.replaceAll("\n\r?", " ").split("<B>");
+		for (String mpart : mparts) {
+			if (mpart.contains("</B>")) {
+				String[] nparts = mpart.split("</B>");
+				Text temp = new Text(nparts[0]);
+				temp.getStyleClass().add("p-search-highlight");
+				elements.add(temp);
+				// it's possible mpart could be "blah</B>" which would only give us one part
+				if (nparts.length > 1) {
+					Text part = new Text(nparts[1]);
+					elements.add(part);
+				}
+			} else {
+				Text part = new Text(mpart);
+				elements.add(part);
+			}
+		}
+		return elements;
 	}
 	
 	public void requestSearchFocus() {

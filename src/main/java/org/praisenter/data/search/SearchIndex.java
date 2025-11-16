@@ -22,6 +22,7 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.highlight.Highlighter;
+import org.apache.lucene.search.highlight.NullFragmenter;
 import org.apache.lucene.search.highlight.QueryScorer;
 import org.apache.lucene.search.highlight.TokenSources;
 import org.apache.lucene.store.Directory;
@@ -101,6 +102,7 @@ public final class SearchIndex {
 			
 			QueryScorer scorer = new QueryScorer(query);
 			Highlighter highlighter = new Highlighter(scorer);
+			highlighter.setTextFragmenter(new NullFragmenter());
 			StoredFields storedFields = searcher.storedFields();
 			
 			for (ScoreDoc doc : docs) {
