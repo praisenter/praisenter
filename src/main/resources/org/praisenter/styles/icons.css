@@ -164,6 +164,16 @@
 	-icon-check: "m382-267.692-198.769-198.77L211.769-495 382-324.769 748.231-691l28.538 28.538L382-267.692Z";
 	/*https://fonts.google.com/icons?selected=Material+Symbols+Outlined:article:FILL@0;wght@200;GRAD@0;opsz@24&icon.query=page&icon.size=24&icon.color=%231f1f1f*/
 	-icon-manual: "M300-300h240v-40H300v40Zm0-160h360v-40H300v40Zm0-160h360v-40H300v40Zm-75.38 460q-27.62 0-46.12-18.5Q160-197 160-224.62v-510.76q0-27.62 18.5-46.12Q197-800 224.62-800h510.76q27.62 0 46.12 18.5Q800-763 800-735.38v510.76q0 27.62-18.5 46.12Q763-160 735.38-160H224.62Zm0-40h510.76q9.24 0 16.93-7.69 7.69-7.69 7.69-16.93v-510.76q0-9.24-7.69-16.93-7.69-7.69-16.93-7.69H224.62q-9.24 0-16.93 7.69-7.69 7.69-7.69 16.93v510.76q0 9.24 7.69 16.93 7.69 7.69 16.93 7.69ZM200-760v560-560Z";
+	/*https://fonts.google.com/icons?selected=Material+Symbols+Outlined:language:FILL@0;wght@200;GRAD@0;opsz@24&icon.query=web&icon.size=24&icon.color=%231f1f1f&icon.platform=web*/
+	-icon-web: "M480-120q-74.31 0-140-28.42-65.69-28.43-114.42-77.16-48.73-48.73-77.16-114.42Q120-405.69 120-480q0-74.54 28.42-140.12 28.43-65.57 77.16-114.3 48.73-48.73 114.42-77.16Q405.69-840 480-840q74.54 0 140.12 28.42 65.57 28.43 114.3 77.16 48.73 48.73 77.16 114.3Q840-554.54 840-480q0 74.31-28.42 140-28.43 65.69-77.16 114.42-48.73 48.73-114.3 77.16Q554.54-120 480-120Zm0-39.69q35.23-45.23 58.08-88.85 22.84-43.61 37.15-97.61H384.77q15.85 57.07 37.92 100.69 22.08 43.61 57.31 85.77Zm-50.92-6q-28-33-51.12-81.58-23.11-48.58-34.42-98.88H190.15q34.39 74.61 97.5 122.38 63.12 47.77 141.43 58.08Zm101.84 0q78.31-10.31 141.43-58.08 63.11-47.77 97.5-122.38H616.46q-15.15 51.07-38.27 99.65-23.11 48.58-47.27 80.81ZM173.85-386.15h161.38q-4.54-24.62-6.42-47.97-1.89-23.34-1.89-45.88 0-22.54 1.89-45.88 1.88-23.35 6.42-47.97H173.85q-6.54 20.77-10.2 45.27Q160-504.08 160-480t3.65 48.58q3.66 24.5 10.2 45.27Zm201.38 0h209.54q4.54-24.62 6.42-47.2 1.89-22.57 1.89-46.65t-1.89-46.65q-1.88-22.58-6.42-47.2H375.23q-4.54 24.62-6.42 47.2-1.89 22.57-1.89 46.65t1.89 46.65q1.88 22.58 6.42 47.2Zm249.54 0h161.38q6.54-20.77 10.2-45.27Q800-455.92 800-480t-3.65-48.58q-3.66-24.5-10.2-45.27H624.77q4.54 24.62 6.42 47.97 1.89 23.34 1.89 45.88 0 22.54-1.89 45.88-1.88 23.35-6.42 47.97Zm-8.31-227.7h153.39Q734.69-690 673.5-736.23q-61.19-46.23-142.58-58.85 28 36.85 50.35 84.27 22.35 47.43 35.19 96.96Zm-231.69 0h190.46q-15.85-56.3-39.08-101.84-23.23-45.54-56.15-84.62-32.92 39.08-56.15 84.62-23.23 45.54-39.08 101.84Zm-194.62 0h153.39q12.84-49.53 35.19-96.96 22.35-47.42 50.35-84.27-82.16 12.62-142.96 59.23-60.81 46.62-95.97 122Z";
+	/*https://fonts.google.com/icons?selected=Material+Symbols+Outlined:arrow_back:FILL@0;wght@200;GRAD@0;opsz@24&icon.query=back&icon.size=24&icon.color=%231f1f1f*/
+	-icon-web-back: "m276.85-460 231.69 231.69L480-200 200-480l280-280 28.54 28.31L276.85-500H760v40H276.85Z";
+	/*https://fonts.google.com/icons?selected=Material+Symbols+Outlined:arrow_forward:FILL@0;wght@200;GRAD@0;opsz@24&icon.query=forward&icon.size=24&icon.color=%231f1f1f*/
+	-icon-web-forward: "M683.15-460H200v-40h483.15L451.46-731.69 480-760l280 280-280 280-28.54-28.31L683.15-460Z";
+	/*https://fonts.google.com/icons?selected=Material+Symbols+Outlined:refresh:FILL@0;wght@200;GRAD@0;opsz@24&icon.query=refre&icon.size=24&icon.color=%231f1f1f*/
+	-icon-web-refresh: "M483.08-200q-117.25 0-198.63-81.34-81.37-81.34-81.37-198.54 0-117.2 81.37-198.66Q365.83-760 483.08-760q71.3 0 133.54 33.88 62.23 33.89 100.3 94.58V-760h40v209.23H547.69v-40h148q-31.23-59.85-87.88-94.54Q551.15-720 483.08-720q-100 0-170 70t-70 170q0 100 70 170t170 70q77 0 139-44t87-116h42.46Q725.08-310.15 651-255.08 576.92-200 483.08-200Z";
+	/*https://fonts.google.com/icons?selected=Material+Symbols+Outlined:home:FILL@0;wght@200;GRAD@0;opsz@24&icon.query=home&icon.size=24&icon.color=%231f1f1f*/
+	-icon-web-home: "M240-200h147.69v-235.38h184.62V-200H720v-360L480-741.54 240-560v360Zm-40 40v-420l280-211.54L760-580v420H532.31v-235.38H427.69V-160H200Zm280-310.77Z";
 }
 
 .p-icon-container {
@@ -263,6 +273,11 @@
 .p-icon-folder { -fx-shape: -icon-folder; }
 .p-icon-warn { -fx-shape: -icon-warn; }
 .p-icon-check { -fx-shape: -icon-check; }
+.p-icon-web { -fx-shape: -icon-web; }
+.p-icon-web-back { -fx-shape: -icon-web-back; }
+.p-icon-web-forward { -fx-shape: -icon-web-forward; }
+.p-icon-web-refresh { -fx-shape: -icon-web-refresh; }
+.p-icon-web-home { -fx-shape: -icon-web-home; }
 
 .p-icon {
 	-fx-background-color: -color-fg-default;
@@ -306,7 +321,8 @@
 
 /** w:14, h:14 */
 .p-icon-save,
-.p-icon-saveall {
+.p-icon-saveall,
+.p-icon-saveas {
 	-w: 1em; 
 	-h: 1em;
     -fx-max-height: -h; -fx-min-height: -h; -fx-pref-height: -h;
@@ -817,6 +833,39 @@
 .p-icon-check {
 	-w: 1.059857142857143em; 
 	-h: 0.7559285714285714em;
+    -fx-max-height: -h; -fx-min-height: -h; -fx-pref-height: -h;
+    -fx-pref-width: -w; -fx-min-width: -w; -fx-max-width: -w;
+}
+
+/** w:14, h:14 */
+.p-icon-web-back,
+.p-icon-web-forward {
+	-w: 1em;
+	-h: 1em;
+    -fx-max-height: -h; -fx-min-height: -h; -fx-pref-height: -h;
+    -fx-pref-width: -w; -fx-min-width: -w; -fx-max-width: -w;
+}
+
+/** w:13.846, h:14 */
+.p-icon-web-refresh {
+	-w: 0.989em;
+	-h: 1em;
+    -fx-max-height: -h; -fx-min-height: -h; -fx-pref-height: -h;
+    -fx-pref-width: -w; -fx-min-width: -w; -fx-max-width: -w;
+}
+
+/** w:14, h:15.788 */
+.p-icon-web-home {
+	-w: 1em;
+	-h: 1.1277142857142857em;
+    -fx-max-height: -h; -fx-min-height: -h; -fx-pref-height: -h;
+    -fx-pref-width: -w; -fx-min-width: -w; -fx-max-width: -w;
+}
+
+/** w:18, h:18 */
+.p-icon-web {
+	-w: 1.28571428571428em;
+	-h: 1.28571428571428em;
     -fx-max-height: -h; -fx-min-height: -h; -fx-pref-height: -h;
     -fx-pref-width: -w; -fx-min-width: -w; -fx-max-width: -w;
 }

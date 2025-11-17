@@ -87,6 +87,11 @@ public final class Icons {
 	public static final String FOLDER = "p-icon-folder";
 	public static final String WARN = "p-icon-warn";
 	public static final String CHECK = "p-icon-check";
+	public static final String WEB_BACK = "p-icon-web-back";
+	public static final String WEB_FORWARD = "p-icon-web-forward";
+	public static final String WEB_REFRESH = "p-icon-web-refresh";
+	public static final String WEB_HOME = "p-icon-web-home";
+	public static final String WEB = "p-icon-web";
 	
 	public static final String COLOR_WARN = "p-icon-color-warn";
 	public static final String COLOR_DANGER = "p-icon-color-danger";
