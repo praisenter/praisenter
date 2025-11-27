@@ -275,43 +275,31 @@ public final class BibleNavigationPane extends GridPane {
 		
 		Button btnFind = new Button(Translations.get("bible.nav.find"));
 		btnFind.setOnMouseClicked((e) -> {
-			LocatedVerseTriplet triplet = getTripletForInput(FIND);
-			updateValue(triplet, e.isShortcutDown());
-			updateNextPrevious(triplet);
+			updateValueNextPrevious(FIND, e.isShortcutDown());
 		});
 		btnFind.setOnKeyPressed(e -> {
 			if (e.getCode() == KeyCode.ENTER || e.getCode() == KeyCode.SPACE) {
-				LocatedVerseTriplet triplet = getTripletForInput(FIND);
-				updateValue(triplet, false);
-				updateNextPrevious(triplet);
+				updateValueNextPrevious(FIND, false);
 			}
 		});
 		
 		Button next = new Button(Translations.get("bible.nav.next"));
 		next.setOnMouseClicked((e) -> {
-			LocatedVerseTriplet triplet = getTripletForInput(NEXT);
-			updateValue(triplet, e.isShortcutDown());
-			updateNextPrevious(triplet);
+			updateValueNextPrevious(NEXT, e.isShortcutDown());
 		});
 		next.setOnKeyPressed((e) -> {
 			if (e.getCode() == KeyCode.ENTER || e.getCode() == KeyCode.SPACE) {
-				LocatedVerseTriplet triplet = getTripletForInput(NEXT);
-				updateValue(triplet, false);
-				updateNextPrevious(triplet);
+				updateValueNextPrevious(NEXT, false);
 			}
 		});
 		
 		Button prev = new Button(Translations.get("bible.nav.previous"));
 		prev.setOnMouseClicked((e) -> {
-			LocatedVerseTriplet triplet = getTripletForInput(PREVIOUS);
-			updateValue(triplet, e.isShortcutDown());
-			updateNextPrevious(triplet);
+			updateValueNextPrevious(PREVIOUS, e.isShortcutDown());
 		});
 		prev.setOnKeyPressed((e) -> {
 			if (e.getCode() == KeyCode.ENTER || e.getCode() == KeyCode.SPACE) {
-				LocatedVerseTriplet triplet = getTripletForInput(PREVIOUS);
-				updateValue(triplet, false);
-				updateNextPrevious(triplet);
+				updateValueNextPrevious(PREVIOUS, false);
 			}
 		});
 		
@@ -715,6 +703,15 @@ public final class BibleNavigationPane extends GridPane {
 		this.next.set(next);
 		
 		this.mutating = false;
+	}
+	
+	private void updateValueNextPrevious(String type, boolean append) {
+		LocatedVerseTriplet triplet = getTripletForInput(type);
+		if (triplet == null)
+			return;
+		
+		updateValue(triplet, append);
+		updateNextPrevious(triplet);
 	}
 	
 	private BibleReferenceVerse toReference(LocatedVerse verse) {

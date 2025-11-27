@@ -98,8 +98,8 @@ public final class WorkspaceConfiguration implements ReadOnlyWorkspaceConfigurat
 		this.videoFrameExtractCommand = new SimpleStringProperty(MediaConfiguration.DEFAULT_VIDEO_FRAME_EXTRACT_COMMAND);
 		this.targetMeanVolume = new SimpleDoubleProperty(MediaConfiguration.DEFAULT_TARGET_MEAN_VOLUME);
 		
-		this.languageTag = new SimpleStringProperty(null);
-		this.themeName = new SimpleStringProperty();
+		this.languageTag = new SimpleStringProperty("en");
+		this.themeName = new SimpleStringProperty("/atlantafx/base/theme/primer-dark.css");
 		this.accentName = new SimpleStringProperty();
 		this.applicationX = new SimpleDoubleProperty(POSITION_SIZE_UNSET);
 		this.applicationY = new SimpleDoubleProperty(POSITION_SIZE_UNSET);

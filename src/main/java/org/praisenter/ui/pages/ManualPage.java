@@ -17,6 +17,7 @@ import org.w3c.dom.events.EventTarget;
 import org.w3c.dom.html.HTMLAnchorElement;
 
 import atlantafx.base.controls.CustomTextField;
+import atlantafx.base.theme.Styles;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -75,12 +76,14 @@ public final class ManualPage extends BorderPane implements Page {
 		engine.load(location);
 		
 		Button btnHome = new Button();
+		btnHome.getStyleClass().addAll(Styles.BUTTON_ICON, Styles.FLAT);
 		btnHome.setGraphic(Icons.getIcon(Icons.WEB_HOME));
 		btnHome.setOnAction(e -> {
 			engine.load(home);
 		});
 		
 		Button btnBack = new Button();
+		btnBack.getStyleClass().addAll(Styles.BUTTON_ICON, Styles.FLAT);
 		btnBack.setGraphic(Icons.getIcon(Icons.WEB_BACK));
 		btnBack.setOnAction(e -> {
 			int index = engine.getHistory().getCurrentIndex();
@@ -92,6 +95,7 @@ public final class ManualPage extends BorderPane implements Page {
 //		btnBack.disableProperty().bind(engine.getHistory().currentIndexProperty().greaterThan(0));
 		
 		Button btnForward = new Button();
+		btnForward.getStyleClass().addAll(Styles.BUTTON_ICON, Styles.FLAT);
 		btnForward.setGraphic(Icons.getIcon(Icons.WEB_FORWARD));
 		btnForward.setOnAction(e -> {
 			int index = engine.getHistory().getCurrentIndex();
@@ -103,6 +107,7 @@ public final class ManualPage extends BorderPane implements Page {
 //		btnBack.disableProperty().bind(engine.getHistory().currentIndexProperty().lessThan(engine.getHistory().getEntries().));
 		
 		Button btnRefresh = new Button();
+		btnRefresh.getStyleClass().addAll(Styles.BUTTON_ICON, Styles.FLAT);
 		btnRefresh.setGraphic(Icons.getIcon(Icons.WEB_REFRESH));
 		btnRefresh.setOnAction(e -> {
 			engine.reload();
