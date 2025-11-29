@@ -70,13 +70,13 @@ parts:
     # snapcraft during build (there were other versions of them
     # missing, but I think you only need to stage the latest)
 
-    # May need to switch to libavcodec60 when ubuntu-latest goes
-    # to Ubuntu 23.x
+    # The version of these packages depends on the version of the github runner
+	# and the version of these libraries that runner contains
     # https://stackoverflow.com/questions/77663867/error-creating-javafx-mediaplayer-using-mp3-on-ubuntu-23-10
     # https://bugs.openjdk.org/browse/JDK-8317508
     stage-packages:
-    - libavcodec61
-    - libavformat61
+    - libavcodec60
+    - libavformat60
 
   metadata:
     # I'm using this to pull in the version only
