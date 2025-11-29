@@ -71,7 +71,7 @@ parts:
     # missing, but I think you only need to stage the latest)
 
     # The version of these packages depends on the version of the github runner
-	# and the version of these libraries that runner contains
+    # and the version of these libraries that runner contains
     # https://stackoverflow.com/questions/77663867/error-creating-javafx-mediaplayer-using-mp3-on-ubuntu-23-10
     # https://bugs.openjdk.org/browse/JDK-8317508
     stage-packages:
