@@ -42,6 +42,13 @@ jobs:
         uses: microsoft/setup-msbuild@v2
         if: matrix.os == 'windows-latest'
 
+      # Install FFmpeg (UBUNTU)
+      - name: Install FFmpeg
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libavcodec-dev libavformat-dev
+
       # Install Wix 6
       # https://github.com/petr-panteleyev/jpackage-gradle-plugin/issues/38#issuecomment-2873402088
       - name: Install WiX 6
