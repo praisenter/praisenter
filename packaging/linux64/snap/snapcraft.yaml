@@ -41,7 +41,7 @@ apps:
       - home                        # NO
       - network                     # AUTO-CONNECT
       - network-bind                # AUTO-CONNECT (for NDI)
-	  - network-status              # AUTO-CONNECT
+      - network-status              # AUTO-CONNECT
       - avahi-control               # NO (for NDI)
       - opengl                      # AUTO-CONNECT
       - removable-media             # NO
