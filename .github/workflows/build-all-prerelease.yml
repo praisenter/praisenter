@@ -20,7 +20,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest] # macos-latest
+        os: [ubuntu-24.04, windows-latest] # macos-latest
     runs-on: ${{ matrix.os }}
     steps:
       # Get latest from the current branch
@@ -40,14 +40,14 @@ jobs:
       # Add MSBuild (WINDOWS)
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v2
-        if: matrix.os == 'windows-latest'
+        if: runner.os == 'Windows'
 
-      # Install FFmpeg (UBUNTU)
-      - name: Install FFmpeg
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libavcodec-dev libavformat-dev
+      # # Install FFmpeg (UBUNTU)
+      # - name: Install FFmpeg
+      #   if: runner.os == 'Linux'
+      #   run: |
+      #     sudo apt-get update
+      #     sudo apt-get install -y libavcodec-dev libavformat-dev
 
       # Install Wix 6
       # https://github.com/petr-panteleyev/jpackage-gradle-plugin/issues/38#issuecomment-2873402088
@@ -56,7 +56,7 @@ jobs:
           dotnet tool install --global wix --version 6.0.2
           wix extension add -g WixToolset.Util.wixext/6.0.2
           wix extension add -g WixToolset.Ui.wixext/6.0.2
-        if: matrix.os == 'windows-latest'
+        if: runner.os == 'Windows'
 
       # Setup Java w/ JavaFX
       - name: Set up JDK 25
@@ -74,7 +74,7 @@ jobs:
 
       # Now attempt to build the msix (WINDOWS)
       - name: "Set appxmanifest version number"
-        if: matrix.os == 'windows-latest'
+        if: runner.os == 'Windows'
         shell: pwsh
         run: |
           $filePath = "./packaging/windows64/msix/Praisenter/Package.appxmanifest"
@@ -86,7 +86,7 @@ jobs:
 
       # Copy all the build artifacts to the /App folder (WINDOWS)
       - name: "Copy application msix location"
-        if: matrix.os == 'windows-latest'
+        if: runner.os == 'Windows'
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path "./packaging/windows64/msix/Praisenter/App"
@@ -94,7 +94,7 @@ jobs:
 
       # Build the msixupload file (WINDOWS)
       - name: Build MSIX package
-        if: matrix.os == 'windows-latest'
+        if: runner.os == 'Windows'
         shell: pwsh
         run: |
           Push-Location -Path ./packaging/windows64/msix/Praisenter
@@ -103,14 +103,14 @@ jobs:
 
       # Copy deb to snap folder (UBUNTU)
       - name: Copy deb to snap folder
-        if: matrix.os == 'ubuntu-latest'
+        if: runner.os == 'Linux'
         shell: pwsh
         run: |
           Copy-Item "./target/praisenter_${{ env.VERSION_NUMBER }}_amd64.deb" "./packaging/linux64/snap/praisenter.deb"
 
       # Update metainfo.xml (UBUNTU)
       - name: Set metainfo.xml version number
-        if: matrix.os == 'ubuntu-latest'
+        if: runner.os == 'Linux'
         shell: pwsh
         run: |
           $filePath = "./packaging/linux64/snap/praisenter.metainfo.xml"
@@ -124,24 +124,15 @@ jobs:
       # - name: Install Snapcraft
       #   uses: samuelmeuli/action-snapcraft@v2
       - name: Build snap file
-        if: matrix.os == 'ubuntu-latest'
+        if: runner.os == 'Linux'
         id: snapcraft
         uses: snapcore/action-build@v1
         with:
           path: ./packaging/linux64/snap/
 
-      # # Build the snap file (UBUNTU)
-      # - name: Build snap file
-      #   if: matrix.os == 'ubuntu-latest'
-      #   shell: pwsh
-      #   run: |
-      #     Push-Location -Path ./packaging/linux64/snap/
-      #     snapcraft
-      #     Pop-Location
-
       # Copy snap to target folder (UBUNTU)
       - name: Copy snap to target folder
-        if: matrix.os == 'ubuntu-latest'
+        if: runner.os == 'Linux'
         shell: pwsh
         run: |
           Copy-Item "${{ steps.snapcraft.outputs.snap }}" "./target/praisenter_${{ env.VERSION_NUMBER }}_amd64.snap"
