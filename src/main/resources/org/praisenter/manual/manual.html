@@ -1,0 +1,2498 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-Q91VQSYB1X"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+  
+      gtag("config", "G-Q91VQSYB1X");
+    </script>
+    <!-- End Google Analytics -->
+    
+  
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="A free and open source presentation software package for Churches">
+    <meta name="author" content="William Bittle">
+    <!-- <link rel="canonical" href="http://localhost:4000/manual.html"> -->
+  
+    <title>Praisenter Manual | Praisenter</title>
+
+    <!-- Custom styles for this theme -->
+    <link href="assets/css/custom.css" rel="stylesheet" />
+    <link href="assets/css/highlight.css" rel="stylesheet" />
+</head>
+  <body id="page-top" data-bs-theme="dark">
+		<div class="container-full p-man-header p-3">
+			<div class="container-fluid">
+				<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" style="fill: currentColor" viewBox="0 0 16 16">
+					<path d="M5 10.5a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5"/>
+					<path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-1h1v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v1H1V2a2 2 0 0 1 2-2"/>
+					<path d="M1 5v-.5a.5.5 0 0 1 1 0V5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0V8h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0v.5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1z"/>
+				</svg>
+				Praisenter - Manual
+			</div>
+		</div>
+		<div class="container-fluid">
+			<div class="d-flex">
+				<div class="left-nav">
+					<div class="p-man-nav-container">
+						<nav>
+    <ul class="list-unstyled">
+        <li>
+            <strong>
+                <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" style="fill: currentColor" viewBox="0 0 16 16">
+					<path d="M5 10.5a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5m0-2a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5"/>
+					<path d="M3 0h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2v-1h1v1a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v1H1V2a2 2 0 0 1 2-2"/>
+					<path d="M1 5v-.5a.5.5 0 0 1 1 0V5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0V8h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1zm0 3v-.5a.5.5 0 0 1 1 0v.5h.5a.5.5 0 0 1 0 1h-2a.5.5 0 0 1 0-1z"/>
+				</svg>
+                <span class="ps-1">Overview</span>
+            </strong>
+            <ul class="list-unstyled small pb-3">
+                <li><a href="manual.html" class="p-man-nav-link">Home</a></li>
+                <li><a href="manual.html#about" class="p-man-nav-link">About</a></li>
+                <li><a href="manual.html#license" class="p-man-nav-link">License</a></li>
+                <li><a href="manual.html#minimum-requirements" class="p-man-nav-link">Minimum requirements</a></li>
+                <li><a href="manual.html#default-content" class="p-man-nav-link">Default assets</a></li>
+            </ul>
+        </li>
+        <li>
+            <strong>
+                <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em"  style="fill: var(--bs-pink)">
+					<path d="M8 0c-.787 0-1.292.592-1.572 1.151A4.35 4.35 0 0 0 6 3v3.691l-2 1V7.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.191l-1.17.585A1.5 1.5 0 0 0 0 10.618V12a.5.5 0 0 0 .582.493l1.631-.272.313.937a.5.5 0 0 0 .948 0l.405-1.214 2.21-.369.375 2.253-1.318 1.318A.5.5 0 0 0 5.5 16h5a.5.5 0 0 0 .354-.854l-1.318-1.318.375-2.253 2.21.369.405 1.214a.5.5 0 0 0 .948 0l.313-.937 1.63.272A.5.5 0 0 0 16 12v-1.382a1.5 1.5 0 0 0-.83-1.342L14 8.691V7.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v.191l-2-1V3c0-.568-.14-1.271-.428-1.849C9.292.591 8.787 0 8 0M7 3c0-.432.11-.979.322-1.401C7.542 1.159 7.787 1 8 1s.458.158.678.599C8.889 2.02 9 2.569 9 3v4a.5.5 0 0 0 .276.447l5.448 2.724a.5.5 0 0 1 .276.447v.792l-5.418-.903a.5.5 0 0 0-.575.41l-.5 3a.5.5 0 0 0 .14.437l.646.646H6.707l.647-.646a.5.5 0 0 0 .14-.436l-.5-3a.5.5 0 0 0-.576-.411L1 11.41v-.792a.5.5 0 0 1 .276-.447l5.448-2.724A.5.5 0 0 0 7 7z"/>
+                </svg>
+                <span class="ps-1">Quick start</span>
+            </strong>
+            <ul class="list-unstyled small pb-3">
+                <li><a href="manual.html#quick-start" class="p-man-nav-link">Getting started</a></li>
+                <li><a href="manual.html#qs-configure-system" class="p-man-nav-link">1. System configuration</a></li>
+                <li><a href="manual.html#qs-install" class="p-man-nav-link">2. Install Praisenter</a></li>
+                <li><a href="manual.html#qs-create-workspace" class="p-man-nav-link">3. Create a workspace</a></li>
+                <li><a href="manual.html#qs-setup-displays" class="p-man-nav-link">4. Setup displays</a></li>
+                <li><a href="manual.html#qs-import-bible" class="p-man-nav-link">5. Import a Bible</a></li>
+                <li><a href="manual.html#qs-create-slides" class="p-man-nav-link">6. Create slides</a></li>
+                <li><a href="manual.html#qs-present-slides" class="p-man-nav-link">7. Present slides</a></li>
+            </ul>
+        </li>
+        <li>
+            <strong>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" style="fill: var(--bs-warning)">
+                    <path d="M.54 3.87.5 3a2 2 0 0 1 2-2h3.672a2 2 0 0 1 1.414.586l.828.828A2 2 0 0 0 9.828 3h3.982a2 2 0 0 1 1.992 2.181l-.637 7A2 2 0 0 1 13.174 14H2.826a2 2 0 0 1-1.991-1.819l-.637-7a2 2 0 0 1 .342-1.31zM2.19 4a1 1 0 0 0-.996 1.09l.637 7a1 1 0 0 0 .995.91h10.348a1 1 0 0 0 .995-.91l.637-7A1 1 0 0 0 13.81 4zm4.69-1.707A1 1 0 0 0 6.172 2H2.5a1 1 0 0 0-1 .981l.006.139q.323-.119.684-.12h5.396z"/>
+                </svg>
+                <span class="ps-1">Workspaces</span>
+            </strong>
+            <ul class="list-unstyled small pb-3">
+                <li><a href="manual.html#workspaces" class="p-man-nav-link">Workspaces</a></li>
+                <li><a href="manual.html#creating-workspaces" class="p-man-nav-link">Creating workspaces</a></li>
+                <li><a href="manual.html#switching-workspaces" class="p-man-nav-link">Switching workspaces</a></li>
+                <li><a href="manual.html#removing-workspaces" class="p-man-nav-link">Removing workspaces</a></li>
+                <li><a href="manual.html#workspace-upgrade" class="p-man-nav-link">Workspace upgrade</a></li>
+            </ul>
+        </li>
+        <li>  
+            <strong>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" style="fill: var(--bs-purple)">
+                    <path d="m14.12 10.163 1.715.858c.22.11.22.424 0 .534L8.267 15.34a.6.6 0 0 1-.534 0L.165 11.555a.299.299 0 0 1 0-.534l1.716-.858 5.317 2.659c.505.252 1.1.252 1.604 0l5.317-2.66zM7.733.063a.6.6 0 0 1 .534 0l7.568 3.784a.3.3 0 0 1 0 .535L8.267 8.165a.6.6 0 0 1-.534 0L.165 4.382a.299.299 0 0 1 0-.535z"/>
+                    <path d="m14.12 6.576 1.715.858c.22.11.22.424 0 .534l-7.568 3.784a.6.6 0 0 1-.534 0L.165 7.968a.299.299 0 0 1 0-.534l1.716-.858 5.317 2.659c.505.252 1.1.252 1.604 0z"/>
+                </svg>
+                <span class="ps-1">Library Management</span>
+            </strong>
+            <ul class="list-unstyled small pb-3">
+                <li><a href="manual.html#library" class="p-man-nav-link">Library</a></li>
+                <li><a href="manual.html#searching-filtering--sorting" class="p-man-nav-link">Searching, filtering, & sorting</a></li>
+                <li><a href="manual.html#selecting-an-item" class="p-man-nav-link">Selecting an asset</a></li>
+                <li><a href="manual.html#content-preview" class="p-man-nav-link">Asset preview</a></li>
+                <li><a href="manual.html#selecting-multiple-items" class="p-man-nav-link">Selecting multiple assets</a></li>
+                <li><a href="manual.html#duplicate--copy" class="p-man-nav-link">Duplicate / copy</a></li>
+                <li><a href="manual.html#lib-rename-delete" class="p-man-nav-link">Rename / delete</a></li>
+                <li><a href="manual.html#create-slide" class="p-man-nav-link">Create slide</a></li>
+                <li><a href="manual.html#importing-content" class="p-man-nav-link">Importing assets</a></li>
+                <li><a href="manual.html#supported-import-formats" class="p-man-nav-link">Supported import formats</a></li>
+                <li><a href="manual.html#exporting-content" class="p-man-nav-link">Exporting assets</a></li>
+                <li><a href="manual.html#supported-export-formats" class="p-man-nav-link">Supported export formats</a></li>
+                <li><a href="manual.html#indexing--reindexing" class="p-man-nav-link">Indexing / reindexing</a></li>
+            </ul>
+        </li>
+        <li>  
+            <strong>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" style="fill: var(--bs-green)">
+                    <path d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001"/>
+                </svg>
+                <span class="ps-1">Editing Items</span>
+            </strong>
+            <ul class="list-unstyled small pb-3">
+                <li><a href="manual.html#editing" class="p-man-nav-link">Editing</a></li>
+                <li><a href="manual.html#toolbar" class="p-man-nav-link">Toolbar</a></li>
+                <li><a href="manual.html#side-pane" class="p-man-nav-link">Side pane</a></li>
+                <li><a href="manual.html#saving-changes" class="p-man-nav-link">Saving changes</a></li>
+                <li><a href="manual.html#copy--cut--paste" class="p-man-nav-link">Copy / cut / paste</a></li>
+                <li><a href="manual.html#rename--delete" class="p-man-nav-link">Rename / delete</a></li>
+                <li><a href="manual.html#undo--redo" class="p-man-nav-link">Undo / redo</a></li>
+                <li><a href="manual.html#hotkeys" class="p-man-nav-link">Hotkeys</a></li>
+            </ul>
+        </li>
+        <li>
+            <strong>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" style="fill: var(--bs-primary)">
+                    <path d="M8.5 2.687c.654-.689 1.782-.886 3.112-.752 1.234.124 2.503.523 3.388.893v9.923c-.918-.35-2.107-.692-3.287-.81-1.094-.111-2.278-.039-3.213.492zM8 1.783C7.015.936 5.587.81 4.287.94c-1.514.153-3.042.672-3.994 1.105A.5.5 0 0 0 0 2.5v11a.5.5 0 0 0 .707.455c.882-.4 2.303-.881 3.68-1.02 1.409-.142 2.59.087 3.223.877a.5.5 0 0 0 .78 0c.633-.79 1.814-1.019 3.222-.877 1.378.139 2.8.62 3.681 1.02A.5.5 0 0 0 16 13.5v-11a.5.5 0 0 0-.293-.455c-.952-.433-2.48-.952-3.994-1.105C10.413.809 8.985.936 8 1.783"/>
+                </svg>
+                <span class="ps-1">Bibles</span>
+            </strong>
+            <ul class="list-unstyled small pb-3">
+                <li><a href="manual.html#bibles" class="p-man-nav-link">Bibles</a></li>
+                <li><a href="manual.html#books--chapters--verses" class="p-man-nav-link">Books / chapters / verses</a></li>
+                <li><a href="manual.html#bulk-edit" class="p-man-nav-link">Bulk edit</a></li>
+                <li><a href="manual.html#reordering" class="p-man-nav-link">Reordering</a></li>
+                <li><a href="manual.html#sort-by-number" class="p-man-nav-link">Sort by number</a></li>
+                <li><a href="manual.html#number-by-order" class="p-man-nav-link">Number by order</a></li>
+            </ul>
+        </li>
+        <li>
+            <strong>
+                <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="var(--bs-orange)">
+                    <path d="M12 13c0 1.105-1.12 2-2.5 2S7 14.105 7 13s1.12-2 2.5-2 2.5.895 2.5 2"/>
+                    <path fill-rule="evenodd" d="M12 3v10h-1V3z"/>
+                    <path d="M11 2.82a1 1 0 0 1 .804-.98l3-.6A1 1 0 0 1 16 2.22V4l-5 1z"/>
+                    <path fill-rule="evenodd" d="M0 11.5a.5.5 0 0 1 .5-.5H4a.5.5 0 0 1 0 1H.5a.5.5 0 0 1-.5-.5m0-4A.5.5 0 0 1 .5 7H8a.5.5 0 0 1 0 1H.5a.5.5 0 0 1-.5-.5m0-4A.5.5 0 0 1 .5 3H8a.5.5 0 0 1 0 1H.5a.5.5 0 0 1-.5-.5"/>
+                </svg>
+                <span class="ps-1">Song lyrics</span>
+            </strong>
+            <ul class="list-unstyled small pb-3">
+                <li><a href="manual.html#song-lyrics" class="p-man-nav-link">Song lyrics</a></li>
+                <li><a href="manual.html#lyrics--sections" class="p-man-nav-link">Lyrics / sections</a></li>
+                <li><a href="manual.html#bulk-edit" class="p-man-nav-link">Bulk edit</a></li>
+                <li><a href="manual.html#reordering" class="p-man-nav-link">Reordering</a></li>
+                <li><a href="manual.html#pdf-import" class="p-man-nav-link">PDF import</a></li>
+            </ul>
+        </li>
+        <li>
+            <strong>
+                <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="var(--bs-teal)">
+                    <path d="M6.002 5.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0"/>
+                    <path d="M2.002 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V3a2 2 0 0 0-2-2zm12 1a1 1 0 0 1 1 1v6.5l-3.777-1.947a.5.5 0 0 0-.577.093l-3.71 3.71-2.66-1.772a.5.5 0 0 0-.63.062L1.002 12V3a1 1 0 0 1 1-1z"/>
+                </svg>
+                <span class="ps-1">Slide basics</span>
+            </strong>
+            <ul class="list-unstyled small pb-3">
+                <li><a href="manual.html#slide-basics" class="p-man-nav-link">Slides</a></li>
+                <li><a href="manual.html#opacity--transparency" class="p-man-nav-link">Opacity / transparency</a></li>
+                <li><a href="manual.html#colors" class="p-man-nav-link">Color</a></li>
+                <li><a href="manual.html#gradients" class="p-man-nav-link">Gradients</a></li>
+                <li><a href="manual.html#media" class="p-man-nav-link">Media</a></li>
+                <li><a href="manual.html#backgrounds--borders" class="p-man-nav-link">Backgrounds / borders</a></li>
+                <li><a href="manual.html#shadow--glow" class="p-man-nav-link">Shadow / glow</a></li>
+                <li><a href="manual.html#font--fill--padding" class="p-man-nav-link">Font / fill / padding</a></li>
+            </ul>
+        </li>
+        <li>
+            <strong>
+                <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" fill="#cd4747">
+                    <path d="M5 2V0H0v5h2v6H0v5h5v-2h6v2h5v-5h-2V5h2V0h-5v2zm6 1v2h2v6h-2v2H5v-2H3V5h2V3zm1-2h3v3h-3zm3 11v3h-3v-3zM4 15H1v-3h3zM1 4V1h3v3z"/>
+                </svg>
+                <span class="ps-1">Slide components</span>
+            </strong>
+            <ul class="list-unstyled small pb-3">
+                <li><a href="manual.html#slide-components" class="p-man-nav-link">Components</a></li>
+                <li><a href="manual.html#text-component" class="p-man-nav-link">Text component</a></li>
+                <li><a href="manual.html#placeholder-component" class="p-man-nav-link">Placeholder component</a></li>
+                <li><a href="manual.html#datetime-component" class="p-man-nav-link">Date/time component</a></li>
+                <li><a href="manual.html#countdown-component" class="p-man-nav-link">Countdown component</a></li>
+                <li><a href="manual.html#media-component" class="p-man-nav-link">Media component</a></li>
+                <li><a href="manual.html#moving-components" class="p-man-nav-link">Moving components</a></li>
+                <li><a href="manual.html#sizing-components" class="p-man-nav-link">Sizing components</a></li>
+                <li><a href="manual.html#snap-to-grid" class="p-man-nav-link">Snap to grid</a></li>
+                <li><a href="manual.html#layers" class="p-man-nav-link">Layers</a></li>
+                <li><a href="manual.html#sc-copy-cut-paste" class="p-man-nav-link">Copy / cut / paste</a></li>
+                <li><a href="manual.html#deleting-components" class="p-man-nav-link">Deleting components</a></li>
+            </ul>
+        </li>
+        <li>
+            <strong>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" style="fill: var(--bs-pink)">
+                    <path d="M0 4s0-2 2-2h12s2 0 2 2v6s0 2-2 2h-4q0 1 .25 1.5H11a.5.5 0 0 1 0 1H5a.5.5 0 0 1 0-1h.75Q6 13 6 12H2s-2 0-2-2zm1.398-.855a.76.76 0 0 0-.254.302A1.5 1.5 0 0 0 1 4.01V10c0 .325.078.502.145.602q.105.156.302.254a1.5 1.5 0 0 0 .538.143L2.01 11H14c.325 0 .502-.078.602-.145a.76.76 0 0 0 .254-.302 1.5 1.5 0 0 0 .143-.538L15 9.99V4c0-.325-.078-.502-.145-.602a.76.76 0 0 0-.302-.254A1.5 1.5 0 0 0 13.99 3H2c-.325 0-.502.078-.602.145"/>
+                </svg>
+                <span class="ps-1">Display setup</span>
+            </strong>
+            <ul class="list-unstyled small pb-3">
+                <li><a href="manual.html#display-setup" class="p-man-nav-link">Display setup</a></li>
+                <li><a href="manual.html#display-controllers" class="p-man-nav-link">Display controllers</a></li>
+                <li><a href="manual.html#adding-displays" class="p-man-nav-link">Adding displays</a></li>
+                <li><a href="manual.html#identifying-a-display" class="p-man-nav-link">Identifying a display</a></li>
+                <li><a href="manual.html#naming-a-display" class="p-man-nav-link">Naming a display</a></li>
+                <li><a href="manual.html#primary-display" class="p-man-nav-link">Primary display</a></li>
+                <li><a href="manual.html#hiding-a-display" class="p-man-nav-link">Hiding a display</a></li>
+                <li><a href="manual.html#linking-displays" class="p-man-nav-link">Linking displays</a></li>
+                <li><a href="manual.html#adding-an-ndi-display" class="p-man-nav-link">Adding an NDI® display</a></li>
+            </ul>
+        </li>
+        <li>
+            <strong>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#f0d00d">
+                    <path d="M6.79 5.093A.5.5 0 0 0 6 5.5v5a.5.5 0 0 0 .79.407l3.5-2.5a.5.5 0 0 0 0-.814z"/>
+                    <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm15 0a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1z"/>
+                </svg>
+                <span class="ps-1">Presenting content</span>
+            </strong>
+            <ul class="list-unstyled small pb-3">
+                <li><a href="manual.html#presenting" class="p-man-nav-link">Presenting</a></li>
+                <li><a href="manual.html#slide-preview" class="p-man-nav-link">Slide preview</a></li>
+                <li><a href="manual.html#show--hide" class="p-man-nav-link">Show / hide</a></li>
+                <li><a href="manual.html#preview-transition" class="p-man-nav-link">Preview transition</a></li>
+                <li><a href="manual.html#auto-show" class="p-man-nav-link">Auto-show</a></li>
+                <li><a href="manual.html#add-to-queue" class="p-man-nav-link">Add to queue</a></li>
+                <li><a href="manual.html#presenting-bible-verses" class="p-man-nav-link">Presenting Bible verses</a></li>
+                <li><a href="manual.html#presenting-song-lyrics" class="p-man-nav-link">Presenting song lyrics</a></li>
+                <li><a href="manual.html#presenting-slides" class="p-man-nav-link">Presenting slides</a></li>
+                <li><a href="manual.html#presenting-notifications" class="p-man-nav-link">Presenting notifications</a></li>
+                <li><a href="manual.html#queue-management" class="p-man-nav-link">Queue management</a></li>
+                <li><a href="manual.html#bible-searching" class="p-man-nav-link">Bible searching</a></li>
+                <li><a href="manual.html#song-searching" class="p-man-nav-link">Song searching</a></li>
+            </ul>
+        </li>
+        <li>
+            <strong>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" style="fill: var(--bs-cyan)">
+                    <path d="M14.5 3a.5.5 0 0 1 .5.5v9a.5.5 0 0 1-.5.5h-13a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5zm-13-1A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2z"/>
+                    <path d="M5 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 5 8m0-2.5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m0 5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m-1-5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0M4 8a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0m0 2.5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0"/>
+                </svg>
+                <span class="ps-1">Miscellaneous</span>
+            </strong>
+            <ul class="list-unstyled small pb-3">
+                <li><a href="manual.html#miscellaneous" class="p-man-nav-link">Settings</a></li>
+                <li><a href="manual.html#general-settings" class="p-man-nav-link">General settings</a></li>
+                <li><a href="manual.html#slide-settings" class="p-man-nav-link">Slide settings</a></li>
+                <li><a href="manual.html#bible-settings" class="p-man-nav-link">Bible settings</a></li>
+                <li><a href="manual.html#media-settings" class="p-man-nav-link">Media settings</a></li>
+                <li><a href="manual.html#audio-settings" class="p-man-nav-link">Audio settings</a></li>
+                <li><a href="manual.html#video-settings" class="p-man-nav-link">Video settings</a></li>
+                <li><a href="manual.html#ndi-settings" class="p-man-nav-link">NDI® settings</a></li>
+                <li><a href="manual.html#zoom" class="p-man-nav-link">Zoom</a></li>
+                <li><a href="manual.html#task-log" class="p-man-nav-link">Task log</a></li>
+                <li><a href="manual.html#log-files" class="p-man-nav-link">Log files</a></li>
+                <li><a href="manual.html#check-for-update" class="p-man-nav-link">Check for update</a></li>
+                <li><a href="manual.html#about" class="p-man-nav-link">About</a></li>
+            </ul>
+        </li>
+    </ul>
+</nav>
+					</div>
+				</div>
+				<div class="main-content">
+					<div class="p-man-content-container">
+						<h1 id="manual">Manual</h1>
+<blockquote class="p-man-page-intro">
+  <p>Welcome to the manual, where you can get more information about Praisenter - how it works, features, settings, and more.
+You can find the latest documentation <a href="https://manual.praisenter.github.io">online</a>.</p>
+</blockquote>
+
+<p>Where to go for more help?  The best way to get help is to post on the <a href="https://github.com/praisenter/praisenter/discussions">discussion board</a>.  If you’ve found a bug or are having technical difficulty you can <a href="https://github.com/praisenter/praisenter/issues">submit an issue</a> to the project team.</p>
+
+<h2 id="about">About<a href="#about">#</a></h2>
+<p>Praisenter is a free application designed to manage presentations, with a focus on churches.  You can use Praisenter to display
+pictures, videos, text, and more to one or more output devices (TVs, monitors, projectors, etc.)</p>
+
+<p>Praisenter was created by a small team of contributors that had used both free and professional software in the past.  While
+Praisenter doesn’t offer complete feature parity with other options, it can absolutely fit the needs for small to medium sized
+churches.  Visit <a href="https://praisenter.org">praisenter.org</a> for a high-level list of features.  This manual will cover many features not listed there.</p>
+
+<h2 id="license">License<a href="#license">#</a></h2>
+<p>Praisenter is free software which means you don’t have to pay anything to use it.  There are no restrictions on how many devices you
+can use it on nor any restrictions on who can use it.  If you are savvy enough, you can even modify Praisenter and submit those as
+features to have added to the application.</p>
+
+<p>Praisenter is distributed with a <a href="https://github.com/praisenter/praisenter/blob/master/LICENSE.md">license</a> that details your rights with the application.  In short, the license states that the software is provided “as-is” with no guarantee or warranty, and that neither the organization nor the individuals involved are liable for any damages.</p>
+
+<h2 id="minimum-requirements">Minimum requirements<a href="#minimum-requirements">#</a></h2>
+<p>The minimum requirements to run Praisenter are:</p>
+<ul>
+  <li>Windows x64 10 22H2 or higher OR Ubuntu 22.04 x64 or higher</li>
+  <li>4GB or more</li>
+  <li>A decent &amp; recent multicore CPU</li>
+  <li>At least 2 video outputs</li>
+</ul>
+
+<p>These minimum requirements help to ensure you can run Praisenter without issues, but some features will run better with better hardware.</p>
+
+<p>Some features that would benefit from better hardware are video processing &amp; display and <a href="https://ndi.video/">NDI®</a> output.</p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: NDI® is a registered trademark of Vizrt NDI AB</p>
+</blockquote>
+
+<h2 id="default-content">Default assets<a href="#default-content">#</a></h2>
+<p>Many competing application are packaged with default assets - things like video backgrounds, pictures, Bibles, songbooks, etc.  Praisenter comes with minimal default assets (a few slide templates, a sample Bible, and sample song lyrics).  There are a few reasons for this, but the primary reasons are:</p>
+
+<ul>
+  <li>
+    <p>Copyright law is a minefield which changes based on the juristiction.  For example, the KJV bible is Public Domain in the United States, but copyrighted by the Crown in the United Kingdom.  Other asset types like song lyrics, images, videos, and so on have similar issues.</p>
+  </li>
+  <li>
+    <p>Download size and clutter is a real thing.  Our goal was to provide the minimum necessary assets to get started with Praisenter and allow each user to import the assets they need.  Videos, images/pictures, and Bibles can take up a significant amount of storage space and Praisenter is already a pretty large download (~500 MB).</p>
+  </li>
+  <li>
+    <p>With our limited amount of time, we’re choosing to focus on application features rather than assets.  There’s a lot of free assets out there that can be imported.  If you are looking for more professional assets, you can find those resources as well.</p>
+  </li>
+</ul>
+
+<hr />
+
+<h1 id="quick-start">Quick start</h1>
+<blockquote class="p-man-page-intro">
+  <p>Welcome to the Quick Start Guide! Here, we’ll walk through the steps to get you up and running quickly. For more detailed information, you’ll find links to other sections of the manual.</p>
+</blockquote>
+
+<p>After following this guide, you should have Praisenter installed, displays configured, a Bible imported, and a slide presented. There’s a lot more you can do with Praisenter, so feel free to explore additional features!</p>
+
+<h2 id="qs-configure-system">1. System configuration<a href="#qs-configure-system">#</a></h2>
+<p>Before you start Praisenter, make sure your displays are properly configured. Connect all your devices (monitors, projectors, TVs, etc.) to your computer and set your display mode to <code class="language-html highlighter-rouge">Extend</code> so you can move windows between them. For more details, see the <a href="manual.html#display-setup">Display setup</a> section of the manual.</p>
+
+<p>Once your displays are connected and you can drag applications between them, move on to the next step.</p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: You don’t <em>have</em> to finish your system setup before starting.  Praisenter will detect when displays are added, removed, or changed. However, having everything configured ahead of time allows Praisenter to <em>auto-configure</em> your displays, which speeds up the quick start process.</p>
+</blockquote>
+
+<h2 id="qs-install">2. Install Praisenter<a href="#install">#</a></h2>
+<p>There are two way to install Praisenter: Download from the store or install manually.  The recommended way is to download from the store.</p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: Praisenter is released on the Microsoft and Snap Stores, but don’t worry, it’s free.</p>
+</blockquote>
+
+<p>For <strong>Windows</strong>:</p>
+
+<p><a href="https://apps.microsoft.com/detail/Praisenter/9PHHWB94W800?launch=true&amp;mode=mini">
+    <img src="assets/img/windows-download-icon.svg" width="200" />
+</a></p>
+
+<p>For <strong>Ubuntu</strong>:</p>
+
+<p><a href="https://snapcraft.io/praisenter">
+    <img alt="Get it from the Snap Store" src="assets/img/ubuntu-download-icon.svg" height="59" />
+</a></p>
+
+<p>You can manually download Praisenter as an <code class="language-html highlighter-rouge">MSI</code> or <code class="language-html highlighter-rouge">DEB</code> from the <a href="https://github.com/praisenter/praisenter/releases">project page</a>.  Installing manually is a lot more work.  If you need help, see <a href="https://praisenter.org/install">this article</a>.</p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: There’s currently no macOS build available. However, if you’re adventurous, you can clone the <a href="https://github.com/praisenter/praisenter">repository</a> and build it on macOS. A native macOS build is on the roadmap.  Very little testing has been occurred on macOS so you may encounter some issues.</p>
+</blockquote>
+
+<p>Once installation is complete, launch Praisenter and continue to the next step.</p>
+
+<h2 id="qs-create-workspace">3. Create a workspace<a href="#qs-create-workspace">#</a></h2>
+<p>Every time you start Praisenter, you’ll be prompted to <a href="manual.html#creating-workspaces">create a workspace</a>.  A workspace is simply a folder on your computer that Praisenter uses to store its settings, Bibles, song lyrics, videos, and other content.  You can have multiple workspaces on one computer and <a href="manual.html#switching-workspaces">switch between them</a>.</p>
+
+<p>To continue, create a new folder, and select it as the workspace.  Then click <code class="language-html highlighter-rouge">Launch</code>.</p>
+
+<p><img src="assets/img/workspace-selection.png" alt="workspace selection" class="rounded img-fluid" /></p>
+
+<h2 id="qs-setup-displays">4. Setup displays<a href="#qs-setup-displays">#</a></h2>
+<p>After selecting a workspace, the first screen you’ll see is the <a href="#present">Present tab</a> where you can control your configured displays.  Each display is assigned a <a href="manual.html#display-controllers"><em>display controller</em></a>, allowing you to control them independently.  In the example below, Praisenter detected 3 displays and automatically created a <em>display controller</em> for display #2 (named <code class="language-html highlighter-rouge"># ID=2 (-1920,0) 1920x1080</code>).  If you’re not sure which display corresponds to which controller, use the <a href="manual.html#identifying-a-display">identify displays</a> feature.</p>
+
+<p>By default, Praisenter will choose one display as the primary display, but you can <a href="manual.html#adding-displays">add more</a> or change the primary at any time.</p>
+
+<p>Once you have at least one display controller ready, proceed to the next step.</p>
+
+<p><img src="assets/img/present-controller.png" alt="display controller example" class="rounded img-fluid" /></p>
+
+<h2 id="qs-import-bible">5. Import a Bible<a href="#qs-download-bible">#</a></h2>
+<p>Next, download a Bible from one of the <a href="manual.html#bibles">supported sources</a> and <a href="manual.html#importing-content">import</a> it into Praisenter.  You can download as many as you need and import them all at one time.  The easiest way is to download an <a href="https://github.com/praisenter/unbound-bible-archive">Unbound Bible</a> by using the <code class="language-html highlighter-rouge">Help</code> -&gt; <code class="language-html highlighter-rouge">Download Unbound Bibles</code> menu option.</p>
+
+<p><img src="assets/img/misc-help.png" alt="Bible download links" class="rounded img-fluid" /></p>
+
+<p>Once your downloads are complete, <a href="manual.html#importing-content">drag-and-drop</a> the files into the Praisenter window or use the <code class="language-html highlighter-rouge">File</code> -&gt; <code class="language-html highlighter-rouge">Import</code> menu.  When the import finishes, continue to the next step.</p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: You can skip this step if you don’t plan to use Praisenter for displaying Bible verses.</p>
+</blockquote>
+
+<blockquote>
+  <p><strong>NOTE</strong>: If you can’t find the version or translation you are looking for, you can use the <a href="manual.html#books--chapters--verses">Bible editor</a> to create a new one.  Within the editor, use the <a href="manual.html#bulk-edit">bulk edit</a> feature to quickly enter entire chapters or books.</p>
+</blockquote>
+
+<h2 id="qs-create-slides">6. Create slides<a href="#qs-create-slides">#</a></h2>
+<p>Now create a slide by going to the <code class="language-html highlighter-rouge">File</code> menu and selecting <code class="language-html highlighter-rouge">New Slide</code>.  From there, you can add <a href="manual.html#placeholder-component">placeholders</a>, <a href="manual.html#media-component">media</a>, and other content.</p>
+
+<p>Be sure to <code class="language-html highlighter-rouge">Save</code> your slide, then continue to the next step.</p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: If you’re in a hurry, you can skip this step by using the sample slides provided.</p>
+</blockquote>
+
+<h2 id="qs-present-slides">7. Present slides<a href="#qs-present-slides">#</a></h2>
+<p>With your displays configured, Bible(s) imported, and slides created, you’re ready to present.  Go back to the Present tab.  On the <a href="manual.html#presenting-bible-verses">Bible</a> tab select a <a href="manual.html#slide-basics">slide template</a>.</p>
+
+<p><img src="assets/img/present-bible-verses-template.png" alt="presenting bibles select template" class="rounded img-fluid" /></p>
+
+<p>Then pick the Bible you imported earlier (or the sample Bible if you skipped the import).  Click the <code class="language-html highlighter-rouge">Find</code> button to locate the verse and update the <a href="#slide-preview">Slide Preview</a>.</p>
+
+<p><img src="assets/img/present-bible-verses-bibles.png" alt="presenting bibles select bibles" class="rounded img-fluid" /></p>
+
+<p>Click the <code class="language-html highlighter-rouge">Show</code> button to show the slide on the display.  Finally, use the <code class="language-html highlighter-rouge">Hide</code> button to clear the slide from the display.</p>
+
+<hr />
+
+<h1 id="workspaces">Workspaces</h1>
+<blockquote class="p-man-page-intro">
+  <p>A <em>workspace</em> in Praisenter is a folder on your computer where all your content (Bibles, slides, videos, etc.) is stored.</p>
+</blockquote>
+
+<p>Workspaces keep your content separated and organized - for example, you might have one workspace for your main services and another for youth events.</p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: You must select a workspace before launching Praisenter.</p>
+</blockquote>
+
+<h2 id="creating-workspaces">Creating workspaces<a href="#creating-workspaces">#</a></h2>
+<p>On start up, Praisenter will always ask you to select a worksapce.  When selecting a new workspace, Praisenter will setup a few things to ensure the workspace is ready for use (these steps happen in the background).  There are a few ways to pick a workspace:</p>
+
+<ul>
+  <li>You can use the text box to select a previously selected workspace</li>
+  <li>You can use the text box to type in a path to a folder</li>
+  <li>You can use the folder icon to select folder</li>
+</ul>
+
+<p><img src="assets/img/workspace-selection.png" alt="Alt text" class="rounded img-fluid" /></p>
+
+<p>You’ll receive an error if you choose a folder with contents unless Praisenter detects it as an existing workspace. Once you have selected the workspace, click the <code class="language-html highlighter-rouge">Launch</code> button to continue.</p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: When creating a new workspaces, always use an empty folder.</p>
+</blockquote>
+
+<h2 id="switching-workspaces">Switching workspaces<a href="#switching-workspaces">#</a></h2>
+<p>You can switch between workspaces at any time.  A workspace must be selected when you launch Praisenter as shown above in the <a href="#creating-workspaces">Creating a workspace</a> section.  You can also <em>switch</em> workspaces after Praisenter has been launched by using the <code class="language-html highlighter-rouge">File</code> -&gt; <code class="language-html highlighter-rouge">Switch Workspace</code> menu.</p>
+
+<p>When you switch to a different workspace, the current workspace is closed. Any unsaved documents should be saved or discarded and any content currently presenting to a display should be cleared before switching.</p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: Praisenter will warn you of any unsaved documents before switching workspaces, but does not warn you if you have content showing on a display.</p>
+</blockquote>
+
+<p>You can also create a new workspace from the <code class="language-html highlighter-rouge">File</code> -&gt; <code class="language-html highlighter-rouge">Switch Workspace</code> menu. Just like switching workspaces, make sure any unsaved documents are saved or discarded and that any content you are presenting is cleared before creating a new workspace.</p>
+
+<h2 id="removing-workspaces">Removing workspaces<a href="#removing-workspaces">#</a></h2>
+<p>As of version 3.1.7, there’s no built-in way to remove a workspace.</p>
+
+<blockquote>
+  <p><strong>WARNING</strong>: Removing workspaces requires manual file editing.</p>
+</blockquote>
+
+<p>However, if you want to clean up your workspaces you can delete the <code class="language-html highlighter-rouge">workspaces.json</code> file stored in <code class="language-html highlighter-rouge">C:\Users\your_user_name\.Praisenter3</code> on <a href="https://apps.microsoft.com/detail/9phhwb94w800">Windows</a> or <code class="language-html highlighter-rouge">/home/your_user_name/snap/praisenter/common/.Praisenter3</code> on Ubuntu (when using the <a href="https://snapcraft.io/praisenter">Snap</a>) or <code class="language-html highlighter-rouge">/home/your_user_name/.Praisenter3</code> on Ubuntu (when manually installing the <code class="language-html highlighter-rouge">.DEB</code>).  This will clear the list of previously selected workspaces.  Just select the folder again to open an existing workspace.</p>
+
+<p>Alternatively, you can <em>edit</em> the <code class="language-html highlighter-rouge">workspaces.json</code> file and remove specific workspaces. You’ll want to focus on the <code class="language-html highlighter-rouge">workspaces</code> and the <code class="language-html highlighter-rouge">lastSelectedWorkspace</code> properties.  You can delete the workspace folder at any time.</p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: Removing a workspace using the methods above only removes them from the <em>workspace selector</em>. You must manually delete the workspace folder to clean up any content in that workspace.</p>
+</blockquote>
+
+<h2 id="workspace-upgrade">Workspace upgrade<a href="#workspace-upgrade">#</a></h2>
+<p>When selecing a workspace, Praisenter checks whether it’s an <em>existing</em> workspace or a new workspace.  If it’s an existing workspace, Praisenter checks the <em>version</em> of the workspace.  If the workspace was last open in an old version of Praisenter, then it will be upgraded to the latest version.  Upgrading a workspace is usually a quick activity, but there could be upgrades in the future that take a significant amount of time.</p>
+
+<hr />
+
+<h1 id="library">Library</h1>
+<blockquote class="p-man-page-intro">
+  <p>The <em>Library</em> in Praisenter is where you store and manage all of your presentation assets - including Bibles, slides, song lyrics, images, and videos. Each <a href="manual.html#workspaces">workspace</a> manages a single library of assets.</p>
+</blockquote>
+
+<p>You access the library by clicking on the stacked squares icon in the left navigation.  The library allows you to import, create, update, delete, organize your assets.  You can also export, preview, tag, and rename your assets from here.</p>
+
+<p>In the example below, we have a library with five assets: three slide templates, one bible, and one song lyrics.  The assets shown below are the <a href="manual.html#default-content">default assets</a> imported when creating a new workspace.  The sample assests are there to help you get going quickly and to learn from.</p>
+
+<p><img src="assets/img/library.png" alt="Library" class="rounded img-fluid" /></p>
+
+<h2 id="searching-filtering--sorting">Searching, filtering, &amp; sorting<a href="#searching-filtering--sorting">#</a></h2>
+<p>As you continue to collect assets, finding a specific asset can become challenging.  Use the library toolbar to search, filter, &amp; sort your assets to find exactly what you are looking for.</p>
+
+<p><img src="assets/img/library-search-filter-sort.png" alt="Library searching, filtering, and sorting" class="rounded img-fluid" /></p>
+
+<ul>
+  <li>The <code class="language-html highlighter-rouge">search name/tags</code> box allows you to search the name of assets and their tags.</li>
+  <li>The <code class="language-html highlighter-rouge">filter by</code> dropdown allows you to filter by the type of asset.</li>
+  <li>The <code class="language-html highlighter-rouge">sort by</code> dropdown allows you to sort assets by name, type, etc.</li>
+</ul>
+
+<p>Finally, the arrow at the end allows you to control the sort order.</p>
+
+<h2 id="selecting-an-item">Selecting an asset<a href="#selecting-an-item">#</a></h2>
+<p>You can select assets using the left mouse button.  Once an asset is selected you can perform a few actions using the <code class="language-html highlighter-rouge">File</code>, <code class="language-html highlighter-rouge">Edit</code>, and context menus:</p>
+
+<ul>
+  <li><code class="language-html highlighter-rouge">Edit</code> (only available on the context menu) will open the asset in the <a href="manual.html#editing">editor</a>.</li>
+  <li><code class="language-html highlighter-rouge">Duplicate</code> will create an identical copy of the selected asset, but with different name and id.  You cannot duplicate media assets.</li>
+  <li><code class="language-html highlighter-rouge">Delete</code> will delete the selected asset (permanently).</li>
+  <li><code class="language-html highlighter-rouge">Copy</code> will copy the asset to the clipboard.</li>
+  <li><code class="language-html highlighter-rouge">Rename</code> will allow you to rename the asset.</li>
+  <li><code class="language-html highlighter-rouge">Export</code> will prompt you to export the asset to a zip file.</li>
+</ul>
+
+<p><img src="assets/img/library-select-item.png" alt="Library select single item" class="rounded img-fluid" /></p>
+
+<h2 id="content-preview">Asset preview<a href="#content-preview">#</a></h2>
+<p>When selecting an asset, a preview is shown on the right side of the library.  The preview will be different based on the asset type.  For some, you can only see basic information, while others may have additional options.  All assets will show the following details:</p>
+
+<ul>
+  <li>The asset name</li>
+  <li>The date created / modified</li>
+  <li>Ability to add/remove tags</li>
+</ul>
+
+<blockquote>
+  <p><strong>NOTE</strong>: Some asset types like video have the ability to play them.  Be careful when previewing assets with audio.  Make sure your computer audio is muted, the asset is muted in the player, or the audio out from the computer is muted.</p>
+</blockquote>
+
+<p><img src="assets/img/library-preview-video.png" alt="Library video preview" class="rounded img-fluid" /></p>
+
+<h2 id="selecting-multiple-items">Selecting multiple assets<a href="#selecting-multiple-items">#</a></h2>
+<p>You can select multiple assets using the mouse and keyboard.  Once an asset is selected, you can hold down <kbd>Shift</kbd> while using the left mouse button to select multiple assets in order.  Similarly, hold down the <kbd>Ctrl</kbd> / <kbd>Command</kbd> key to select <em>any</em> set of assets with the left mouse button.  Finally, use the <kbd>&larr;</kbd> and <kbd>&rarr;</kbd> keys while holding <kbd>Shift</kbd> to select multiple assets in a row with the keyboard only.</p>
+
+<p>When multiple assets are selected you can perform some of the same actions listed in the <a href="#selecting-an-item">Selecting an item</a> section from <code class="language-html highlighter-rouge">File</code>, <code class="language-html highlighter-rouge">Edit</code>, and context menus:</p>
+<ul>
+  <li><code class="language-html highlighter-rouge">Duplicate</code> will create an identical copy of the selected assets, but with different names (and ids).  However, you cannot duplicate media assets.</li>
+  <li><code class="language-html highlighter-rouge">Delete</code> will delete the selected assets (permanently).</li>
+  <li><code class="language-html highlighter-rouge">Copy</code> will copy the assets to the clipboard.</li>
+  <li><code class="language-html highlighter-rouge">Export</code> will prompt you to export the assets to a zip file.</li>
+</ul>
+
+<p><img src="assets/img/library-select-items.png" alt="Library select multple items" class="rounded img-fluid" /></p>
+
+<p>The last way to select multiple assets is to use the mouse and click + drag a rectangle over the assets you want selected.</p>
+
+<p><img src="assets/img/library-select-drag.png" alt="Library select multple items with mouse click + drag" class="rounded img-fluid" /></p>
+
+<h2 id="duplicate--copy">Duplicate / copy<a href="#duplicate--copy">#</a></h2>
+<p>After <a href="#selecting-an-item">selecting an asset</a> or <a href="#selecting-multiple-items">selecting multiple assets</a> you can duplicate or copy &amp; paste them.</p>
+
+<p>The <code class="language-html highlighter-rouge">Duplicate</code> command immediately creates a copy of the asset and adds it to the library.  The duplicate will be renamed with a <code class="language-html highlighter-rouge">Copy of...</code> prefix.</p>
+
+<p>The <code class="language-html highlighter-rouge">Copy</code> command copies the assets to the clipboard so you can <code class="language-html highlighter-rouge">Paste</code> them elsewhere.  What happens when you paste will depend on where you perform the paste command:</p>
+<ul>
+  <li>If you paste into a text document, the names of the assets will be pasted.</li>
+  <li>If you paste into File Explorer, the files themselves will be pasted.</li>
+  <li>If you paste into Praisenter, the assets will be duplicated in the same way as the <code class="language-html highlighter-rouge">Duplicate</code> command.</li>
+  <li>If you selected <em>one</em> image/picture and you paste into a program that accepts image/picture content, the image/picture will be pasted</li>
+</ul>
+
+<h2 id="lib-rename-delete">Rename / Delete<a href="#lib-rename-delete">#</a></h2>
+<p>After <a href="#selecting-an-item">selecting an asset</a> or <a href="#selecting-multiple-items">selecting multiple assets</a> you can rename or delete them.</p>
+
+<p>The <code class="language-html highlighter-rouge">Rename</code> command is only available when a single asset is selected.  When clicked you will be prompted to supply the new name for the asset.  Renaming an asset is a safe operation - any other asset like slides will continue to reference the renamed asset.  This also applies to any selected Bibles and song lyrics in the <a href="manual.html#display-controllers">display controller</a>.</p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: You can also rename the asset in the editor if it’s a Bible, song lyrics, or a slide.</p>
+</blockquote>
+
+<p><img src="assets/img/library-rename-prompt.png" alt="Library rename item" class="rounded img-fluid" /></p>
+
+<p>The <code class="language-html highlighter-rouge">Delete</code> command will delete the selected assets <em>permanently</em>.  An “Are you sure?” notification is displayed first to confirm if you’d like to continue.  You will also see a confirmation message if the asset is used by another asset in the library (slides in particular).  If you choose to continue, the assets are deleted.  There is no way to recover deleted assets from the library, but you can always re-import them if you have the originals stored elsewhere.  Any assets like slides that reference the deleted assets will continue to work, but will not be able to show that asset when presented.</p>
+
+<p><img src="assets/img/library-delete-prompt.png" alt="Library delete confirmation" class="rounded img-fluid" /></p>
+
+<h2 id="create-slide">Create Slide<a href="#create-slide">#</a></h2>
+<p>Have you ever been tasked with quickly presenting a picture, image, or video?  Praisenter requires the asset to be placed on a <a href="manual.html#slide-basics">slide</a> before it can be presented.  Select the asset and use the <code class="language-html highlighter-rouge">+ Create Slide</code> context menu command to create a slide with the media on it, save it, and then present it - just three steps.</p>
+
+<p>This feature performs the following steps:</p>
+<ul>
+  <li>Creates a new slide sized for your primary screen/output.</li>
+  <li>Sets the slide name to “Untitled <em>the asset name</em>”.</li>
+  <li>Sets the slide background to black.</li>
+  <li>Adds a <a href="manual.html#media-component">Media Component</a> to the slide with the selected asset.</li>
+  <li>Sizes the media component to cover the entire slide.</li>
+  <li>Configures the media component to keep the aspect ratio of the asset</li>
+</ul>
+
+<p><img src="assets/img/library-create-slide.png" alt="Library create slide" class="rounded img-fluid" /></p>
+
+<h2 id="importing-content">Importing assets<a href="#importing-content">#</a></h2>
+<p>Importing assets is easy - just drag the file you want imported onto the Praisenter window.  In face, you can select multiple files and drag them onto the Praisenter window to import multiple assets at once!  Praisenter can also import <code class="language-html highlighter-rouge">.zip</code> files containing any combination of supported files.</p>
+
+<p>If you are running Praisenter full screen and don’t want to drag-and-drop, you can use the <code class="language-html highlighter-rouge">File</code> -&gt; <code class="language-html highlighter-rouge">Import</code> menu.</p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: <em>What happens to the original files after import?</em> Nothing!  The original files are left unchanged and in the place you found them.  This is because Praisenter <em>copies</em> the files to the workspace.  You are free to move, delete, rename, or do anything with those original files.</p>
+</blockquote>
+
+<blockquote>
+  <p><strong>NOTE</strong>: Make sure to wait for the import to complete before moving, renaming, deleting, and/or updating the original files.  This is especially important for video and audio files.</p>
+</blockquote>
+
+<p><img src="assets/img/library-import-dnd.png" alt="Library drag n drop import" class="rounded img-fluid" /></p>
+
+<h2 id="supported-import-formats">Supported import formats<a href="#supported-import-formats">#</a></h2>
+<p>Praisenter supports a large number of formats.  For Bibles and song lyrics, don’t worry if you don’t see the format you need - there are bulk edit options that can be used as an alternative to importing.</p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: Looking for an import format that’s not currently provided?  <a href="https://github.com/praisenter/praisenter/issues">Log an issue on the project page</a>.</p>
+</blockquote>
+
+<p><strong>Bibles</strong></p>
+<ul>
+  <li>Praisenter format</li>
+  <li><a href="https://github.com/wnbittle/unbound-bible-archive">Unbound Bibles</a></li>
+  <li><a href="https://sourceforge.net/projects/zefania-sharp/files/Bibles/">Zefenia Bibles</a></li>
+  <li><a href="https://opensong.org/downloads/#bibles">OpenSong Bibles</a></li>
+</ul>
+
+<p><strong>Song lyrics</strong></p>
+<ul>
+  <li>Praisenter format</li>
+  <li><a href="https://docs.openlyrics.org/en/latest/">OpenLyrics</a></li>
+  <li><a href="https://www.chordpro.org/chordpro/home/">ChordPro</a> (as of 3.1.7)</li>
+  <li><a href="https://songselect.ccli.com/">SongSelect</a> (as of 3.1.7)</li>
+  <li>ChurchView</li>
+  <li>Older versions of Praisenter</li>
+</ul>
+
+<p><strong>Slides</strong></p>
+<ul>
+  <li>Praisenter format</li>
+</ul>
+
+<p><strong>Images &amp; pictures</strong></p>
+<ul>
+  <li>PNG</li>
+  <li>JPG / JPEG</li>
+  <li>BMP / WBMP</li>
+  <li>TIFF</li>
+  <li>WEBP</li>
+  <li>GIF</li>
+</ul>
+
+<p><strong>Audio / video</strong>
+Praisenter supports a huge number of audio &amp; video container formats and codecs by <a href="https://en.wikipedia.org/wiki/Transcoding">transcoding</a> them during import into a single optimized format.  Praisenter does this by packaging a static build of the <a href="https://ffmpeg.org/">FFmpeg</a> library. Praisenter places the binary in the <code class="language-html highlighter-rouge">media/tools</code> folder inside the workspace and communicates with it using shell commands.</p>
+
+<p>You can determine all the formats supported for demuxing / muxing by using the following command.  Demuxers read audio / video data from a file and muxers write audio / video data to a file and are crucial to transcoding process.</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="codehilite"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre>ffmpeg <span class="nt">-codecs</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="exporting-content">Exporting assets<a href="#exporting-content">#</a></h2>
+<p>The primary function of export is to transfer assets from one computer to another.  The idea is that you have Praisenter installed on <em>many</em> computers.  Having Praisenter on multiple computers allows you to build and collect assets on one and import them on another.</p>
+
+<p>The export feature can also be used to convert assets to another format or to gain access to the raw asset itself.  Song lyrics is a good example - having a song in <a href="https://www.chordpro.org/chordpro/home/">ChordPro</a> or <a href="https://docs.openlyrics.org/en/latest/">OpenLyrics</a> formats allows you to transfer that asset to another application.  Another example is if you want access to a video you imported into the library and can’t find the original anywhere.</p>
+
+<p>To export, <a href="#selecting-multiple-items">select the assets</a> you want to export, then use the <code class="language-html highlighter-rouge">File</code> -&gt; <code class="language-html highlighter-rouge">Export</code> or context menu <code class="language-html highlighter-rouge">Export</code> commands.  Before being able to complete the export, you must choose the export format for each asset type.  By default, the Praisenter format is chosen.</p>
+
+<p>Finally, choose the export file name and location.</p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: <em>What happens to the assets in the library after they are exported?</em> Nothing.  The assets are left as-is.  The exported file(s) are copies of the assets in the workspace - you can rename, delete, move, etc. the file(s) contained within the <code class="language-html highlighter-rouge">.zip</code> without impacting the assets in the workspace.</p>
+</blockquote>
+
+<p><img src="assets/img/library-export-formats.png" alt="Library export choose formats" class="rounded img-fluid" /></p>
+
+<h2 id="supported-export-formats">Supported export formats<a href="#supported-export-formats">#</a></h2>
+<p>Praisenter supports a few different export formats in addition to it’s native format.</p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: Looking for an export format that’s not currently provided?  <a href="https://github.com/praisenter/praisenter/issues">Log an issue on the project page</a>.</p>
+</blockquote>
+
+<p><strong>Bibles</strong></p>
+<ul>
+  <li>Praisenter format</li>
+</ul>
+
+<p><strong>Song lyrics</strong></p>
+<ul>
+  <li><a href="https://docs.openlyrics.org/en/latest/">OpenLyrics</a> (as of 3.1.7)</li>
+  <li><a href="https://www.chordpro.org/chordpro/home/">ChordPro</a> (as of 3.1.7)</li>
+  <li>Praisenter format</li>
+</ul>
+
+<p><strong>Slides</strong></p>
+<ul>
+  <li>Praisenter format</li>
+</ul>
+
+<p><strong>Images, pictures, audio, &amp; video</strong></p>
+<ul>
+  <li>Praisenter format</li>
+  <li>Raw format</li>
+</ul>
+
+<p>The Praisenter format is optimized for <em>import</em> into another Praisenter workspace.  Always choose this format when transferring assets between two Praisenter workspaces to ensure they are transferred properly.  Using a different format could cause assets to duplicate when imported.</p>
+
+<p>The Raw format is used to export the raw file(s) from the workspace.  You can use this format if you are looking to get access to the raw file(s) or if you don’t mind assets being duplicated during import into another Praisenter workspace.</p>
+
+<h2 id="indexing--reindexing">Indexing / Reindexing<a href="#indexing--reindexing">#</a></h2>
+<p>Praisenter uses <a href="https://lucene.apache.org/">Lucene</a> to index everything added to the library.  Indexing is used to perform extremely fast searching on the content and tags of an asset.  This is especially true for Bibles due to their length and song lyrics due to the number of songs you may add to the library.</p>
+
+<p>Another key benefit of indexing is <em>fuzzy matching</em> content in Bible verses or song lyrics.  This is a very powerful feature when you don’t know the exact phrase, words, or spelling to use.</p>
+
+<p>Praisenter maintains the index in the background every time new assets are added, updated or deleted.  There’s also a command to <em>reindex</em> all content under the <code class="language-html highlighter-rouge">File</code> -&gt; <code class="language-html highlighter-rouge">Reindex</code> menu.  In general, using this command is unnecessary, but in some cases it can be beneficial to perform a reindex.  Reindexing will delete the current index and reindex all assets from scratch.  If the library contains hundreds of assets or many songs or Bibles, this could have a minor performance benefit.</p>
+
+<hr />
+
+<h1 id="editing">Editing</h1>
+<blockquote class="p-man-page-intro">
+  <p>Praisenter allows you to edit Bible, slide, and song lyrics assets within the application. In this section of the manual, we’ll discuss the features that are shared across all the editors.</p>
+</blockquote>
+
+<p>You can access the editor by clicking the pencil icon in the left-hand navigation bar. The editor supports editing of document-type assets like Bibles, song lyrics, and slides. Other assets (like media files) can only be renamed and tagged from the <a href="manual.html#library">Library</a>.</p>
+
+<p>When you click on the editor without any documents open, you’ll see a hint on how to start editing.  Here are a few ways to start editing:</p>
+<ul>
+  <li>From the <code class="language-html highlighter-rouge">File</code> -&gt; <code class="language-html highlighter-rouge">New...</code> menu commands.</li>
+  <li>From within the Editor, click one of the first three buttons in the toolbar to create a new document.</li>
+  <li>From within the Library, double click an asset.</li>
+  <li>From within the Library, select an asset and use the <code class="language-html highlighter-rouge">Edit</code> command in the context menu.</li>
+</ul>
+
+<p><img src="assets/img/editor-start.png" alt="Editor" class="rounded img-fluid" /></p>
+
+<p>Each document you have open for editing appears as a tab in the Editor allowing you to work on multiple documents simultaneously. When you attempt to close a tab containing unsaved changes, you’re prompted to save, discard, or cancel. If the tab’s name appears in a different color, that signals that there are unsaved changes.</p>
+
+<p><img src="assets/img/editor-document-tabs.png" alt="Editor document tabs" class="rounded img-fluid" /></p>
+
+<p>When you have a lot of documents open for edit, all the tabs may not be visible.  You can scroll the tabs left and right using the mouse scroll wheel or using the down arrow <img src="assets/img/editor-tab-arrow.png" alt="Editor tab list button" class="rounded" /> at the end.</p>
+
+<h2 id="toolbar">Toolbar<a href="#toolbar">#</a></h2>
+<p>While editing an document, the toolbar displays commands applicable to the currently selected tab and the selected element within that tab.  For example, since a slide is being edited in the screenshot below, the commands that relate to slides appear - buttons to create new slide elements, reorder elements, and the ability to snap those elements to a grid.</p>
+
+<p><img src="assets/img/editor-toolbar.png" alt="Editor toolbar" class="rounded img-fluid" /></p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: The <img src="assets/img/editor-toolbar-arrow.png" alt="Editor toolbar arrow" class="rounded" /> button at the end of the toolbar will contain commands that can’t fit onto the toolbar.</p>
+</blockquote>
+
+<p>Many of the toolbar commands are available from the <code class="language-html highlighter-rouge">File</code>, <code class="language-html highlighter-rouge">Edit</code>, and context menus as well.</p>
+
+<h2 id="side-pane">Side pane<a href="#side-pane">#</a></h2>
+<p>The <em>Side Pane</em> on the right of the editor is where you modify properties of the selected element.  In the example below, a slide has been selected, so properties like the name, width, and height are editable.  If a different element is selected, the properties for that element are displayed.  Changes made in the Side Pane are immediately applied to the document so you can see the effects of your changes right away.</p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: The <em>document</em> properties are always visible regardless of what you have selected.</p>
+</blockquote>
+
+<p><img src="assets/img/editor-side-pane.png" alt="Editor side pane" class="rounded img-fluid" /></p>
+
+<h2 id="saving-changes">Saving changes<a href="#saving-changes">#</a></h2>
+<p>Be sure to save frequently.  Save using the <code class="language-html highlighter-rouge">File</code> -&gt; <code class="language-html highlighter-rouge">Save</code>, <code class="language-html highlighter-rouge">File</code> -&gt; <code class="language-html highlighter-rouge">Save All</code>, or <code class="language-html highlighter-rouge">File</code> -&gt; <code class="language-html highlighter-rouge">Save as...</code> menu commands or their corresponding <a href="#hotkeys">hotkeys</a>.  If you try to close an editor tab with unsaved changes, you will be prompted to save, discard or cancel.  A similar confirmation is shown if you try to close the application or <a href="manual.html#switching-workspaces">switch workspaces</a> with unsaved changes.</p>
+
+<p><img src="assets/img/editor-unsaved-prompt.png" alt="Editor unsaved changes prompt" class="rounded img-fluid" /></p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: If you are editing a slide that is currently showing on a display, the display content will remain unchanged.  However, if the slide is in a <a href="manual.html#queue-management">queue</a>, the queued slide be updated when you save.  If you have the slide selected as a template, the <a href="manual.html#slide-preview">slide preview</a> will also reflect any saved changes the next time you preview it.</p>
+</blockquote>
+
+<p>When using the <code class="language-html highlighter-rouge">File</code> -&gt; <code class="language-html highlighter-rouge">Save as...</code> command, Praisenter will prompt you to name the new document.  The new document is saved to the library and opened as a <em>new tab</em> in the editor.  The original document, and any edits you made, will still be available.  If you don’t want to save the changes to the original document, you can discard your changes by closing the editor tab of the original document and choosing “No” when notified of unsaved changes.</p>
+
+<h2 id="copy--cut--paste">Copy / cut / paste<a href="#copy--cut--paste">#</a></h2>
+<p>When editing an document, you can copy, cut, and paste elements. For example, imagine you are entering song lyrics and verse 1 and verse 2 are nearly identical - don’t create verse 2 from scratch - copy and paste verse 1 and then modify the copy.  Another example is when you are editing multiple slides and you want some elements from Slide 1 on Slide 2, just select the elements and copy &amp; paste them to Slide 2.</p>
+
+<h2 id="rename--delete">Rename / delete<a href="#rename--delete">#</a></h2>
+<p>As mentioned in <a href="manual.html#lib-rename-delete">Rename / delete</a> section, you have the ability to rename documents in the editor from the right Side Pane.</p>
+
+<p>Delete, however, works differently.  The <code class="language-html highlighter-rouge">Delete</code> command now works on the element level instead of at the document level.  What this means is that if you use the <kbd>Delete</kbd> key or menu commands, it will delete the selected <em>element</em>.  For example, if you are editing a Slide and have an image selected, the delete command will delete the image, not the slide itself.</p>
+
+<h2 id="undo--redo">Undo / redo<a href="#undo--redo">#</a></h2>
+<p>All editors support undo and redo.  Undo allows you to reverse the last change you made and redo allows you to reapply the last change you made.</p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: Once you close an editor all the undo and redo history is lost.</p>
+</blockquote>
+
+<h2 id="hotkeys">Hotkeys<a href="#hotkeys">#</a></h2>
+<p>You can do everything with the mouse, but some commands are easier with the keyboard.  With that in mind, Praisenter has hotkeys, or key combinations, to perform common actions:</p>
+
+<table class="table w-auto">
+  <thead>
+    <tr>
+      <th>Action</th>
+      <th>Windows</th>
+      <th>Ubuntu</th>
+      <th>MacOS</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Save</td>
+      <td><kbd><kbd>Ctrl</kbd> + <kbd>S</kbd></kbd></td>
+      <td><kbd><kbd>Ctrl</kbd> + <kbd>S</kbd></kbd></td>
+      <td><kbd><kbd>Command</kbd> + <kbd>S</kbd></kbd></td>
+    </tr>
+    <tr>
+      <td>Save All</td>
+      <td><kbd><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>S</kbd></kbd></td>
+      <td><kbd><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>S</kbd></kbd></td>
+      <td><kbd><kbd>Command</kbd> + <kbd>Shift</kbd> + <kbd>S</kbd></kbd></td>
+    </tr>
+    <tr>
+      <td>Undo</td>
+      <td><kbd><kbd>Ctrl</kbd> + <kbd>Z</kbd></kbd></td>
+      <td><kbd><kbd>Ctrl</kbd> + <kbd>Z</kbd></kbd></td>
+      <td><kbd><kbd>Command</kbd> + <kbd>Z</kbd></kbd></td>
+    </tr>
+    <tr>
+      <td>Redo</td>
+      <td><kbd><kbd>Ctrl</kbd> + <kbd>Y</kbd></kbd></td>
+      <td><kbd><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd></kbd></td>
+      <td><kbd><kbd>Command</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd></kbd></td>
+    </tr>
+    <tr>
+      <td>Copy</td>
+      <td><kbd><kbd>Ctrl</kbd> + <kbd>C</kbd></kbd></td>
+      <td><kbd><kbd>Ctrl</kbd> + <kbd>C</kbd></kbd></td>
+      <td><kbd><kbd>Command</kbd> + <kbd>C</kbd></kbd></td>
+    </tr>
+    <tr>
+      <td>Cut</td>
+      <td><kbd><kbd>Ctrl</kbd> + <kbd>X</kbd></kbd></td>
+      <td><kbd><kbd>Ctrl</kbd> + <kbd>X</kbd></kbd></td>
+      <td><kbd><kbd>Command</kbd> + <kbd>X</kbd></kbd></td>
+    </tr>
+    <tr>
+      <td>Paste</td>
+      <td><kbd><kbd>Ctrl</kbd> + <kbd>V</kbd></kbd></td>
+      <td><kbd><kbd>Ctrl</kbd> + <kbd>V</kbd></kbd></td>
+      <td><kbd><kbd>Command</kbd> + <kbd>V</kbd></kbd></td>
+    </tr>
+  </tbody>
+</table>
+
+<p>You can find them all in the menus - the hotkeys are to the right of the action.</p>
+
+<hr />
+
+<h1 id="bibles">Bibles</h1>
+<blockquote class="p-man-page-intro">
+  <p>Instead of searching, copying, pasting, or typing in Bible verses into slides, Praisenter allows you to import, create, edit, and maintain any number of Bibles and <em>use</em> that content when presenting.</p>
+</blockquote>
+
+<p>Praisenter doesn’t come packaged with a bible, but you can import Bibles from the following sources:</p>
+
+<ul>
+  <li><a href="https://github.com/wnbittle/unbound-bible-archive">Unbound Bibles (GitHub)</a></li>
+  <li><a href="https://sourceforge.net/projects/zefania-sharp/files/Bibles/">Zefenia Bibles (SourceForge)</a></li>
+  <li><a href="https://opensong.org/downloads/#bibles">OpenSong Bibles (OpenSong)</a></li>
+</ul>
+
+<blockquote>
+  <p><strong>NOTE</strong>: Praisenter does not endorse any of the Bibles above or their contributors. Praisenter cannot guarantee the Bibles offered on these sites are accurate nor can we verify their content. You should also consider the copyright of each Bible before using or distributing them.</p>
+</blockquote>
+
+<h2 id="books--chapters--verses">Books / chapters / verses<a href="#books--chapters--verses">#</a></h2>
+<p>Bibles are divided into books, and books are divided into chapters, and chapters are divided into verses.  This is a standard pattern used historically to help with indexing, referencing, research, study, and so on.  This structure also helps when it comes to presenting Bible verses on the screen and editing.</p>
+
+<p>A Bible can have many books.  A book can have many chapters.  A chapter can have many verses.  A verse is a simple paragraph of text.  Praisenter does not support verse styling like red-letter, italics, or other study aids.</p>
+
+<p>Each Bible should represent one <em>language</em> or <em>translation</em>.  Doing so will allow you to display verses from two Bibles at once, provided you’ve created a <a href="manual.html#placeholder-component">slide template</a> to support it.  For example, if you want to display both English and Spanish verses on one slide, you would need to import two Bibles - one in English and one in Spanish.  The same approach applies to different translations.  To display both the KJV alongside the NIV, import two Bibles - a KJV Bible and an NIV Bible.</p>
+
+<p><img src="assets/img/bibles-structure.png" alt="Bible, book, chapter, verse structure" class="rounded img-fluid" /></p>
+
+<p>The Bible is edited using a tree-like view (see the example above).  You can expand or collapse books and chapters to help locate what you need.  Clicking on each node in this view allows you to edit it in the <a href="manual.html#side-pane">Side Pane</a> on the right.  As you click on each node, toolbar and menu options will become enabled or disabled based on the type of node selected.  For example, if you select a chapter, you can create a verse or a chapter, but not a book.  However, if you click on a book or bible, you <em>can</em> create a book.</p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: You can also copy, cut, and paste books, chapters, and verses within a single Bible or between Bibles.</p>
+</blockquote>
+
+<h2 id="bulk-edit">Bulk edit<a href="#bulk-edit">#</a></h2>
+<p>Editing a Bible by selecting and editing each book, chapter, and verse can be very tedious.  To speed things up, Praisenter has a bulk edit mode for books and chapters.  When you bulk edit, the tree-view switches to a text view.  It’s very important that you follow the guidelines below so that Praisenter can interpret your changes correctly.</p>
+
+<p>You can trigger bulk editing from the <code class="language-html highlighter-rouge">Edit</code> -&gt; <code class="language-html highlighter-rouge">Bulk Edit</code> menu, the context menu, or by clicking the <code class="language-html highlighter-rouge">Bulk Edit</code> button in the <a href="manual.html#side-pane">Side Pane</a>.</p>
+
+<p><img src="assets/img/bibles-bulk-edit.png" alt="Bible book bulk edit" class="rounded img-fluid" /></p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: You cannot bulk edit an entire <code class="language-html highlighter-rouge">Bible</code>.</p>
+</blockquote>
+
+<p>Here’s an example of properly formatted book text:</p>
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="codehilite"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+</pre></td><td class="rouge-code"><pre>1 Genesis
+1
+1 In the beginning God created the heavens and the earth.
+2 Now the earth was formless and empty, darkness was over the surface of the deep, and the Spirit of God was hovering over the waters.
+
+2
+1 Thus the heavens and the earth were completed in all their vast array.
+2 By the seventh day God had finished the work he had been doing; so on the seventh day he rested from all his work.
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>Here’s an example of properly formatted chapter text:</p>
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="codehilite"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+</pre></td><td class="rouge-code"><pre>1
+1 In the beginning God created the heavens and the earth.
+2 Now the earth was formless and empty, darkness was over the surface of the deep, and the Spirit of God was hovering over the waters.
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>Empty lines and extra spaces at the start and beginning of lines will be removed automatically.</p>
+
+<p>When you are finished editing, click the <code class="language-html highlighter-rouge">Done</code> button in the bottom right corner of the editor.  To discard your changes click the <code class="language-html highlighter-rouge">Cancel</code> button.</p>
+
+<p><strong>Bulk edit - Book definition</strong>
+The definition of a book starts with a number followed by its name.  There <strong>must</strong> be at least one space between the number and the name and they <strong>must</strong> appear on the same line.  The book definition <strong>must</strong> be the first line in the editor.</p>
+
+<p>Examples of accepted book definitions:</p>
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="codehilite"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+</pre></td><td class="rouge-code"><pre>1 Genesis
+ 2 Exodus
+66    Revelation
+5 Song of Solomon
+  11      This is a book title   
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>Examples of invalid book definitions:</p>
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="codehilite"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+</pre></td><td class="rouge-code"><pre>Genesis
+ Genesis
+1Genesis
+3Song of solomon
+Genesis 1
+3 Song of 
+solomon
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>The examples above are invalid because:</p>
+<ul>
+  <li>Lines one and two are missing the book number.</li>
+  <li>Lines three and four are missing space between the book number and book name.</li>
+  <li>Line five has the book number at the end, it should be at the beginning instead.</li>
+  <li>Line six and seven represents one book, but it’s been placed on two lines.  It should be one line.</li>
+</ul>
+
+<p><strong>Bulk edit - Chapter definition</strong>
+A chapter is defined simply by its number.  When you bulk edit a chapter, the chapter definition <strong>must</strong> be the first line in the editor.  However, when you bulk edit a <em>book</em>, the chapter definition must come <em>after</em> the book definition.</p>
+
+<p>Examples of accepted chapter definitions:</p>
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="codehilite"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre>1
+ 2   
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>Examples of invalid chapter definitions:</p>
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="codehilite"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td><td class="rouge-code"><pre> 
+Some text
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>The examples above are invalid because:</p>
+<ul>
+  <li>The first line is invalid because nothing was provided.</li>
+  <li>The second line is invalid because a chapter should only be a number.</li>
+</ul>
+
+<p><strong>Bulk edit - Verse definition</strong>
+The verse definition is very similar to the book definition - it’s the verse number, followed by at least one space, then the verse text.  The verse <strong>must</strong> be on a single line.</p>
+
+<p>Examples of accepted verse definitions:</p>
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="codehilite"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+</pre></td><td class="rouge-code"><pre>1 This is the verse text
+ 3 This is the verse text
+5     This is the verse text
+ 7        This is the verse text    
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>Examples of invalid verse definitions:</p>
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="codehilite"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+</pre></td><td class="rouge-code"><pre>This is the verse text
+ This is the verse text
+1This is the verse text
+3 This is the verse
+text for verse 3
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>The examples above are invalid because:</p>
+<ul>
+  <li>The first and second lines are invalid because they are missing the verse number.</li>
+  <li>The third line is invalid because there’s no space between the verse number and verse text.</li>
+  <li>The fourth and fifth line are invalid because they are one verse, but have been split into two lines.  The whole verse needs to be on a single line.</li>
+</ul>
+
+<h2 id="reordering">Reordering<a href="#reordering">#</a></h2>
+<p>Sometimes your books, chapters, or verses may be out of order, and rearranging them manually can be tedious. Praisenter provides multiple ways to move content around:</p>
+
+<ul>
+  <li>Start bulk editing and copy/paste definitions to where you need them.</li>
+  <li>Click &amp; drag books, chapters, and verse around with the left mouse button.</li>
+  <li>Copy, cut, &amp; paste books, chapters, and verses with the mouse &amp; <a href="manual.html#hotkeys">hotkeys</a></li>
+  <li>Use the <code class="language-html highlighter-rouge">Sort by Number</code> menu command (see below)</li>
+</ul>
+
+<h2 id="sort-by-number">Sort by number<a href="#sort-by-number">#</a></h2>
+<p>Using the <code class="language-html highlighter-rouge">Sort by Number</code> menu command will do just that - it will reorder the books, chapters, or verses under the selected element based on their current number.  For example, in the screenshot below, we reorder the verses inside Chapter 1 so they are sorted from smallest to largest based on their verse number.</p>
+
+<p><img src="assets/img/bibles-reordering.png" alt="Bible sort by number" class="rounded img-fluid" /></p>
+
+<p>The screenshot below shows how the verses were rearranged based on their verse number.</p>
+
+<p><img src="assets/img/bibles-reordering-result.png" alt="Bible sort by number result" class="rounded img-fluid" /></p>
+
+<h2 id="number-by-order">Number by order<a href="#number-by-order">#</a></h2>
+<p>Number by order is the opposite of Sort by number.  Instead of <em>sorting</em>, this command <em>renumbers</em> books, chapters, or verses in the sequence they currently appear.</p>
+
+<p><img src="assets/img/bibles-renumbering.png" alt="Bible number by order" class="rounded img-fluid" /></p>
+
+<p>Using the example above, we renumber Chapter 1.  Notice how the verses are in their original order, but the verses were <em>renumbered</em> sequentially from 1 to 4.</p>
+
+<p><img src="assets/img/bibles-renumbering-result.png" alt="Bible number by order result" class="rounded img-fluid" /></p>
+
+<hr />
+
+<h1 id="song-lyrics">Song Lyrics</h1>
+<blockquote class="p-man-page-intro">
+  <p>Praisenter provides the ability to use song lyrics as part of a presentation and show multiple lyrics at the same time.</p>
+</blockquote>
+
+<p>Praisenter doesn’t come with any song lyrics or songbooks, but you can import lyrics from other sources.  A popular source for song lyrics is <a href="https://songselect.ccli.com/">SongSelect</a>.  Supported file formats include:</p>
+
+<ul>
+  <li><a href="https://docs.openlyrics.org/en/latest/">OpenLyrics</a></li>
+  <li><a href="https://www.chordpro.org/chordpro/home/">ChordPro</a> (as of 3.1.7)</li>
+  <li><a href="https://songselect.ccli.com/">SongSelect</a> (as of 3.1.7)</li>
+</ul>
+
+<p>Later in the manual, you can find a few other ways to add song lyrics.</p>
+
+<h2 id="lyrics--sections">Lyrics / sections<a href="#lyrics--sections">#</a></h2>
+<p>In Praisenter, song content is split into two distinct categories: lyrics and sections.  A section is simply a paragraph of text representing a <em>verse</em> of a song - something like verse 1, bridge, or chorus.  Sections are grouped together into lyrics.  Lyrics can also include authors and songbook references.</p>
+
+<p>What’s interesting is that each song in Praisenter can have <em>multiple</em> lyrics.  That means you could have two different translations of a song in the same document.  In the example below, notice how there are multiple <em>lyrics</em> under the song: “My Special Song” and “Mi Canción Especial”.  Also notice that each <em>lyric</em> has its own <em>authors</em>, <em>songbooks</em>, and <em>sections</em>.</p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: Praisenter does not support styling, chords, music notation, or other markup in sections or lyrics.</p>
+</blockquote>
+
+<p><img src="assets/img/songs-structure.png" alt="Song lyrics and sections" class="rounded img-fluid" /></p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: As mentioned earlier, since the song above is structured this way, you can show both the English Verse 1 <em>and</em> the Spanish Verse 1 on a single slide during a presentation, provided you’ve created a <a href="manual.html#placeholder-component">slide template</a> to do so.</p>
+</blockquote>
+
+<p>A song is edited using a tree-like view (see the example above).  You can expand and collapse lyrics, authors, and songbooks.  Clicking on any node in the view will allow you to edit it in the <a href="manual.html#side-pane">Side Pane</a> on the right side of the editor.  As you click on each node, toolbar and menu commands will enable and disable accordingly.  For example, if you select a lyrics node, you can create a section, author, or songbook.  However, if you click on the song node, you can only create a new lyrics.</p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: You can also copy, cut, and paste lyrics, sections, authors, and songbooks within a single song or between songs.</p>
+</blockquote>
+
+<h2 id="bulk-edit-1">Bulk edit<a href="#bulk-edit">#</a></h2>
+<p>Editing a Song by selecting and editing each node can be very tedious.  With that in mind, Praisenter provides a way to bulk edit lyrics.  When bulk editing, the editor switches to a text view.  It’s very important that you follow the guidelines below to ensure that Praisenter can interpret your changes correctly.</p>
+
+<p>You can trigger bulk editing by selecting a lyrics node and using the <code class="language-html highlighter-rouge">Edit</code> -&gt; <code class="language-html highlighter-rouge">Bulk Edit</code> menu, the context menu, or the <code class="language-html highlighter-rouge">Bulk Edit</code> button in the <a href="manual.html#side-pane">Side Pane</a>.</p>
+
+<p><img src="assets/img/songs-bulk-edit.png" alt="Song lyric bulk edit" class="rounded img-fluid" /></p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: You cannot bulk edit an entire <code class="language-html highlighter-rouge">Song</code>.</p>
+</blockquote>
+
+<p>Here’s an example of properly formatted text when bulk editing:</p>
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="codehilite"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+</pre></td><td class="rouge-code"><pre>My lyric title
+
+Verse 1
+Amazing grace how sweet the sound
+That saved a wretch like me
+I once was lost but now am found
+Was blind but now I see
+
+Chorus
+'Twas grace that taught my heart to fear
+And grace my fears relieved
+How precious did that grace appear
+The hour I first believed
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>The first line should be the title of the lyrics - usually the name of the song.  Then there <strong>must</strong> be an empty line (on line 2 above).  After the first empty line, you can begin writing the song verses.  Start with the verse type or name - in the example above it’s <code class="language-html highlighter-rouge">Verse 1</code>.  On the next line, continue with the lines that make up that verse.  To start a new verse, create an empty line and repeat the process.  For example, the empty line on line 8 signifies that a new section is starting.</p>
+
+<p>When you are done editing, click the <code class="language-html highlighter-rouge">Done</code> button in the bottom-right corner of the editor.  You can discard your changes by clicking the <code class="language-html highlighter-rouge">Cancel</code> button.</p>
+
+<p><strong>Incorrect Examples</strong></p>
+
+<p>The following is incorrectly formatted because it’s missing the blank line after the lyric title <code class="language-html highlighter-rouge">My lyric title</code>.</p>
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="codehilite"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+</pre></td><td class="rouge-code"><pre>My lyric title
+Verse 1
+Amazing grace how sweet the sound
+That saved a wretch like me
+I once was lost but now am found
+Was blind but now I see
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>The following is incorrect because there’s a blank line in between the section name, <code class="language-html highlighter-rouge">Verse 1</code>, and the verse text, <code class="language-html highlighter-rouge">Amazing grace how sweet the sound</code>:</p>
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="codehilite"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+</pre></td><td class="rouge-code"><pre>My lyric title
+
+Verse 1
+
+Amazing grace how sweet the sound
+That saved a wretch like me
+I once was lost but now am found
+Was blind but now I see
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>The following is incorrect because there’s no blank line between the last line of <code class="language-html highlighter-rouge">Verse 1</code>, <code class="language-html highlighter-rouge">Was blind but now I see</code>, and the start of <code class="language-html highlighter-rouge">Chorus</code>:</p>
+<div class="language-text highlighter-rouge"><div class="highlight"><pre class="codehilite"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+</pre></td><td class="rouge-code"><pre>My lyric title
+
+Verse 1
+Amazing grace how sweet the sound
+That saved a wretch like me
+I once was lost but now am found
+Was blind but now I see
+Chorus
+'Twas grace that taught my heart to fear
+And grace my fears relieved
+How precious did that grace appear
+The hour I first believed
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="reordering-1">Reordering<a href="#reordering">#</a></h2>
+<p>At times, you may have sections that are out of order, and reordering them manually can be a chore.  Praisenter offers a few ways to reorder them:</p>
+
+<ul>
+  <li>Start bulk editing and copy/paste text around as needed.</li>
+  <li>Click and drag nodes around with the left mouse button.</li>
+  <li>Copy, cut, and paste nodes with the mouse and <a href="manual.html#hotkeys">hotkeys</a></li>
+</ul>
+
+<h2 id="pdf-import">PDF import<a href="#pdf-import">#</a></h2>
+<p>A feature specific to song editing is PDF Import.  This feature only appears when you are bulk editing lyrics.  To import, click the <code class="language-html highlighter-rouge">Import from PDF</code> button in the bottom-right corner of the editor.  Praisenter will load the PDF, read the text from it, and place it into the text view.</p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: The PDF import process is primarily used to extract text from a PDF.  It will NOT format the text it extracts to match the requirements of the bulk editor, so make sure you review the extracted text and format it properly before saving.</p>
+</blockquote>
+
+<p>For example, in the screenshot below, I’ve imported a rather nasty PDF document called “Above All”.</p>
+
+<p><img src="assets/img/songs-pdf-import-ex.png" alt="Song PDF import pdf sample" class="rounded img-fluid" /></p>
+
+<p>You can see that the text from the document was extracted, but it’s not formatted properly (it’s a mess for sure).</p>
+
+<p><img src="assets/img/songs-pdf-import.png" alt="Song PDF import after import" class="rounded img-fluid" /></p>
+
+<p>After a minute of manual clean up:</p>
+
+<p><img src="assets/img/songs-pdf-import-ex2.png" alt="Song PDF import after clean up" class="rounded img-fluid" /></p>
+
+<hr />
+
+<h1 id="slide-basics">Slide basics</h1>
+<blockquote class="p-man-page-intro">
+  <p>Slides are the backbone of displaying content in Praisenter - you can’t present anything without a slide.</p>
+</blockquote>
+
+<p>Slides are canvases where you can add content like Bible verses, song lyrics and media.  There are two types of slides in Praisenter: <em>slides</em> and <em>slide templates</em>.  Slides behave much like they do in other presentation tools - you can place text, images, videos and format the styling.  Slide templates have all the same features as slides, but allow for <a href="manual.html#placeholder-component">placeholder text</a>.  The placeholders are replaced on-the-fly when you are presenting.</p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: Praisenter does not support import of slides from other applications at this time.</p>
+</blockquote>
+
+<p>A slide consists of the slide itself and zero or more <a href="manual.html#slide-components">components</a>.  Components are blocks of text, images, or video.  Slides and components share certain properties (backgrounds for example), but components additional customizability based on the content.  For example, a <a href="manual.html#text-component">text component</a> can have it’s font and text color adjusted, whereas a <a href="manual.html#media-component">media component</a> can be color adjusted.</p>
+
+<p>In the sections that follow, the manual will introduce basic building blocks of slide editing.  Beginning with opacity and color selection, then continuing with things like backrounds and borders and ending with font selection and padding.</p>
+
+<p>A slide has several properites you can configure:</p>
+<ul>
+  <li><code class="language-html highlighter-rouge">Name</code> - The name of the slide.  This is for reference in the library.</li>
+  <li><code class="language-html highlighter-rouge">Time</code> - The duration the slide will show when added to a slide show. Not currently used.</li>
+  <li><code class="language-html highlighter-rouge">Opacity</code> - Controls the transparency of the slide and all components.</li>
+  <li><code class="language-html highlighter-rouge">Size</code> - The target size of the slide - use this to ensure the slide appears exactly they way you want.</li>
+  <li><code class="language-html highlighter-rouge">Standard size</code> - An easier way to set the size.</li>
+</ul>
+
+<p>Another important slide property is the <code class="language-html highlighter-rouge">Transition</code>.  The transition defines the animation (if any) that should be used when changing from one slide to another.  Praisenter supports a variety of transitions and allows you to change their direction, orientation, duration, easing, and more.  The best way to learn how all these different properties work is to try them out!</p>
+
+<p><img src="assets/img/slides-transition.png" alt="Slides transition" class="rounded img-fluid" /></p>
+
+<h2 id="opacity--transparency">Opacity / transparency<a href="#opacity--transparency">#</a></h2>
+<p>Opacity is the measure of how transparent something is.  Here’s a good way to think of opacity:</p>
+<ul>
+  <li>A wall in your house has an opacity of 100%, it’s completely opaque.</li>
+  <li>A window in your house has an opacity of 0%, it’s completely transparent.</li>
+  <li>A tinted window on your car has an opacity somewhere between 0% and 100%.</li>
+</ul>
+
+<p>You can use opacity to blend components, media, and colors.  When an element is fully or partially transparent, you might see something like the following.  This checkerboard pattern of grey and white squares indicates that the element is partially or completely transparent.</p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: Praisenter allows you to create slides that are transparent.  The content on the slide will blend with whatever is in the background - whether that’s a desktop background, another application, a video playing, or something else.</p>
+</blockquote>
+
+<p><img src="assets/img/slides-transparency.png" alt="Slides transparency" class="rounded img-fluid" /></p>
+
+<h2 id="colors">Colors<a href="#colors">#</a></h2>
+<p>Many properties of slides and components involve choosing a color - backgrounds, text, borders, and more.  Color is a fundamental aspect of slide editing, so knowing how to select a color is important.  When you choose a color, Praisenter presents a default palatte of colors to pick from. Simply click on the color you want to use from the palette.</p>
+
+<p>You aren’t limited to the colors in the default palette.  Click the <code class="language-html highlighter-rouge">Custom Color</code> link to open the custom color dialog.  From here, you can create your own color in HSB, RGB, or Web mode.  You can also specify the opacity of the color.  Use the mouse to click and drag the circle around in the large square (on the left) to choose the saturation and brightness.  Drag the vertical slider to change the hue.</p>
+
+<p><img src="assets/img/slides-color-palette.png" alt="Slides color palette" class="rounded img-fluid float-start pe-4" />
+<img src="assets/img/slides-custom-color.png" alt="Slides custom color selector" class="rounded img-fluid" /></p>
+
+<h2 id="gradients">Gradients<a href="#gradients">#</a></h2>
+<p>A gradient is type of coloring that uses two or more colors blended together.  Praisenter supports two-stop linear or radial gradients.  When configuring a gradient, you can specify the position of the color stops by clicking and dragging the circles in the preview square.</p>
+
+<p>The <code class="language-html highlighter-rouge">Cycle</code> option defines how the gradient repeats.  To have the gradient repeat, move one of the circles in the preview square.</p>
+
+<p>The <code class="language-html highlighter-rouge">Offset</code> sliders determine how long to use 100% of the color of the stop before starting to blend.</p>
+
+<p><img src="assets/img/slides-gradient.png" alt="Slides gradient selector" class="rounded img-fluid" /></p>
+
+<h2 id="media">Media<a href="#media">#</a></h2>
+<p>Media is a general term used in Praisenter encompassing images, pictures, audio, and video.  To use media on a slide, you must <em>import</em> it first.  You can import media by drag-n-dropping files onto the Praisenter application, or use the <code class="language-html highlighter-rouge">File</code> -&gt; <code class="language-html highlighter-rouge">Import</code> menu command.  Some media types (audio and video) may be converted to a supported format during import.  Because importing media can take time, you can monitor the progress of imports in the status bar at the bottom of the application or on the <a href="manual.html#task-log">Tasks</a> tab.</p>
+
+<p>When you add media to a slide, additional settings become available depending on the media type:</p>
+
+<table class="table w-auto">
+  <thead>
+    <tr>
+      <th>Option</th>
+      <th>Image</th>
+      <th>Audio</th>
+      <th>Video</th>
+      <th>Notes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="language-html highlighter-rouge">Tile image</code></td>
+      <td>✓</td>
+      <td> </td>
+      <td> </td>
+      <td>Repeat the image to fill the entire space</td>
+    </tr>
+    <tr>
+      <td><code class="language-html highlighter-rouge">Scaling</code></td>
+      <td>✓</td>
+      <td> </td>
+      <td>✓</td>
+      <td>None (leave size unchanged), stretch, or keep aspect ratio</td>
+    </tr>
+    <tr>
+      <td><code class="language-html highlighter-rouge">Adjust color</code></td>
+      <td>✓</td>
+      <td> </td>
+      <td>✓</td>
+      <td>Adjust the color of the content</td>
+    </tr>
+    <tr>
+      <td><code class="language-html highlighter-rouge">Loop?</code></td>
+      <td> </td>
+      <td>✓</td>
+      <td>✓</td>
+      <td>Whether to restart the media when it finishes playing</td>
+    </tr>
+    <tr>
+      <td><code class="language-html highlighter-rouge">Mute?</code></td>
+      <td> </td>
+      <td>✓</td>
+      <td>✓</td>
+      <td>Whether to mute the audio</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>Media - color adjust</strong>
+Color adjustment is available for both images and video.  This feature lets you to modify the color, brightness, and contrast of an image or video.  Found the perfect asset, but you want it green instead of purple?  No need to adjust the asset in an editor, just use the color adjust feature.</p>
+
+<p><img src="assets/img/slides-color-adjust.png" alt="Slides color adjust" class="rounded img-fluid" /></p>
+
+<h2 id="backgrounds--borders">Backgrounds / borders<a href="#backgrounds--borders">#</a></h2>
+<p>Both a slide and each of its components support backgrounds.  Backgrounds are rendered underneath the content.  A background can be <code class="language-html highlighter-rouge">None</code> (transparent), a <code class="language-html highlighter-rouge">Color</code>, a <code class="language-html highlighter-rouge">Gradient</code>, an <code class="language-html highlighter-rouge">Image</code>, or a <code class="language-html highlighter-rouge">Video</code>.  Slides and components are limited to a single background each.</p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: There’s a special behavior when it comes to the <em>slide</em> background and <em>slide templates</em>.  When using a <em>slide template</em> to display songs or Bible verses, Praisenter will use the slide transition to animate <a href="manual.html#slide-components">slide components</a>, but will NOT animate the <em>slide</em> background.  This is especially important for video backgrounds to ensure the video is not restarted.  Configure the background of the <em>slide</em> to be <code class="language-html highlighter-rouge">Media</code> instead of adding a <a href="manual.html#media-component">media component</a>.</p>
+</blockquote>
+
+<p>Borders trace the edge of an element and have width, style, and radius properties.  Borders are available on slides, slide components, and text.  Borders can be <code class="language-html highlighter-rouge">None</code> (no borders), a <code class="language-html highlighter-rouge">Color</code>, or a <code class="language-html highlighter-rouge">Gradient</code>.  Along with width, style, and radius, you can configure the following properties of the border:</p>
+
+<ul>
+  <li><code class="language-html highlighter-rouge">Line cap</code> - The style of the border when the border ends.</li>
+  <li><code class="language-html highlighter-rouge">Line join</code> - The style of the border when the border turns.</li>
+  <li><code class="language-html highlighter-rouge">Dash pattern</code> - The style of the border lines themselves.  This will scale with the border width.</li>
+</ul>
+
+<p><img src="assets/img/slides-border.png" alt="Slides border" class="rounded img-fluid" /></p>
+
+<h2 id="shadow--glow">Shadow / glow<a href="#shadow--glow">#</a></h2>
+<p>Shadow and glow are variations of the same concept - both apply a color that fades outward from an element to transparency.  Shadow and glow can create an illusion of depth or texture.  When you enable shadow or glow, you can customize the following properties to produce the effect you are looking for.</p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: Only <a href="manual.html#slide-components">slide components</a> and text support shadow and glow.</p>
+</blockquote>
+
+<ul>
+  <li><code class="language-html highlighter-rouge">Type</code> - Choose between an inner or outer shadow/glow.</li>
+  <li><code class="language-html highlighter-rouge">X</code> and <code class="language-html highlighter-rouge">Y</code> offsets - How far from center the effect is positioned.</li>
+  <li><code class="language-html highlighter-rouge">Radius</code> - How far the effect extends from the element.</li>
+  <li><code class="language-html highlighter-rouge">Spread</code> - How much of the radius will be 100% of the chosen color.</li>
+</ul>
+
+<p><img src="assets/img/slides-shadow-glow.png" alt="Slides shadow and glow" class="rounded img-fluid" /></p>
+
+<h2 id="font--fill--padding">Font / fill / padding<a href="#font--fill--padding">#</a></h2>
+<p>Font formatting in Praisenter should feel familiar if you used other word-processing applications before.  You can choose any font installed on your system.  You can specify the font weight - such as normal or bold - and the style: either normal or italic.</p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: Not all font weights and styles are supported by every font; its possible that selecting a weight or style will have no visible effect.</p>
+</blockquote>
+
+<p>The font size is measured in points, and you can increase or decrease it as needed.  The minimum font size is 0.  In addition to choosing the font size, you can use the <code class="language-html highlighter-rouge">Font scaling</code> property to further control the font size:</p>
+
+<ul>
+  <li><code class="language-html highlighter-rouge">None</code> - Use the font size chosen only.  If the text exceeds the bounds of the component, do nothing.</li>
+  <li><code class="language-html highlighter-rouge">Reduce size only</code> - Start with the chosen font size, but reduce it if the text overflows the component’s bounds.</li>
+  <li><code class="language-html highlighter-rouge">Best fit</code> - Use the font size chosen as a baseline and increase or decrease the font size to fill the component’s bounds.</li>
+</ul>
+
+<p>This capability is especially useful for <a href="manual.html#placeholder-component">placedholder components</a> where the length of the text being displayed will change.  For example, some Bible verses are long and some are short, so picking the desired font size and setting the <code class="language-html highlighter-rouge">Font scaling</code> property to <code class="language-html highlighter-rouge">Reduce size only</code> will ensure <em>all</em> verses fit on the slide.</p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: Currently, all text formatting (font, style, size, color, etc.) applies to the entire <a href="manual.html#slide-components">component</a> - there is no option to style parts of the text differently.</p>
+</blockquote>
+
+<p><img src="assets/img/slides-font.png" alt="Slides font" class="rounded img-fluid" /></p>
+
+<p>For text to be visible, it must be <em>filled</em> or colored.  In Praisenter, you can color text using a color or a gradient.</p>
+
+<p>Finally, you can adjust the padding around text.  When you create a component that supports text, the text will fill the width and height of the rectangular bounds.  This may not produce the desired effect when you have a background, borders, or shadow/glow effects.  The padding, or empty space, between the edge of the component and the text can be specified for each edge: top, right, bottom, and left.</p>
+
+<p><img src="assets/img/slides-padding.png" alt="Slides padding" class="rounded img-fluid" /></p>
+
+<hr />
+
+<h1 id="slide-components">Slide components</h1>
+<blockquote class="p-man-page-intro">
+  <p>Slides are made up of the slide itself and it’s <em>slide components</em>.  Adding components to your slides is how you add media, text, and other content.</p>
+</blockquote>
+
+<p>Now that you’ve reviewed the <a href="manual.html#slide-basics">basics</a>, we’ll introduce each slide component available in Praisenter.  Then we’ll cover how to move, resize, and layer them.</p>
+
+<h2 id="text-component">Text component<a href="#text-component">#</a></h2>
+<p>The text component is used to put unchanging text on a slide.  You have all the options described in <a href="manual.html#slide-basics">Slide basics</a> to configure the font, color, borders, backgrounds and more.</p>
+
+<p>To edit the text itself, use the <a href="manual.html#side-pane">Side Pane</a> on the right side of the editor.</p>
+
+<p><img src="assets/img/slides-text-component.png" alt="Slides text component" class="rounded img-fluid" /></p>
+
+<h2 id="placeholder-component">Placeholder component<a href="#placeholder-component">#</a></h2>
+<p>The placeholder component is very similar to the text component - it’s used to show text.  However, it’s unique because the text is not directly editable.  Instead, the text that will show in the component will be determined during presentation.  It’s a <em>placeholder</em> for text.</p>
+
+<p>A placeholder component is used to display Bible verses, song lyrics, and notifications.  More on this in the <a href="#presenting">presentation</a> part of the manual.  If a slide has one or more placeholder components, then it’s considered a <em>slide template</em> and can be selected during Bible, song, and notification presentation.</p>
+
+<p><img src="assets/img/slides-placeholder-component.png" alt="Slides placeholder component" class="rounded img-fluid" /></p>
+
+<p>The placeholder component has two configuration options: the <code class="language-html highlighter-rouge">Type</code> and the <code class="language-html highlighter-rouge">Variant</code>.</p>
+
+<p>The <code class="language-html highlighter-rouge">Type</code> is either <code class="language-html highlighter-rouge">Title</code> or <code class="language-html highlighter-rouge">Text</code>.  This corresponds to the <em>reference</em> and <em>text</em> of a Bible verse or the <em>verse name</em> and <em>text</em> of a song.  For example, when presenting Genesis 1:1, the <code class="language-html highlighter-rouge">Title</code> will be “Genesis 1:1” and the <code class="language-html highlighter-rouge">Text</code> will be “In the beginning God created the heaven and the earth.”  Similarly, when presenting Verse 1 of the song Amazing Grace, the <code class="language-html highlighter-rouge">Title</code> will be “Verse 1” and the <code class="language-html highlighter-rouge">Text</code> will be “Amazing grace how sweet the sound That saved a wretch like me I once was lost but now am found Was blind but now I see.”</p>
+
+<p>The <code class="language-html highlighter-rouge">Variant</code> is one of six values.  At this time, Praisenter only uses <code class="language-html highlighter-rouge">Primary</code> and <code class="language-html highlighter-rouge">Secondary</code>.  This option represents whether to use the primary or secondary language/translation.  For example, if you want to show the <em>text</em> of Genesis 1:1 from your primary bible, then you would choose <code class="language-html highlighter-rouge">Primary</code>.  If you want to show the <em>text</em> of Genesis 1:1 from your secondary bible, then you would choose <code class="language-html highlighter-rouge">Secondary</code>.</p>
+
+<p>Adding multiple placeholder components to a <em>single</em> slide allows you to build a slide that can show multiple languages at one time.  In the example below, there are three placeholder components, one on the top, one the left, and one on the right.</p>
+
+<ol>
+  <li>The one on the top is configured with <code class="language-html highlighter-rouge">Type</code> = <code class="language-html highlighter-rouge">Title</code> and <code class="language-html highlighter-rouge">Variant</code> = <code class="language-html highlighter-rouge">Primary</code> so that it shows the Bible verse <em>reference</em> from the <em>primary</em> bible (KJV in this case).</li>
+  <li>The one on the left is configured with <code class="language-html highlighter-rouge">Type</code> = <code class="language-html highlighter-rouge">Text</code> and <code class="language-html highlighter-rouge">Variant</code> = <code class="language-html highlighter-rouge">Primary</code> so that it shows the Bible verse <em>text</em> from the <em>primary</em> bible (KJV in this case).</li>
+  <li>The one on the right is configured with <code class="language-html highlighter-rouge">Type</code> = <code class="language-html highlighter-rouge">Text</code> and <code class="language-html highlighter-rouge">Variant</code> = <code class="language-html highlighter-rouge">Secondary</code> so that it shows the Bible verse <em>text</em> from the <em>secondary</em> bible (one in arabic).</li>
+</ol>
+
+<p><img src="assets/img/slides-placeholder-component-ex.png" alt="Slides placeholder component example" class="rounded img-fluid" /></p>
+
+<h2 id="datetime-component">Date/time component<a href="#datetime-component">#</a></h2>
+<p>The date/time component is a special text component - it displays the current date and time.  You can configure all the properties just like a normal text component, but you cannot modify the text.</p>
+
+<p><img src="assets/img/slides-datetime-component.png" alt="Slides date-time component" class="rounded img-fluid" /></p>
+
+<p>Instead of specifying the text, you configure the date-time format.  The date-time format controls what parts of the date/time to display and how to display them.  Praisenter has a list of default formats you can choose from, but you can type in your own format.  Here’s what each format would look like for the time <code class="language-html highlighter-rouge">2025-11-08 11:40:25 AM EST</code>:</p>
+
+<table class="table w-auto">
+  <thead>
+    <tr>
+      <th>Format</th>
+      <th>Output</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>EEEE MMMM, d yyyy</td>
+      <td>Saturday November, 8 2025</td>
+    </tr>
+    <tr>
+      <td>EEEE MMMM, d yyyy h:mm a</td>
+      <td>Saturday November, 8 2025 11:40 AM</td>
+    </tr>
+    <tr>
+      <td>EEEE MMMM, d yyyy h:mm a z</td>
+      <td>Saturday November, 8 2025 11:40 AM EST</td>
+    </tr>
+    <tr>
+      <td>EEE MMM, d yyyy</td>
+      <td>Sat Nov, 8 2025</td>
+    </tr>
+    <tr>
+      <td>EEE MMM, d yyyy h:mm a</td>
+      <td>Sat Nov, 8 2025 11:40 AM</td>
+    </tr>
+    <tr>
+      <td>EEE MMM, d yyyy h:mm a z</td>
+      <td>Sat Nov, 8 2025 11:40 AM EST</td>
+    </tr>
+    <tr>
+      <td>M/d/yyyy</td>
+      <td>11/8/2025</td>
+    </tr>
+    <tr>
+      <td>M/d/yyyy h:mm a</td>
+      <td>11/8/2025 11:40 AM</td>
+    </tr>
+    <tr>
+      <td>M/d/yyyy h:mm a z</td>
+      <td>11/8/2025 11:40 AM EST</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>When typing in your own format, you have the following options available:</p>
+
+<table class="table w-auto">
+  <thead>
+    <tr>
+      <th>Option</th>
+      <th>Description</th>
+      <th>Output</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>G</td>
+      <td>Era</td>
+      <td>AD</td>
+    </tr>
+    <tr>
+      <td>yy</td>
+      <td>2-digit year</td>
+      <td>25</td>
+    </tr>
+    <tr>
+      <td>yyyy</td>
+      <td>4-digit year</td>
+      <td>2025</td>
+    </tr>
+    <tr>
+      <td>M</td>
+      <td>2-digit month</td>
+      <td>11</td>
+    </tr>
+    <tr>
+      <td>MM</td>
+      <td>2-digit month (zero padded)</td>
+      <td>25</td>
+    </tr>
+    <tr>
+      <td>MMM</td>
+      <td>Abbreviated month name</td>
+      <td>Nov</td>
+    </tr>
+    <tr>
+      <td>MMMM</td>
+      <td>Month name</td>
+      <td>November</td>
+    </tr>
+    <tr>
+      <td>d</td>
+      <td>2-digit day</td>
+      <td>8</td>
+    </tr>
+    <tr>
+      <td>dd</td>
+      <td>2-digit day (zero padded)</td>
+      <td>08</td>
+    </tr>
+    <tr>
+      <td>EEE</td>
+      <td>Abbreviated day name</td>
+      <td>Sat</td>
+    </tr>
+    <tr>
+      <td>EEEE</td>
+      <td>Day name</td>
+      <td>Saturday</td>
+    </tr>
+    <tr>
+      <td>a</td>
+      <td>AM/PM</td>
+      <td>AM</td>
+    </tr>
+    <tr>
+      <td>H</td>
+      <td>2-digit hour (0-23)</td>
+      <td>11</td>
+    </tr>
+    <tr>
+      <td>HH</td>
+      <td>2-digit hour (0-23, zero padded) (0-23)</td>
+      <td>11</td>
+    </tr>
+    <tr>
+      <td>h</td>
+      <td>2-digit hour (1-12)</td>
+      <td>11</td>
+    </tr>
+    <tr>
+      <td>hh</td>
+      <td>2-digit hour (1-12, zero padded)</td>
+      <td>11</td>
+    </tr>
+    <tr>
+      <td>m</td>
+      <td>2-digit minute</td>
+      <td>8</td>
+    </tr>
+    <tr>
+      <td>mm</td>
+      <td>2-digit minute (zero padded)</td>
+      <td>08</td>
+    </tr>
+    <tr>
+      <td>s</td>
+      <td>2-digit second</td>
+      <td>5</td>
+    </tr>
+    <tr>
+      <td>ss</td>
+      <td>2-digit second (zero padded)</td>
+      <td>05</td>
+    </tr>
+    <tr>
+      <td>z</td>
+      <td>Timezone</td>
+      <td>EST</td>
+    </tr>
+    <tr>
+      <td>zzzz</td>
+      <td>Timezone</td>
+      <td>Eastern Standard Time</td>
+    </tr>
+    <tr>
+      <td>XXX</td>
+      <td>Timezone offset from UTC</td>
+      <td>5:00</td>
+    </tr>
+    <tr>
+      <td>‘any text’</td>
+      <td>Use single quotes <code class="language-html highlighter-rouge">'</code> to add text</td>
+      <td>any text</td>
+    </tr>
+    <tr>
+      <td>’’</td>
+      <td>Use two single quotes <code class="language-html highlighter-rouge">''</code> to output a <code class="language-html highlighter-rouge">'</code></td>
+      <td>’</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Here are a few examples of custom formats for the date/time <code class="language-html highlighter-rouge">2025-11-08 11:40:25 AM EST</code>:</p>
+
+<table class="table w-auto">
+  <thead>
+    <tr>
+      <th>Format</th>
+      <th>Output</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>EEEE MMMM d, yyyy hh:mm a</td>
+      <td>Saturday November 8, 11:40 AM</td>
+    </tr>
+    <tr>
+      <td>hh:mm a</td>
+      <td>11:40 AM</td>
+    </tr>
+    <tr>
+      <td>‘Current Time:’ hh:mm a</td>
+      <td>Current Time: 11:40 AM</td>
+    </tr>
+    <tr>
+      <td>‘It’’s’ EEEE ‘folks!’</td>
+      <td>It’s Saturday folks!</td>
+    </tr>
+    <tr>
+      <td>hh MMMM:mm yyyy EEEE</td>
+      <td>11 November:40 2025 Saturday</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="countdown-component">Countdown component<a href="#countdown-component">#</a></h2>
+<p>The countdown component is a lot like the date/time component, but where the date/time component always shows the current date/time, the countdown component <em>counts down</em> to a specific or relative date/time.</p>
+
+<p><img src="assets/img/slides-countdown-component.png" alt="Slides countdown component" class="rounded img-fluid" /></p>
+
+<p>The countdown component requires a <em>target</em> date and time to countdown to.  This is great for upcoming events on a specific date.  Just enter the date of the event (you can set the time to 00:00:00 to stop the countdown on the day of) and whenever the slide is displayed, the component will show the time remaining until that date.  No need to adjust the coundown, restart it, or anything - it does it automatically!  By default, the countdown halts when it reaches the target date/time.  You can turn this behavior off using the <code class="language-html highlighter-rouge">Stop at zero</code> setting.  If <code class="language-html highlighter-rouge">Stop at zero</code> is disabled, the countdown will continue and will show negative values to indicate the target date/time has already passed.</p>
+
+<p>Another common use for a countdown is for a recurring event, like the beginning of a weekly service. To configure the countdown component for this purpose, toggle on the <code class="language-html highlighter-rouge">Time only</code> setting and set the target time (the target date will be ignored).  Now the countdown component will countdown to the same time every time you show the slide.</p>
+
+<p>Like the date/time component, you can format the output of the countdown component with one of the present formats or with your own.  For example, imagine it’s 2025-11-08 12:34 PM and you are counting down to 2025-11-14 4:00 PM:</p>
+
+<table class="table w-auto">
+  <thead>
+    <tr>
+      <th>Format</th>
+      <th>Output</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>YY:MM:DD:hh:mm:ss</td>
+      <td>00:00:06:03:37:53</td>
+    </tr>
+    <tr>
+      <td>MM:DD:hh:mm:ss</td>
+      <td>00:06:03:37:53</td>
+    </tr>
+    <tr>
+      <td>DD:hh:mm:ss</td>
+      <td>06:03:37:53</td>
+    </tr>
+    <tr>
+      <td>hh:mm:ss</td>
+      <td>03:37:53</td>
+    </tr>
+    <tr>
+      <td>mm:ss</td>
+      <td>37:53</td>
+    </tr>
+    <tr>
+      <td>ss</td>
+      <td>53</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>You can also type in your own format.  Here are all the available options:</p>
+
+<table class="table w-auto">
+  <thead>
+    <tr>
+      <th>Option</th>
+      <th>Description</th>
+      <th>Output</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Y</td>
+      <td>2-digit years</td>
+      <td>25</td>
+    </tr>
+    <tr>
+      <td>YY</td>
+      <td>2-digit years (zero padded)</td>
+      <td>25</td>
+    </tr>
+    <tr>
+      <td>M</td>
+      <td>2-digit months</td>
+      <td>11</td>
+    </tr>
+    <tr>
+      <td>MM</td>
+      <td>2-digit months (zero padded)</td>
+      <td>25</td>
+    </tr>
+    <tr>
+      <td>D</td>
+      <td>2-digit days</td>
+      <td>8</td>
+    </tr>
+    <tr>
+      <td>DD</td>
+      <td>2-digit days (zero padded)</td>
+      <td>08</td>
+    </tr>
+    <tr>
+      <td>h</td>
+      <td>2-digit hours (1-12)</td>
+      <td>11</td>
+    </tr>
+    <tr>
+      <td>hh</td>
+      <td>2-digit hours (1-12, zero padded)</td>
+      <td>11</td>
+    </tr>
+    <tr>
+      <td>m</td>
+      <td>2-digit minutes</td>
+      <td>8</td>
+    </tr>
+    <tr>
+      <td>mm</td>
+      <td>2-digit minutes (zero padded)</td>
+      <td>08</td>
+    </tr>
+    <tr>
+      <td>s</td>
+      <td>2-digit seconds</td>
+      <td>5</td>
+    </tr>
+    <tr>
+      <td>ss</td>
+      <td>2-digit seconds (zero padded)</td>
+      <td>05</td>
+    </tr>
+  </tbody>
+</table>
+
+<blockquote>
+  <p><strong>NOTE</strong>: Custom text is not supported in the countdown formats.  Only the options listed above are supported.</p>
+</blockquote>
+
+<h2 id="media-component">Media component<a href="#media-component">#</a></h2>
+<p>Media components are used to place pictures, images, video and audio onto a slide.</p>
+
+<p><img src="assets/img/slides-media.png" alt="Slides media" class="rounded img-fluid" /></p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: The <em>only</em> way to add audio media to a slide is by using a Media component.  Other media types can be added as backgrounds on all components and slides.</p>
+</blockquote>
+
+<p>When you click the <code class="language-html highlighter-rouge">Browse...</code> button, a filtered view of the library is displayed.  From here you can select a media asset.  If you haven’t <a href="manual.html#importing-content">imported</a> the media, you can import it here by drag-and-dropping it from File Explorer.</p>
+
+<p><img src="assets/img/slides-media-selection.png" alt="Slides media selection" class="rounded img-fluid" /></p>
+
+<p>After selecting a media asset, the name of the selected asset is shown under the <code class="language-html highlighter-rouge">Browse...</code> button.</p>
+
+<p>Another way to add a media component is to drag-n-drop a file from your computer onto the slide.  Praisenter will import that file, then create a media component for it.</p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: When you drag-n-drop a file to import assets, it could take some time before the media component shows up on the slide.  Praisenter has to process and optimize some files (like video and audio) to ensure they can be played correctly.</p>
+</blockquote>
+
+<p>As described in <a href="manual.html#media">Slide basics - Media</a>, depending on the type of media you add, you can adjust things like scaling, if audio should be muted, color adjustment, and more.</p>
+
+<h2 id="moving-components">Moving components<a href="#moving-components">#</a></h2>
+<p>To move a component around, hover the mouse over the component you want to move and wait for the mouse cursor to change to the move icon.  Then, click and hold the mouse button while moving the mouse.  Release the mouse button when you are finished moving the component.</p>
+
+<h2 id="sizing-components">Sizing components<a href="#sizing-components">#</a></h2>
+<p>When you have a component selected, small white blocks appear in the corners and mid-points of the component.  Those white blocks are the sizing control points.  As you hover over a sizing control, the cursor will change to indicate what type of sizing operation it performs.  To resize, click and hold the mouse button on a control point while moving the mouse.  Release the mouse button when you are finished.</p>
+
+<p><img src="assets/img/slides-resize-component.png" alt="Slides resize component" class="rounded img-fluid" /></p>
+
+<h2 id="snap-to-grid">Snap to grid<a href="#snap-to-grid">#</a></h2>
+<p>When moving or resizing components, it can be difficult to line things up perfectly.  You can can enable the <code class="language-html highlighter-rouge">Snap to Grid</code> setting by using the toolbar or the menus.  Once enabled, resizing and moving components will <em>snap</em> to specific grid points.</p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: Praisenter does not show the grid lines at this time.</p>
+</blockquote>
+
+<h2 id="layers">Layers<a href="#layers">#</a></h2>
+<p>As you add more components to your slide, they may overlap each other and being able to control what’s on top is critical to getting the slide exactly the way you want it.  Praisenter has 4 commands to help with moving components up or down in the layers.</p>
+
+<ul>
+  <li><code class="language-html highlighter-rouge">Move up</code> - This will move a component up one layer.</li>
+  <li><code class="language-html highlighter-rouge">Move down</code> - This will move a component down one layer.</li>
+  <li><code class="language-html highlighter-rouge">Move front</code> - This will move the component to the top layer.</li>
+  <li><code class="language-html highlighter-rouge">Move back</code> - This will move the component to the bottom layer.</li>
+</ul>
+
+<p>These options are availabe in the <code class="language-html highlighter-rouge">Edit</code> and context menus and in the toolbar.</p>
+
+<h2 id="sc-copy-cut-paste">Copy / cut / paste  <a href="#sc-copy-cut-paste">#</a></h2>
+
+<p>Like with bibles, songs, and everything else, Praisenter supports copy, cut, and paste with slide components.  Just select a component by clicking on it, then copy/cut and paste.  You can paste into the same slide or into other slides.</p>
+
+<h2 id="deleting-components">Deleting components<a href="#deleting-components">#</a></h2>
+<p>Deleting component is easy - select the component to remove and use the <kbd>Delete</kbd> key.  You can also use the options in the <code class="language-html highlighter-rouge">Edit</code> and context menus to delete the component.</p>
+
+<hr />
+
+<h1 id="display-setup">Display setup</h1>
+<blockquote class="p-man-page-intro">
+  <p>Before you present, you’ll want to make sure that your displays are setup the way you want. Displays represent the devices or outputs where content will be presented.</p>
+</blockquote>
+
+<p>To get started, confirm that your displays are configured correctly on your system.  See the following articles for instructions on setting up multiple displays:</p>
+<ul>
+  <li><a href="https://support.microsoft.com/en-us/windows/how-to-use-multiple-monitors-in-windows-329c6962-5a4d-b481-7baa-bec9671f728a#category=windows_11">Windows</a> - set your display to “Extend”</li>
+  <li><a href="https://help.ubuntu.com/stable/ubuntu-help/display-dual-monitors.html.en">Ubuntu</a> - set your display to “Join Displays”</li>
+  <li><a href="https://support.apple.com/guide/mac-help/connect-an-external-display-mchl7c7ebe08/mac">MacOS</a> - set your display to “Extend”</li>
+</ul>
+
+<p>Provided your system is configured properly, display setup in Praisenter is handled from the Present tab on the left navigation.  It’s the first place you see after selecting a workspace when starting Praisenter.  On the Present tab, you can add and remove displays, name them, and more.  To better understand displays setup in Praisenter, consider the following example:</p>
+
+<p><img src="assets/img/multi-monitor-setup.png" alt="multi-monitor setup" class="rounded img-fluid" /></p>
+
+<p>In the example above, there are three displays - in this case three monitors, but they can be TVs, projectors, or any display device.  Going left to right, the first display is the <em>command</em> display - the one where your operating system taskbar appears and where the Praisenter application runs.  The right two displays are empty because we have configured our system to <em>extend</em> the desktop onto these displays.  With a setup like this, Praisenter can be configured to send content to the right two displays.</p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: It’s recommended that you have at least <em>two</em> displays.  Praisenter can present content on any number of displays, provided you have them configured properly and your hardware supports it.  You only need <em>one</em> display if you plan to present to an <a href="https://ndi.video/">NDI®</a> output only.</p>
+</blockquote>
+
+<blockquote>
+  <p><strong>NOTE</strong>: The configuration above, where the first display is the <em>command</em> display, is not required.  You could have the <em>command</em> display in the middle or all the way to the right.  In addition, the displays do not have to be the same size or resolution.  In the next few sections you’ll see how to configure the displays in Praisenter.</p>
+</blockquote>
+
+<h2 id="display-controllers">Display controllers<a href="#display-controllers">#</a></h2>
+<p>When Praisenter loads for the first time, it will detect how many displays are connected and attempt to determine the basic setup.  Praisenter looks for at least one display that isn’t the <em>command</em> display.  When found, the display will be used as the <a href="manual.html#primary-display"><em>primary</em></a> display.  For example, in the screenshot below, Praisenter detected three displays.  Because one of those displays (display 1) has the taskbar on it, and there’s more than one display, it designated display 1 the <em>command</em> display and <em>hid</em> it.  Since displays 2 and 3 are available, Praisenter selects the next one in order of display number (display 2) as the <a href="manual.html#primary-display"><em>primary</em></a> display and shows a <em>display controller</em> for it.</p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: The <em>command</em> display is the display where the Praisenter application and other applications will be used and content will <em>not</em> be presented there.  Think of this as your desktop from where you will control all other displays.</p>
+</blockquote>
+
+<p>A <em>display controller</em> is the set of buttons, options, and commands that allow you to <em>control</em> the display it’s bound to.  In the top-left corner of the display controller, you’ll see the name assigned to the display: <code class="language-html highlighter-rouge"># ID=2 (-1920,0) 1920x1080</code>.  The default naming convention is as follows:</p>
+
+<ul>
+  <li><code class="language-html highlighter-rouge">ID=2</code> - This <em>display controller</em> controls the second display.</li>
+  <li><code class="language-html highlighter-rouge">(-1920,0)</code> - The display is positioned at <code class="language-html highlighter-rouge">x</code> = <code class="language-html highlighter-rouge">-1920</code> and <code class="language-html highlighter-rouge">y</code> = <code class="language-html highlighter-rouge">0</code>.</li>
+  <li><code class="language-html highlighter-rouge">1920x1080</code> - The display has resolution of <code class="language-html highlighter-rouge">width</code> = <code class="language-html highlighter-rouge">1920</code> and <code class="language-html highlighter-rouge">height</code> = <code class="language-html highlighter-rouge">1080</code>.</li>
+</ul>
+
+<p>There are many features on the display controller, but don’t get overwhelmed - we’ll cover all of them in the <a href="manual.html#presenting">Presenting</a> section of the manual.  For now, let’s focus on adding, hiding, renaming, and other display management features.</p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: Praisenter monitors your system’s display configuration and will react to changes.  When changes are detected, Praisenter may clear the content currently presented on that display.</p>
+</blockquote>
+
+<blockquote>
+  <p><strong>NOTE</strong>: You can override the defaults that Praisenter applied and configure them manually.</p>
+</blockquote>
+
+<p><img src="assets/img/present-display-controller.png" alt="presentation display controller" class="rounded img-fluid" /></p>
+
+<h2 id="adding-displays">Adding displays<a href="#adding-displays">#</a></h2>
+<p>On create of a new <a href="manual.html#workspace">workspace</a>, or if you are starting Praisenter for the first time, Praisenter detects the available displays and selects one to be the <a href="manual.html#primary-display"><em>primary</em></a> display.  You will need to add any additional displays you would like to present to.  To add a display, use the <code class="language-html highlighter-rouge">Add Display</code> button in the top right corner of the Present tab.</p>
+
+<p><img src="assets/img/present-controller.png" alt="presentation controller" class="rounded img-fluid" /></p>
+
+<p>In the screenshot above, there are two types of displays that can be added: screens and <a href="https://ndi.video/">NDI®</a> outputs.  <a href="manual.html#adding-an-ndi-display">NDI® outputs</a> will be covered later in the manual.  In this example, Praisenter detected three screens in total and determined that screen 1 should be the <em>command</em> display and screen 2 should be the <a href="manual.html#primary-display"><em>primary</em></a> display.  Since screen 2 has already been selected, only screens 1 and 3 are available to add.  To add screen 1 or screen 3, simply click on the option in the list.  When a screen is added, a new <em>display controller</em> is created for the screen.  In the example below, screen 3 has been added, and as a result, a new <em>display controller</em> has appeared with the name <code class="language-html highlighter-rouge"># ID=3 (1920,0) 1920x1080</code>.  We now have two <em>display controllers</em>, one for display 2 and one for display 3.  We can control displays 2 and 3 independently, showing different content on each.  This is nice if you have a display for a minister and a different display for the congregation.</p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: You can <a href="manual.html#linking-displays"><em>link</em></a> displays if you want the <em>same</em> content to go to different displays.  Another way to send the same content to two displays is to configure your system to have the displays mirrored instead of extended.  Yet another way is to have one video output and physically split it into two outputs and running those cables to the two displays.</p>
+</blockquote>
+
+<blockquote>
+  <p><strong>NOTE</strong>: When you are controlling multiple displays, you should consider maximizing the Praisenter window to avoid horizontal scrolling. Having an ultra-wide <em>command</em> display can be especially useful when you are controlling many displays.</p>
+</blockquote>
+
+<p>Now that display 3 has been added, the <code class="language-html highlighter-rouge">Add Display</code> button only shows display 1 (the <em>command</em> display).  As mentioned earlier, you can control as many displays as your system can handle.  You can also choose which display you’d like to be the <a href="manual.html#primary-display"><em>primary</em></a> display.</p>
+
+<p><img src="assets/img/present-controller-changed.png" alt="presentation controller - 2 displays" class="rounded img-fluid" /></p>
+
+<h2 id="identifying-a-display">Identifying a display<a href="#identifying-a-display">#</a></h2>
+<p>When configuring displays in Praisenter, it can be challenging to know which display corresponds to which output device.  To make setup easier, Praisenter provides the ability to <code class="language-html highlighter-rouge">Identify</code> the devices.  Use the <code class="language-html highlighter-rouge">Actions</code> -&gt; <code class="language-html highlighter-rouge">Identify</code> command on the display controller to identify it.  Executing this command will show the display number on the output device for a few seconds.</p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: To identify all displays, you need to add them and identify each one.</p>
+</blockquote>
+
+<blockquote>
+  <p><strong>NOTE</strong>: Praisenter will confirm that you want to perform the action before showing the number on the screen.</p>
+</blockquote>
+
+<p><img src="assets/img/present-controller-identify.png" alt="presentation controller identify display" class="rounded img-fluid" /></p>
+
+<h2 id="naming-a-display">Naming a display<a href="#naming-a-display">#</a></h2>
+<p>Praisenter applies a default naming convention to all detected displays.  The pattern is <code class="language-html highlighter-rouge"># ID=n (x,y) wxh</code> where:</p>
+
+<ul>
+  <li><code class="language-html highlighter-rouge">n</code> is the display number.</li>
+  <li><code class="language-html highlighter-rouge">x</code> is the display’s horizontal position relative to your other displays.</li>
+  <li><code class="language-html highlighter-rouge">y</code> is the display’s vertical position relative to your other displays.</li>
+  <li><code class="language-html highlighter-rouge">w</code> is the horizontal resolution of the display.</li>
+  <li><code class="language-html highlighter-rouge">h</code> is the vertical resolution of the display.</li>
+</ul>
+
+<p>An example of a default name is  <code class="language-html highlighter-rouge"># ID=2 (-1920,0) 1920x1080</code>.  While this naming helps with setup or identification, it may be less useful over time. To make it easier to quickly recognize and identify displays, Praisenter allows you to <code class="language-html highlighter-rouge">Rename</code> your displays using the <code class="language-html highlighter-rouge">Actions</code> -&gt; <code class="language-html highlighter-rouge">Rename</code> command on the display controller.  For example, imagine you have three displays, the <em>command</em> display (a computer monitor), the <em>primary</em> display (a projector that displays to the church), and a small TV on the stage pointed towards the minister.  You can rename the projector to “Main” and the TV to “Stage” to better identify which display you are presenting to.</p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: You can rename a display at any time.</p>
+</blockquote>
+
+<p><img src="assets/img/present-controller-rename.png" alt="presentation controller rename display" class="rounded img-fluid" /></p>
+
+<p><img src="assets/img/present-controller-renamed.png" alt="presentation controller rename display" class="rounded img-fluid" /></p>
+
+<h2 id="primary-display">Primary display<a href="#primary-display">#</a></h2>
+<p>The <em>primary</em> display is the one you present to most frequently.  Marking a display as the <em>primary</em> allows Praisenter to choose the correct default width and height when creating slides.  If your slides are built to the correct width and height, Praisenter won’t need to adjust them to match the display.  If a slide uses different dimensions, Praisenter will perform adjustments called <em>fitting</em> before presenting the slide on the display.</p>
+
+<p>The fitting process adjusts the <a href="manual.html#slide-basics">slide’s</a> width and height to match the displays dimensions.  The fitting process will also adjust every <a href="manual.html#slide-components">slide component’s</a> width, height, and position.  The adjustments are as non-destructive as possible, but its possible you may see issues if the target display’s resolution is very different than the slide’s target size.  To avoid fitting, select the <a href="manual.html#slide-basics">target size</a> to match the intended display when creating a slide.</p>
+
+<h2 id="hiding-a-display">Hiding a display<a href="#hiding-a-display">#</a></h2>
+<p>In addition to adding displays, you can also <em>hide</em> them.  Hiding means you don’t want to present anything on that display.  This can be useful if Praisenter detected the wrong display and when you’re configuring the displays you want to use.  Hiding a display does <strong>not</strong> remove it permanently - you can always <a href="manual.html#adding-displays">add it back</a>.</p>
+
+<p>To hide a display, use the <code class="language-html highlighter-rouge">Actions</code> -&gt; <code class="language-html highlighter-rouge">Hide</code> menu command.</p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: When you hide a display, anything currently presenting on the display will be cleared.</p>
+</blockquote>
+
+<p><img src="assets/img/present-controller-hide.png" alt="presentation controller hide display" class="rounded img-fluid" /></p>
+
+<h2 id="linking-displays">Linking displays<a href="#linking-displays">#</a></h2>
+<p>Praisenter creates a <em>display controller</em> for every display you choose to present to.  This lets you control the displays independently - for instance, you could show a Bible verse showing on one display and a Song on another.  That flexiblity is great, but it can be hard to manage if you want two displays to show the <em>same</em> content.  This is where <em>linking</em> displays can help.  Linking one display to another allows you to control both displays with a <em>single</em> display controller.</p>
+
+<p>To link to displays, use the <code class="language-html highlighter-rouge">Actions</code> -&gt; <code class="language-html highlighter-rouge">Link</code> command.</p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: You can unlink the displays by performing the same steps.</p>
+</blockquote>
+
+<p><img src="assets/img/present-controller-link.png" alt="presentation controller link display" class="rounded img-fluid" /></p>
+
+<p>You link a display from the display controller you want to use to control both displays.  For example, in the screenshot below, display 2 has been used to link display 3.  Now, the display controller for display 2 <em>controls</em> both display 2 and display 3.</p>
+
+<p><img src="assets/img/present-controller-linking.png" alt="presentation controller link display" class="rounded img-fluid" /></p>
+
+<p>Even after a display has been linked, you’ll notice that the display controller for the linked display (display 3 in the screenshot below) is still visible and enabled.  This allows you to send content from one display controller (display 2) to both displays, but also manually control the content on the linked display (display 3).  For example, if you have <code class="language-html highlighter-rouge">display A</code> controlling <code class="language-html highlighter-rouge">display B</code>, when you send a slide from <code class="language-html highlighter-rouge">display A</code>’s controller, it will present on both <code class="language-html highlighter-rouge">display A</code> and <code class="language-html highlighter-rouge">display B</code>.  Now, if you send a slide from <code class="language-html highlighter-rouge">display B</code>’s controller, it will <em>only</em> go to <code class="language-html highlighter-rouge">display B</code> and replace the previous content sent from <code class="language-html highlighter-rouge">display A</code>.  If you send another slide from <code class="language-html highlighter-rouge">display A</code>, it will again send to both <code class="language-html highlighter-rouge">display A</code> and <code class="language-html highlighter-rouge">display B</code> and replace the content on both displays.</p>
+
+<p><img src="assets/img/present-controller-linked.png" alt="presentation controller linked displays" class="rounded img-fluid" /></p>
+
+<p>Some points to keep in mind when linking displays:</p>
+<ul>
+  <li>One display <em>can</em> link to multiple displays - For example, a configuration like <code class="language-html highlighter-rouge">display A</code> controls both <code class="language-html highlighter-rouge">display B</code> and <code class="language-html highlighter-rouge">display C</code> is supported.</li>
+  <li>A hierarchy of multiple displays <em>cannot</em> be created - For example, a configuration like <code class="language-html highlighter-rouge">display A</code> controls <code class="language-html highlighter-rouge">display B</code> and <code class="language-html highlighter-rouge">display B</code> controls <code class="language-html highlighter-rouge">display C</code> is not supported.</li>
+  <li>Multiple displays cannot be linked to the same display - For example, a configuration like <code class="language-html highlighter-rouge">display A</code> controls <code class="language-html highlighter-rouge">display B</code> AND <code class="language-html highlighter-rouge">display C</code> controls <code class="language-html highlighter-rouge">display B</code> is not supported.</li>
+</ul>
+
+<h2 id="adding-an-ndi-display">Adding an NDI® display<a href="#adding-an-ndi-display">#</a></h2>
+<p><a href="https://ndi.video/">NDI®</a>, short for Network Device Interface, is a software standard for transmitting video and audio over an IP network. Creating an NDI® output is useful when using another application, like <a href="https://obsproject.com/">OBS</a>, to combine, overlay, and merge content coming from many sources.  For instance - you may have a live video feed coming from a camera that you’d like to overlay with some content from Praisenter.   To create an NDI® display in Praisenter, use the <code class="language-html highlighter-rouge">Add display</code> -&gt; <code class="language-html highlighter-rouge">NDI®</code> -&gt; <code class="language-html highlighter-rouge">Create a new NDI® display</code> command.</p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: NDI® is a registered trademark of Vizrt NDI AB</p>
+</blockquote>
+
+<p><img src="assets/img/present-add-ndi-display.png" alt="presentation add NDI® display" class="rounded img-fluid" /></p>
+
+<p>When adding an NDI® display, you must specify a few details:</p>
+<ul>
+  <li><code class="language-html highlighter-rouge">NDI® Source Name</code> - This will be used by other programs to locate your display and connect to it.</li>
+  <li><code class="language-html highlighter-rouge">FPS</code> - The number of frames per second that Praisenter will send to the NDI® display.</li>
+  <li><code class="language-html highlighter-rouge">Size</code> - The desired width and height for the display.</li>
+</ul>
+
+<blockquote>
+  <p><strong>NOTE</strong>: Each NDI® display should have a unique name to be identifiable by other applications.</p>
+</blockquote>
+
+<blockquote>
+  <p><strong>NOTE</strong> - The <code class="language-html highlighter-rouge">FPS</code> option can significantly impact system performance.  In most cases, <code class="language-html highlighter-rouge">24</code> FPS is the lowest value that still yields smooth output.  Praisenter will attempt to improve performance during presentation when certain conditions are met (no video, no animation, no timed slide components, etc.).</p>
+</blockquote>
+
+<p><img src="assets/img/present-add-ndi-display-options.png" alt="presentation add NDI® display options" class="rounded img-fluid" /></p>
+
+<p>NDI® displays can be linked and hidden just like physical displays, but they can also be deleted.  Deleting an NDI® display will clear the content and remove the display from the network.</p>
+
+<hr />
+
+<h1 id="presenting">Presenting</h1>
+<blockquote class="p-man-page-intro">
+  <p>Presenting is how you show content on a screen, projector, TV, etc., and manage that content over the duration of a service.</p>
+</blockquote>
+
+<p>All presentation control is handled from the Present tab on the left navigation.  It’s the first place you will see after selecting a workspace.  From here, you can control everything related to presenting - displays, queues, and more.  Each display you have configured is assigned it’s own <a href="manual.html#display-controllers"><em>display controller</em></a> where you can <em>control</em> the content shown on that display.  In this section of the manual, we’ll dive into each part of the display controller.</p>
+
+<p><img src="assets/img/present-display-controller.png" alt="presentation display controller" class="rounded img-fluid" /></p>
+
+<h2 id="slide-preview">Slide preview<a href="#slide-preview">#</a></h2>
+<p>Each <a href="manual.html#display-controllers"><em>display controller</em></a> has a slide preview: the rectangle at the top of the controller that shows a slide before you present it.  The preview will update based on your actions in the display controller.  You must have a preview before you can show anything.</p>
+
+<p><img src="assets/img/present-slide-preview.png" alt="presentation slide preview" class="rounded img-fluid" /></p>
+
+<h2 id="show--hide">Show / hide<a href="#show--hide">#</a></h2>
+<p>Beneath the slide preview are two large buttons: <code class="language-html highlighter-rouge">Show</code> and <code class="language-html highlighter-rouge">Hide</code>.  These are your main controls for sending contact to - or clearing content from - the attached display.  As mentioned above, you must have a slide preview before you can send content.</p>
+
+<p>When you click <code class="language-html highlighter-rouge">Show</code>, Praisenter takes the slide from the preview, uses its transition, and displays it.  There are a few details to keep in mind:</p>
+
+<ul>
+  <li>If a slide is already displayed, it will be transitioned away using the transition of the new slide.</li>
+  <li>If the currently displayed slide and the new slide are the same, Praisenter will transition only the placeholder content, while the background and static elements (such as images or videos) remain unchanged.  This behavior can be modifed in the <a href="manual.html#slide-settings">settings</a>.</li>
+  <li>If a slide is in the middle of transitioning in and you click <code class="language-html highlighter-rouge">Show</code> again, Praisenter cancel the current transition and begin the new slide transition immediately.  This can also be changed in the <a href="manual.html#slide-settings">settings</a>.</li>
+</ul>
+
+<p>The usual workflow is:</p>
+
+<ol>
+  <li>Choose the type of content you want to show by clicking one of the tabs: <code class="language-html highlighter-rouge">Bibles</code>, <code class="language-html highlighter-rouge">Song Lyrics</code>, <code class="language-html highlighter-rouge">Slides</code>, or <code class="language-html highlighter-rouge">Notifications</code> (more on these later).</li>
+  <li>Use the controls in the tab to <em>preview</em> a slide.</li>
+  <li>Click <code class="language-html highlighter-rouge">Show</code>.</li>
+</ol>
+
+<p>The <code class="language-html highlighter-rouge">Hide</code> button is used to clear any content currently being displayed.  When you click <code class="language-html highlighter-rouge">Hide</code>, Praisenter will use the transition of the currently displayed slide to animated it out.  Clicking <code class="language-html highlighter-rouge">Hide</code> when nothing is displayed has no effect.</p>
+
+<h2 id="preview-transition">Preview Transition<a href="#preview-transition">#</a></h2>
+<p>The <code class="language-html highlighter-rouge">Preview Transition</code> toggle lets you preview the slide’s transition before sending the slide to the display.  If the slide has no transition defined, then the preview shows the slide as if this setting was disabled.  This is useful to observe the behavior when transitioning between two slides with the same or different content.</p>
+
+<h2 id="auto-show">Auto-show<a href="#auto-show">#</a></h2>
+<p>The <code class="language-html highlighter-rouge">auto-show</code> toggle enables the automatic display of slides to the display.  This is particularly useful when presenting Bible verses and song lyrics: instead of manually previewing each verse and clicking <code class="language-html highlighter-rouge">Show</code>, you only need to press the the <code class="language-html highlighter-rouge">&gt;&gt;</code> (next) button and it will auto-show onto the display.</p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: This feature can be a bit tricky until you get used to it - experiment with it outside of live service.</p>
+</blockquote>
+
+<h2 id="add-to-queue">Add to queue<a href="#add-to-queue">#</a></h2>
+<p>The <code class="language-html highlighter-rouge">Add to Queue</code> button (covered in detail in the <a href="#queue-management">Queue Management</a> section) allows you to save the previewed slide for later display.  This is useful when preparing for a service where you are showing a few different songs during worship, Bible verses during the lesson, and slides during intermissions.  Having the slides saved in the queue lets you call up a specific slide quickly.  For example, you might search in the <code class="language-html highlighter-rouge">Song Lyrics</code> tab for a song, click on a section to preview it, then click <code class="language-html highlighter-rouge">Add to Queue</code> to <em>save it</em> for later.</p>
+
+<h2 id="presenting-bible-verses">Presenting Bible verses<a href="#presenting-bible-verses">#</a></h2>
+<p>Presenting Bible verses is controlled from the <code class="language-html highlighter-rouge">Bible</code> tab in the <a href="manual.html#display-controllers"><em>display controller</em></a>.</p>
+
+<p><img src="assets/img/present-bible-verses-tab.png" alt="presenting bibles tab" class="rounded img-fluid" /></p>
+
+<p>Presenting Bible verses requires you to select a slide template first (remember a slide template is just a slide with <a href="manual.html#placeholder-component">placeholder</a>) components.</p>
+
+<p><img src="assets/img/present-bible-verses-template.png" alt="presenting bibles select template" class="rounded img-fluid" /></p>
+
+<p>After selecting a template, the preview box will display the first verse of the selected Bible.  Praisenter supports selecting a primary and a secondary Bible.  The primary Bible is used for searching and navigation while the secondary Bible can be used to display two versions/translations simultaneously - provided the selected template has the proper <a href="manual.html#placeholder-component">placeholders</a> configured.</p>
+
+<p><img src="assets/img/present-bible-verses-bibles.png" alt="presenting bibles select bibles" class="rounded img-fluid" /></p>
+
+<p>After selecting a primary Bible, you can jump directly to a verse using the book, chapter, and verse inputs and clicking the <code class="language-html highlighter-rouge">Find</code> button.  Alternatively, use the <code class="language-html highlighter-rouge"><span class="nt">&lt;</span><span class="err">&lt;</span></code> (previous) and <code class="language-html highlighter-rouge">&gt;&gt;</code> (next) buttons to navigate to the previous and next verse.  The numbers displayed under the <code class="language-html highlighter-rouge"><span class="nt">&lt;</span><span class="err">&lt;</span></code> (previous) and <code class="language-html highlighter-rouge">&gt;&gt;</code> (next) buttons indicate the number of chapters in the selected book and the number of verses in the selected chapter (respectively).  You may also use the <code class="language-html highlighter-rouge">Search</code> button to <a href="manual.html#bible-searching">search</a> within the primary Bible.</p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: If you hold down the <kbd>Ctrl</kbd> or <kbd>Command</kbd> key while using the <code class="language-html highlighter-rouge">&gt;&gt;</code> (next) button, Praisenter will <em>append</em> the verses to the slide instead of replacing it - allowing you to display multiple verses on one slide.</p>
+</blockquote>
+
+<p><img src="assets/img/present-bible-verses-nav.png" alt="presenting bibles navigation" class="rounded img-fluid" /></p>
+
+<p>As you navigate through a Bible, the <code class="language-html highlighter-rouge">Previous verse</code> and <code class="language-html highlighter-rouge">Next verse</code> boxes reflect the previous and next verse of the current verse.</p>
+
+<p><img src="assets/img/present-bible-verses-prev-next.png" alt="presenting bibles previous and next verses" class="rounded img-fluid" /></p>
+
+<h2 id="presenting-song-lyrics">Presenting song lyrics<a href="#presenting-song-lyrics">#</a></h2>
+<p>Presenting song lyrics is controlled from the <code class="language-html highlighter-rouge">Song Lyrics</code> tab in the <a href="manual.html#display-controllers"><em>display controller</em></a>.</p>
+
+<p><img src="assets/img/present-song-lyrics-tab.png" alt="presenting song lyrics tab" class="rounded img-fluid" /></p>
+
+<p>To present song lyrics, first choose a slide template (remember, a slide template is just a slide with <a href="manual.html#placeholder-component"><em>placeholders</em></a>).</p>
+
+<p><img src="assets/img/present-song-lyrics-template.png" alt="presenting song lyrics template" class="rounded img-fluid" /></p>
+
+<p>Then, <a href="manual.html#song-searching">search</a> for the song you want to display by typing in a part of the song, the song title, or a matching keyword.</p>
+
+<p><img src="assets/img/present-song-lyrics-find.png" alt="presenting song lyrics find" class="rounded img-fluid" /></p>
+
+<p>Once you find the song, the primary lyrics are selected automatically.  Optionally, you can select a secondary set of lyrics to show two different languages side-by-side - provided the selected template has the proper <a href="manual.html#placeholder-component">placeholders</a> configured.  In the example below, it selected the “My Special Song” lyrics.</p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: Keep in mind that a <a href="manual.html#lyrics--sections"><em>song</em></a> in Praisenter contains multiple sets of <em>song lyrics</em> in the same document.</p>
+</blockquote>
+
+<p><img src="assets/img/present-song-lyrics-lyrics.png" alt="presenting song lyrics lyric selection" class="rounded img-fluid" /></p>
+
+<p>Once the primary lyrics are selected, the song’s sections appear below as buttons.  In the screenshot below, our sample song only has one section called <code class="language-html highlighter-rouge">Verse 1</code>.  A button appears for each section in the song.  Clicking a section updates the slide preview with that section’s content.</p>
+
+<p><img src="assets/img/present-song-lyrics-verses.png" alt="presenting song lyrics verses" class="rounded img-fluid" /></p>
+
+<p>At the bottom, song comments appear.  These may include helpful notes such as section order, presentation instructions, or signal details.</p>
+
+<p><img src="assets/img/present-song-lyrics-notes.png" alt="presenting song lyrics notes" class="rounded img-fluid" /></p>
+
+<h2 id="presenting-slides">Presenting slides<a href="#presenting-slides">#</a></h2>
+<p>Presenting slides happens on the <code class="language-html highlighter-rouge">Slides</code> tab in the <a href="manual.html#display-controllers"><em>display controller</em></a>.  Only slides <em>without</em> <a href="manual.html#placeholder-component">placeholders</a> will show here.</p>
+
+<p><img src="assets/img/present-slides-tab.png" alt="presenting slides tab" class="rounded img-fluid" /></p>
+
+<p>When you click the <code class="language-html highlighter-rouge">Slides</code> tab, the list of available slides appears.</p>
+
+<p><img src="assets/img/present-slides-list.png" alt="presenting slide list" class="rounded img-fluid" /></p>
+
+<p>If you have many slides, use the search feature to find the slide by name or tag.</p>
+
+<p><img src="assets/img/present-slides-search.png" alt="presenting slide search" class="rounded img-fluid" /></p>
+
+<p>Click a slide to preview it.</p>
+
+<h2 id="presenting-notifications">Presenting notifications<a href="#presenting-notifications">#</a></h2>
+<p>Notifications provide quick alerts that overlay on top of whatever content is currently displaying — for example, reminders or announcements meant to draw attention.</p>
+
+<p><img src="assets/img/present-notifications-tab.png" alt="presenting notifications tab" class="rounded img-fluid" /></p>
+
+<p>Start by selecting a slide template.</p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: The template selected must have a <a href="manual.html#placeholder-component"><em>placeholder</em></a> component configured with <code class="language-html highlighter-rouge">Type</code> = <code class="language-html highlighter-rouge">Text</code> and <code class="language-html highlighter-rouge">Variant</code> = <code class="language-html highlighter-rouge">Primary</code>.</p>
+</blockquote>
+
+<p><img src="assets/img/present-notifications-template.png" alt="presenting notifications template" class="rounded img-fluid" /></p>
+
+<p>Then enter the text you want to display for the notification.</p>
+
+<p><img src="assets/img/present-notifications-text.png" alt="presenting notification text" class="rounded img-fluid" /></p>
+
+<p>Since notifications overlay existing content, they do not use the standard <code class="language-html highlighter-rouge">Show</code> and <code class="language-html highlighter-rouge">Hide</code> buttons. Instead, use the controls located below the notification text field.</p>
+
+<p><img src="assets/img/present-notifications-controls.png" alt="presenting notification controls" class="rounded img-fluid" /></p>
+
+<h2 id="queue-management">Queue Management<a href="#queue-management">#</a></h2>
+<p>Whenever there is a slide in the <a href="#slide-preview">preview</a>, you can <em>save</em> that slide to the queue using the <code class="language-html highlighter-rouge">Add to Queue</code> button. Each <a href="manual.html#display-controllers"><em>display controller</em></a> has its own queue, allowing you to prepare content independently for each display. A common use case is queuing song lyrics for one display and sermon notes for another.</p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: See the <a href="#add-to-queue">Add to queue</a> section of the manual for more details.</p>
+</blockquote>
+
+<p><img src="assets/img/present-queue-ex.png" alt="presenting queue example" class="rounded img-fluid" /></p>
+
+<p>You can queue as many slides as you need - but too many may make switching difficult.  To reduce the number of slides added to the queue, only add the <em>first</em>.  For example, imagine you need to present the Bible verses Matthew 1:3-10.  Instead of adding one slide for each verse, only add a slide for the <em>first</em> verse.  Then, when you click that queued slide, the display controller will switch to the <code class="language-html highlighter-rouge">Bible</code> tab, set the selected Bible/book/chapter/verse, and update the preview. To show verse 4, click the <code class="language-html highlighter-rouge">&gt;&gt;</code> (next) button, then the <code class="language-html highlighter-rouge">Show</code> button.  This applies to song lyrics as well.  Add a slide for one of the sections in the song and Praisenter will switch the <em>display controller</em> to the <code class="language-html highlighter-rouge">Song Lyrics</code> tab, set the selected song, and show the section buttons for you.</p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: The queue associated with each display controller is saved when you close the application - but there’s currently no separate feature for saving and re-loading queues or slide shows for reuse.</p>
+</blockquote>
+
+<blockquote>
+  <p><strong>NOTE</strong>: Praisenter does not support auto-playing the slides in the queue. To advance through the queue, you must manually click on each slide and then click <code class="language-html highlighter-rouge">Show</code>.</p>
+</blockquote>
+
+<p>If you add slides in the wrong order, you can reorder them by clicking and dragging slides into the desired sequence.  In the example below, slide 3 is being moved above slide 2.</p>
+
+<p><img src="assets/img/present-queue-reorder.png" alt="presenting queue reorder" class="rounded img-fluid" /></p>
+
+<p><img src="assets/img/present-queue-reorder-result.png" alt="presenting queue reorder result" class="rounded img-fluid" /></p>
+
+<p>You can remove slides from the queue using the <kbd>Delete</kbd> key, the context menu <code class="language-html highlighter-rouge">Delete</code> command, or the <code class="language-html highlighter-rouge">Remove Selected</code> and <code class="language-html highlighter-rouge">Remove All</code> buttons.</p>
+
+<p>To duplicate a slide, use the copy &amp; paste <a href="manual.html#hotkeys">hotkeys</a>, the context menu <code class="language-html highlighter-rouge">Copy</code> and <code class="language-html highlighter-rouge">Paste</code> commands, or hold down the <kbd>Ctrl</kbd> or <kbd>Command</kbd> key while dragging a slide.  You can also copy, paste and move slides <em>between</em> display controllers.</p>
+
+<p><img src="assets/img/present-queue-move-controller.png" alt="presenting queue move between controllers" class="rounded img-fluid" /></p>
+
+<p><img src="assets/img/present-queue-move-controller-result.png" alt="presenting queue move between controllers result" class="rounded img-fluid" /></p>
+
+<h2 id="bible-searching">Bible searching<a href="#bible-searching">#</a></h2>
+<p>Praisenter offers a flexible Bible-searching feature to help you quickly find verses. Click the <code class="language-html highlighter-rouge">Search</code> button to open the search tool.  The tool includes filtering options, a results view, and a detail view for selected results. The filtering and search controls are at the top, search results on the left, and the detailed verse view on the right.</p>
+
+<p><img src="assets/img/present-bible-verses-search.png" alt="presenting bible searching" class="rounded img-fluid" /></p>
+
+<p>When you perform a search, up to 100 matches will be shown.  If there are more than 100, the interface will display the message <code class="language-html highlighter-rouge">Found 100+ matching results</code> in the bottom-left corner.  At that point, you should refine your search.  In the results list, the words or phrases that matched your search will be highlighted.  In the example above, we searched for “grace” and each verse that matches has the word “grace” underlined and in blue.  The currently selected result (the last result in the screenshot above) doesn’t show the matched word in the list view because it appears further in the verse.  When you click on a result, the detail pane on the right will show the full chapter and scrolls to the selected verse - signified by the blue line on the right.</p>
+
+<p>The search results include three columns: <code class="language-html highlighter-rouge">Score</code>, <code class="language-html highlighter-rouge">Reference</code>, and <code class="language-html highlighter-rouge">Text</code>. The <code class="language-html highlighter-rouge">Score</code> is a relevance metric, used to surface the most relevant results first. For example, a verse that matches your search terms more than once (or where the matches are close together) will typically score higher.  Once you find the verse you’re looking for, you can double-click the row in the results list or click the reference on the right to select it. The <code class="language-html highlighter-rouge">copy</code> icon next to the reference will copy both the verse reference and its text to the clipboard.</p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: You can append multiple verses by holding down the <kbd>Ctrl</kbd> or <kbd>Command</kbd> key when double clicking a result or clicking a reference.</p>
+</blockquote>
+
+<p>The search tool searches one Bible at a time. Optionally, you can restrict the search to a single book.  You can also select among different search modes: <code class="language-html highlighter-rouge">Search type</code> and <code class="language-html highlighter-rouge">Match type</code>.  By default, the search is set to <code class="language-html highlighter-rouge">Phrase</code> + <code class="language-html highlighter-rouge">Exact</code> match. Below are the available options and how they work:</p>
+
+<p>Search Types:</p>
+
+<ul>
+  <li><code class="language-html highlighter-rouge">Phrase</code> - Matches all given words in the order provided.</li>
+  <li><code class="language-html highlighter-rouge">All words</code> - Matches all the given words,  but order doesn’t matter.</li>
+  <li><code class="language-html highlighter-rouge">Any words</code> - Matches any of the given words.</li>
+</ul>
+
+<p>Match Types:</p>
+
+<ul>
+  <li><code class="language-html highlighter-rouge">Exact</code> - Matches words exactly as provided.</li>
+  <li><code class="language-html highlighter-rouge">Fuzzy</code> - Matches words approximately and ranks results by closeness.</li>
+</ul>
+
+<p><code class="language-html highlighter-rouge">Fuzzy</code> matching is useful when you don’t remember the exact phrasing or spelling. When you use a <code class="language-html highlighter-rouge">Fuzzy</code> + <code class="language-html highlighter-rouge">Phrase</code> search, Praisenter uses the score to rank results by how closely they match your input. For example, searching for “then peter said repent” returned the correct verse even though two words were omitted.</p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: For faster and more precise results, start with <code class="language-html highlighter-rouge">Exact</code> + <code class="language-html highlighter-rouge">All words</code> before switching to <code class="language-html highlighter-rouge">Fuzzy</code>. Usually you’ll know some key words, and that yields better results. Use <code class="language-html highlighter-rouge">Fuzzy</code> only when exact searching fails.</p>
+</blockquote>
+
+<blockquote>
+  <p><strong>NOTE</strong>: To improve <code class="language-html highlighter-rouge">Fuzzy</code> search results, try using uncommon or longer words rather than short or very common words - common words tend to skew results because of their frequency. For instance, in the example below, the word “then” was matched (even though the search word was “them”), underscoring how fuzzy matching can sometimes prioritize frequency over intent.</p>
+</blockquote>
+
+<p><img src="assets/img/present-bible-verses-search-fuzzy.png" alt="presenting bible searching fuzzy search" class="rounded img-fluid" /></p>
+
+<h2 id="song-searching">Song searching<a href="#song-searching">#</a></h2>
+<p>Song searching works much like Bible searching; see the section above for general search behavior. This section highlights the differences.</p>
+
+<p>In addition to searching the lyrics themselves, Praisenter can also search song <em>names</em>, <em>titles</em>, <em>keywords</em>, and more. If a match is found in any of those fields, the <code class="language-html highlighter-rouge">Section</code> column in the results will show the word <code class="language-html highlighter-rouge">Metadata</code>, indicating the match was something other than the lyrics.</p>
+
+<p>Selecting a search result behaves differently depending on what was matched. For instance, if the match was in the song title (metadata) and you double-click the result, Praisenter will set the song and lyrics options and list the song’s sections - but it won’t update the slide preview.  Praisenter doesn’t know what section to preview since the match was on metadata.  If the search result matches a section (not metadata) and you double-click it, Praisenter will set the song and lyrics options, list the sections, and update the preview with that section’s content. Alternatively, clicking a section name on the right will update the preview regardless of how you found the song.</p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: Unlike Bible searching, song searching does not support appending multiple lyrics by holding the <kbd>Ctrl</kbd> or <kbd>Command</kbd> key.</p>
+</blockquote>
+
+<p><img src="assets/img/present-song-lyrics-search.png" alt="presenting song searching" class="rounded img-fluid" /></p>
+
+<hr />
+
+<h1 id="miscellaneous">Miscellaneous</h1>
+<blockquote class="p-man-page-intro">
+  <p>Praisenter includes a configurable set of default behaviors (called Settings) and offers feedback on operations, which can be used for troubleshooting.</p>
+</blockquote>
+
+<p>Praisenter’s default settings were chosen based on testing, experience, and the most common use cases. You can customize the application’s behavior via the settings tab.  Settings are saved per workspace, so each workspace can be configured to behave differently.</p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: Some settings are best left unchanged unless you are familiar with what they do. We’ll highlight those when we get to them.</p>
+</blockquote>
+
+<p><img src="assets/img/misc-settings.png" alt="Miscellaneous settings" class="rounded img-fluid" /></p>
+
+<h2 id="general-settings">General settings<a href="#general-settings">#</a></h2>
+<p>These settings affect the entire application. Currently, the available options are <code class="language-html highlighter-rouge">Theme</code>, <code class="language-html highlighter-rouge">Accent color</code>, <code class="language-html highlighter-rouge">Language</code>, and <code class="language-html highlighter-rouge">Debug Mode Enabled</code> - we’ll describe each below.</p>
+
+<p><img src="assets/img/misc-settings-general.png" alt="Miscellaneous general settings" class="rounded img-fluid" /></p>
+
+<p>The <code class="language-html highlighter-rouge">Theme</code> setting controls the overall appearance of Praisenter. There are several themes provided, each with light and dark variants. By default, Praisenter uses <code class="language-html highlighter-rouge">Primer Dark</code>, chosen to reduce eye strain and minimize ambient light from the application.</p>
+
+<blockquote>
+  <p><strong>NOTE</strong>:  The <code class="language-html highlighter-rouge">Reload styles</code> button exists for users who wish to customize the application’s appearance. Praisenter uses a CSS-like styling system. Accidentally clicking this button does nothing harmful, so don’t worry.</p>
+</blockquote>
+
+<p>The <code class="language-html highlighter-rouge">Accent color</code> setting determines the highlight color used throughout the interface to draw attention to UI elements. Because some users may have color-vision impairments, offering multiple accent options helps accessibility. The available accent colors are <code class="language-html highlighter-rouge">Blue</code>, <code class="language-html highlighter-rouge">Purple</code>, <code class="language-html highlighter-rouge">Pink</code>, <code class="language-html highlighter-rouge">Orange</code>, <code class="language-html highlighter-rouge">Green</code>, and <code class="language-html highlighter-rouge">Yellow</code>. Feel free to experiment and choose what works best for you.</p>
+
+<p>The <code class="language-html highlighter-rouge">Language</code> setting sets the language used throughout Praisenter. Currently, Praisenter is distributed in English only, but you can add your own translations if you like.</p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: To add translations, locate the <code class="language-html highlighter-rouge">.Praisenter3</code> folder on your system, open the <code class="language-html highlighter-rouge">locales</code> subfolder, and find the <code class="language-html highlighter-rouge">messages.properties</code> file containing the English interface text. Copy that file, translate the text after the <code class="language-html highlighter-rouge">=</code> signs, and save it in the same folder.  The name of the file should follow the pattern <code class="language-html highlighter-rouge">messages_lang.properties</code> where <code class="language-html highlighter-rouge">lang</code> is the <a href="https://en.wikipedia.org/wiki/IETF_language_tag#List_of_common_primary_language_subtags">IETF BCP 47 language tag</a> for the language contained in the file.  For example, if you are creating a spanish file you would name it <code class="language-html highlighter-rouge">messages_es.properties</code>.  After restarting Praisenter, you should be able to select the language for the file you created.</p>
+</blockquote>
+
+<p>The <code class="language-html highlighter-rouge">Debug Mode Enable</code> setting toggles extra logging and feedback from Praisenter, useful for troubleshooting. For instance, if you’re having problems importing media or presenting slides, enable this setting and share the logs when reporting issues.</p>
+
+<h2 id="slide-settings">Slide settings<a href="#slide-settings">#</a></h2>
+<p>There are two settings for slide display.  These settings effect how slides are transitioned during presentation.</p>
+
+<p><img src="assets/img/misc-settings-slide.png" alt="Miscellaneous slide settings" class="rounded img-fluid" /></p>
+
+<p>The <code class="language-html highlighter-rouge">Wait for In-Progress Transitions to Complete</code> setting determines what happens if you queue up a new slide while a current slide is still transitioning. Suppose you click <code class="language-html highlighter-rouge">Show</code> for <code class="language-html highlighter-rouge">Slide A</code> (which has a 5-second transition), then quickly click <code class="language-html highlighter-rouge">Show</code> for <code class="language-html highlighter-rouge">Slide B</code> before the first transition finishes. With this setting, you can choose whether to:</p>
+
+<ul>
+  <li>Wait for <code class="language-html highlighter-rouge">Slide A</code> transition to finish before showing <code class="language-html highlighter-rouge">Slide B</code>.</li>
+  <li>Immediately cancel <code class="language-html highlighter-rouge">Slide A</code> transition and switch to <code class="language-html highlighter-rouge">Slide B</code>.</li>
+</ul>
+
+<p>By default, Praisenter cancels the transition of <code class="language-html highlighter-rouge">Slide A</code> and immediately shows <code class="language-html highlighter-rouge">Slide B</code>.</p>
+
+<p>The <code class="language-html highlighter-rouge">Placeholder Transition Behavior</code> setting controls how placeholders, static content, and backgrounds transition when using slides with placeholder components. For example, if you’re showing a Bible verse slide with a video background, placeholder text, and perhaps a static image/icon, this setting determines what animates when you move to the next slide:</p>
+
+<ul>
+  <li><code class="language-html highlighter-rouge">Placeholders only</code> - Only the placeholder components are transitioned.  Video backgrounds continue to play and static images/text remain as-is.</li>
+  <li><code class="language-html highlighter-rouge">All content</code> - Placeholder components <em>and</em> static images/text are transitioned.  However, backgrounds remain unchanged.</li>
+  <li><code class="language-html highlighter-rouge">Entire slide</code> - Everything transitions: placeholders, static images/text, backgrounds, everything.  If the background is a video, the video is stopped and restarted.</li>
+</ul>
+
+<h2 id="bible-settings">Bible settings<a href="#bible-settings">#</a></h2>
+<p>These settings let you control whether confirmation dialogs appear when using the <code class="language-html highlighter-rouge">Sort by number</code> and <code class="language-html highlighter-rouge">Number by order</code> features. When you use those features, the application may ask if you want to continue — and you can re-enable those confirmations here if you previously disabled them.</p>
+
+<p><img src="assets/img/misc-settings-bible.png" alt="Miscellaneous bible settings" class="rounded img-fluid" /></p>
+
+<h2 id="media-settings">Media settings<a href="#media-settings">#</a></h2>
+<p>Media-related settings apply when importing audio or video files. As of version 3.1.7, these settings only affect media that includes audio. When you import such media, Praisenter uses <a href="https://ffmpeg.org/">FFmpeg</a> to detect the audio <code class="language-html highlighter-rouge">mean_volume</code> - and if the volume exceeds the configured target (in dB), it will automatically adjust it during transcoding. If you encounter volume problems, try disabling this feature and re-import your media.</p>
+
+<p><img src="assets/img/misc-settings-media.png" alt="Miscellaneous media settings" class="rounded img-fluid" /></p>
+
+<h2 id="audio-settings">Audio settings<a href="#audio-settings">#</a></h2>
+<p>These settings only apply to <em>audio</em> media. While you might rarely present audio-only media using Praisenter (other tools offer more control) - Praisenter still supports it. Similar to video, imported audio is <a href="https://en.wikipedia.org/wiki/Transcoding">transcoded</a> to a format that Praisenter natively play. The relevant settings are:</p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: Since media is <a href="https://en.wikipedia.org/wiki/Transcoding">transcoded</a>, Praisenter supports a wide array of formats.  However, if you choose to disable transcoding, Praisenter natively supports the following formats <a href="https://openjfx.io/javadoc/25/javafx.media/javafx/scene/media/package-summary.html">listed here</a>.</p>
+</blockquote>
+
+<p><img src="assets/img/misc-settings-audio.png" alt="Miscellaneous audio settings" class="rounded img-fluid" /></p>
+
+<ul>
+  <li><code class="language-html highlighter-rouge">Transcode Audio</code> - You may disable automatic transcoding; but if you do, be aware that Praisenter may not support the native format of your audio file.</li>
+  <li><code class="language-html highlighter-rouge">Audio File Transcode Extension</code> - Lets you select the file extension for the target format (the default is <code class="language-html highlighter-rouge">m4a</code>). If you change this, make sure the resulting format is supported by Praisenter natively.</li>
+  <li><code class="language-html highlighter-rouge">Audio File Transcode Command</code> - Allows advanced users familiar with <a href="https://ffmpeg.org/">FFmpeg</a> to customize exactly how the audio is transcoded during import.</li>
+</ul>
+
+<blockquote>
+  <p><strong>NOTE</strong>: These settings can cause problems if misconfigured. If audio import or playback fails or behaves unexpectedly, revert to the defaults listed below:</p>
+</blockquote>
+
+<table class="table w-auto">
+  <thead>
+    <tr>
+      <th>Setting</th>
+      <th>Default Value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Audio File Transcode Extension</td>
+      <td><code class="language-html highlighter-rouge">m4a</code></td>
+    </tr>
+    <tr>
+      <td>Audio File Transcode Command</td>
+      <td><code class="language-html highlighter-rouge">{ffmpeg} -v fatal -i {source} -y -ignore_unknown {volumeadjust} {target}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="video-settings">Video settings<a href="#video-settings">#</a></h2>
+<p>These settings only apply to <em>video</em> media.  During import of video media, Praisenter will <a href="https://en.wikipedia.org/wiki/Transcoding">transcode</a> the video file to a supported format to ensure the best video playback when used.  The settings below control this behavior.</p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: Since media is <a href="https://en.wikipedia.org/wiki/Transcoding">transcoded</a>, Praisenter supports a wide array of formats.  However, if you choose to disable transcoding, Praisenter natively supports the following formats <a href="https://openjfx.io/javadoc/25/javafx.media/javafx/scene/media/package-summary.html">listed here</a>.</p>
+</blockquote>
+
+<p><img src="assets/img/misc-settings-video.png" alt="Miscellaneous video settings" class="rounded img-fluid" /></p>
+
+<ul>
+  <li><code class="language-html highlighter-rouge">Transcode Video</code> - You may disable automatic transcoding; but if you do, be aware that Praisenter may not support the native format of your video file.</li>
+  <li><code class="language-html highlighter-rouge">Video File Transcode Extension</code> - Lets you select the file extension for the target format (the default is <code class="language-html highlighter-rouge">mp4</code>). If you change this, make sure the resulting format is supported by Praisenter natively.</li>
+  <li><code class="language-html highlighter-rouge">Video File Transcode Command</code> - Allows advanced users familiar with <a href="https://ffmpeg.org/">FFmpeg</a> to customize exactly how the video is transcoded during import.</li>
+  <li><code class="language-html highlighter-rouge">Video Thumbnail Extract Command</code> - Controls how a thumbnail is generated for previewing videos.  Allows advanced users familiar with <a href="https://ffmpeg.org/">FFmpeg</a> to customize exactly how to perform this task.</li>
+</ul>
+
+<blockquote>
+  <p><strong>NOTE</strong>: These settings can cause problems if misconfigured. If audio import or playback fails or behaves unexpectedly, revert to the defaults listed below:</p>
+</blockquote>
+
+<table class="table w-auto">
+  <thead>
+    <tr>
+      <th>Setting</th>
+      <th>Default Value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Audio File Transcode Extension</td>
+      <td><code class="language-html highlighter-rouge">mp4</code></td>
+    </tr>
+    <tr>
+      <td>Audio File Transcode Command</td>
+      <td><code class="language-html highlighter-rouge">{ffmpeg} -v fatal -i {source} -y -ignore_unknown {volumeadjust} {target}</code></td>
+    </tr>
+    <tr>
+      <td>Video Thumbnail Extract Command</td>
+      <td><code class="language-html highlighter-rouge">{ffmpeg} -v fatal -i {media} -vf fps=2 -frames:v 10 -vsync vfr {frame}</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h2 id="ndi-settings">NDI® settings<a href="#ndi-settings">#</a></h2>
+<p><a href="https://ndi.video/">NDI®</a>, short for Network Device Interface, is a software standard for transmitting video and audio over an IP network. Creating an NDI® output is useful when using another application, like <a href="https://obsproject.com/">OBS</a>, to combine, overlay, and merge content coming from many sources.  For instance - you may have a live video feed coming from a camera that you’d like to overlay with some content from Praisenter.</p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: NDI® is a registered trademark of Vizrt NDI AB</p>
+</blockquote>
+
+<p><img src="assets/img/misc-settings-ndi.png" alt="Miscellaneous NDI settings" class="rounded img-fluid" /></p>
+
+<p>When you configure an <a href="https://ndi.video/">NDI®</a> display you assign a “frames per second” (FPS) <em>capture</em> rate for that display. This setting controls how many frames Praisenter will <em>transmit</em>, which must be higher than the display’s <em>capture</em> rate. Changing this setting can affect performance. The default value of <code class="language-html highlighter-rouge">60</code> FPS is typically a good balance between performance and quality.</p>
+
+<p>The <code class="language-html highlighter-rouge">Enable Render Optimizations</code> setting toggles whether Praisenter analyzes the content currently being displayed over <a href="https://ndi.video/">NDI®</a>. If the content isn’t changing (e.g. static image or text), it will skip sending redundant frames - which can significantly improve performance. This optimization is enabled by default and recommended; but you may turn it off if you encounter problems.</p>
+
+<h2 id="zoom">Zoom<a href="#zoom">#</a></h2>
+<p>The Zoom feature (available under the <code class="language-html highlighter-rouge">Window</code> menu) lets you scale the application interface: you can zoom out to display more content on screen, or zoom in to enlarge text, buttons, and controls - useful for better visibility or for touch-screen use. If you want to go back to the original interface size, use the <code class="language-html highlighter-rouge">Reset Zoom</code> menu command.</p>
+
+<p><img src="assets/img/misc-zoom.png" alt="Miscellaneous zoom" class="rounded img-fluid" /></p>
+
+<h2 id="task-log">Task log<a href="#task-log">#</a></h2>
+<p>As you perform actions in Praisenter (e.g. importing audio/video), they are recorded in the Task Log, which provides feedback on past or pending operations.  This is especially useful when tasks take time (like media import). The Task Log records:</p>
+
+<ul>
+  <li><code class="language-html highlighter-rouge">Name</code> - A description of the task.</li>
+  <li><code class="language-html highlighter-rouge">Operation</code> - The kind of action performed (e.g. Save, Import).</li>
+  <li><code class="language-html highlighter-rouge">Type</code> - The item type the task operated on (e.g. Bible, Song Lyrics, or the file’s <a href="https://en.wikipedia.org/wiki/Media_type">MIME type</a>).</li>
+  <li><code class="language-html highlighter-rouge">Status</code> - The current or final state of the task. Options: <em>In Progress</em>, <em>Success</em>, or <em>Failed</em>.</li>
+  <li><code class="language-html highlighter-rouge">Duration</code> - How long the task took.</li>
+  <li><code class="language-html highlighter-rouge">Description</code> - A human-friendly description of the operation (e.g. “Saving TEST Bible”).</li>
+  <li><code class="language-html highlighter-rouge">Error Message</code> - If the task failed, the error message.</li>
+</ul>
+
+<p><img src="assets/img/misc-task-log.png" alt="Miscellaneous task log" class="rounded img-fluid" /></p>
+
+<p>If a task fails, a <code class="language-html highlighter-rouge">copy</code> button appears - you can use it to copy the error message for reporting the error (e.g. on the Praisenter discussion board).</p>
+
+<p><img src="assets/img/misc-task-log-error.png" alt="Miscellaneous task log" class="rounded img-fluid" /></p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: Task Log entries are not saved permanently - the log clears when you close Praisenter.</p>
+</blockquote>
+
+<h2 id="log-files">Log files<a href="#log-files">#</a></h2>
+<p>Under the <code class="language-html highlighter-rouge">Help</code> menu, you can access two kinds of logs: <code class="language-html highlighter-rouge">Application Logs</code> and <code class="language-html highlighter-rouge">Workspace Logs</code>. Selecting these will open a File Explorer window at the location where the logs are stored. These files may contain useful information if you’re experiencing problems with Praisenter - and are often necessary when reporting issues.</p>
+
+<p><img src="assets/img/misc-help.png" alt="Miscellaneous log files" class="rounded img-fluid" /></p>
+
+<h2 id="check-for-update">Check for update<a href="#check-for-update">#</a></h2>
+<p>The <code class="language-html highlighter-rouge">Check for Update</code> command (found under the <code class="language-html highlighter-rouge">Help</code> menu) lets you check if you are using the latest version of Praisenter.  An internet connection is required for this operation. If you installed Praisenter from the <a href="https://apps.microsoft.com/detail/Praisenter/9PHHWB94W800?launch=true&amp;mode=mini">Microsoft Store</a> or <a href="https://snapcraft.io/praisenter">Snap Store</a>, you will automatically get updates (assuming you are connected to the internet). If you installed via an <code class="language-html highlighter-rouge">MSI</code> or <code class="language-html highlighter-rouge">DEB</code>, you must manually re-install when a new version is released.</p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: Installing from the <a href="https://apps.microsoft.com/detail/Praisenter/9PHHWB94W800?launch=true&amp;mode=mini">Microsoft Store</a> or <a href="https://snapcraft.io/praisenter">Snap Store</a> ensures that you get a legitimate copy of Praisenter - never download Praisenter from any site other than the official <a href="https://github.com/praisenter/praisenter/releases">github page</a>.</p>
+</blockquote>
+
+<p><img src="assets/img/misc-check-for-update.png" alt="Miscellaneous check for update" class="rounded img-fluid" /></p>
+
+<h2 id="about-1">About<a href="#about">#</a></h2>
+<p>The <code class="language-html highlighter-rouge">About</code> command (under the <code class="language-html highlighter-rouge">Help</code> menu) gives details about your currently installed version of Praisenter - this information is useful when reporting problems or checking whether you are up to date.</p>
+
+<p><img src="assets/img/misc-about.png" alt="Miscellaneous about" class="rounded img-fluid" /></p>
+
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<footer>
+    <div class="container-full">
+        
+    </div>
+
+    <script src="assets/js/scroll.js"></script>
+</footer>
+  </body>
+</html>
