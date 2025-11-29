@@ -56,7 +56,7 @@ apps:
 
 parts:
   praisenter:
-#    after: [lib]
+    after: [lib]
     # The assumption is that the .deb file has been moved to the 
     # current directory of this yaml file and renamed so we don't
     # have to manually change any versioning
@@ -64,19 +64,19 @@ parts:
     plugin: dump
     source-type: deb
     
-#  lib:
-#    plugin: nil
-#    # NOTE: these were the only missing libraries as reported by
-#    # snapcraft during build (there were other versions of them
-#    # missing, but I think you only need to stage the latest)
-#
-#    # May need to switch to libavcodec60 when ubuntu-latest goes
-#    # to Ubuntu 23.x
-#    # https://stackoverflow.com/questions/77663867/error-creating-javafx-mediaplayer-using-mp3-on-ubuntu-23-10
-#    # https://bugs.openjdk.org/browse/JDK-8317508
-#    stage-packages:
-#    - libavcodec58
-#    - libavformat58
+  lib:
+    plugin: nil
+    # NOTE: these were the only missing libraries as reported by
+    # snapcraft during build (there were other versions of them
+    # missing, but I think you only need to stage the latest)
+
+    # May need to switch to libavcodec60 when ubuntu-latest goes
+    # to Ubuntu 23.x
+    # https://stackoverflow.com/questions/77663867/error-creating-javafx-mediaplayer-using-mp3-on-ubuntu-23-10
+    # https://bugs.openjdk.org/browse/JDK-8317508
+    stage-packages:
+    - libavcodec61
+    - libavformat61
 
   metadata:
     # I'm using this to pull in the version only
