@@ -79,7 +79,6 @@ final class PraisenterPane extends BorderPane {
 		taskHistoryTab.setClosable(false);
 		
 		Tab manualTab = new Tab(null, new ManualPage(context));
-		// TODO change icon
 		manualTab.setGraphic(this.createTabGraphic(LEFT_NAVIGATION_ICON_MANUAL_CLASS));
 		manualTab.setTooltip(this.createTabTooltip(Translations.get("area.manual")));
 		manualTab.setClosable(false);

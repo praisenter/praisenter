@@ -19,6 +19,8 @@ import org.w3c.dom.html.HTMLAnchorElement;
 import atlantafx.base.controls.CustomTextField;
 import atlantafx.base.theme.Styles;
 import javafx.beans.binding.Bindings;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.concurrent.Worker;
@@ -39,15 +41,21 @@ public final class ManualPage extends BorderPane implements Page {
 	
 	private final StringProperty searchText;
 	
+	private final BooleanProperty canGoBack;
+	private final BooleanProperty canGoForward;
+	
 	public ManualPage(GlobalContext context) {
 		this.searchText = new SimpleStringProperty();
+		this.canGoBack = new SimpleBooleanProperty();
+		this.canGoForward = new SimpleBooleanProperty();
 		
 		URL url = ManualPage.class.getResource("/org/praisenter/manual/manual.html");
-		System.out.println(url);
 		String location = "about:blank";
 		if (url != null) {
 			location = url.toExternalForm();
 		}
+		
+		LOGGER.info("Loading manual page: {}", url);
 		
 		final String home = location;
 		
@@ -75,6 +83,17 @@ public final class ManualPage extends BorderPane implements Page {
 		
 		engine.load(location);
 		
+		this.canGoBack.bind(Bindings.createBooleanBinding(() -> {
+			int index = engine.getHistory().getCurrentIndex();
+			return index > 0;
+		}, engine.getHistory().currentIndexProperty()));
+		
+		this.canGoForward.bind(Bindings.createBooleanBinding(() -> {
+			int index = engine.getHistory().getCurrentIndex();
+			int size = engine.getHistory().getEntries().size();
+			return index < size - 1;
+		}, engine.getHistory().currentIndexProperty()));
+		
 		Button btnHome = new Button();
 		btnHome.getStyleClass().addAll(Styles.BUTTON_ICON, Styles.FLAT);
 		btnHome.setGraphic(Icons.getIcon(Icons.WEB_HOME));
@@ -91,8 +110,7 @@ public final class ManualPage extends BorderPane implements Page {
 				engine.getHistory().go(-1);
 			}
 		});
-		// TODO
-//		btnBack.disableProperty().bind(engine.getHistory().currentIndexProperty().greaterThan(0));
+		btnBack.disableProperty().bind(canGoBack.not());
 		
 		Button btnForward = new Button();
 		btnForward.getStyleClass().addAll(Styles.BUTTON_ICON, Styles.FLAT);
@@ -103,8 +121,7 @@ public final class ManualPage extends BorderPane implements Page {
 				engine.getHistory().go(1);
 			}
 		});
-		// TODO
-//		btnBack.disableProperty().bind(engine.getHistory().currentIndexProperty().lessThan(engine.getHistory().getEntries().));
+		btnForward.disableProperty().bind(canGoForward.not());
 		
 		Button btnRefresh = new Button();
 		btnRefresh.getStyleClass().addAll(Styles.BUTTON_ICON, Styles.FLAT);
@@ -146,7 +163,6 @@ public final class ManualPage extends BorderPane implements Page {
 		HBox.setHgrow(txtLocation, Priority.ALWAYS);
 		controls.setPadding(new Insets(5));
 		
-		
 		this.setCenter(webview);
 		this.setTop(controls);
 		this.getStyleClass().addAll(MANUAL_PAGE_CLASS);
@@ -171,12 +187,10 @@ public final class ManualPage extends BorderPane implements Page {
                     EventTarget target = evt.getCurrentTarget();
                     HTMLAnchorElement anchorElement = (HTMLAnchorElement) target;
                     String href = anchorElement.getHref();
-                    System.out.println(href);
+                    LOGGER.info("Launching external site: {}", href);
                     if (href.startsWith("https://") || href.startsWith("http://")) {
                     	evt.preventDefault();
                     	DesktopLauncher.browse(href);
-                    } else {
-                    	
                     }
                 }
             }, false);

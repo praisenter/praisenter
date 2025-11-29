@@ -40,7 +40,7 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-25">
 		<attributes>
 			<attribute name="module" value="true"/>
-			<attribute name="limit-modules" value="java.rmi,jdk.management.jfr,jdk.jdi,jdk.charsets,java.xml,jdk.xml.dom,java.datatransfer,jdk.jstatd,jdk.httpserver,jdk.jcmd,java.desktop,java.se,jdk.graal.compiler.management,java.security.sasl,jdk.zipfs,java.base,jdk.crypto.ec,jdk.javadoc,jdk.management.agent,jdk.jshell,jdk.editpad,java.sql.rowset,jdk.sctp,jdk.unsupported,java.smartcardio,jdk.jlink,java.security.jgss,java.compiler,jdk.nio.mapmode,jdk.graal.compiler,jdk.dynalink,jdk.unsupported.desktop,jdk.accessibility,jdk.security.jgss,java.sql,jdk.incubator.vector,jdk.hotspot.agent,java.xml.crypto,java.logging,java.transaction.xa,jdk.jfr,jdk.internal.vm.ci,jdk.internal.md,jdk.crypto.cryptoki,jdk.net,java.naming,jdk.internal.ed,java.prefs,java.net.http,jdk.compiler,jdk.naming.rmi,jdk.internal.opt,jdk.jconsole,jdk.attach,jdk.crypto.mscapi,jdk.internal.le,java.management,jdk.jdwp.agent,jdk.internal.jvmstat,java.instrument,jdk.management,jdk.security.auth,java.scripting,jdk.jdeps,jdk.jartool,java.management.rmi,jdk.jpackage,jdk.naming.dns,jdk.localedata"/>
+			<attribute name="limit-modules" value="java.base,java.management,java.net.http,java.sql,java.xml,java.desktop,java.naming,jdk.crypto.ec,jdk.xml.dom"/>
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
