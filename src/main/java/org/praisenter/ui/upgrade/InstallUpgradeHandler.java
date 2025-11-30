@@ -56,8 +56,8 @@ public final class InstallUpgradeHandler {
 	
 	public void performApplicationInstallOrUpgradeSteps() {
 		// ensure folders exist
-		logger.debug("Making sure all application folders exist");
 		this.buildFolders();
+		logger.debug("Making sure all application folders exist");
 		
 		// make sure these files exist
 		logger.debug("Making sure all application files exist");

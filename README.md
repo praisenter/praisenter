@@ -92,11 +92,19 @@ https://partner.microsoft.com/en-us/dashboard/products
 ### Ubuntu Snap
 ```shell
 # to build the snap, navigate to the /snapcraft folder, copy the praisenter.deb there, then run
-snapcraft
+snapcraft pack
 # to install a locally built snap
 sudo snap install --devmode ./praisenter.snap
 # to uninstall a snap
 sudo snap remove praisenter
+
+# to list interfaces
+snap connections praisenter
+# to connect interfaces
+snap connect praisenter:avahi-control
+# to disconnect interfaces
+snap disconnect praisenter:avahi-control
+
 # to upload a new snap to the snapstore
 snapcraft login
 snapcraft upload ./praisenter_3.1.3_amd64.snap

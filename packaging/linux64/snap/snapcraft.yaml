@@ -19,12 +19,30 @@ grade: stable
 confinement: strict
 base: core22
 
+icon: ./icon.png
+website: 
+  - https://praisenter.org
+contact: 
+  - https://github.com/praisenter/praisenter/discussions
+issues: 
+  - https://github.com/praisenter/praisenter/issues
+source-code: 
+  - https://github.com/praisenter/praisenter
+license: BSD-3-Clause
+
 # use lzo compression to speed up open time (makes the package larger though)
 # https://snapcraft.io/docs/snapcraft-top-level-metadata
 compression: lzo
 
+architectures:
+  - amd64
+
 apps:
   praisenter:
+    # Get sound / video w/ sounds working
+    # https://forum.snapcraft.io/t/how-to-record-audio-on-snap-jack-server-is-not-running-or-cannot-be-started/44169/9
+    environment:
+      ALSA_CONFIG_PATH: $SNAP/etc/asound.conf
     # NOTE the command here  (used to be something like 
     # "desktop-launch $SNAP/..." which just didn't work
     # https://forum.snapcraft.io/t/missing-libraries-for-deb-using-core22-base/38436
@@ -53,6 +71,8 @@ apps:
       - audio-playback              # AUTO-CONNECT
       - hardware-observe            # NO
       - gsettings                   # AUTO-CONNECT (for theme detection)
+      - browser-support             # AUTO-CONNECT
+      - screen-inhibit-control      # AUTO-CONNECT
 
 parts:
   praisenter:
@@ -63,7 +83,18 @@ parts:
     source: ./praisenter.deb
     plugin: dump
     source-type: deb
-    
+
+  # Get sound / video w/ sounds working
+  # https://forum.snapcraft.io/t/how-to-record-audio-on-snap-jack-server-is-not-running-or-cannot-be-started/44169/9
+  alsa-config:
+    plugin: dump
+    source: ./asound.conf
+    source-type: file
+    organize:
+      asound.conf: etc/asound.conf
+    prime:
+      - etc/asound.conf
+
   lib:
     plugin: nil
     # NOTE: these were the only missing libraries as reported by
@@ -77,6 +108,10 @@ parts:
     stage-packages:
     - libavcodec-dev
     - libavformat-dev
+    # Get sound / video w/ sounds working
+    # https://forum.snapcraft.io/t/how-to-record-audio-on-snap-jack-server-is-not-running-or-cannot-be-started/44169/9
+    - libasound2
+    - libasound2-plugins
 
   metadata:
     # I'm using this to pull in the version only
