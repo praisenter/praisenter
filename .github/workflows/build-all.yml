@@ -20,13 +20,35 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-24.04, windows-latest] # macos-latest
+        os: [ubuntu-latest, windows-latest] # macos-latest
     runs-on: ${{ matrix.os }}
     steps:
       # Get latest from the current branch
       - uses: actions/checkout@v4
+        # with:
+        #   lfs: true
+
+      # List git LFS files
+      - name: Create Git LFS file list
+        run: git lfs ls-files -l |cut -d' ' -f1 |sort >.git/lfs-hashes.txt
+
+      # Restore LFS files from cache
+      - name: Restore Git LFS object cache
+        uses: actions/cache@v4
         with:
-          lfs: true
+          path: .git/lfs
+          key: ${{ runner.os }}-lfsdata-v1-${{ hashFiles('.git/lfs-hashes.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-lfsdata-v1-
+            ${{ runner.os }}-lfsdata
+
+      # Check latest LFS files
+      - name: Fetch any needed Git LFS objects and prune extraneous ones
+        run: git lfs fetch --prune
+
+      # Get latest LFS files
+      - name: Check out Git LFS content
+        run: git lfs checkout
       
       # This pulls the version number from the release-version.txt file
       - name: Read version
