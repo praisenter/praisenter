@@ -64,12 +64,12 @@ jobs:
         uses: microsoft/setup-msbuild@v2
         if: runner.os == 'Windows'
         
-      # # Install FFmpeg (UBUNTU)
-      # - name: Install FFmpeg
-      #   if: runner.os == 'Linux'
-      #   run: |
-      #     sudo apt-get update
-      #     sudo apt-get install -y libavcodec-dev libavformat-dev
+      # Install FFmpeg (UBUNTU)
+      - name: Install FFmpeg
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libavcodec-dev libavformat-dev
 
       # Install Wix 6
       # https://github.com/petr-panteleyev/jpackage-gradle-plugin/issues/38#issuecomment-2873402088

@@ -75,8 +75,8 @@ parts:
     # https://stackoverflow.com/questions/77663867/error-creating-javafx-mediaplayer-using-mp3-on-ubuntu-23-10
     # https://bugs.openjdk.org/browse/JDK-8317508
     stage-packages:
-    - libavcodec58
-    - libavformat58
+    - libavcodec-dev
+    - libavformat-dev
 
   metadata:
     # I'm using this to pull in the version only
