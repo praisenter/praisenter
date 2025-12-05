@@ -72,7 +72,7 @@ apps:
       - hardware-observe            # NO
       - gsettings                   # AUTO-CONNECT (for theme detection)
       - browser-support             # AUTO-CONNECT
-      - screen-inhibit-control      # AUTO-CONNECT
+      - mount-observe               # AUTO-CONNECT
 
 parts:
   praisenter:

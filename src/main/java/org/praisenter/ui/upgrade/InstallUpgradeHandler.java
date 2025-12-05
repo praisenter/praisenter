@@ -128,6 +128,7 @@ public final class InstallUpgradeHandler {
 		for (Path path : paths) {
 			try {
 				Files.createDirectories(path);
+				logger.debug("Created directory '" + path.toAbsolutePath() + "'.");
 			} catch (IOException ex) {
 				logger.fatal("Failed to create directory '" + path.toAbsolutePath() + "'.");
 				throw new RuntimeException(ex);
