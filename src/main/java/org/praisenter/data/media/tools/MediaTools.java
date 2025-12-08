@@ -114,8 +114,16 @@ public final class MediaTools {
 				if (!Files.exists(this.ffmpeg)) Files.copy(MediaTools.class.getResourceAsStream("/org/praisenter/data/media/tools/windows64/ffmpeg.exe"), this.ffmpeg, StandardCopyOption.REPLACE_EXISTING);
 				if (!Files.exists(this.ffprobe)) Files.copy(MediaTools.class.getResourceAsStream("/org/praisenter/data/media/tools/windows64/ffprobe.exe"), this.ffprobe, StandardCopyOption.REPLACE_EXISTING);
 			} else if (RuntimeProperties.IS_MAC_OS) {
-				if (!Files.exists(this.ffmpeg)) Files.copy(MediaTools.class.getResourceAsStream("/org/praisenter/data/media/tools/macos64/ffmpeg"), this.ffmpeg, StandardCopyOption.REPLACE_EXISTING);
-				if (!Files.exists(this.ffprobe)) Files.copy(MediaTools.class.getResourceAsStream("/org/praisenter/data/media/tools/macos64/ffprobe"), this.ffprobe, StandardCopyOption.REPLACE_EXISTING);
+				if (!Files.exists(this.ffmpeg)) {
+					Files.copy(MediaTools.class.getResourceAsStream("/org/praisenter/data/media/tools/macos64/ffmpeg"), this.ffmpeg, StandardCopyOption.REPLACE_EXISTING);
+					// make sure they are executable
+					Files.setPosixFilePermissions(this.ffmpeg, PosixFilePermissions.fromString("rwxrwxrwx"));
+				}
+				if (!Files.exists(this.ffprobe)) {
+					Files.copy(MediaTools.class.getResourceAsStream("/org/praisenter/data/media/tools/macos64/ffprobe"), this.ffprobe, StandardCopyOption.REPLACE_EXISTING);
+					// make sure they are executable
+					Files.setPosixFilePermissions(this.ffprobe, PosixFilePermissions.fromString("rwxrwxrwx"));
+				}
 			} else if (RuntimeProperties.IS_LINUX_OS) {
 				if (!Files.exists(this.ffmpeg)) {
 					Files.copy(MediaTools.class.getResourceAsStream("/org/praisenter/data/media/tools/linux64/ffmpeg"), this.ffmpeg, StandardCopyOption.REPLACE_EXISTING);

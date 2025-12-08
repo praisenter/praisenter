@@ -87,10 +87,6 @@
         
         <!-- This is used to set many user-visible fields in the Windows Installer. See win-jpackage.txt -->
         <app.vendor>Praisenter</app.vendor>
-        
-        <!-- Empty properties to skip signing by default. Set with the macos-sign Maven profile -->
-        <macos.sign></macos.sign>
-        <macos.sign.identity></macos.sign.identity>
 	</properties>
 
 	<dependencyManagement>
@@ -450,10 +446,26 @@
         It would be great if Maven automatically added the os family as a property by default
          -->
         <profile>
+            <id>mac-active</id>
+            <activation>
+                <os>
+                    <family>mac</family>
+                </os>
+            </activation>
+            <properties>
+                <platform>macos64</platform>
+                <!-- mac-aarch64 for M1 -->
+                <jfx.platform>mac</jfx.platform>
+                <package>dmg</package>
+            </properties>
+        </profile>
+         
+        <profile>
             <id>unix-active</id>
             <activation>
                 <os>
                     <family>unix</family>
+                    <name>Linux</name>
                 </os>
             </activation>
             <properties>

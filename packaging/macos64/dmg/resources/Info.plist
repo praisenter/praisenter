@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>LSMinimumSystemVersion</key>
+  <string>10.15</string>
+  <key>CFBundleDevelopmentRegion</key>
+  <string>en</string>
+  <key>CFBundleAllowMixedLocalizations</key>
+  <true/>
+  <key>CFBundleExecutable</key>
+  <string>Praisenter</string>
+  <key>CFBundleIconFile</key>
+  <string>Praisenter.icns</string>
+  <key>CFBundleIdentifier</key>
+  <string>org.praisenter</string>
+  <key>CFBundleInfoDictionaryVersion</key>
+  <string>6.0</string>
+  <key>CFBundleName</key>
+  <string>Praisenter</string>
+  <key>NSHumanReadableCopyright</key>
+  <string>(C) Praisenter</string>
+  <key>NSHighResolutionCapable</key>
+  <string>true</string>
+  
+  <!-- packaging settings -->
+  <key>CFBundlePackageType</key>
+  <string>APPL</string>
+  <key>CFBundleSupportedPlatforms</key>
+  <array>
+	<string>MacOSX</string>
+  </array>
+  
+  <!-- See https://developer.apple.com/app-store/categories/ for list of AppStore categories -->
+  <key>LSApplicationCategoryType</key>
+  <string>public.app-category.utilities</string>
+  
+  <!-- Version settings -->
+  <key>CFBundleShortVersionString</key>
+  <string>3.1.7</string>
+  <key>CFBundleVersion</key>
+  <string>3.1.7</string>
+  
+  <!-- Set reasons for entitlements -->
+  <key>NSDesktopFolderUsageDescription</key>
+  <string>The application will access the Desktop folder to allow a user to import a file that they have downloaded into the application for use in creating content like slides.</string>
+  <key>NSDocumentsFolderUsageDescription</key>
+  <string>The application will access the Documents folder to allow a user to import a file that they have downloaded into the application for use in creating content like slides.</string>
+  <key>NSDownloadsFolderUsageDescription</key>
+  <string>The application will access the Downloads folder to allow a user to import a file that they have downloaded into the application for use in creating content like slides.</string>
+  <key>NSPhotoLibraryUsageDescription</key>
+  <string>The application will access the photo library to allow a user to import a photo into the application for use in creating content like slides.</string>
+</dict>
+</plist>

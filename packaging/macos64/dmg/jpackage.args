@@ -1,6 +1,6 @@
 --type dmg
 --name ${app.name}
---icon "${project.basedir}/packaging/macos64/dmg/app-icon.icns"
+--icon "${project.basedir}/packaging/macos64/dmg/resources/Praisenter.icns"
 --dest "${project.build.directory}"
 --main-jar ${project.build.finalName}.jar
 --main-class ${main-class}
@@ -12,8 +12,7 @@
 --description "${project.description}"
 --copyright "(C) ${app.vendor}"
 --about-url "https://praisenter.org/"
---mac-package-identifier "org.praisenter"
---mac-package-name ${app.vendor}
+--verbose
 --java-options "-Xms1g"
 --java-options "--add-exports=javafx.base/com.sun.javafx.event=ALL-UNNAMED"
 --java-options "--add-exports=javafx.graphics/com.sun.javafx.scene=ALL-UNNAMED"
@@ -26,5 +25,11 @@
 --java-options "--add-opens=javafx.controls/javafx.scene.control.skin=ALL-UNNAMED"
 --java-options "--add-opens=javafx.graphics/javafx.scene=ALL-UNNAMED"
 --java-options "--enable-native-access=ALL-UNNAMED,javafx.graphics,javafx.media,javafx.web"
-${macos.sign}
-${macos.sign.identity}
+--mac-sign
+--mac-app-store
+--mac-package-identifier "org.praisenter"
+--mac-package-name ${app.vendor}
+--mac-entitlements "${project.basedir}/packaging/macos64/dmg/entitlements.plist"
+--mac-package-signing-prefix "org.praisenter"
+--mac-app-category utilities
+--resource-dir "${project.basedir}/packaging/macos64/dmg/resources"
