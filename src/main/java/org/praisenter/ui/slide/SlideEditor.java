@@ -57,6 +57,7 @@ import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DataFormat;
 import javafx.scene.input.Dragboard;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
@@ -280,6 +281,13 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 				}).thenRun(() -> {
 					e.setDropCompleted(true);
 				});
+			}
+		});
+		
+		this.addEventHandler(KeyEvent.ANY, e -> {
+			EditNode selected = this.selected.get();
+			if (selected != null) {
+				selected.handleKeyEvent(e);
 			}
 		});
 	}

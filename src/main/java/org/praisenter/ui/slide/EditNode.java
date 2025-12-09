@@ -18,6 +18,8 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderStroke;
@@ -67,6 +69,10 @@ final class EditNode extends StackPane {
 	
 	/** The current height of the region */
 	private double h;
+	
+	private boolean mouseInteractionInProgress;
+	
+	private KeyCode keyInteractionInProgress;
 	
 	public EditNode(
 			DocumentContext<Slide> document,
@@ -152,13 +158,19 @@ final class EditNode extends StackPane {
 			r.setStrokeLineJoin(StrokeLineJoin.MITER);
 			r.setStrokeMiterLimit(BORDER_SIZE);
 			r.addEventHandler(MouseEvent.ANY, e -> {
-				if (e.getEventType() == MouseEvent.MOUSE_PRESSED ||
-					e.getEventType() == MouseEvent.MOUSE_CLICKED) {
+				if (this.keyInteractionInProgress != null)
+					return;
+				
+				if (e.getEventType() == MouseEvent.MOUSE_PRESSED) {
+					this.mouseInteractionInProgress = true;
+					pressed(e, r.getCursor());
+				} else if (e.getEventType() == MouseEvent.MOUSE_CLICKED) {
 					pressed(e, r.getCursor());
 				} else if (e.getEventType() == MouseEvent.MOUSE_DRAGGED) {
 					dragged(e);
 				} else if (e.getEventType() == MouseEvent.MOUSE_RELEASED) {
-					apply(e);
+					apply();
+					this.mouseInteractionInProgress = false;
 				}
 				e.consume();
 			});
@@ -188,13 +200,19 @@ final class EditNode extends StackPane {
 		
 		this.addEventHandler(MouseEvent.MOUSE_PRESSED, e -> this.selected.set(true));
 		this.addEventHandler(MouseEvent.ANY, e -> {
-			if (e.getEventType() == MouseEvent.MOUSE_PRESSED ||
-				e.getEventType() == MouseEvent.MOUSE_CLICKED) {
+			if (this.keyInteractionInProgress != null)
+				return;
+			
+			if (e.getEventType() == MouseEvent.MOUSE_PRESSED) {
+				this.mouseInteractionInProgress = true;
+				pressed(e, Cursor.MOVE);
+			} else if (e.getEventType() == MouseEvent.MOUSE_CLICKED) {
 				pressed(e, Cursor.MOVE);
 			} else if (e.getEventType() == MouseEvent.MOUSE_DRAGGED) {
 				dragged(e);
 			} else if (e.getEventType() == MouseEvent.MOUSE_RELEASED) {
-				apply(e);
+				apply();
+				this.mouseInteractionInProgress = false;
 			} else if (e.getEventType() == MouseEvent.MOUSE_ENTERED) {
 				if (!this.isSelected()) {
 					editBorder.setBorder(hoverBorder);
@@ -218,6 +236,73 @@ final class EditNode extends StackPane {
 		this.setSnapToPixel(true);
 		
 //		this.setBackground(new Background(new BackgroundFill(random(), null, null)));
+	}
+	
+	public void handleKeyEvent(KeyEvent e) {
+		if (this.mouseInteractionInProgress)
+			return;
+		
+		if (!this.selected.get())
+			return;
+		
+		SlideComponent sc = this.component.get();
+		if (sc == null)
+			return;
+
+		KeyCode key = e.getCode();
+		if (key != KeyCode.LEFT &&
+			key != KeyCode.RIGHT &&
+			key != KeyCode.UP &&
+			key != KeyCode.DOWN) {
+			return;
+		}
+
+		double x = sc.getX();
+		double y = sc.getY();
+		double s = 1.0 / this.getScale();
+		double dp = this.isSnapToGridEnabled() ? GRID_SIZE : 2 * s;
+		
+		if (e.getEventType() == KeyEvent.KEY_PRESSED) {
+			// when we're starting a left/right/up/down interaction
+			// and we don't already have one going, then record
+			// the original x/y of the component
+			if (this.keyInteractionInProgress == null) {
+				this.x = sc.getX();
+				this.y = sc.getY();
+				this.w = sc.getWidth();
+				this.h = sc.getHeight();
+			} else if (this.keyInteractionInProgress != key) {
+				// if the user starts pressing a different key
+				// while holding the first key, then record the
+				// change for the last key and start over
+				apply();
+				this.x = sc.getX();
+				this.y = sc.getY();
+				this.w = sc.getWidth();
+				this.h = sc.getHeight();
+			}
+			
+			// track the last key that was pressed, just in case
+			// a user holds down left, then presses up (now both
+			// are being held), etc.  We'll use this to know when
+			// to stop and record the change
+			this.keyInteractionInProgress = key;
+			
+			if (key == KeyCode.LEFT) {
+				this.positionChanged(x - dp, y);
+			} else if (key == KeyCode.RIGHT) {
+				this.positionChanged(x + dp, y);
+			} else if (key == KeyCode.UP) {
+				this.positionChanged(x, y - dp);
+			} else if (key == KeyCode.DOWN) {
+				this.positionChanged(x, y + dp);
+			}
+		} else if (e.getEventType() == KeyEvent.KEY_RELEASED) {
+			if (this.keyInteractionInProgress == key) {
+				apply();
+				this.keyInteractionInProgress = null;
+			}
+		}
 	}
 	
 //	private Color random() {
@@ -359,7 +444,7 @@ final class EditNode extends StackPane {
 	 * @param point the point
 	 * @return Point
 	 */
-	protected double snapToGrid(double value) {
+	private double snapToGrid(double value) {
 		if (this.snapToGridEnabled.get()) {
 			return roundAtHalf((int)value, GRID_SIZE);
 		}
@@ -393,9 +478,8 @@ final class EditNode extends StackPane {
 	
 	/**
 	 * Records the action performed to the undo manager for easy undo/redo.
-	 * @param e the mouse event
 	 */
-	private void apply(MouseEvent e) {
+	private void apply() {
 		SlideComponent component = this.component.get();
 		
 		double sx = this.x;
