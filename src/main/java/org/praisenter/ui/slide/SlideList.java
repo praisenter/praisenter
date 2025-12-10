@@ -1,16 +1,26 @@
 package org.praisenter.ui.slide;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.Constants;
+import org.praisenter.data.TextStore;
 import org.praisenter.data.json.JsonIO;
+import org.praisenter.data.slide.Slide;
+import org.praisenter.data.slide.SlideComponent;
 //import org.praisenter.data.slide.Slide;
 import org.praisenter.data.slide.SlideReference;
+import org.praisenter.data.slide.text.TextPlaceholderComponent;
 import org.praisenter.ui.Action;
 import org.praisenter.ui.ActionPane;
 import org.praisenter.ui.DataFormats;
@@ -81,6 +91,8 @@ public final class SlideList extends ListView<SlideReference> implements ActionP
 		// right click menu support
 		ContextMenu menu = new ContextMenu();
 		menu.getItems().addAll(
+			this.createMenuItem(Action.QUICK_SLIDE_FROM_QUEUED),
+			new SeparatorMenuItem(),
 			this.createMenuItem(Action.SELECT_NONE),
 			new SeparatorMenuItem(),
 			this.createMenuItem(Action.COPY),
@@ -107,6 +119,8 @@ public final class SlideList extends ListView<SlideReference> implements ActionP
 	@Override
 	public CompletableFuture<Void> executeAction(Action action) {
 		switch (action) {
+			case QUICK_SLIDE_FROM_QUEUED:
+				return saveQueuedSlide();
 			case SELECT_NONE:
 				this.getSelectionModel().clearSelection();
 				break;
@@ -132,6 +146,8 @@ public final class SlideList extends ListView<SlideReference> implements ActionP
 	public boolean isActionEnabled(Action action) {
 		List<?> selection = this.getSelectionModel().getSelectedItems();
 		switch (action) {
+			case QUICK_SLIDE_FROM_QUEUED:
+				return !selection.isEmpty();
 			case SELECT_NONE:
 				return true;
 			case DELETE:
@@ -156,6 +172,50 @@ public final class SlideList extends ListView<SlideReference> implements ActionP
 	@Override
 	public void setDefaultFocus() {
 		this.requestFocus();
+	}
+	
+	private CompletableFuture<Void> saveQueuedSlide() {
+		List<SlideReference> items = new ArrayList<>(this.getSelectionModel().getSelectedItems());
+		int n = items.size();
+		if (n > 0) {
+			SlideReference sr = items.get(0);
+			if (sr != null) {
+				TextStore txt = sr.getPlaceholderData();
+				Slide slide = this.context.getWorkspaceManager().getItem(Slide.class, sr.getSlideId());
+				if (slide == null) {
+					return CompletableFuture.completedFuture(null);
+				}
+				
+				// now we need to replace every placeholder element with a normal text element
+				Slide copy = slide.copy();
+				copy.setId(UUID.randomUUID());
+				copy.setName(Translations.get("action.new.untitled", LocalDateTime.now().format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT, FormatStyle.SHORT))));
+				if (txt != null) {
+					copy.setPlaceholderData(txt.copy());
+				}
+				
+				// replace things and re-id things
+				Map<Integer, SlideComponent> toReplace = new HashMap<>();
+				for (int i = 0; i < copy.getComponents().size(); i++) {
+					SlideComponent sc = copy.getComponents().get(i);
+					sc.setId(UUID.randomUUID());
+					if (sc instanceof TextPlaceholderComponent) {
+						TextPlaceholderComponent tpc = (TextPlaceholderComponent)sc;
+						toReplace.put(i, tpc.toTextComponent());
+					}
+				}
+				
+				// now replace the placeholder components w/ text components
+				for (var kvp : toReplace.entrySet()) {
+					copy.getComponents().set(kvp.getKey(), kvp.getValue());
+				}
+				
+				// now open the slide in the editor
+				this.context.openDocument(copy, true);
+			}
+		}
+		
+		return CompletableFuture.completedFuture(null);
 	}
 	
 	private CompletableFuture<Void> delete() {

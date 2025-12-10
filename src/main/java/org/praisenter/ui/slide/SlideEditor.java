@@ -495,10 +495,13 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 		if (clipboard.hasContent(DataFormats.PRAISENTER_SLIDE_COMPONENT_ARRAY)) {
 			try {
 				SlideComponent[] components = JsonIO.read((String)clipboard.getContent(DataFormats.PRAISENTER_SLIDE_COMPONENT_ARRAY), SlideComponent[].class);
-				// offset them slightly
 				for (SlideComponent sc : components) {
+					// offset the component if pasting into the same slide
+					boolean offset = this.slide.get().getComponent(sc.getId()) != null;
 					sc.setId(UUID.randomUUID());
-					sc.translate(20, 20);
+					if (offset) {
+						sc.translate(20, 20);
+					}
 				}
 				this.slide.get().getComponents().addAll(components);
 				

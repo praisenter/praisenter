@@ -14,6 +14,7 @@ public enum Action {
 	SAVE("action.save", new KeyCodeCombination(KeyCode.S, KeyCombination.SHORTCUT_DOWN), getGraphicSupplier(Icons.SAVE)),
 	SAVE_ALL("action.saveall", new KeyCodeCombination(KeyCode.S, KeyCombination.SHIFT_DOWN, KeyCombination.SHORTCUT_DOWN), getGraphicSupplier(Icons.SAVE_ALL)),
 	SAVE_AS("action.saveas", getGraphicSupplier(Icons.SAVE_AS)),
+	
 	RENAME("action.rename", new KeyCodeCombination(KeyCode.R, KeyCombination.SHORTCUT_DOWN), getGraphicSupplier(Icons.RENAME)),
 	DELETE("action.delete", new KeyCodeCombination(KeyCode.DELETE), getGraphicSupplier(Icons.DELETE)),
 	
@@ -90,7 +91,8 @@ public enum Action {
 	DOWNLOAD_UNBOUND_BIBLES("action.download.unbound"),
 	DOWNLOAD_OPENSONG_BIBLES("action.download.opensong"),
 	
-	QUICK_SLIDE_FROM_MEDIA("action.new.slide.fromMedia", null, getGraphicSupplier(Icons.NEW))
+	QUICK_SLIDE_FROM_MEDIA("action.new.slide.fromMedia", getGraphicSupplier(Icons.NEW)),
+	QUICK_SLIDE_FROM_QUEUED("action.new.slide.fromQueue", getGraphicSupplier(Icons.NEW))
 	;
 	
 	private static final Supplier<Node> getGraphicSupplier(String icon) {
