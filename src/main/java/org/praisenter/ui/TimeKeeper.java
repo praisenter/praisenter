@@ -10,12 +10,17 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 
 public final class TimeKeeper {
+	private static final ObjectProperty<LocalDateTime> PREVIOUS_TIME = new SimpleObjectProperty<>(LocalDateTime.now());
 	private static final ObjectProperty<LocalDateTime> CURRENT_TIME = new SimpleObjectProperty<>(LocalDateTime.now());
+	
 	private static final Timer TIMER = new Timer("Time Updater", true);
 	private static final TimerTask TIMER_TASK = new TimerTask() {
 		@Override
 		public void run() {
 			Platform.runLater(() -> {
+				// save the previous time
+				PREVIOUS_TIME.set(CURRENT_TIME.get());
+				// update the current time
 				CURRENT_TIME.set(LocalDateTime.now());
 			});
 		}
@@ -33,5 +38,13 @@ public final class TimeKeeper {
 	
 	public static final LocalDateTime getCurrentTime() {
 		return CURRENT_TIME.get();
+	}
+	
+	public static final ReadOnlyObjectProperty<LocalDateTime> previousTimeProperty() {
+		return PREVIOUS_TIME;
+	}
+	
+	public static final LocalDateTime getPreviousTime() {
+		return PREVIOUS_TIME.get();
 	}
 }

@@ -1,7 +1,9 @@
 package org.praisenter.ui.slide;
 
 import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -23,6 +25,7 @@ import org.praisenter.data.slide.graphics.SlideStrokeType;
 import org.praisenter.data.slide.media.MediaComponent;
 import org.praisenter.data.slide.media.MediaObject;
 import org.praisenter.data.slide.text.CountdownComponent;
+import org.praisenter.data.slide.text.CountdownMode;
 import org.praisenter.data.slide.text.DateTimeComponent;
 import org.praisenter.data.slide.text.FontScaleType;
 import org.praisenter.data.slide.text.HorizontalTextAlignment;
@@ -49,6 +52,7 @@ import org.praisenter.ui.controls.LongSpinnerValueFactory;
 import org.praisenter.ui.controls.SimpleDateFormatConverter;
 import org.praisenter.ui.controls.TagListView;
 import org.praisenter.ui.controls.TextInputFieldEventFilter;
+import org.praisenter.ui.controls.TimeSpinner;
 import org.praisenter.ui.controls.TimeStringConverter;
 import org.praisenter.ui.controls.WidthHeightPicker;
 import org.praisenter.ui.document.DocumentContext;
@@ -164,6 +168,8 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 	
 	// countdown component
 	private final ObjectProperty<CountdownComponent> selectedCountdownComponent;
+	private final ObjectProperty<CountdownMode> componentCountdownMode;
+	private final ObjectProperty<Duration> componentCountdownDuration;
 	private final ObjectProperty<LocalDateTime> componentCountdownTarget;
 	private final BooleanProperty componentCountdownTimeOnly;
 	private final BooleanProperty componentCountdownStopAtZero;
@@ -247,6 +253,8 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 		this.componentDateTimeFormat = new SimpleObjectProperty<>();
 		
 		this.selectedCountdownComponent = new SimpleObjectProperty<>();
+		this.componentCountdownMode = new SimpleObjectProperty<>();
+		this.componentCountdownDuration = new SimpleObjectProperty<>();
 		this.componentCountdownFormat = new SimpleStringProperty();
 		this.componentCountdownTarget = new SimpleObjectProperty<>();
 		this.componentCountdownTimeOnly = new SimpleBooleanProperty();
@@ -417,12 +425,16 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 		
 		this.selectedCountdownComponent.addListener((obs, ov, nv) -> {
 			if (ov != null) {
+				this.componentCountdownMode.unbindBidirectional(ov.countdownModeProperty());
+				this.componentCountdownDuration.unbindBidirectional(ov.countdownDurationProperty());
 				this.componentCountdownFormat.unbindBidirectional(ov.countdownFormatProperty());
 				this.componentCountdownTarget.unbindBidirectional(ov.countdownTargetProperty());
 				this.componentCountdownTimeOnly.unbindBidirectional(ov.countdownTimeOnlyProperty());
 				this.componentCountdownStopAtZero.unbindBidirectional(ov.stopAtZeroEnabledProperty());
 			}
 			if (nv != null) {
+				this.componentCountdownMode.bindBidirectional(nv.countdownModeProperty());
+				this.componentCountdownDuration.bindBidirectional(nv.countdownDurationProperty());
 				this.componentCountdownFormat.bindBidirectional(nv.countdownFormatProperty());
 				this.componentCountdownTarget.bindBidirectional(nv.countdownTargetProperty());
 				this.componentCountdownTimeOnly.bindBidirectional(nv.countdownTimeOnlyProperty());
@@ -673,6 +685,26 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 		
 		// countdown component
 		
+		ObservableList<Option<CountdownMode>> countdownModeOptions = FXCollections.observableArrayList();
+		for (CountdownMode type : CountdownMode.values()) {
+			countdownModeOptions.add(new Option<CountdownMode>(Translations.get("slide.countdown.mode." + type), type));
+		}
+		ChoiceBox<Option<CountdownMode>> cbComponentCountdownMode = new ChoiceBox<>(countdownModeOptions);
+		cbComponentCountdownMode.setMaxWidth(Double.MAX_VALUE);
+		BindingHelper.bindBidirectional(cbComponentCountdownMode.valueProperty(), this.componentCountdownMode);
+		
+		TimeSpinner spnComponentCountdownDuration = new TimeSpinner();
+		BindingHelper.bindBidirectional(this.componentCountdownDuration, spnComponentCountdownDuration.getValueFactory().valueProperty(), new ObjectConverter<Duration, LocalTime>() {
+			@Override
+			public LocalTime convertFrom(Duration t) {
+				return t != null ? LocalTime.MIN.plus(t) : LocalTime.now();
+			}
+			@Override
+			public Duration convertTo(LocalTime e) {
+				return Duration.between(LocalTime.MIN, e);
+			}
+		});
+		
 		DateTimePicker pkrComponentCountdownTarget = new DateTimePicker();
 		pkrComponentCountdownTarget.valueProperty().bindBidirectional(this.componentCountdownTarget);
 
@@ -751,7 +783,8 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 		EditorField fldPlaceholderType = new EditorField(Translations.get("slide.placeholder.type"), Translations.get("slide.placeholder.type.description"), cbComponentTextType);
 		EditorField fldPlaceholderVariant = new EditorField(Translations.get("slide.placeholder.variant"), Translations.get("slide.placeholder.variant.description"), cbComponentTextVariant);
 		EditorField fldDateTimeFormat = new EditorField(Translations.get("slide.datetime.format"), cmbComponentDateTimeFormat);
-//		EditorField fldCountdownTarget = new EditorField(pkrComponentCountdownTarget);
+		EditorField fldCountdownMode = new EditorField(Translations.get("slide.countdown.mode"), cbComponentCountdownMode);
+		EditorField fldCountdownDuration = new EditorField(Translations.get("slide.countdown.duration"), spnComponentCountdownDuration);
 		EditorField fldCountdownFormat = new EditorField(Translations.get("slide.countdown.format"), cmbComponentCountdownFormat);
 		EditorField fldCountdownTimeOnly = new EditorField(Translations.get("slide.countdown.timeonly"), Translations.get("slide.countdown.timeonly.description"), boxComponentCountdownTimeOnly);
 		EditorField fldCountdownStopAtZero = new EditorField(Translations.get("slide.countdown.stopatzero"), Translations.get("slide.countdown.stopatzero.description"), boxComponentCountdownStopAtZero);
@@ -760,6 +793,8 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 		fldPlaceholderType.managedProperty().bind(fldPlaceholderType.visibleProperty());
 		fldPlaceholderVariant.managedProperty().bind(fldPlaceholderVariant.visibleProperty());
 		fldDateTimeFormat.managedProperty().bind(fldDateTimeFormat.visibleProperty());
+		fldCountdownMode.managedProperty().bind(fldCountdownMode.visibleProperty());
+		fldCountdownDuration.managedProperty().bind(fldCountdownDuration.visibleProperty());
 		pkrComponentCountdownTarget.managedProperty().bind(pkrComponentCountdownTarget.visibleProperty());
 		fldCountdownFormat.managedProperty().bind(fldCountdownFormat.visibleProperty());
 		fldCountdownTimeOnly.managedProperty().bind(fldCountdownTimeOnly.visibleProperty());
@@ -772,6 +807,8 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 				fldPlaceholderType,
 				fldPlaceholderVariant,
 				fldDateTimeFormat,
+				fldCountdownMode,
+				fldCountdownDuration,
 				pkrComponentCountdownTarget,
 				fldCountdownTimeOnly,
 				fldCountdownStopAtZero,
@@ -783,6 +820,8 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 			fldPlaceholderType,
 			fldPlaceholderVariant,
 			fldDateTimeFormat,
+			fldCountdownMode,
+			fldCountdownDuration,
 			pkrComponentCountdownTarget,
 			fldCountdownFormat,
 			fldCountdownTimeOnly,
@@ -791,6 +830,10 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 		};
 		
 		this.selectedComponent.addListener((obs, ov, nv) -> {
+			fldCountdownDuration.visibleProperty().unbind();
+			pkrComponentCountdownTarget.visibleProperty().unbind();
+			fldCountdownTimeOnly.visibleProperty().unbind();
+			
 			for (Node field : componentTypeFields) {
 				field.setVisible(false);
 			}
@@ -802,9 +845,12 @@ public final class SlideSelectionEditor extends VBox implements DocumentSelectio
 				} else if (nv instanceof DateTimeComponent) {
 					fldDateTimeFormat.setVisible(true);
 				} else if (nv instanceof CountdownComponent) {
-					pkrComponentCountdownTarget.setVisible(true);
+					fldCountdownDuration.visibleProperty().bind(this.componentCountdownMode.isEqualTo(CountdownMode.FIXED_DURATION));
+					pkrComponentCountdownTarget.visibleProperty().bind(this.componentCountdownMode.isEqualTo(CountdownMode.TARGET_DATE_TIME));
+					fldCountdownTimeOnly.visibleProperty().bind(this.componentCountdownMode.isEqualTo(CountdownMode.TARGET_DATE_TIME));
+					
+					fldCountdownMode.setVisible(true);
 					fldCountdownFormat.setVisible(true);
-					fldCountdownTimeOnly.setVisible(true);
 					fldCountdownStopAtZero.setVisible(true);
 				} else if (nv instanceof TextComponent) {
 					fldText.setVisible(true);

@@ -1,5 +1,6 @@
 package org.praisenter.data.slide.text;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 
 import org.praisenter.data.Copyable;
@@ -11,6 +12,10 @@ import javafx.beans.property.ReadOnlyObjectProperty;
 
 public interface ReadOnlyTimedTextComponent extends ReadOnlyTextComponent, ReadOnlySlideComponent, ReadOnlySlideRegion, Copyable, Identifiable {
 	public LocalDateTime getNow();
+	public LocalDateTime getStartTime();
+	public Duration getAccumulatedTime();
 	
 	public ReadOnlyObjectProperty<LocalDateTime> nowProperty();
+	public ReadOnlyObjectProperty<LocalDateTime> startTimeProperty();
+	public ReadOnlyObjectProperty<Duration> accumulatedTimeProperty();
 }

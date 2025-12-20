@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2016 William Bittle  http://www.praisenter.org/
+ * Copyright (c) 2015-2025 William Bittle  http://www.praisenter.org/
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without modification, are permitted 
@@ -24,6 +24,7 @@
  */
 package org.praisenter.data.slide.text;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 
 import org.praisenter.data.Copyable;
@@ -35,13 +36,15 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 
 /**
  * A component to show the current date and time based on a given format.
  * @author William Bittle
- * @version 3.0.0
+ * @version 3.1.8
  */
 @JsonTypeInfo(
 	use = JsonTypeInfo.Id.NAME, 
@@ -52,9 +55,17 @@ import javafx.beans.property.SimpleObjectProperty;
 })
 public abstract class TimedTextComponent extends TextComponent implements ReadOnlyTimedTextComponent, ReadOnlyTextComponent, ReadOnlySlideComponent, ReadOnlySlideRegion, Copyable, Identifiable {
 	protected final ObjectProperty<LocalDateTime> now;
+	protected final ObjectProperty<LocalDateTime> startTime;
+	protected final ObjectProperty<Duration> accumulatedTime;
 	
 	public TimedTextComponent() {
 		this.now = new SimpleObjectProperty<>(LocalDateTime.now());
+		this.startTime = new SimpleObjectProperty<LocalDateTime>(LocalDateTime.now());
+		this.accumulatedTime = new SimpleObjectProperty<>(Duration.ZERO);
+		
+		this.accumulatedTime.bind(Bindings.createObjectBinding(() -> {
+			return Duration.between(this.startTime.get(), this.now.get());
+		}, this.now, this.startTime));
 	}
 	
 	// will only be bound/set when in use
@@ -71,5 +82,29 @@ public abstract class TimedTextComponent extends TextComponent implements ReadOn
 	@Override
 	public ObjectProperty<LocalDateTime> nowProperty() {
 		return this.now;
+	}
+	
+	@Override
+	public LocalDateTime getStartTime() {
+		return this.startTime.get();
+	}
+	
+	public void setStartTime(LocalDateTime startTime) {
+		this.startTime.set(startTime);
+	}
+	
+	@Override
+	public ObjectProperty<LocalDateTime> startTimeProperty() {
+		return this.startTime;
+	}
+	
+	@Override
+	public Duration getAccumulatedTime() {
+		return this.accumulatedTime.get();
+	}
+	
+	@Override
+	public ReadOnlyObjectProperty<Duration> accumulatedTimeProperty() {
+		return this.accumulatedTime;
 	}
 }

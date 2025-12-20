@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2016 William Bittle  http://www.praisenter.org/
+ * Copyright (c) 2015-2025 William Bittle  http://www.praisenter.org/
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without modification, are permitted 
@@ -24,6 +24,7 @@
  */
 package org.praisenter.data.slide.text;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -32,6 +33,8 @@ import java.time.temporal.ChronoUnit;
 import org.praisenter.Watchable;
 import org.praisenter.data.Copyable;
 import org.praisenter.data.Identifiable;
+import org.praisenter.data.json.DurationJsonDeserializer;
+import org.praisenter.data.json.DurationJsonSerializer;
 import org.praisenter.data.json.LocalDateTimeJsonDeserializer;
 import org.praisenter.data.json.LocalDateTimeJsonSerializer;
 import org.praisenter.data.slide.ReadOnlySlideComponent;
@@ -54,7 +57,7 @@ import javafx.beans.property.StringProperty;
 /**
  * A component to show a count down to a specified local time.
  * @author William Bittle
- * @version 3.0.0
+ * @version 3.1.8
  */
 @JsonTypeInfo(
 	use = JsonTypeInfo.Id.NAME,
@@ -63,26 +66,47 @@ import javafx.beans.property.StringProperty;
 public final class CountdownComponent extends TimedTextComponent implements ReadOnlyCountdownComponent, ReadOnlyTimedTextComponent, ReadOnlyTextComponent, ReadOnlySlideComponent, ReadOnlySlideRegion, Copyable, Identifiable {
 	public static final String DEFAULT_FORMAT = "%1$02d:%2$02d:%3$02d:%4$02d:%5$02d:%6$02d";
 	
+	private final ObjectProperty<CountdownMode> countdownMode;
+	private final ObjectProperty<Duration> countdownDuration;
+	
 	private final ObjectProperty<LocalDateTime> countdownTarget;
 	private final BooleanProperty countdownTimeOnly;
 	private final BooleanProperty stopAtZeroEnabled;
 	private final StringProperty countdownFormat;
 	
 	public CountdownComponent() {
+		this.countdownMode = new SimpleObjectProperty<>(CountdownMode.TARGET_DATE_TIME);
+		this.countdownDuration = new SimpleObjectProperty<Duration>(Duration.ZERO);
 		this.countdownTarget = new SimpleObjectProperty<>();
 		this.countdownTimeOnly = new SimpleBooleanProperty(false);
 		this.stopAtZeroEnabled = new SimpleBooleanProperty(true);
 		this.countdownFormat = new SimpleStringProperty(DEFAULT_FORMAT);
 		
 		this.text.bind(Bindings.createStringBinding(() -> {
+			CountdownMode mode = this.countdownMode.get();
 			boolean timeOnly = this.countdownTimeOnly.get();
 			boolean stopAtZero = this.stopAtZeroEnabled.get();
-			LocalDateTime target = this.countdownTarget.get();
 			LocalDateTime now = this.now.get();
-			String format = this.countdownFormat.get();
 			
-			if (target == null) target = LocalDateTime.now();
-			if (format == null) format = DEFAULT_FORMAT;
+			String format = this.countdownFormat.get();
+			if (format == null) 
+				format = DEFAULT_FORMAT;
+			
+			Duration duration = this.countdownDuration.get();
+			if (duration == null)
+				duration = Duration.ZERO;
+			
+			LocalDateTime start = this.startTime.get();
+			if (start == null)
+				start = now;
+			
+			LocalDateTime target = this.countdownTarget.get();
+			if (mode == CountdownMode.FIXED_DURATION) {
+				target = start.plus(duration);
+			}
+			
+			if (target == null) 
+				target = now;
 			
 			if (timeOnly) {
 				// get the time of the target only
@@ -92,18 +116,22 @@ public final class CountdownComponent extends TimedTextComponent implements Read
 					target = target.plusDays(1);
 				}
 			}
-			
+
 			return formatCountdown(format, target, now, stopAtZero);
-		}, this.countdownTarget, this.countdownFormat, this.countdownTimeOnly, this.stopAtZeroEnabled, this.now));
+		}, this.countdownMode, this.countdownDuration, this.countdownTarget, this.countdownFormat, 
+		   this.countdownTimeOnly, this.stopAtZeroEnabled, this.startTime, this.now));
 	}
 	
 	@Override
 	public CountdownComponent copy() {
 		CountdownComponent cc = new CountdownComponent();
 		this.copyTo(cc);
+		cc.countdownDuration.set(this.countdownDuration.get());
+		cc.countdownMode.set(this.countdownMode.get());
 		cc.countdownFormat.set(this.countdownFormat.get());
 		cc.countdownTarget.set(this.countdownTarget.get());
 		cc.countdownTimeOnly.set(this.countdownTimeOnly.get());
+		cc.stopAtZeroEnabled.set(this.stopAtZeroEnabled.get());
 		return cc;
 	}
 	
@@ -160,7 +188,43 @@ public final class CountdownComponent extends TimedTextComponent implements Read
 		        minutes,
 		        seconds);
 	}
-
+	
+	@Override
+	@JsonProperty
+	public CountdownMode getCountdownMode() {
+		return this.countdownMode.get();
+	}
+	
+	@JsonProperty
+	public void setCountdownMode(CountdownMode mode) {
+		this.countdownMode.set(mode);
+	}
+	
+	@Override
+	@Watchable(name = "countdownMode")
+	public ObjectProperty<CountdownMode> countdownModeProperty() {
+		return this.countdownMode;
+	}
+	
+	@Override
+	@JsonProperty
+	@JsonSerialize(using = DurationJsonSerializer.class)
+	public Duration getCountdownDuration() {
+		return this.countdownDuration.get();
+	}
+	
+	@JsonProperty
+	@JsonDeserialize(using = DurationJsonDeserializer.class)
+	public void setCountdownDuration(Duration duration) {
+		this.countdownDuration.set(duration);
+	}
+	
+	@Override
+	@Watchable(name = "countdownDuration")
+	public ObjectProperty<Duration> countdownDurationProperty() {
+		return this.countdownDuration;
+	}
+	
 	@Override
 	@JsonProperty
 	@JsonSerialize(using = LocalDateTimeJsonSerializer.class)

@@ -74,16 +74,20 @@ final class TextComponentNode extends SlideComponentNode<TextComponent> {
 		
 		// initialize the now properties for Timed text components
 		if (region instanceof TimedTextComponent) {
+			LocalDateTime now = LocalDateTime.now();
+			
 			TimedTextComponent ttc = (TimedTextComponent)region;
 			ttc.nowProperty().unbind();
-			ttc.setNow(LocalDateTime.now());
+			ttc.setNow(now);
+			ttc.setStartTime(now);
 
 			this.mode.addListener((obs, ov, nv) -> {
 				ttc.nowProperty().unbind();
 				if (nv == SlideMode.PRESENT) {
 					ttc.nowProperty().bind(TimeKeeper.currentTimeProperty());
 				} else {
-					ttc.setNow(LocalDateTime.now());
+					ttc.setNow(now);
+					ttc.setStartTime(now);
 				}
 			});
 		}
@@ -272,5 +276,17 @@ final class TextComponentNode extends SlideComponentNode<TextComponent> {
 		}
 		
 		return font;
+	}
+	
+	@Override
+	public void play() {
+		super.play();
+		// start a countdown duration
+		// NOTE: countdowns cannot be paused at this time
+		if (region instanceof TimedTextComponent) {
+			LocalDateTime now = LocalDateTime.now();
+			TimedTextComponent ttc = (TimedTextComponent)region;
+			ttc.setStartTime(now);
+		}
 	}
 }
