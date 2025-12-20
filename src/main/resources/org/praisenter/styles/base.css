@@ -235,10 +235,9 @@
 
 /* TASKLIST PAGE */
 .p-tasklist-page {
-	-fx-padding: 1em;
 }
 .p-tasklist-page .p-tasklist-title {
-	-fx-padding: 0 0 0.55em 0;
+	-fx-padding: 0.55em;
 }
 .p-tasklist-page .p-tasklist-split {
 	-fx-padding: 0 0 0 0;
@@ -265,6 +264,13 @@
 .p-tasklist-page .p-tasklist-split .p-tasklist-page-fields {
 	-fx-padding: 1em 0 1em 1em;
 	-fx-spacing: 0.5em;
+}
+.p-task-list-cell {
+	-fx-padding: 0.75em 1em 1em 0.5em;
+	-fx-cell-size: null;
+}
+.p-task-list-cell-icon {
+	-fx-padding: 0 0.5em 0 0;
 }
 
 /* LIBRARY PAGE */
