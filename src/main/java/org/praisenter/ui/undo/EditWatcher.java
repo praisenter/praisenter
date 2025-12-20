@@ -84,6 +84,7 @@ final class EditWatcher implements Watcher {
 						this.register(name, target, set);
 					} else if (returnValue instanceof ReadOnlyProperty) {
 						// ignore this
+						LOGGER.debug("The property '" + name + "' on '" + target.getClass().getName() + "' is a readonly property, so no need to watch it.");
 					} else {
 						LOGGER.warn("Unknown return value type '" + returnValue.getClass().getName() + "' from '" + method.getName() + "' on '" + clazz.getName() + "'. Skipping.");
 					}
@@ -117,6 +118,14 @@ final class EditWatcher implements Watcher {
 	 * The value of the property will also be watched if it's an object.
 	 */
 	public <E, T> void register(String name, E target, Property<T> property) {
+		// don't watch bound properties
+		// this usually only happens with text components that bind the
+		// text property to something that generates the text
+		if (property.isBound()) {
+			LOGGER.warn("The property '" + name + "' on '" + target.getClass().getName() + "' is bound, so we can't undo/redo changes to this property.");
+			return;
+		}
+		
 		ChangeListener<T> listener = (obs, ov, nv) -> {
 			Edit edit = new PropertyEdit<T>(name, property, ov, nv);
 			this.onEdit.accept(edit);
