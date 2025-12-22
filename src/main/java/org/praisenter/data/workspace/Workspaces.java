@@ -30,18 +30,14 @@ public final class Workspaces implements ReadOnlyWorkspaces, Identifiable {
 	private final StringProperty format;
 	private final StringProperty version;
 	private final ObjectProperty<UUID> id;
-	
-	private final StringProperty lastSelectedWorkspace;
-	
-	private final ObservableSet<String> workspaces;
+
+	private final ObservableSet<WorkspaceReference> workspaces;
 	
 	public Workspaces() {
 		this.format = new SimpleStringProperty(Constants.FORMAT_NAME);
 		this.version = new SimpleStringProperty(Version.STRING);
 		this.id = new SimpleObjectProperty<UUID>(UUID.randomUUID());
-		
-		this.lastSelectedWorkspace = new SimpleStringProperty();
-		
+
 		this.workspaces = FXCollections.observableSet(new HashSet<>());
 	}
 
@@ -109,33 +105,17 @@ public final class Workspaces implements ReadOnlyWorkspaces, Identifiable {
 	}
 	
 	@Override
-	@JsonProperty
-	public String getLastSelectedWorkspace() {
-		return this.lastSelectedWorkspace.get();
-	}
-	
-	@JsonProperty
-	public void setLastSelectedWorkspace(String path) {
-		this.lastSelectedWorkspace.set(path);
-	}
-	
-	@Override
-	public StringProperty lastSelectedWorkspaceProperty() {
-		return this.lastSelectedWorkspace;
-	}
-	
-	@Override
-	public ObservableSet<String> getWorkspacesUnmodifiable() {
+	public ObservableSet<WorkspaceReference> getWorkspacesUnmodifiable() {
 		return this.workspaces;
 	}
 	
 	@JsonProperty
-	public ObservableSet<String> getWorkspaces() {
+	public ObservableSet<WorkspaceReference> getWorkspaces() {
 		return this.workspaces;
 	}
 	
 	@JsonProperty
-	public void setWorkspaces(Set<String> workspaces) {
+	public void setWorkspaces(Set<WorkspaceReference> workspaces) {
 		this.workspaces.addAll(workspaces);
 	}
 }

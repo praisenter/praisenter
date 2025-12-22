@@ -8,13 +8,9 @@ import javafx.collections.ObservableSet;
 public interface ReadOnlyWorkspaces extends Identifiable {
 	public String getFormat();
 	public String getVersion();
-	
-	public String getLastSelectedWorkspace();
 
 	public ReadOnlyStringProperty formatProperty();
 	public ReadOnlyStringProperty versionProperty();
-	
-	public ReadOnlyStringProperty lastSelectedWorkspaceProperty();
-	
-	public ObservableSet<String> getWorkspacesUnmodifiable();
+
+	public ObservableSet<WorkspaceReference> getWorkspacesUnmodifiable();
 }

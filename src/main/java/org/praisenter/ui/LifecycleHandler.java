@@ -3,6 +3,7 @@ package org.praisenter.ui;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
@@ -24,6 +25,7 @@ import org.praisenter.async.AsyncHelper;
 import org.praisenter.data.SingleFileManager;
 import org.praisenter.data.workspace.WorkspaceConfiguration;
 import org.praisenter.data.workspace.WorkspaceManager;
+import org.praisenter.data.workspace.WorkspaceReference;
 import org.praisenter.data.workspace.Workspaces;
 import org.praisenter.ui.controls.Dialogs;
 import org.praisenter.ui.controls.WindowHelper;
@@ -74,7 +76,7 @@ public final class LifecycleHandler {
 		this.restart(context, null);
 	}
 	
-	public void restart(GlobalContext context, Path workspacePath) {
+	public void restart(GlobalContext context, WorkspaceReference workspaceReference) {
 		Stage stage = context.stage;
 		Application application = context.application;
 		
@@ -95,7 +97,7 @@ public final class LifecycleHandler {
 				
 				// start the app
 				LOGGER.info("Starting the application.");
-				this.start(application, stage, workspacePath);
+				this.start(application, stage, workspaceReference);
 			}
 		})).exceptionally((e) -> {
 			// log it
@@ -111,7 +113,7 @@ public final class LifecycleHandler {
 		this.start(application, stage, null);
 	}
 	
-	public void start(Application application, Stage stage, Path workspacePath) throws IOException {
+	public void start(Application application, Stage stage, WorkspaceReference workspaceReference) throws IOException {
 		long startTime = System.nanoTime();
 
     	// the very first step is to do any install initialization or 
@@ -170,8 +172,8 @@ public final class LifecycleHandler {
 		Path path = Paths.get(Constants.ROOT_PATH, "workspaces.json");
 		SingleFileManager<Workspaces> fm = SingleFileManager.open(path, Workspaces.class, new Workspaces());
 		
-		CompletableFuture<Optional<Path>> workspacePathFuture = null;
-		if (workspacePath == null) {
+		CompletableFuture<Optional<WorkspaceReference>> workspacePathFuture = null;
+		if (workspaceReference == null) {
 			LOGGER.info("Prompting for workspace selection.");
 			WorkspaceSelectionPane wss = new WorkspaceSelectionPane(fm);
 			
@@ -192,48 +194,49 @@ public final class LifecycleHandler {
 			workspacePathFuture = wss.getSelectedWorkspace();
 		} else {
 			LOGGER.info("Workspace path already given - no prompt necessary");
-			workspacePathFuture = CompletableFuture.completedFuture(Optional.of(workspacePath));
+			workspacePathFuture = CompletableFuture.completedFuture(Optional.of(workspaceReference));
 		}
 		
-		workspacePathFuture.thenApplyAsync((owp) -> {
+		workspacePathFuture.thenApplyAsync((owspr) -> {
 			// get the workspace path
 			LOGGER.info("Workspace selection complete.");
 			
 			// if they don't choose anything, then just exit
-			if (owp.isEmpty()) {
+			if (owspr.isEmpty()) {
 				LOGGER.info("No workspace was chosen, exiting...");
 				// exit the application
 				throw new CompletionException(new NoWorkspaceSelectedException());
 			}
 			
-	    	final Path wsp = owp.get();
-	    	LOGGER.info("Workspace '" + wsp.toAbsolutePath() + "' was selected.  Opening...");
+	    	final WorkspaceReference wsp = owspr.get();
+	    	LOGGER.info("Workspace '" + wsp.getPath().toAbsolutePath() + "' was selected.  Opening...");
 	    	return wsp;
-		}).thenApplyAsync((wsp) -> {
+		}).thenApplyAsync((wspr) -> {
 			// open the workspace
     		try {
     			// get all the other workspaces
-    			Set<Path> otherWorkspaces = fm.getData().getWorkspaces()
+    			Set<WorkspaceReference> otherWorkspaces = fm.getData().getWorkspaces()
     					.stream()
-    					.map(s -> Paths.get(s))
-    					.filter(s -> !s.equals(wsp))
+    					.filter(s -> !s.equals(wspr))
     					.collect(Collectors.toSet());
     			
     			// build the workspace manager
-    			WorkspaceManager wsm = WorkspaceManager.open(wsp, otherWorkspaces);
-    			LOGGER.info("Workspace '" + wsp.toAbsolutePath()+ "' was opened successfully.");
+    			WorkspaceManager wsm = WorkspaceManager.open(wspr, otherWorkspaces);
+    			LOGGER.info("Workspace '" + wspr.getPath().toAbsolutePath() + "' was opened successfully.");
     			return wsm;
     		} catch (Exception ex) {
-    			LOGGER.error("Failed to open the workspace at '" + wsp.toAbsolutePath() + "': " + ex.getMessage(), ex);
+    			LOGGER.error("Failed to open the workspace at '" + wspr.getPath().toAbsolutePath() + "': " + ex.getMessage(), ex);
     			throw new CompletionException(ex);
     		}
     	}).thenCompose((workspaceManager) -> {
     		LOGGER.info("Saving workspaces configuration file.");
     		// save the workspaces config file with the new
     		// last workspace opened and if there's a new workspace
-    		String wsp = workspaceManager.getWorkspacePathResolver().getBasePath().toAbsolutePath().toString();
+    		WorkspaceReference wsp = workspaceManager.getWorkspaceReference();
+    		wsp.setLastOpenDate(LocalDateTime.now());
     		fm.getData().setVersion(Version.STRING);
-    		fm.getData().setLastSelectedWorkspace(wsp);
+    		// remove and add the workspace reference so we can update the last used time
+    		fm.getData().getWorkspaces().remove(wsp);
     		fm.getData().getWorkspaces().add(wsp);
     		return fm.saveData().thenApply((v) -> {
     			return workspaceManager;

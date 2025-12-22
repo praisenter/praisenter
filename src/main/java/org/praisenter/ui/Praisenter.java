@@ -4,6 +4,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
 
+import org.praisenter.data.workspace.WorkspaceReference;
+
 import atlantafx.base.theme.PrimerDark;
 import javafx.application.Application;
 import javafx.stage.Stage;
@@ -31,17 +33,19 @@ public final class Praisenter extends Application {
     	Map<String, String> named = params.getNamed();
     	
     	// specified by --workspace=C:\path\to\workspace
-    	Path path = null;
+    	WorkspaceReference wr = null;
     	String workspacePathString = named.get("workspace");
     	if (workspacePathString != null) {
     		try {
-    			path = Paths.get(workspacePathString);
+    			Path path = Paths.get(workspacePathString);
+    			wr = new WorkspaceReference();
+    			wr.setPath(path);
     		} catch (Exception ex) {
     			// just ignore it if we get an exception
     		}
     	}
 
     	LifecycleHandler lifecycleHandler = new LifecycleHandler();
-    	lifecycleHandler.start(this, stage, path);
+    	lifecycleHandler.start(this, stage, wr);
     }
 }

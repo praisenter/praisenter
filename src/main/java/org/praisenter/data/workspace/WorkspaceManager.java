@@ -56,7 +56,8 @@ public final class WorkspaceManager {
 	private final WorkspacePathResolver pathResolver;
 	private final WorkspaceConfiguration workspaceConfiguration;
 	private final SearchIndex searchIndex;
-	private final Set<Path> otherWorkspaces;
+	private final WorkspaceReference workspaceReference;
+	private final Set<WorkspaceReference> otherWorkspaces;
 	private final boolean newWorkspace;
 	
 	private final ConcurrentMap<Class<?>, PersistentStore<?>> adapters;
@@ -73,11 +74,13 @@ public final class WorkspaceManager {
 			WorkspacePathResolver pathResolver,
 			WorkspaceConfiguration workspaceConfiguration,
 			SearchIndex searchIndex,
-			Set<Path> otherWorkspaces,
+			WorkspaceReference workspaceReference,
+			Set<WorkspaceReference> otherWorkspaces,
 			boolean isNewWorkspace) {
 		this.pathResolver = pathResolver;
 		this.workspaceConfiguration = workspaceConfiguration;
 		this.searchIndex = searchIndex;
+		this.workspaceReference = workspaceReference;
 		this.otherWorkspaces = otherWorkspaces;
 		this.newWorkspace = isNewWorkspace;
 		
@@ -92,8 +95,8 @@ public final class WorkspaceManager {
 		this.tagsReadOnly = FXCollections.unmodifiableObservableSet(this.tags);
 	}
 	
-	public static WorkspaceManager open(Path basePath, Set<Path> otherWorkspaces) throws IOException {
-		WorkspacePathResolver pathResolver = new WorkspacePathResolver(basePath);
+	public static WorkspaceManager open(WorkspaceReference workspaceReference, Set<WorkspaceReference> otherWorkspaces) throws IOException {
+		WorkspacePathResolver pathResolver = new WorkspacePathResolver(workspaceReference.getPath());
 		boolean isNewWorkspace = false;
 		
 		// create all the paths for the workspace
@@ -157,6 +160,7 @@ public final class WorkspaceManager {
 				pathResolver,
 				workspaceConfiguration,
 				searchIndex,
+				workspaceReference,
 				Collections.unmodifiableSet(otherWorkspaces),
 				isNewWorkspace);
 	}
@@ -179,7 +183,11 @@ public final class WorkspaceManager {
 		});
 	}
 	
-	public Set<Path> getOtherWorkspaces() {
+	public WorkspaceReference getWorkspaceReference() {
+		return this.workspaceReference;
+	}
+	
+	public Set<WorkspaceReference> getOtherWorkspaces() {
 		return this.otherWorkspaces;
 	}
 	

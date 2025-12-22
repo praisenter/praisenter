@@ -4,7 +4,6 @@ import java.awt.Desktop;
 import java.awt.EventQueue;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -17,6 +16,7 @@ import org.apache.logging.log4j.Logger;
 import org.praisenter.Constants;
 import org.praisenter.Version;
 import org.praisenter.async.AsyncHelper;
+import org.praisenter.data.workspace.WorkspaceReference;
 import org.praisenter.ui.controls.Dialogs;
 import org.praisenter.ui.controls.WindowHelper;
 import org.praisenter.ui.translations.Translations;
@@ -56,10 +56,10 @@ final class MainMenu extends MenuBar {
 		this.setUseSystemMenuBar(true);
 		
 		Menu workspacesMenu = new Menu(Translations.get("menu.workspace.switch"));
-		for (Path path : context.getWorkspaceManager().getOtherWorkspaces()) {
-			MenuItem mnuSelectWorkspace = new MenuItem(path.toAbsolutePath().toString());
+		for (WorkspaceReference wr : context.getWorkspaceManager().getOtherWorkspaces()) {
+			MenuItem mnuSelectWorkspace = new MenuItem(wr.getPath().toAbsolutePath().toString());
 			mnuSelectWorkspace.setOnAction(e -> {
-				this.switchWorkspace(path);
+				this.switchWorkspace(wr);
 			});
 			workspacesMenu.getItems().add(mnuSelectWorkspace);
 		}
@@ -291,14 +291,14 @@ final class MainMenu extends MenuBar {
 		}));
 	}
 	
-	private void switchWorkspace(Path path) {
+	private void switchWorkspace(WorkspaceReference workspaceReference) {
 		LifecycleHandler lifecycleHandler = new LifecycleHandler();
-		lifecycleHandler.restart(this.context, path);
+		lifecycleHandler.restart(this.context, workspaceReference);
 	}
 	
 	private void restart() {
 		LifecycleHandler lifecycleHandler = new LifecycleHandler();
-		lifecycleHandler.restart(this.context, this.context.workspaceManager.getWorkspacePathResolver().getBasePath());
+		lifecycleHandler.restart(this.context, this.context.workspaceManager.getWorkspaceReference());
 	}
 	
 	private void exit() {
