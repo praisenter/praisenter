@@ -37,18 +37,18 @@
   
   <!-- Version settings -->
   <key>CFBundleShortVersionString</key>
-  <string>3.1.7</string>
+  <string>3.1.8</string>
   <key>CFBundleVersion</key>
-  <string>3.1.7</string>
+  <string>3.1.8</string>
   
   <!-- Set reasons for entitlements -->
   <key>NSDesktopFolderUsageDescription</key>
-  <string>The application will access the Desktop folder to allow a user to import a file that they have downloaded into the application for use in creating content like slides.</string>
+  <string>Praisenter would like access to the Desktop folder to allow you to import and export files from this location.</string>
   <key>NSDocumentsFolderUsageDescription</key>
-  <string>The application will access the Documents folder to allow a user to import a file that they have downloaded into the application for use in creating content like slides.</string>
+  <string>Praisenter would like access to the Documents folder to allow you to import and export files from this location.</string>
   <key>NSDownloadsFolderUsageDescription</key>
-  <string>The application will access the Downloads folder to allow a user to import a file that they have downloaded into the application for use in creating content like slides.</string>
+  <string>Praisenter would like access to the Downloads folder to allow you to import and export files from/to this location.</string>
   <key>NSPhotoLibraryUsageDescription</key>
-  <string>The application will access the photo library to allow a user to import a photo into the application for use in creating content like slides.</string>
+  <string>Praisenter would like access to the Photo Library to allow you to import and export files from this location.</string>
 </dict>
 </plist>

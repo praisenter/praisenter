@@ -20,7 +20,7 @@
 	<true/>
 	<key>com.apple.security.assets.pictures.read-only</key>
 	<true/>
-	<key>com.apple.security.files.downloads.read-only</key>
+	<key>com.apple.security.files.downloads.read-write</key>
 	<true/>
 	<key>com.apple.security.files.user-selected.read-write</key>
 	<true/>
@@ -30,15 +30,11 @@
 	<true/>
     <key>com.apple.security.network.server</key>
 	<true/>
-    <key>com.apple.security.inherit</key>
+	<key>com.apple.security.inherit</key>
 	<true/>
-	<key>com.apple.developer.kernel.increased-memory-limit</key>
-	<true/>
-	<key>com.apple.developer.media-device-discovery-extension</key>
-	<true/>
-	<key>com.apple.developer.user-fonts</key>
-	<array>
-		<string>app-usage</string>
-	</array>
+	<key>com.apple.application-identifier</key>
+   	<string>W9HCQKU68J.org.praisenter</string>
+   	<key>com.apple.developer.team-identifier</key>
+   	<string>W9HCQKU68J</string>
 </dict>
 </plist>
