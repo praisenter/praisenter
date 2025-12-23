@@ -82,7 +82,8 @@ final class WorkspaceSelectionPane extends VBox {
 				.collect(Collectors.toList());
 		this.workspaces.addAll(initialWorkspaceList);
 		
-		final WorkspaceReference lastSelectedWorkspace = initialWorkspaceList.get(0);
+		final WorkspaceReference lastSelectedWorkspace = 
+				initialWorkspaceList.size() > 0 ? initialWorkspaceList.get(0) : null;
 		
 		Label lblSelectAWorkspace = new Label(Translations.get("workspace.title"));
 		lblSelectAWorkspace.getStyleClass().add(WORKSPACE_SELECTION_PANE_TITLE_CLASS);
