@@ -263,6 +263,8 @@ final class WorkspaceSelectionPane extends VBox {
 					LOGGER.info("Security scoped bookmark created successfully for workspace: '" + wr.getPath().toAbsolutePath() + "'");
 				} catch (Exception ex) {
 					LOGGER.error("Failed to create bookmark for workspace folder '" + wr.getPath().toAbsolutePath() + "'", ex);
+				} catch (UnsatisfiedLinkError ex) {
+					LOGGER.error("Failed to create bookmark for workspace folder '" + wr.getPath().toAbsolutePath() + "'", ex);
 				}
 			}
 			

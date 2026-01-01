@@ -658,7 +658,9 @@ public final class LifecycleHandler {
 	    			LOGGER.info("Security scoped bookmark for workspace '" + path + "' acquired successfully");
 	    		} catch (Exception ex) {
 	    			LOGGER.error("Failed to acquire the security scoped bookmark for workspace: '" + path + "'", ex);
-	    		}
+	    		} catch (UnsatisfiedLinkError ex) {
+	    			LOGGER.error("Failed to acquire the security scoped bookmark for workspace: '" + path + "'", ex);
+				}
 	    	}
     	}
     }
@@ -676,7 +678,9 @@ public final class LifecycleHandler {
 					SecurityScopedBookmarks.stopResourceAccessingImpl(securityToken);
 					LOGGER.info("Security scoped bookmark for workspace '" + path + "' released successfully");
 				} catch (Exception ex) {
-					LOGGER.error("Failed to release the security scoped bookmark for workspace '" + path + "'", ex);
+					LOGGER.error("Failed to release the security scoped bookmark for workspace: '" + path + "'", ex);
+				} catch (UnsatisfiedLinkError ex) {
+	    			LOGGER.error("Failed to release the security scoped bookmark for workspace: '" + path + "'", ex);
 				}
 			}
 		}
