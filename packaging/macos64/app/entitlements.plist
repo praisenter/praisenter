@@ -30,7 +30,9 @@
 	<true/>
     <key>com.apple.security.network.server</key>
 	<true/>
-	<key>com.apple.security.inherit</key>
+	<key>com.apple.security.files.bookmarks.app-scope</key>
+	<true/>
+	<key>com.apple.security.files.user-selected.executable</key>
 	<true/>
 	<key>com.apple.application-identifier</key>
    	<string>W9HCQKU68J.org.praisenter</string>

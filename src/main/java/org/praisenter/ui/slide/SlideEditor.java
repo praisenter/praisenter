@@ -34,6 +34,7 @@ import org.praisenter.ui.document.DocumentEditor;
 import org.praisenter.ui.events.ActionStateChangedEvent;
 import org.praisenter.ui.translations.Translations;
 import org.praisenter.ui.undo.UndoManager;
+import org.praisenter.utility.RuntimeProperties;
 import org.praisenter.utility.Scaling;
 import org.praisenter.utility.StringManipulator;
 
@@ -58,6 +59,7 @@ import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DataFormat;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
@@ -229,7 +231,10 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 		
 		// when the user clicks anywhere, make sure the context menu is hidden
 		this.addEventHandler(MouseEvent.MOUSE_CLICKED, e -> {
-			if (e.isPopupTrigger()) return;
+			if (e.isPopupTrigger()) 
+				return;
+			if (RuntimeProperties.IS_MAC_OS && (e.isControlDown() || e.getButton() == MouseButton.SECONDARY))
+				return;
 			menu.hide();
 		});
 

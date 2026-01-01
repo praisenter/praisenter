@@ -1,0 +1,24 @@
+<?xml version="1.0" ?>
+<installer-gui-script minSpecVersion="1">
+  <!-- https://developer.apple.com/library/archive/documentation/DeveloperTools/Reference/DistributionDefinitionRef/Chapters/Distribution_XML_Ref.html -->
+  <title>Praisenter</title>
+  <background file="Praisenter-background.png" mime-type="image/png" alignment="bottomleft" scaling="none"></background>
+  <background-darkAqua file="Praisenter-background-darkAqua.png" mime-type="image/png" alignment="bottomleft" scaling="none"></background-darkAqua>
+  <pkg-ref id="org.praisenter"></pkg-ref>
+  <choice id="org.praisenter" visible="false">
+    <pkg-ref id="org.praisenter"></pkg-ref>
+  </choice>
+  <pkg-ref id="org.praisenter" version="#VERSION#" onConclusion="none">Praisenter-app.pkg</pkg-ref>
+  <options customize="never" require-scripts="false" hostArchitectures="x86_64"></options>
+  <choices-outline>
+    <line choice="default">
+      <line choice="org.praisenter"></line>
+    </line>
+  </choices-outline>
+  <choice id="default"></choice>
+  <volume-check>
+    <allowed-os-versions>
+      <os-version min="10.15"/>
+    </allowed-os-versions>
+  </volume-check>
+</installer-gui-script>

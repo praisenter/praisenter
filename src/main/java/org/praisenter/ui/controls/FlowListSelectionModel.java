@@ -33,6 +33,7 @@ import java.util.stream.Collectors;
 
 import org.praisenter.ui.bind.MappedList2;
 import org.praisenter.ui.events.FlowListViewSelectionEvent;
+import org.praisenter.utility.RuntimeProperties;
 
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
@@ -496,7 +497,11 @@ public final class FlowListSelectionModel<T> {
 			// mouse button was used on this cell then don't
 			// do anything, this should show the context menu
 			// and keep this node selected
-			if (event.isPopupTrigger() && selected) {
+			if (selected && event.isPopupTrigger()) {
+				return;
+			}
+			
+			if (selected && RuntimeProperties.IS_MAC_OS && (event.isControlDown() || event.getButton() == MouseButton.SECONDARY)) {
 				return;
 			}
 			

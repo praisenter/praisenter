@@ -1,6 +1,6 @@
---type pkg
+--type app-image
 --name ${app.name}
---icon "${project.basedir}/packaging/macos64/dmg/resources/Praisenter.icns"
+--icon "${project.basedir}/packaging/macos64/app/resources/Praisenter.icns"
 --dest "${project.build.directory}"
 --main-jar ${project.build.finalName}.jar
 --main-class ${main-class}
@@ -11,8 +11,6 @@
 --vendor ${app.vendor}
 --description "${project.description}"
 --copyright "(C) ${app.vendor}"
---about-url "https://praisenter.org/"
---app-content "${project.basedir}/packaging/macos64/dmg/resources/embedded.provisionprofile"
 --verbose
 --java-options "-Xms1g"
 --java-options "--add-exports=javafx.base/com.sun.javafx.event=ALL-UNNAMED"
@@ -26,11 +24,7 @@
 --java-options "--add-opens=javafx.controls/javafx.scene.control.skin=ALL-UNNAMED"
 --java-options "--add-opens=javafx.graphics/javafx.scene=ALL-UNNAMED"
 --java-options "--enable-native-access=ALL-UNNAMED,javafx.graphics,javafx.media,javafx.web"
---mac-sign
---mac-app-store
 --mac-package-identifier "org.praisenter"
 --mac-package-name ${app.vendor}
---mac-entitlements "${project.basedir}/packaging/macos64/dmg/entitlements.plist"
---mac-package-signing-prefix "org.praisenter."
 --mac-app-category utilities
---resource-dir "${project.basedir}/packaging/macos64/dmg/resources"
+--resource-dir "${project.basedir}/packaging/macos64/app/resources"
