@@ -20,10 +20,12 @@ import org.praisenter.data.workspace.DisplayConfiguration;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.slide.SlideMode;
 import org.praisenter.ui.slide.SlideView;
+import org.praisenter.utility.RuntimeProperties;
 
 import javafx.beans.value.ChangeListener;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.CacheHint;
+import javafx.scene.Scene;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.image.PixelFormat;
 import javafx.scene.image.PixelReader;
@@ -38,6 +40,8 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
 import javafx.scene.shape.StrokeType;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import me.walkerknapp.devolay.DevolayFrameFourCCType;
 import me.walkerknapp.devolay.DevolaySender;
 import me.walkerknapp.devolay.DevolayVideoFrame;
@@ -51,6 +55,7 @@ public final class NDIDisplayTarget implements DisplayTarget {
 	private final Pane container;
 	private final SlideView slideView;
 	private final SlideView notificationView;
+	private final Stage stage;
 	
 	private final DevolaySender ndiTarget;
 	private final FramesPerSecondTimer frameProducer;
@@ -103,6 +108,21 @@ public final class NDIDisplayTarget implements DisplayTarget {
 		
 		this.container = new StackPane();
 		this.container.setBackground(null);
+		
+		if (RuntimeProperties.IS_MAC_OS) {
+			// MacOS needed the whole thing to be attached to stage
+			// and that stage needs to be visible and remain visible
+			// otherwise it just returns a blank image during the
+			// snapshot operation.
+			this.stage = new Stage(StageStyle.UTILITY);
+			Scene scene = new Scene(this.container);
+			this.stage.setScene(scene);
+			// this is the trick so that a user doesn't see the stage
+			this.stage.setOpacity(0);
+			this.stage.show();
+		} else {
+			this.stage = null;
+		}
 		
 		this.videoFrame = new DevolayVideoFrame();
 		this.videoFrame.setResolution(this.width, this.height);
@@ -352,6 +372,10 @@ public final class NDIDisplayTarget implements DisplayTarget {
 	public void dispose() {
 		LOGGER.debug("Marking NDI display target as disposed");
 		this.disposed = true;
+		
+		if (this.stage != null) {
+			this.stage.hide();
+		}
 		
 		this.slideView.dispose();
 		this.container.getChildren().clear();
