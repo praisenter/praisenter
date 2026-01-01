@@ -453,12 +453,11 @@ features to have added to the application.</p>
 <p>On start up, Praisenter will always ask you to select a worksapce.  When selecting a new workspace, Praisenter will setup a few things to ensure the workspace is ready for use (these steps happen in the background).  There are a few ways to pick a workspace:</p>
 
 <ul>
-  <li>You can use the text box to select a previously selected workspace</li>
-  <li>You can use the text box to type in a path to a folder</li>
+  <li>You can use the drop down to select a previously selected workspace</li>
   <li>You can use the folder icon to select folder</li>
 </ul>
 
-<p><img src="assets/img/workspace-selection.png" alt="Alt text" class="rounded img-fluid" /></p>
+<p><img src="assets/img/workspace-selection.png" alt="workspace selection" class="rounded img-fluid" /></p>
 
 <p>You’ll receive an error if you choose a folder with contents unless Praisenter detects it as an existing workspace. Once you have selected the workspace, click the <code class="language-html highlighter-rouge">Launch</code> button to continue.</p>
 
@@ -478,19 +477,17 @@ features to have added to the application.</p>
 <p>You can also create a new workspace from the <code class="language-html highlighter-rouge">File</code> -&gt; <code class="language-html highlighter-rouge">Switch Workspace</code> menu. Just like switching workspaces, make sure any unsaved documents are saved or discarded and that any content you are presenting is cleared before creating a new workspace.</p>
 
 <h2 id="removing-workspaces">Removing workspaces<a href="#removing-workspaces">#</a></h2>
-<p>As of version 3.1.7, there’s no built-in way to remove a workspace.</p>
+<p>Removing a workspace can be done from the workspace selection screen when the application starts.  From here you can use the trash can icon to remove the selected workspace.</p>
 
 <blockquote>
-  <p><strong>WARNING</strong>: Removing workspaces requires manual file editing.</p>
+  <p>NOTE: Removing a workspace from here only removes it from the list of workspaces to choose from.  All files at that location are left as-is.  You’ll need to manually delete/clean up that folder.</p>
 </blockquote>
 
-<p>However, if you want to clean up your workspaces you can delete the <code class="language-html highlighter-rouge">workspaces.json</code> file stored in <code class="language-html highlighter-rouge">C:\Users\your_user_name\.Praisenter3</code> on <a href="https://apps.microsoft.com/detail/9phhwb94w800">Windows</a> or <code class="language-html highlighter-rouge">/home/your_user_name/snap/praisenter/common/.Praisenter3</code> on Ubuntu (when using the <a href="https://snapcraft.io/praisenter">Snap</a>) or <code class="language-html highlighter-rouge">/home/your_user_name/.Praisenter3</code> on Ubuntu (when manually installing the <code class="language-html highlighter-rouge">.DEB</code>).  This will clear the list of previously selected workspaces.  Just select the folder again to open an existing workspace.</p>
+<p><img src="assets/img/workspace-selection.png" alt="workspace selection" class="rounded img-fluid" /></p>
 
-<p>Alternatively, you can <em>edit</em> the <code class="language-html highlighter-rouge">workspaces.json</code> file and remove specific workspaces. You’ll want to focus on the <code class="language-html highlighter-rouge">workspaces</code> and the <code class="language-html highlighter-rouge">lastSelectedWorkspace</code> properties.  You can delete the workspace folder at any time.</p>
+<p>A confirmation dialog will show to confirm that you want to remove the workspace:</p>
 
-<blockquote>
-  <p><strong>NOTE</strong>: Removing a workspace using the methods above only removes them from the <em>workspace selector</em>. You must manually delete the workspace folder to clean up any content in that workspace.</p>
-</blockquote>
+<p><img src="assets/img/workspace-selection-remove-confirm.png" alt="workspace removal confirmation dialog" class="rounded img-fluid" /></p>
 
 <h2 id="workspace-upgrade">Workspace upgrade<a href="#workspace-upgrade">#</a></h2>
 <p>When selecing a workspace, Praisenter checks whether it’s an <em>existing</em> workspace or a new workspace.  If it’s an existing workspace, Praisenter checks the <em>version</em> of the workspace.  If the workspace was last open in an old version of Praisenter, then it will be upgraded to the latest version.  Upgrading a workspace is usually a quick activity, but there could be upgrades in the future that take a significant amount of time.</p>
@@ -1687,13 +1684,25 @@ Color adjustment is available for both images and video.  This feature lets you 
 </table>
 
 <h2 id="countdown-component">Countdown component<a href="#countdown-component">#</a></h2>
-<p>The countdown component is a lot like the date/time component, but where the date/time component always shows the current date/time, the countdown component <em>counts down</em> to a specific or relative date/time.</p>
+<p>The countdown component is a lot like the date/time component, but where the date/time component always shows the current date/time, the countdown component <em>counts down</em> to a specific, relative date/time, or for a specified duration.</p>
 
 <p><img src="assets/img/slides-countdown-component.png" alt="Slides countdown component" class="rounded img-fluid" /></p>
 
-<p>The countdown component requires a <em>target</em> date and time to countdown to.  This is great for upcoming events on a specific date.  Just enter the date of the event (you can set the time to 00:00:00 to stop the countdown on the day of) and whenever the slide is displayed, the component will show the time remaining until that date.  No need to adjust the coundown, restart it, or anything - it does it automatically!  By default, the countdown halts when it reaches the target date/time.  You can turn this behavior off using the <code class="language-html highlighter-rouge">Stop at zero</code> setting.  If <code class="language-html highlighter-rouge">Stop at zero</code> is disabled, the countdown will continue and will show negative values to indicate the target date/time has already passed.</p>
+<p>The countdown component has two modes of operation, target date/time or duration.  In target date/time mode, the countdown will show the time remaining from now until the given target date and time.  In duration mode, the countdown will start counting down as soon as the slide is presented and will stop after the given duration has ellapsed.</p>
+
+<p>In target date/time mode, a <em>target</em> date and time is required.  This is great for upcoming events on a specific date.  Just enter the date of the event (you can set the time to 00:00:00 to stop the countdown on the day of the event) and whenever the slide is displayed, the component will show the time remaining until that date.  No need to adjust the coundown, restart it, or anything - it does it automatically!  By default, the countdown halts when it reaches the target date/time.  You can turn this behavior off using the <code class="language-html highlighter-rouge">Stop at zero</code> setting.  If <code class="language-html highlighter-rouge">Stop at zero</code> is disabled, the countdown will continue and will show negative values to indicate the target date/time has already passed.</p>
 
 <p>Another common use for a countdown is for a recurring event, like the beginning of a weekly service. To configure the countdown component for this purpose, toggle on the <code class="language-html highlighter-rouge">Time only</code> setting and set the target time (the target date will be ignored).  Now the countdown component will countdown to the same time every time you show the slide.</p>
+
+<p>Finally, you might have a need to countdown a specific amount of time - like a five minute timer from now.  Unlike target date/time mode, duration mode only requires an amount of time to countdown.  The countdown will start as soon as the slide is shown.</p>
+
+<blockquote>
+  <p><strong>NOTE</strong>: In duration mode, the countdown will restart if you present the slide again.</p>
+</blockquote>
+
+<blockquote>
+  <p><strong>NOTE</strong>: Duration mode only supports durations in the hours, minutes, and seconds range.  If you want to countdown days, use the target date/time mode.</p>
+</blockquote>
 
 <p>Like the date/time component, you can format the output of the countdown component with one of the present formats or with your own.  For example, imagine it’s 2025-11-08 12:34 PM and you are counting down to 2025-11-14 4:00 PM:</p>
 
@@ -1836,6 +1845,8 @@ Color adjustment is available for both images and video.  This feature lets you 
 <h2 id="moving-components">Moving components<a href="#moving-components">#</a></h2>
 <p>To move a component around, hover the mouse over the component you want to move and wait for the mouse cursor to change to the move icon.  Then, click and hold the mouse button while moving the mouse.  Release the mouse button when you are finished moving the component.</p>
 
+<p>You can also use the arrow keys <kbd>&larr;</kbd>, <kbd>&rarr;</kbd>, <kbd>&uarr;</kbd>, and <kbd>&darr;</kbd> to move the selected component.</p>
+
 <h2 id="sizing-components">Sizing components<a href="#sizing-components">#</a></h2>
 <p>When you have a component selected, small white blocks appear in the corners and mid-points of the component.  Those white blocks are the sizing control points.  As you hover over a sizing control, the cursor will change to indicate what type of sizing operation it performs.  To resize, click and hold the mouse button on a control point while moving the mouse.  Release the mouse button when you are finished.</p>
 
@@ -1880,6 +1891,10 @@ Color adjustment is available for both images and video.  This feature lets you 
   <li><a href="https://help.ubuntu.com/stable/ubuntu-help/display-dual-monitors.html.en">Ubuntu</a> - set your display to “Join Displays”</li>
   <li><a href="https://support.apple.com/guide/mac-help/connect-an-external-display-mchl7c7ebe08/mac">MacOS</a> - set your display to “Extend”</li>
 </ul>
+
+<blockquote>
+  <p><strong>NOTE</strong>: On MacOS you’ll also want to turn off “Displays have separate Spaces” system setting to remove the menu bar from the additional screen.</p>
+</blockquote>
 
 <p>Provided your system is configured properly, display setup in Praisenter is handled from the Present tab on the left navigation.  It’s the first place you see after selecting a workspace when starting Praisenter.  On the Present tab, you can add and remove displays, name them, and more.  To better understand displays setup in Praisenter, consider the following example:</p>
 
@@ -2202,6 +2217,10 @@ Color adjustment is available for both images and video.  This feature lets you 
 
 <blockquote>
   <p><strong>NOTE</strong>: Praisenter does not support auto-playing the slides in the queue. To advance through the queue, you must manually click on each slide and then click <code class="language-html highlighter-rouge">Show</code>.</p>
+</blockquote>
+
+<blockquote>
+  <p><strong>NOTE</strong>: Once a slide has been queued, you can use the context menu (right-click or control-click) to create a new slide from that queued slide.  This feature allows you to save the slide exactly as it is - with any templated text, size adjustments, etc.  A slide created this way is <em>not</em> a template, but will retain any templated text.  This can be useful when you want to adjust a templated slide manually or use text from a song or Bible verse.</p>
 </blockquote>
 
 <p>If you add slides in the wrong order, you can reorder them by clicking and dragging slides into the desired sequence.  In the example below, slide 3 is being moved above slide 2.</p>
