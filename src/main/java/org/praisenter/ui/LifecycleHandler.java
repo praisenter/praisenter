@@ -187,6 +187,7 @@ public final class LifecycleHandler {
 			// setup the scene
 			// JAVABUG (M) 07/01/2024 The stage doesn't get the new output scale values from the screen when it's changed https://bugs.openjdk.org/browse/JDK-8299758
 			stage.setScene(scene);
+			stage.setMaximized(false);
 			stage.sizeToScene();
 			stage.show();
 			stage.centerOnScreen();
