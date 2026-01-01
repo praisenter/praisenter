@@ -128,11 +128,17 @@ Current Git LFS tracked objects:
 ```shell
 git lfs track src/main/resources/org/praisenter/data/media/tools/linux64/ffmpeg
 git lfs track src/main/resources/org/praisenter/data/media/tools/linux64/ffprobe
-git lfs track src/main/resources/org/praisenter/data/media/tools/macos64/ffmpeg
-git lfs track src/main/resources/org/praisenter/data/media/tools/macos64/ffprobe
 git lfs track src/main/resources/org/praisenter/data/media/tools/windows64/ffmpeg.exe
 git lfs track src/main/resources/org/praisenter/data/media/tools/windows64/ffprobe.exe
+git lfs track packaging/macos64/app/exec/ffmpeg
+git lfs track packaging/macos64/app/exec/ffprobe
 ```
+
+### macOS deployment
+- Make sure provisioning profiles are stored in packaging/macos64/app/content (or replace if expired), download from https://developer.apple.com/account/resources/profiles/list
+- Make sure certificates (Developer ID Application, Developer ID Installer, Mac App Distribution, Mac Installer Distribution) are installed (or replace if expired), download from https://developer.apple.com/account/resources/certificates/list
+- Run either the `package-store.sh` or `package-adhoc.sh` to generate an installer pkg file.  These scripts recreate _some_ of the jpackage steps but are different due to additional native code, embedded executables, and general packaging.  For now, we use the jpackage command to generate an unsigned "app-image" and then do all the other packaging steps manually in these scripts.
+
 
 ### macOS .icns file
 Follow the process outlined [here](https://gist.github.com/jamieweavis/b4c394607641e1280d447deed5fc85fc) and repeated below, just in case that gist is removed.
@@ -164,10 +170,4 @@ This will convert the folder of images into an iconset, this can be verified by 
 1. Navigate to the directory containing your `icon.iconset` in the terminal
 2. Run `iconutil` with the following command: `iconutil -c icns icon.iconset`
 3. Your `icon.icns` will be generated in the current directory
-
-### macOS updates needed for deployment
-- provisioning profiles (if expired), download from https://developer.apple.com/account/resources/profiles/list
-- install certificates (Developer ID Application, Developer ID Installer, Mac App Distribution, Mac Installer Distribution), download from https://developer.apple.com/account/resources/certificates/list
-- /resources/Info.plist - version number
-- /config/distribution.dist - version number
 
