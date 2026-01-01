@@ -15,15 +15,19 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 
 public class WorkspaceReference implements ReadonlyWorkspaceReference, Comparable<WorkspaceReference> {
 	
 	private final ObjectProperty<Path> path;
 	private final ObjectProperty<LocalDateTime> lastOpenDate;
+	private final StringProperty securityToken;
 	
 	public WorkspaceReference() {
 		this.path = new SimpleObjectProperty<Path>();
 		this.lastOpenDate = new SimpleObjectProperty<LocalDateTime>();
+		this.securityToken = new SimpleStringProperty();
 	}
 	
 	@JsonCreator
@@ -39,6 +43,7 @@ public class WorkspaceReference implements ReadonlyWorkspaceReference, Comparabl
 		WorkspaceReference wr = new WorkspaceReference();
 		wr.path.set(path);
 		wr.lastOpenDate.set(null);
+		wr.securityToken.set(null);
 		return wr;
 	}
 	
@@ -153,5 +158,21 @@ public class WorkspaceReference implements ReadonlyWorkspaceReference, Comparabl
 	@Override
 	public ObjectProperty<LocalDateTime> lastOpenDateProperty() {
 		return this.lastOpenDate;
+	}
+	
+	@Override
+	@JsonProperty
+	public String getSecurityToken() {
+		return this.securityToken.get();
+	}
+	
+	@JsonProperty
+	public void setSecurityToken(String securityToken) {
+		this.securityToken.set(securityToken);
+	}
+	
+	@Override
+	public StringProperty securityTokenProperty() {
+		return this.securityToken;
 	}
 }

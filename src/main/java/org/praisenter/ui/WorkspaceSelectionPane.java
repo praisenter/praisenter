@@ -17,6 +17,10 @@ import org.praisenter.data.workspace.WorkspaceReference;
 import org.praisenter.data.workspace.Workspaces;
 import org.praisenter.ui.controls.Dialogs;
 import org.praisenter.ui.translations.Translations;
+import org.praisenter.utility.RuntimeProperties;
+import org.praisenter.utility.StringManipulator;
+
+import com.plexteq.ssb.nativeimpl.SecurityScopedBookmarks;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
@@ -211,9 +215,11 @@ final class WorkspaceSelectionPane extends VBox {
 				WorkspaceReference wr = new WorkspaceReference();
 				wr.setPath(path);
 				
-				if (!this.workspaces.contains(wr)) {
-					this.workspaces.add(wr);
+				if (this.workspaces.contains(wr)) {
+					this.workspaces.remove(wr);
 				}
+				this.workspaces.add(wr);
+				
 				cmbWorkspacePath.setValue(wr);
 			}
 		});
@@ -244,6 +250,21 @@ final class WorkspaceSelectionPane extends VBox {
 		btnLaunch.setOnAction(e -> {
 			WorkspaceReference wr = cmbWorkspacePath.getValue();
 			LOGGER.debug("User requesting launch using workspace: '{}'", wr.getPath().toAbsolutePath());
+			
+			// once someone tries to launch, check if the bookmark exists
+			// if it doesn't, then assume that they selected the folder
+			// and we need to create the security scoped bookmark
+			String token = wr.getSecurityToken();
+			if (RuntimeProperties.IS_MAC_OS && StringManipulator.isNullOrEmpty(token)) {
+				LOGGER.info("Creating security scoped bookmark for workspace: '" + wr.getPath().toAbsolutePath() + "'");
+				try {
+					token = SecurityScopedBookmarks.createBookmarkImpl(wr.getPath().toUri().toString());
+					wr.setSecurityToken(token);
+					LOGGER.info("Security scoped bookmark created successfully for workspace: '" + wr.getPath().toAbsolutePath() + "'");
+				} catch (Exception ex) {
+					LOGGER.error("Failed to create bookmark for workspace folder '" + wr.getPath().toAbsolutePath() + "'", ex);
+				}
+			}
 			
 			Optional<WorkspaceReference> value = Optional.of(wr);
 			if (!this.future.isDone()) {

@@ -91,8 +91,17 @@ public final class MediaTools {
 			this.ffmpeg = path.resolve("ffmpeg.exe");
 			this.ffprobe = path.resolve("ffprobe.exe");
 		} else if (RuntimeProperties.IS_MAC_OS) {
-			this.ffmpeg = path.resolve("ffmpeg");
-			this.ffprobe = path.resolve("ffprobe");
+			// example path for java.home when in sandbox
+			// /Users/williambittle/git/praisenter/target/pkg-work/image/Praisenter.app/Contents/runtime/Contents/Home
+			Path javaHome = Path.of(RuntimeProperties.JAVA_HOME);
+			Path p1 = javaHome.getParent(); //Contents
+			Path p2 = p1.getParent(); //runtime
+			Path p3 = p2.getParent(); //Contents
+			Path toolPath = p3.resolve("app");
+			
+			LOGGER.debug("Media tool path: '" + toolPath.toAbsolutePath() + "'");
+			this.ffmpeg = toolPath.resolve("ffmpeg");
+			this.ffprobe = toolPath.resolve("ffprobe");
 		} else if (RuntimeProperties.IS_LINUX_OS) {
 			this.ffmpeg = path.resolve("ffmpeg");
 			this.ffprobe = path.resolve("ffprobe");
@@ -114,16 +123,8 @@ public final class MediaTools {
 				if (!Files.exists(this.ffmpeg)) Files.copy(MediaTools.class.getResourceAsStream("/org/praisenter/data/media/tools/windows64/ffmpeg.exe"), this.ffmpeg, StandardCopyOption.REPLACE_EXISTING);
 				if (!Files.exists(this.ffprobe)) Files.copy(MediaTools.class.getResourceAsStream("/org/praisenter/data/media/tools/windows64/ffprobe.exe"), this.ffprobe, StandardCopyOption.REPLACE_EXISTING);
 			} else if (RuntimeProperties.IS_MAC_OS) {
-				if (!Files.exists(this.ffmpeg)) {
-					Files.copy(MediaTools.class.getResourceAsStream("/org/praisenter/data/media/tools/macos64/ffmpeg"), this.ffmpeg, StandardCopyOption.REPLACE_EXISTING);
-					// make sure they are executable
-					Files.setPosixFilePermissions(this.ffmpeg, PosixFilePermissions.fromString("rwxrwxrwx"));
-				}
-				if (!Files.exists(this.ffprobe)) {
-					Files.copy(MediaTools.class.getResourceAsStream("/org/praisenter/data/media/tools/macos64/ffprobe"), this.ffprobe, StandardCopyOption.REPLACE_EXISTING);
-					// make sure they are executable
-					Files.setPosixFilePermissions(this.ffprobe, PosixFilePermissions.fromString("rwxrwxrwx"));
-				}
+				// we don't copy files to the workspace for MacOS due to strict sandboxing
+				// instead, we use the packaged binaries in the app itself
 			} else if (RuntimeProperties.IS_LINUX_OS) {
 				if (!Files.exists(this.ffmpeg)) {
 					Files.copy(MediaTools.class.getResourceAsStream("/org/praisenter/data/media/tools/linux64/ffmpeg"), this.ffmpeg, StandardCopyOption.REPLACE_EXISTING);

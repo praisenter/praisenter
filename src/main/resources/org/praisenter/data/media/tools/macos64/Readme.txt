@@ -1,5 +1,5 @@
-https://evermeet.cx/ffmpeg/
+See the /packaging/macos64/app/exec folder & readme file there
 
-Mac OS X 10.12 and later
-
-On macOS 10.15 (Catalina) the binary has to be removed from quarantine: xattr -dr com.apple.quarantine <path_to_binary>
+MACOS sandboxing is very strict so we had to store the
+executables in another location and put them in a specific
+place within the app bundle.

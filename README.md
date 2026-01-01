@@ -164,3 +164,10 @@ This will convert the folder of images into an iconset, this can be verified by 
 1. Navigate to the directory containing your `icon.iconset` in the terminal
 2. Run `iconutil` with the following command: `iconutil -c icns icon.iconset`
 3. Your `icon.icns` will be generated in the current directory
+
+### macOS updates needed for deployment
+- provisioning profiles (if expired), download from https://developer.apple.com/account/resources/profiles/list
+- install certificates (Developer ID Application, Developer ID Installer, Mac App Distribution, Mac Installer Distribution), download from https://developer.apple.com/account/resources/certificates/list
+- /resources/Info.plist - version number
+- /config/distribution.dist - version number
+

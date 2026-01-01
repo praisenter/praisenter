@@ -6,6 +6,7 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -35,6 +36,9 @@ import org.praisenter.ui.translations.Translations;
 import org.praisenter.ui.upgrade.InstallUpgradeHandler;
 import org.praisenter.ui.upgrade.UpgradeChecker;
 import org.praisenter.utility.RuntimeProperties;
+import org.praisenter.utility.StringManipulator;
+
+import com.plexteq.ssb.nativeimpl.SecurityScopedBookmarks;
 
 import atlantafx.base.theme.PrimerDark;
 import javafx.animation.Animation;
@@ -76,7 +80,7 @@ public final class LifecycleHandler {
 		this.restart(context, null);
 	}
 	
-	public void restart(GlobalContext context, WorkspaceReference workspaceReference) {
+	public void restart(GlobalContext context, WorkspaceReference workspaceToOpen) {
 		Stage stage = context.stage;
 		Application application = context.application;
 		
@@ -97,7 +101,7 @@ public final class LifecycleHandler {
 				
 				// start the app
 				LOGGER.info("Starting the application.");
-				this.start(application, stage, workspaceReference);
+				this.start(application, stage, workspaceToOpen);
 			}
 		})).exceptionally((e) -> {
 			// log it
@@ -144,6 +148,13 @@ public final class LifecycleHandler {
     		LOGGER.info(feature.name() + "=" + Platform.isSupported(feature));
     	}
     	
+    	// log all properties
+    	LOGGER.debug("All System Properties:");
+    	Properties props = System.getProperties();
+    	props.forEach((k, v) -> {
+    		LOGGER.debug(k + "=" + v);
+    	});
+    	
     	// verify features
     	LOGGER.info("Verifying required Java FX features.");
     	for (ConditionalFeature feature : REQUIRED_JAVAFX_FEATURES) {
@@ -160,6 +171,19 @@ public final class LifecycleHandler {
     		}
     	}
     	LOGGER.info("Required features present.");
+    	
+    	// if MacOS, load the dylib
+    	// NOTE: This requires the .dylib to be present in the packaged application
+    	if (RuntimeProperties.IS_MAC_OS) {
+    		String libName = "SecurityScopedBookmarkLibrary";
+    		LOGGER.info("Loading library: '" + libName + "'");
+    		try {
+    			System.loadLibrary(libName);
+    			LOGGER.info("The library '" + libName + "' was loaded successfully.");
+    		} catch (UnsatisfiedLinkError ex) {
+    			LOGGER.error("Failed to load dynamic library: '" + libName + "'", ex);
+    		}
+    	}
     	
     	// title
     	stage.setTitle(Constants.NAME + " " + Version.STRING);
@@ -210,6 +234,9 @@ public final class LifecycleHandler {
 			
 	    	final WorkspaceReference wsp = owspr.get();
 	    	LOGGER.info("Workspace '" + wsp.getPath().toAbsolutePath() + "' was selected.  Opening...");
+	    	
+	    	this.acquireSecurityScopedBookmark(LOGGER, wsp);
+	    	
 	    	return wsp;
 		}).thenApplyAsync((wspr) -> {
 			// open the workspace
@@ -618,5 +645,40 @@ public final class LifecycleHandler {
 			}
 			return CompletableFuture.completedStage(false);
 		});
+    }
+    
+    private void acquireSecurityScopedBookmark(Logger LOGGER, WorkspaceReference workspace) {
+    	if (workspace != null) {
+			Path path = workspace.getPath();
+			String securityToken = workspace.getSecurityToken();
+	    	if (RuntimeProperties.IS_MAC_OS && !StringManipulator.isNullOrEmpty(securityToken)) {
+	    		try {
+	    			LOGGER.info("Acquiring security scoped bookmark for workspace '" + path + "'");
+	    			SecurityScopedBookmarks.startResourceAccessingImpl(securityToken);
+	    			LOGGER.info("Security scoped bookmark for workspace '" + path + "' acquired successfully");
+	    		} catch (Exception ex) {
+	    			LOGGER.error("Failed to acquire the security scoped bookmark for workspace: '" + path + "'", ex);
+	    		}
+	    	}
+    	}
+    }
+    
+    // NOTE: I ended up not using this because there are some things that we need to 
+    // do after shutdown that this was causing problems with
+    @SuppressWarnings("unused")
+	private void releaseSecurityScopedBookmark(Logger LOGGER, WorkspaceReference workspace) {
+		if (workspace != null) {
+			Path path = workspace.getPath();
+			String securityToken = workspace.getSecurityToken();
+			if (RuntimeProperties.IS_MAC_OS && !StringManipulator.isNullOrEmpty(securityToken)) {
+				try {
+					LOGGER.info("Releasing security scoped bookmark for workspace '" + path + "'");
+					SecurityScopedBookmarks.stopResourceAccessingImpl(securityToken);
+					LOGGER.info("Security scoped bookmark for workspace '" + path + "' released successfully");
+				} catch (Exception ex) {
+					LOGGER.error("Failed to release the security scoped bookmark for workspace '" + path + "'", ex);
+				}
+			}
+		}
     }
 }
