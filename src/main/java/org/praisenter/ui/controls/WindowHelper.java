@@ -1,5 +1,8 @@
 package org.praisenter.ui.controls;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.praisenter.ui.Praisenter;
 
 import javafx.scene.Parent;
@@ -11,6 +14,21 @@ import javafx.stage.Window;
 
 public final class WindowHelper {
 	private WindowHelper() {}
+	
+	private static final List<Image> ICONS;
+	
+	static {
+		// load window icons once
+		ICONS = new ArrayList<>();
+		ICONS.add(new Image(Praisenter.class.getResource("/org/praisenter/logo/icon16x16alt.png").toExternalForm()));
+		ICONS.add(new Image(Praisenter.class.getResource("/org/praisenter/logo/icon32x32.png").toExternalForm()));
+		ICONS.add(new Image(Praisenter.class.getResource("/org/praisenter/logo/icon48x48.png").toExternalForm()));
+		ICONS.add(new Image(Praisenter.class.getResource("/org/praisenter/logo/icon64x64.png").toExternalForm()));
+		ICONS.add(new Image(Praisenter.class.getResource("/org/praisenter/logo/icon96x96.png").toExternalForm()));
+		ICONS.add(new Image(Praisenter.class.getResource("/org/praisenter/logo/icon128x128.png").toExternalForm()));
+		ICONS.add(new Image(Praisenter.class.getResource("/org/praisenter/logo/icon256x256.png").toExternalForm()));
+		ICONS.add(new Image(Praisenter.class.getResource("/org/praisenter/logo/icon512x512.png").toExternalForm()));
+	}
 	
 	public static final Scene createSceneWithOwnerCss(Parent root, Window owner) {
 		Scene scene = new Scene(root);
@@ -33,14 +51,7 @@ public final class WindowHelper {
 	}
 	
 	public static final void setIcons(Stage stage) {
-    	stage.getIcons().add(new Image(Praisenter.class.getResourceAsStream("/org/praisenter/logo/icon16x16alt.png"), 16, 16, true, true));
-    	stage.getIcons().add(new Image(Praisenter.class.getResourceAsStream("/org/praisenter/logo/icon32x32.png")));
-    	stage.getIcons().add(new Image(Praisenter.class.getResourceAsStream("/org/praisenter/logo/icon48x48.png")));
-    	stage.getIcons().add(new Image(Praisenter.class.getResourceAsStream("/org/praisenter/logo/icon64x64.png")));
-    	stage.getIcons().add(new Image(Praisenter.class.getResourceAsStream("/org/praisenter/logo/icon96x96.png")));
-    	stage.getIcons().add(new Image(Praisenter.class.getResourceAsStream("/org/praisenter/logo/icon128x128.png")));
-    	stage.getIcons().add(new Image(Praisenter.class.getResourceAsStream("/org/praisenter/logo/icon256x256.png")));
-    	stage.getIcons().add(new Image(Praisenter.class.getResourceAsStream("/org/praisenter/logo/icon512x512.png")));
+    	stage.getIcons().addAll(ICONS);
 	}
 	
 	public static final void centerOnParent(Window parent, Window child) {

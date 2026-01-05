@@ -58,7 +58,7 @@ import javafx.util.Duration;
 
 public class SlideView extends Region implements Playable {
 	private static final Logger LOGGER = LogManager.getLogger();
-	private static final Image TRANSPARENT_PATTERN = new Image(SlideView.class.getResourceAsStream("/org/praisenter/images/transparent.png"));
+	private static final Image TRANSPARENT_PATTERN = new Image(SlideView.class.getResource("/org/praisenter/images/transparent.png").toExternalForm(), true);
 	
 	private final GlobalContext context;
 	
@@ -899,10 +899,7 @@ public class SlideView extends Region implements Playable {
 		} else {
 			// if we have media to load or we're not in the JavaFX thread, then
 			// load the media asynchronously in an executor thread
-			future = CompletableFuture.runAsync(() -> {
-				// load the images
-				this.preLoadImages(mediaToLoad);
-			}).thenCompose((v) -> {
+			future = this.preLoadImagesAsync(mediaToLoad).thenCompose((v) -> {
 				CompletableFuture<PreparedSlide> ps = new CompletableFuture<PreparedSlide>();
 				CompletableFuture<PreparedSlide> sn = new CompletableFuture<PreparedSlide>();
 				
@@ -969,15 +966,13 @@ public class SlideView extends Region implements Playable {
 	}
 	
 	
-	private void preLoadImages(Map<UUID, Path> mediaToLoad) {
+	private CompletableFuture<Void> preLoadImagesAsync(Map<UUID, Path> mediaToLoad) {
 		if (mediaToLoad.size() > 0) {
 			LOGGER.trace("Loading {} images", mediaToLoad.size());
-			for (var entry : mediaToLoad.entrySet()) {
-				LOGGER.trace("Loading media '{}'", entry.getValue());
-				this.context.getImageCache().getOrLoadImage(entry.getKey(), entry.getValue());
-			}
+			return this.context.getImageCache().getOrLoadImagesAndWait(mediaToLoad);
 		} else {
 			LOGGER.trace("No media to load, returning");
+			return CompletableFuture.completedFuture(null);
 		}
 	}
 	

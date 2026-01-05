@@ -8,11 +8,11 @@ import org.praisenter.data.media.MediaType;
 import org.praisenter.data.media.ReadOnlyMedia;
 import org.praisenter.data.slide.ReadOnlySlide;
 import org.praisenter.data.song.ReadOnlySong;
+import org.praisenter.ui.ImageCache;
 import org.praisenter.ui.controls.FlowListCell;
 
 import javafx.beans.binding.Bindings;
 import javafx.scene.control.Label;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
 
@@ -30,11 +30,11 @@ final class LibraryListCell extends FlowListCell<Persistable> {
 	private static final String LIBRARY_LIST_CELL_SLIDE_CSS = "p-library-list-cell-slide";
 	private static final String LIBRARY_LIST_CELL_LABEL_CSS = "p-library-list-cell-label";
 	
-	public LibraryListCell(Persistable data) {
+	public LibraryListCell(ImageCache imageCache, Persistable data) {
 		super(data);
 		
 		this.getStyleClass().add(LIBRARY_LIST_CELL_CSS);
-		
+
     	// setup the thumbnail image
     	final ImageView thumb = new ImageView();
     	final VBox underlay = new VBox(thumb);
@@ -52,7 +52,7 @@ final class LibraryListCell extends FlowListCell<Persistable> {
     	if (data instanceof ReadOnlyMedia) {
     		final ReadOnlyMedia media = (ReadOnlyMedia)data;
     		thumb.imageProperty().bind(Bindings.createObjectBinding(() -> {
-    			return new Image(media.getMediaThumbnailPath().toUri().toURL().toExternalForm());
+    			return imageCache.getOrLoadThumbnail(media.getId(), media.getMediaThumbnailPath());
     		}, media.mediaThumbnailPathProperty()));
     		
     		if (media.getMediaType() != MediaType.VIDEO) {
@@ -67,7 +67,7 @@ final class LibraryListCell extends FlowListCell<Persistable> {
     		final ReadOnlySlide slide = (ReadOnlySlide)data;
     		underlay.getStyleClass().add(LIBRARY_LIST_CELL_SLIDE_CSS);
     		thumb.imageProperty().bind(Bindings.createObjectBinding(() -> {
-    			return new Image(slide.getThumbnailPath().toUri().toURL().toExternalForm());
+    			return imageCache.getOrLoadThumbnail(slide.getId(), slide.getThumbnailPath());
     		}, slide.thumbnailPathProperty()));
     		label.textProperty().bind(slide.nameProperty());
     	} else if (data instanceof ReadOnlyBible) {

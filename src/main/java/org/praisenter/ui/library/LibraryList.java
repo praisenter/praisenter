@@ -147,7 +147,7 @@ public final class LibraryList extends BorderPane implements ActionPane {
 		this.sortVisible = new SimpleBooleanProperty(true);
 		
 		this.view = new FlowListView<>(orientation, (item) -> {
-			LibraryListCell cell = new LibraryListCell(item);
+			LibraryListCell cell = new LibraryListCell(context.getImageCache(), item);
 			
 			// support drag n drop with library items
 			// in particular the slide editor

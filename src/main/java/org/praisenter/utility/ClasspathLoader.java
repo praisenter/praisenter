@@ -10,9 +10,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import javax.imageio.ImageIO;
-import javax.swing.ImageIcon;
-
-import javafx.scene.image.Image;
 
 public final class ClasspathLoader {
 	private ClasspathLoader() {}
@@ -28,33 +25,6 @@ public final class ClasspathLoader {
 			URL url = ClasspathLoader.class.getResource(path);
 			if (url == null) return null;
 			return ImageIO.read(url);
-		} catch (Exception e) {
-			return null;
-		}
-	}
-	
-	/**
-	 * Returns a new JavaFX Image for the given path or null
-	 * if the path was not found or was not a valid image.
-	 * @param path the classpath path
-	 * @return Image
-	 */
-	public static final Image getImage(String path) {
-		return new Image(path, true);
-	}
-	
-	/**
-	 * Returns a new ImageIcon for the given path or null
-	 * if the path was not found or was not a valid image.
-	 * @param path the classpath path
-	 * @return ImageIcon
-	 */
-	public static final ImageIcon getIcon(String path) {
-		try {
-			URL url = ClasspathLoader.class.getResource(path);
-			if (url == null) return null;
-			BufferedImage image = ImageIO.read(url);
-			return new ImageIcon(image);
 		} catch (Exception e) {
 			return null;
 		}

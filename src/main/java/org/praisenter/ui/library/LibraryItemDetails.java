@@ -19,7 +19,6 @@ import org.praisenter.data.media.MediaType;
 import org.praisenter.data.slide.Slide;
 import org.praisenter.data.song.Song;
 import org.praisenter.ui.GlobalContext;
-import org.praisenter.ui.bind.BindingHelper;
 import org.praisenter.ui.controls.Dialogs;
 import org.praisenter.ui.controls.MediaPreview;
 import org.praisenter.ui.controls.RowVisGridPane;
@@ -293,7 +292,7 @@ final class LibraryItemDetails extends VBox {
 		
 		// preview for image
 		ImageView image = new ImageView();
-		image.imageProperty().bind(BindingHelper.createAsyncObjectBinding(() -> {
+		image.imageProperty().bind(Bindings.createObjectBinding(() -> {
 			Persistable item = this.item.get();
 			if (item == null) return null;
 			if (item instanceof Media) {

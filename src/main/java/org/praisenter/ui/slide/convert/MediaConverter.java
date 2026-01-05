@@ -145,7 +145,7 @@ public final class MediaConverter {
 		String url = null;
 		try {
 			url = path.toUri().toURL().toExternalForm();
-			return new Image(url);
+			return new Image(url, true);
 		} catch (Exception ex) {
 			LOGGER.error("Failed to load image '" + url + "' for media '" + media.getId() + "' '" + media.getMediaPath() + "'", ex);
 		}
