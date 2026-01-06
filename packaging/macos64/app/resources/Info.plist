@@ -50,5 +50,8 @@
   <string>Praisenter would like access to the Downloads folder to allow you to import and export files from/to this location.</string>
   <key>NSPhotoLibraryUsageDescription</key>
   <string>Praisenter would like access to the Photo Library to allow you to import and export files from this location.</string>
+  
+  <key>ITSAppUsesNonExemptEncryption</key>
+  <false/>
 </dict>
 </plist>

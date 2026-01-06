@@ -5,7 +5,7 @@
 
 	<groupId>org.praisenter</groupId>
 	<artifactId>praisenter</artifactId>
-	<version>3.1.9</version>
+	<version>3.1.10</version>
 	<packaging>jar</packaging>
 
 	<!-- General Project Information -->
