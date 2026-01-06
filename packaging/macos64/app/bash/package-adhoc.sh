@@ -85,7 +85,14 @@ echo "Signing all contents of: $IMAGE"
 find "$IMAGE_DIR/$IMAGE" -type f \( -perm +111 -o -name "*.dylib" -o -name "*.so" -o -name "ffmpeg" -o -name "ffprobe" \) | while read -r BINARY; do
     if [[ "$BINARY" != *"/Contents/MacOS/Praisenter"* ]]; then
         echo "Signing internal component: $BINARY"
-        codesign -vvvv --options runtime --deep --force --timestamp --entitlements "$EMB_ENTITLEMENTS" --sign "$APP_CERT" "$BINARY"
+        if [[ "$BINARY" = *".dylib" ]]; then
+        	echo "Signing without entitlements"
+            codesign -vvvv --options runtime --deep --force --timestamp --sign "$APP_CERT" "$BINARY"
+        else
+        	# only executables need entitlements added to the signature
+        	echo "Signing with entitlements"
+        	codesign -vvvv --options runtime --deep --force --timestamp --entitlements "$EMB_ENTITLEMENTS" --sign "$APP_CERT" "$BINARY"
+        fi
     else
         echo "Skipping internal component: $BINARY"
     fi
@@ -105,8 +112,16 @@ find "$IMAGE_DIR/$IMAGE/Contents/app" -type f \( -name "*.jar" \) | while read -
     # echo "$replace"
 
     find "$tmp_dir" -type f \( -perm +111 -o -name "*.dylib" -o -name "*.so" -o -name "ffmpeg" -o -name "ffprobe" \) | while read -r BINARY; do
-        echo "Signing internal component: $BINARY"
-        codesign -vvvv --options runtime --deep --force --timestamp --entitlements "$EMB_ENTITLEMENTS" --sign "$APP_CERT" "$BINARY"
+        echo "Signing embedded component: $BINARY"
+        #codesign -vvvv --options runtime --deep --force --timestamp --entitlements "$EMB_ENTITLEMENTS" --sign "$APP_CERT" "$BINARY"
+        if [[ "$BINARY" = *".dylib" ]]; then
+        	echo "Signing without entitlements"
+            codesign -vvvv --options runtime --deep --force --timestamp --sign "$APP_CERT" "$BINARY"
+        else
+        	echo "Signing with entitlements"
+        	# only executables need entitlements added to the signature
+        	codesign -vvvv --options runtime --deep --force --timestamp --entitlements "$EMB_ENTITLEMENTS" --sign "$APP_CERT" "$BINARY"
+        fi
     done
     
     if [[ $replace -gt 0 ]]; then
