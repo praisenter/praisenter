@@ -20,7 +20,6 @@ import org.praisenter.data.workspace.DisplayConfiguration;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.slide.SlideMode;
 import org.praisenter.ui.slide.SlideView;
-import org.praisenter.utility.RuntimeProperties;
 
 import javafx.beans.value.ChangeListener;
 import javafx.geometry.Rectangle2D;
@@ -109,20 +108,15 @@ public final class NDIDisplayTarget implements DisplayTarget {
 		this.container = new StackPane();
 		this.container.setBackground(null);
 		
-		if (RuntimeProperties.IS_MAC_OS) {
-			// MacOS needed the whole thing to be attached to stage
-			// and that stage needs to be visible and remain visible
-			// otherwise it just returns a blank image during the
-			// snapshot operation.
-			this.stage = new Stage(StageStyle.UTILITY);
-			Scene scene = new Scene(this.container);
-			this.stage.setScene(scene);
-			// this is the trick so that a user doesn't see the stage
-			this.stage.setOpacity(0);
-			this.stage.show();
-		} else {
-			this.stage = null;
-		}
+		// An update to Java FX must have required us to have
+		// a stage to apply the scene and components to for rendering
+		// this wasn't needed before...
+		this.stage = new Stage(StageStyle.UTILITY);
+		Scene scene = new Scene(this.container);
+		this.stage.setScene(scene);
+		// this is the trick so that a user doesn't see the stage
+		this.stage.setOpacity(0);
+		this.stage.show();
 		
 		this.videoFrame = new DevolayVideoFrame();
 		this.videoFrame.setResolution(this.width, this.height);
