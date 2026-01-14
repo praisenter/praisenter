@@ -21,6 +21,7 @@ import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.config.LoggerConfig;
 import org.apache.logging.log4j.core.config.xml.XmlConfigurationFactory;
 import org.praisenter.Constants;
+import org.praisenter.Reference;
 import org.praisenter.Version;
 import org.praisenter.async.AsyncHelper;
 import org.praisenter.data.SingleFileManager;
@@ -178,12 +179,44 @@ public final class LifecycleHandler {
     		String libName = "SecurityScopedBookmarkLibrary";
     		LOGGER.info("Loading library: '" + libName + "'");
     		try {
-    			System.loadLibrary(libName);
+    			if (RuntimeProperties.IS_MAC_OS_SANDBOX) {
+    				// loading from the java.library.path locations by name
+    				LOGGER.info("Loading library via name: '" + libName + "'");
+    	    		System.loadLibrary(libName);
+    			} else {
+    				// otherwise load from packaging directory (eclipse)
+    				Path path = Paths.get(RuntimeProperties.USER_DIR).resolve("packaging").resolve("macos64").resolve("app").resolve("exec").resolve(System.mapLibraryName(libName));
+    				LOGGER.info("Loading library from path: '" + path.toAbsolutePath().toString() + "'");
+    				System.load(path.toString());
+    			}
     			LOGGER.info("The library '" + libName + "' was loaded successfully.");
     		} catch (UnsatisfiedLinkError ex) {
     			LOGGER.error("Failed to load dynamic library: '" + libName + "'", ex);
     		}
     	}
+    	
+		// load NDI libraries
+		// as far as testing go, it appears that I can do this many times without issue
+		// ideally this is only done once on app start up, but it could be called again
+		// if the user is switching workspaces.
+		LOGGER.debug("Attempting to load NDI/Devolay natives");
+		final Reference<Boolean> isNDIReady = new Reference<Boolean>(false);
+		try {
+			int result = Devolay.loadLibraries();
+    		if (result == 0) {
+            	// all is well
+            	LOGGER.info("Devolay/NDI libraries loaded successfully");
+            	isNDIReady.set(true);
+            } else {
+            	LOGGER.error("Devolay/NDI libraries failed to load with result: {}", result);
+            }
+		} catch (IllegalStateException ex) {
+			LOGGER.error("Failed to load Devolay / NDI native libraries: ", ex);
+		} catch (UnsatisfiedLinkError ex) {
+			LOGGER.error("Failed to load Devolay / NDI native libraries: ", ex);
+		} catch (Exception ex) {
+			LOGGER.error("Failed to load Devolay / NDI native libraries: ", ex);
+		}
     	
     	// title
     	stage.setTitle(Constants.NAME + " " + Version.STRING);
@@ -272,10 +305,12 @@ public final class LifecycleHandler {
     	}).thenApply((workspaceManager) -> {
     		LOGGER.info("Building the global context.");
     		// finally build the context
-    		return new GlobalContext(
+    		GlobalContext context = new GlobalContext(
     				application, 
     				stage, 
     				workspaceManager);
+    		context.setNDIReady(isNDIReady.get());
+    		return context;
     	}).thenApply((context) -> {
     		LOGGER.info("Asynchonously checking for latest Praisenter version.");
     		// NOTE: don't wait on this - it can complete asynchronously
@@ -397,27 +432,6 @@ public final class LifecycleHandler {
     			Platform.exit();
     		});
 
-    		// load NDI libraries
-    		// as far as testing go, it appears that I can do this many times without issue
-    		// ideally this is only done once on app start up, but it could be called again
-    		// if the user is switching workspaces.
-    		try {
-    			if (Devolay.isSupportedCpu()) {
-		            int result = Devolay.loadLibraries();
-		            if (result == 0) {
-		            	// all is well
-		            	LOGGER.info("NDI libraries loaded successfully");
-		            	context.setNDIReady(true);
-		            } else if (result == 1) {
-		            	LOGGER.error("NDI libraries couldn't be found");
-		            } else {
-		            	LOGGER.error("NDI libraries failed to load with result: {}", result);
-		            }
-    			}
-    		} catch (Exception ex) {
-    			LOGGER.error("NDI libraries failed to load", ex);
-    		}
-    		
     		// build the loading UI
     		LoadingPane loadingPane = new LoadingPane(context, installer);
     		StackPane layout = new StackPane(loadingPane);
