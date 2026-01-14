@@ -36,6 +36,9 @@ public final class RuntimeProperties {
 	
 	/** True if the operating system is Mac OS */
 	public static final boolean IS_MAC_OS = isMac();
+
+	/** True if the application is running in sandboxed mode on Mac OS */
+	public static final boolean IS_MAC_OS_SANDBOX = isMacOsSandbox();
 	
 	/** True if the operating system is a Linux system */
 	public static final boolean IS_LINUX_OS = isLinux();
@@ -58,6 +61,15 @@ public final class RuntimeProperties {
 	 */
 	public static final String USER_HOME = getUserHomeDirectory();
 	
+	/**
+	 * MacOS when running from eclipse
+	 * /Users/{username}/git/praisenter
+	 * 
+	 * MacOS when running in sandbox mode
+	 * /Users/{username}/Library/Containers/org.praisenter/Data
+	 */
+	public static final String USER_DIR = getUserDir();
+
 	/**
 	 * Returns the path to the application home directory
 	 */
@@ -264,14 +276,32 @@ public final class RuntimeProperties {
 	}
 	
 	private static final String getApplicationHome() {
-		if (RuntimeProperties.IS_LINUX_OS) {
+		if (isLinux()) {
 			String snapHome = getLinuxSnapHome();
 			if (snapHome != null && !snapHome.isEmpty()) {
 				return snapHome;
 			}
 		}
 		
-		return RuntimeProperties.USER_HOME;
+		return getUserHomeDirectory();
+	}
+	
+	private static final boolean isMacOsSandbox() {
+		if (isMac()) {
+			if (getUserHomeDirectory().contains("/Containers/org.praisenter")) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	private static final String getUserDir() {
+		// MacOS when running from eclipse
+		// /Users/{username}/git/praisenter
+		
+		// MacOS when running in sandbox mode
+		// /Users/{username}/Library/Containers/org.praisenter/Data
+		return System.getProperty("user.dir");
 	}
 	
 	// FEATURE (L-L) We could get better OS name using a command line:

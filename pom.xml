@@ -5,7 +5,7 @@
 
 	<groupId>org.praisenter</groupId>
 	<artifactId>praisenter</artifactId>
-	<version>3.1.10</version>
+	<version>3.1.11</version>
 	<packaging>jar</packaging>
 
 	<!-- General Project Information -->
@@ -64,12 +64,6 @@
         
         <!-- This should be replaced by the build profile -->
         <app.version>${project.version}</app.version>
-
-		<!-- This property is used to specify the modules included in the (custom) JVM image. -->
-        <!-- Reminder: javafx.web (the embedded browser component) is not included in this project by default due
-        to GitHub template size restrictions. You can download the full SDK from https://openjfx.io -->
-        <!-- This only needs to include modules part of the JVM or JavaFX jmods -->
-        <jvm.modules>java.base,java.management,java.net.http,java.sql,java.xml,java.desktop,javafx.base,javafx.controls,javafx.graphics,javafx.media,javafx.swing,javafx.web,java.naming,jdk.crypto.ec,jdk.xml.dom</jvm.modules>
 
         <!-- Set the project to UTF-8, avoiding warnings in the build logs -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -246,12 +240,6 @@
 		    <groupId>org.apache.commons</groupId>
 		    <artifactId>commons-compress</artifactId>
 		    <version>1.28.0</version>
-		</dependency>
-		<dependency>
-		  <groupId>me.walkerknapp</groupId>
-		  <artifactId>devolay</artifactId>
-		  <version>2.1.0</version>
-		  <classifier>integrated</classifier> 
 		</dependency>
 	</dependencies>
 
@@ -457,7 +445,19 @@
                 <!-- mac-aarch64 for M1 -->
                 <jfx.platform>mac</jfx.platform>
                 <package>app</package>
+                <!-- This property is used to specify the modules included in the (custom) JVM image. -->
+                <!-- NOTE: for MacOS javafx.web has an issue with App Store deployment: https://bugs.openjdk.org/browse/JDK-8289521 -->
+		        <jvm.modules>java.base,java.management,java.net.http,java.sql,java.xml,java.desktop,javafx.base,javafx.controls,javafx.graphics,javafx.media,javafx.swing,java.naming,jdk.crypto.ec,jdk.xml.dom</jvm.modules>
             </properties>
+            <dependencies>
+            <!--
+            	<dependency>
+            		<groupId>me.walkerknapp</groupId>
+            		<artifactId>devolay</artifactId>
+            		<version>2.1.1</version>
+				</dependency>
+            -->
+            </dependencies>
         </profile>
          
         <profile>
@@ -472,7 +472,17 @@
                 <platform>linux64</platform>
                 <jfx.platform>linux</jfx.platform>
                 <package>deb</package>
+                <!-- This property is used to specify the modules included in the (custom) JVM image. -->
+		        <jvm.modules>java.base,java.management,java.net.http,java.sql,java.xml,java.desktop,javafx.base,javafx.controls,javafx.graphics,javafx.media,javafx.swing,javafx.web,java.naming,jdk.crypto.ec,jdk.xml.dom</jvm.modules>
             </properties>
+            <dependencies>
+            	<dependency>
+            		<groupId>me.walkerknapp</groupId>
+            		<artifactId>devolay</artifactId>
+            		<version>2.1.1</version>
+            		<classifier>integrated</classifier> 
+				</dependency>
+            </dependencies>
         </profile>
         
         <profile>
@@ -486,7 +496,17 @@
                 <platform>windows64</platform>
                 <jfx.platform>win</jfx.platform>
                 <package>msi</package>
+        		<!-- This property is used to specify the modules included in the (custom) JVM image. -->
+		        <jvm.modules>java.base,java.management,java.net.http,java.sql,java.xml,java.desktop,javafx.base,javafx.controls,javafx.graphics,javafx.media,javafx.swing,javafx.web,java.naming,jdk.crypto.ec,jdk.xml.dom</jvm.modules>
             </properties>
+            <dependencies>
+            	<dependency>
+            		<groupId>me.walkerknapp</groupId>
+            		<artifactId>devolay</artifactId>
+            		<version>2.1.1</version>
+            		<classifier>integrated</classifier> 
+				</dependency>
+            </dependencies>
         </profile>
 
     </profiles>

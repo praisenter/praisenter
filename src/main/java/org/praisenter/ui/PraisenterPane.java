@@ -10,6 +10,7 @@ import org.praisenter.ui.pages.PresentPage;
 import org.praisenter.ui.pages.SettingsPage;
 import org.praisenter.ui.pages.TaskListPage;
 import org.praisenter.ui.translations.Translations;
+import org.praisenter.utility.RuntimeProperties;
 
 import javafx.application.Platform;
 import javafx.geometry.Side;
@@ -78,12 +79,17 @@ final class PraisenterPane extends BorderPane {
 		taskHistoryTab.setTooltip(this.createTabTooltip(Translations.get("area.tasks")));
 		taskHistoryTab.setClosable(false);
 		
-		Tab manualTab = new Tab(null, new ManualPage(context));
-		manualTab.setGraphic(this.createTabGraphic(LEFT_NAVIGATION_ICON_MANUAL_CLASS));
-		manualTab.setTooltip(this.createTabTooltip(Translations.get("area.manual")));
-		manualTab.setClosable(false);
+		body.getTabs().addAll(presentTab, libraryTab, editorTab, settingsTab, taskHistoryTab);
 		
-		body.getTabs().addAll(presentTab, libraryTab, editorTab, settingsTab, taskHistoryTab, manualTab);
+		// JAVABUG: for MacOS javafx.web has an issue with App Store deployment: https://bugs.openjdk.org/browse/JDK-8289521
+		if (!RuntimeProperties.IS_MAC_OS) {
+			Tab manualTab = new Tab(null, new ManualPage(context));
+			manualTab.setGraphic(this.createTabGraphic(LEFT_NAVIGATION_ICON_MANUAL_CLASS));
+			manualTab.setTooltip(this.createTabTooltip(Translations.get("area.manual")));
+			manualTab.setClosable(false);
+			
+			body.getTabs().add(manualTab);
+		}
 		
 		context.currentPageProperty().addListener((obs, ov, nv) -> {
 			if (nv == null) {
