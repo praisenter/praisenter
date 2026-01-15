@@ -20,6 +20,7 @@ import org.praisenter.data.workspace.DisplayConfiguration;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.slide.SlideMode;
 import org.praisenter.ui.slide.SlideView;
+import org.praisenter.utility.RuntimeProperties;
 
 import javafx.beans.value.ChangeListener;
 import javafx.geometry.Rectangle2D;
@@ -111,11 +112,24 @@ public final class NDIDisplayTarget implements DisplayTarget {
 		// An update to Java FX must have required us to have
 		// a stage to apply the scene and components to for rendering
 		// this wasn't needed before...
-		this.stage = new Stage(StageStyle.UTILITY);
-		Scene scene = new Scene(this.container);
+		
+		// using UTILITY here for Windows / MacOS allows the window to not be a child window of the application
+		// so kind of hides it from the user.  This didn't work on Linux, utility couldn't be transparent
+		this.stage = new Stage(RuntimeProperties.IS_LINUX_OS ? StageStyle.TRANSPARENT : StageStyle.UTILITY);
+		this.stage.setTitle(configuration.getName());
+		if (RuntimeProperties.IS_LINUX_OS) {
+			// the only thing that worked on linux was TRANSPARENT with width/height = 1.0.  Zero told Linux
+			// to use a default width/height instead of hide it
+			this.stage.setWidth(1.0);
+			this.stage.setHeight(1.0);
+			this.stage.setX(0.0);
+			this.stage.setY(0.0);
+		}
+		// this is the trick so that a user doesn't see the stage on Windows/MacOS (doesn't work on Ubuntu)
+		this.stage.setOpacity(0.0);
+		this.stage.setOnCloseRequest(e -> e.consume());
+		Scene scene = new Scene(this.container, Color.TRANSPARENT);
 		this.stage.setScene(scene);
-		// this is the trick so that a user doesn't see the stage
-		this.stage.setOpacity(0);
 		this.stage.show();
 		
 		this.videoFrame = new DevolayVideoFrame();
