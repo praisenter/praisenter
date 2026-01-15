@@ -202,7 +202,28 @@ public final class LifecycleHandler {
 		LOGGER.debug("Attempting to load NDI/Devolay natives");
 		final Reference<Boolean> isNDIReady = new Reference<Boolean>(false);
 		try {
-			int result = Devolay.loadLibraries();
+			int result;
+			if (RuntimeProperties.IS_MAC_OS) {
+    			Path basePath;
+    			if (RuntimeProperties.IS_MAC_OS_SANDBOX) {
+					// for running in macos sandbox mode
+    				basePath = Paths.get(RuntimeProperties.JAVA_HOME).getParent().getParent().getParent().resolve("app");
+    			} else {
+					// for running in eclipse
+    				basePath = Paths.get(RuntimeProperties.USER_DIR).resolve("packaging").resolve("macos64").resolve("app").resolve("exec");
+    			}
+				// TODO we probably need another condition for DMG deployment since I don't think it would work the same way....
+    			// we have to load them manually from a different location
+				Path dpath = basePath.resolve("libdevolay-natives.dylib");
+				Path ndipath = basePath.resolve("libndi.dylib");
+				LOGGER.info("Loading devolay library from: '" + dpath.toAbsolutePath().toString() + "'");
+				LOGGER.info("Loading NDI library from: '" + ndipath.toAbsolutePath().toString() + "'");
+				result = Devolay.loadLibraries(dpath, ndipath);
+    		} else {
+    			LOGGER.info("Loading devolay/NDI libraries from extracted locations using integrated package");
+    			result = Devolay.loadLibraries();
+    		}
+			
     		if (result == 0) {
             	// all is well
             	LOGGER.info("Devolay/NDI libraries loaded successfully");

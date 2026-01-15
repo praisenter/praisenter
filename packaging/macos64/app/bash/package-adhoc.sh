@@ -62,6 +62,8 @@ cp -R "$CONFIG_TEMPLATES" "$WORK_DIR"
 # copy the dylibs into the app dir
 echo "Copying binaries to /app directory"
 cp ../packaging/macos64/app/exec/libSecurityScopedBookmarkLibrary.dylib "$IMAGE_DIR/$IMAGE/Contents/app"
+cp ../packaging/macos64/app/exec/libndi.dylib "$IMAGE_DIR/$IMAGE/Contents/app"
+cp ../packaging/macos64/app/exec/libdevolay-natives.dylib "$IMAGE_DIR/$IMAGE/Contents/app"
 cp ../packaging/macos64/app/exec/ffmpeg "$IMAGE_DIR/$IMAGE/Contents/app"
 cp ../packaging/macos64/app/exec/ffprobe "$IMAGE_DIR/$IMAGE/Contents/app"
 
@@ -88,17 +90,17 @@ echo "<------------------------------------------------->"
 echo "Signing all contents of: $IMAGE"
 find "$IMAGE_DIR/$IMAGE" -type f \( -perm +111 -o -name "*.dylib" -o -name "*.so" -o -name "ffmpeg" -o -name "ffprobe" \) | while read -r BINARY; do
     if [[ "$BINARY" != *"/Contents/MacOS/Praisenter"* ]]; then
-        echo "Signing internal component: $BINARY"
+    	echo "Found internal component '$BINARY'"
         if [[ "$BINARY" = *".dylib" ]]; then
-        	echo "Signing without entitlements"
+        	echo "Signing internal component '$BINARY' without entitlements"
             codesign -vvvv --options runtime --deep --force --timestamp --sign "$APP_CERT" "$BINARY"
         else
         	# only executables need entitlements added to the signature
-        	echo "Signing with entitlements"
+        	echo "Signing internal component '$BINARY' with entitlements"
         	codesign -vvvv --options runtime --deep --force --timestamp --entitlements "$EMB_ENTITLEMENTS" --sign "$APP_CERT" "$BINARY"
         fi
     else
-        echo "Skipping internal component: $BINARY"
+        echo "Skipping internal component '$BINARY'"
     fi
 done
 
@@ -116,13 +118,13 @@ find "$IMAGE_DIR/$IMAGE/Contents/app" -type f \( -name "*.jar" \) | while read -
     # echo "$replace"
 
     find "$tmp_dir" -type f \( -perm +111 -o -name "*.dylib" -o -name "*.so" -o -name "ffmpeg" -o -name "ffprobe" \) | while read -r BINARY; do
-        echo "Signing embedded component: $BINARY"
+        echo "Found embedded copmonent '$BINARY'"
         #codesign -vvvv --options runtime --deep --force --timestamp --entitlements "$EMB_ENTITLEMENTS" --sign "$APP_CERT" "$BINARY"
         if [[ "$BINARY" = *".dylib" ]]; then
-        	echo "Signing without entitlements"
+        	echo "Signing embedded component '$BINARY' without entitlements"
             codesign -vvvv --options runtime --deep --force --timestamp --sign "$APP_CERT" "$BINARY"
         else
-        	echo "Signing with entitlements"
+        	echo "Signing embedded component '$BINARY' with entitlements"
         	# only executables need entitlements added to the signature
         	codesign -vvvv --options runtime --deep --force --timestamp --entitlements "$EMB_ENTITLEMENTS" --sign "$APP_CERT" "$BINARY"
         fi

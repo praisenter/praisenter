@@ -19,3 +19,6 @@ Mac OS X 10.12 and later
 On macOS 10.15 (Catalina) the binary has to be removed from quarantine: xattr -dr com.apple.quarantine <path_to_binary>
 
 The inclusion of these tools must be stored within the app bundle, must be marked as executables, and must be signed properly.
+
+# NDI / Devolay
+Version 2.1.1 was manually copied into this folder due to the loading style it won't work in the app store deployment
