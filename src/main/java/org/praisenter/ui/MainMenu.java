@@ -22,6 +22,7 @@ import org.praisenter.ui.controls.WindowHelper;
 import org.praisenter.ui.translations.Translations;
 import org.praisenter.ui.upgrade.UpgradeChecker;
 import org.praisenter.utility.DesktopLauncher;
+import org.praisenter.utility.RuntimeProperties;
 
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
@@ -54,6 +55,12 @@ final class MainMenu extends MenuBar {
 		this.context = context;
 		
 		this.setUseSystemMenuBar(true);
+		
+		// fix for JavaFX on Mac OS leaving space where the menubar used to be
+		if (RuntimeProperties.IS_MAC_OS) {
+			this.setManaged(false);
+			this.setVisible(false);
+		}
 		
 		Menu workspacesMenu = new Menu(Translations.get("menu.workspace.switch"));
 		for (WorkspaceReference wr : context.getWorkspaceManager().getOtherWorkspaces()) {
