@@ -7,23 +7,25 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.praisenter.async.AsyncHelper;
 import org.praisenter.data.SingleFileManager;
+import org.praisenter.data.workspace.WorkspaceManager;
 import org.praisenter.data.workspace.WorkspacePathResolver;
 import org.praisenter.data.workspace.WorkspaceReference;
 import org.praisenter.data.workspace.Workspaces;
 import org.praisenter.ui.controls.Dialogs;
 import org.praisenter.ui.translations.Translations;
-import org.praisenter.utility.RuntimeProperties;
-import org.praisenter.utility.StringManipulator;
 
-import com.plexteq.ssb.nativeimpl.SecurityScopedBookmarks;
-
+import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -67,7 +69,7 @@ final class WorkspaceSelectionPane extends VBox {
 	private final ObjectProperty<Node> statusIcon;
 	private final BooleanProperty pathValid;
 	
-	private final CompletableFuture<Optional<WorkspaceReference>> future;
+	private final CompletableFuture<Optional<WorkspaceManager>> future;
 	
 	public WorkspaceSelectionPane(SingleFileManager<Workspaces> workspacesManager) {
 		this.getStyleClass().add(WORKSPACE_SELECTION_PANE_CLASS);
@@ -77,7 +79,7 @@ final class WorkspaceSelectionPane extends VBox {
 		this.statusText = new SimpleStringProperty();
 		this.statusIcon = new SimpleObjectProperty<>();
 		this.pathValid = new SimpleBooleanProperty(false);
-		this.future = new CompletableFuture<Optional<WorkspaceReference>>();
+		this.future = new CompletableFuture<Optional<WorkspaceManager>>();
 
 		List<WorkspaceReference> initialWorkspaceList = workspacesManager.getData().getWorkspaces()
 				.stream()
@@ -248,37 +250,65 @@ final class WorkspaceSelectionPane extends VBox {
 		});
 		
 		btnLaunch.setOnAction(e -> {
+			if (this.future.isDone()) {
+				// should never get here, but just in case
+				return;
+			}
+			
 			WorkspaceReference wr = cmbWorkspacePath.getValue();
+			if (wr == null) {
+				this.statusText.set(Translations.get("workspace.path.invalid"));
+				this.statusIcon.set(ERROR_ICON);
+				this.pathValid.set(false);
+				return;
+			}
+			
+			Path path = wr.getPath();
+			if (path == null) {
+				this.statusText.set(Translations.get("workspace.path.invalid"));
+				this.statusIcon.set(ERROR_ICON);
+				this.pathValid.set(false);
+				return;
+			}
+			
 			LOGGER.debug("User requesting launch using workspace: '{}'", wr.getPath().toAbsolutePath());
-			
-			// once someone tries to launch, check if the bookmark exists
-			// if it doesn't, then assume that they selected the folder
-			// and we need to create the security scoped bookmark
-			String token = wr.getSecurityToken();
-			if (RuntimeProperties.IS_MAC_OS && StringManipulator.isNullOrEmpty(token)) {
-				LOGGER.info("Creating security scoped bookmark for workspace: '" + wr.getPath().toAbsolutePath() + "'");
-				try {
-					token = SecurityScopedBookmarks.createBookmarkImpl(wr.getPath().toUri().toString());
-					wr.setSecurityToken(token);
-					LOGGER.info("Security scoped bookmark created successfully for workspace: '" + wr.getPath().toAbsolutePath() + "'");
-				} catch (Exception ex) {
-					LOGGER.error("Failed to create bookmark for workspace folder '" + wr.getPath().toAbsolutePath() + "'", ex);
-				} catch (UnsatisfiedLinkError ex) {
-					LOGGER.error("Failed to create bookmark for workspace folder '" + wr.getPath().toAbsolutePath() + "'", ex);
-				}
+			try {
+				CompletableFuture.supplyAsync(() -> {
+					try {
+						WorkspaceInitializer wi = new WorkspaceInitializer(workspacesManager);
+						WorkspaceManager wm = wi.initializeWorkspace(wr);
+						return wm;
+					} catch (Exception ex) {
+						throw new CompletionException(ex);
+					}
+				}).thenCompose(AsyncHelper.onJavaFXThreadAndWait((wm) -> {
+					// only now that the workspace is selected and initialized do we
+					// complete the future
+					this.value.set(Optional.of(wr));
+					this.future.complete(Optional.of(wm));
+					return null;
+				})).exceptionally(t -> {
+					Platform.runLater(() -> {
+						this.statusText.set(Translations.get("workspace.path.failed"));
+						this.statusIcon.set(ERROR_ICON);
+						this.pathValid.set(false);
+					});
+					return null;
+				});
+			} catch (Exception ex) {
+				this.statusText.set(Translations.get("workspace.path.failed"));
+				this.statusIcon.set(ERROR_ICON);
+				this.pathValid.set(false);
 			}
 			
-			Optional<WorkspaceReference> value = Optional.of(wr);
-			if (!this.future.isDone()) {
-				this.value.set(value);
-				this.future.complete(value);
-			}
 		});
 		
 		btnCancel.setOnAction(e -> {
 			LOGGER.debug("User cancelled workspace selection");
 			this.value.set(Optional.empty());
-			this.future.complete(Optional.empty());
+			if (!this.future.isDone()) {
+				this.future.complete(Optional.empty());
+			}
 		});
 		
 		this.value.addListener((obs, ov, nv) -> {
@@ -286,7 +316,41 @@ final class WorkspaceSelectionPane extends VBox {
 		});
 	}
 	
-	public CompletableFuture<Optional<WorkspaceReference>> getSelectedWorkspace() {
+	public Optional<WorkspaceReference> getValue() {
+		return this.value.get();
+	}
+	
+	public void setValue(Optional<WorkspaceReference> value) {
+		this.value.set(value);
+	}
+	
+	public ObjectProperty<Optional<WorkspaceReference>> valueProperty() {
+		return this.value;
+	}
+	
+	public String getStatusText() {
+		return this.statusText.get();
+	}
+	
+	public ReadOnlyStringProperty statusTextProperty() {
+		return this.statusText;
+	}
+	
+	public boolean isPathValid() {
+		return this.pathValid.get();
+	}
+	
+	public ReadOnlyBooleanProperty pathValidProperty() {
+		return this.pathValid;
+	}
+	
+	public void setStatus(String text, boolean isPathValid) {
+		this.pathValid.set(isPathValid);
+		this.statusText.set(text);
+		this.statusIcon.set(isPathValid ? VALID_ICON : ERROR_ICON);
+	}
+	
+	public CompletableFuture<Optional<WorkspaceManager>> getWorkspaceSelectionFuture() {
 		return this.future;
 	}
 }
