@@ -7,12 +7,11 @@ import java.time.LocalDateTime;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Properties;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
+import java.util.function.Function;
 
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
@@ -250,11 +249,8 @@ public final class LifecycleHandler {
 		Path path = Paths.get(Constants.ROOT_PATH, "workspaces.json");
 		SingleFileManager<Workspaces> fm = SingleFileManager.open(path, Workspaces.class, new Workspaces());
 		
-		CompletableFuture<Optional<WorkspaceReference>> workspacePathFuture = null;
-		if (workspaceReference == null) {
+		final Function<WorkspaceSelectionPane, CompletableFuture<Optional<WorkspaceManager>>> promptForWorkspace = (wss) -> {
 			LOGGER.info("Prompting for workspace selection.");
-			WorkspaceSelectionPane wss = new WorkspaceSelectionPane(fm);
-			
 			// NOTE: we're using the main stage here for workspace selection because
 			// using anything else doesn't block the application from closing
 			Scene scene = new Scene(wss);
@@ -270,10 +266,30 @@ public final class LifecycleHandler {
 			stage.show();
 			stage.centerOnScreen();
 			
-			workspacePathFuture = wss.getSelectedWorkspace();
+			return wss.getWorkspaceSelectionFuture();
+		};
+		
+		CompletableFuture<Optional<WorkspaceManager>> workspacePathFuture = null;
+		if (workspaceReference == null) {
+			// no workspace was given so prompt for one
+			WorkspaceSelectionPane wss = new WorkspaceSelectionPane(fm);
+			workspacePathFuture = promptForWorkspace.apply(wss);
 		} else {
+			// a workspace was given (could be from command line or from switching a workspace)
 			LOGGER.info("Workspace path already given - no prompt necessary");
-			workspacePathFuture = CompletableFuture.completedFuture(Optional.of(workspaceReference));
+			try {
+				WorkspaceInitializer wi = new WorkspaceInitializer(fm);
+				WorkspaceManager wm = wi.initializeWorkspace(workspaceReference);
+				workspacePathFuture = CompletableFuture.completedFuture(Optional.of(wm));
+			} catch (Exception ex) {
+				// if we fail to open the workspace head-less then show the workspace selection
+				// so the user can choose a different workspace or re-choose a workspace
+				LOGGER.error("Failed to initialize workspace: '" + workspaceReference.getPath() + "'", ex);
+				WorkspaceSelectionPane wss = new WorkspaceSelectionPane(fm);
+				wss.setValue(Optional.of(workspaceReference));
+				wss.setStatus(Translations.get("workspace.path.failed"), false);
+				workspacePathFuture = promptForWorkspace.apply(wss);
+			}
 		}
 		
 		workspacePathFuture.thenApplyAsync((owspr) -> {
@@ -286,30 +302,8 @@ public final class LifecycleHandler {
 				// exit the application
 				throw new CompletionException(new NoWorkspaceSelectedException());
 			}
-			
-	    	final WorkspaceReference wsp = owspr.get();
-	    	LOGGER.info("Workspace '" + wsp.getPath().toAbsolutePath() + "' was selected.  Opening...");
-	    	
-	    	this.acquireSecurityScopedBookmark(LOGGER, wsp);
-	    	
-	    	return wsp;
-		}).thenApplyAsync((wspr) -> {
-			// open the workspace
-    		try {
-    			// get all the other workspaces
-    			Set<WorkspaceReference> otherWorkspaces = fm.getData().getWorkspaces()
-    					.stream()
-    					.filter(s -> !s.equals(wspr))
-    					.collect(Collectors.toSet());
-    			
-    			// build the workspace manager
-    			WorkspaceManager wsm = WorkspaceManager.open(wspr, otherWorkspaces);
-    			LOGGER.info("Workspace '" + wspr.getPath().toAbsolutePath() + "' was opened successfully.");
-    			return wsm;
-    		} catch (Exception ex) {
-    			LOGGER.error("Failed to open the workspace at '" + wspr.getPath().toAbsolutePath() + "': " + ex.getMessage(), ex);
-    			throw new CompletionException(ex);
-    		}
+
+	    	return owspr.get();
     	}).thenCompose((workspaceManager) -> {
     		LOGGER.info("Saving workspaces configuration file.");
     		// save the workspaces config file with the new
@@ -681,24 +675,6 @@ public final class LifecycleHandler {
 			}
 			return CompletableFuture.completedStage(false);
 		});
-    }
-    
-    private void acquireSecurityScopedBookmark(Logger LOGGER, WorkspaceReference workspace) {
-    	if (workspace != null) {
-			Path path = workspace.getPath();
-			String securityToken = workspace.getSecurityToken();
-	    	if (RuntimeProperties.IS_MAC_OS && !StringManipulator.isNullOrEmpty(securityToken)) {
-	    		try {
-	    			LOGGER.info("Acquiring security scoped bookmark for workspace '" + path + "'");
-	    			SecurityScopedBookmarks.startResourceAccessingImpl(securityToken);
-	    			LOGGER.info("Security scoped bookmark for workspace '" + path + "' acquired successfully");
-	    		} catch (Exception ex) {
-	    			LOGGER.error("Failed to acquire the security scoped bookmark for workspace: '" + path + "'", ex);
-	    		} catch (UnsatisfiedLinkError ex) {
-	    			LOGGER.error("Failed to acquire the security scoped bookmark for workspace: '" + path + "'", ex);
-				}
-	    	}
-    	}
     }
     
     // NOTE: I ended up not using this because there are some things that we need to 
