@@ -18,6 +18,8 @@ import org.praisenter.data.workspace.WorkspaceManager;
 import org.praisenter.data.workspace.WorkspacePathResolver;
 import org.praisenter.data.workspace.WorkspaceReference;
 import org.praisenter.data.workspace.Workspaces;
+import org.praisenter.ui.bind.BindingHelper;
+import org.praisenter.ui.bind.ObjectConverter;
 import org.praisenter.ui.controls.Dialogs;
 import org.praisenter.ui.translations.Translations;
 
@@ -68,6 +70,7 @@ final class WorkspaceSelectionPane extends VBox {
 	private final StringProperty statusText;
 	private final ObjectProperty<Node> statusIcon;
 	private final BooleanProperty pathValid;
+	private final BooleanProperty initializing;
 	
 	private final CompletableFuture<Optional<WorkspaceManager>> future;
 	
@@ -80,6 +83,7 @@ final class WorkspaceSelectionPane extends VBox {
 		this.statusIcon = new SimpleObjectProperty<>();
 		this.pathValid = new SimpleBooleanProperty(false);
 		this.future = new CompletableFuture<Optional<WorkspaceManager>>();
+		this.initializing = new SimpleBooleanProperty(false);
 
 		List<WorkspaceReference> initialWorkspaceList = workspacesManager.getData().getWorkspaces()
 				.stream()
@@ -146,6 +150,26 @@ final class WorkspaceSelectionPane extends VBox {
 				description,
 				selectorRow,
 				buttonBar);
+		
+		BindingHelper.bindBidirectional(cmbWorkspacePath.valueProperty(), this.value, new ObjectConverter<WorkspaceReference, Optional<WorkspaceReference>>() {
+			@Override
+			public Optional<WorkspaceReference> convertFrom(WorkspaceReference t) {
+				if (t == null)
+					return Optional.empty();
+				
+				return Optional.of(t);
+			}
+			@Override
+			public WorkspaceReference convertTo(Optional<WorkspaceReference> e) {
+				if (e == null)
+					return null;
+				
+				if (e.isEmpty())
+					return null;
+				
+				return e.get();
+			}
+		});
 		
 		cmbWorkspacePath.valueProperty().addListener((obs, ov, nv) -> {
 			WorkspaceReference wr = nv;
@@ -273,6 +297,7 @@ final class WorkspaceSelectionPane extends VBox {
 			
 			LOGGER.debug("User requesting launch using workspace: '{}'", wr.getPath().toAbsolutePath());
 			try {
+				this.initializing.set(true);
 				CompletableFuture.supplyAsync(() -> {
 					try {
 						WorkspaceInitializer wi = new WorkspaceInitializer(workspacesManager);
@@ -289,6 +314,7 @@ final class WorkspaceSelectionPane extends VBox {
 					return null;
 				})).exceptionally(t -> {
 					Platform.runLater(() -> {
+						this.initializing.set(false);
 						this.statusText.set(Translations.get("workspace.path.failed"));
 						this.statusIcon.set(ERROR_ICON);
 						this.pathValid.set(false);
@@ -296,6 +322,7 @@ final class WorkspaceSelectionPane extends VBox {
 					return null;
 				});
 			} catch (Exception ex) {
+				this.initializing.set(false);
 				this.statusText.set(Translations.get("workspace.path.failed"));
 				this.statusIcon.set(ERROR_ICON);
 				this.pathValid.set(false);
@@ -311,9 +338,7 @@ final class WorkspaceSelectionPane extends VBox {
 			}
 		});
 		
-		this.value.addListener((obs, ov, nv) -> {
-			this.setDisable(true);
-		});
+		this.disableProperty().bind(this.initializing);
 	}
 	
 	public Optional<WorkspaceReference> getValue() {
