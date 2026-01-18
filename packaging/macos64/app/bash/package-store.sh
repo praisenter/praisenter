@@ -67,6 +67,10 @@ cp ../packaging/macos64/app/exec/ffprobe "$IMAGE_DIR/$IMAGE/Contents/app"
 echo "Copying provisioning profile"
 cp ../packaging/macos64/app/content/MacAppDistribution.embedded.provisionprofile "$IMAGE_DIR/$IMAGE/Contents/embedded.provisionprofile"
 
+# copy Assets.car
+echo "Copying Assets.car"
+cp ../packaging/macos64/app/resources/Assets.car "$IMAGE_DIR/$IMAGE/Contents/Resources/Assets.car"
+
 # copy privacy manifest
 echo "Copying privacy manifest"
 cp ../packaging/macos64/app/content/PrivacyInfo.xcprivacy "$IMAGE_DIR/$IMAGE/Contents/Resources/PrivacyInfo.xcprivacy"
