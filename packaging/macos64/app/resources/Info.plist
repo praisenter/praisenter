@@ -12,6 +12,8 @@
   <string>Praisenter</string>
   <key>CFBundleIconFile</key>
   <string>Praisenter.icns</string>
+  <key>CFBundleIconName</key>
+  <string>Praisenter</string>
   <key>CFBundleIdentifier</key>
   <string>org.praisenter</string>
   <key>CFBundleInfoDictionaryVersion</key>
