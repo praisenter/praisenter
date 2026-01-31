@@ -168,7 +168,7 @@ jobs:
           Write-Host "Copied: '$source' to '$target'"
 
       # Rename the *.app with version+arch (MACOS)
-	  - name: Rename MacOS app
+      - name: Rename MacOS app
         if: runner.os == 'Macos'
         shell: pwsh
         run: |
