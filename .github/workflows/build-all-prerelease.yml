@@ -19,6 +19,7 @@ jobs:
           #   branch: master
           - os: macos-15-intel
             branch: macos
+            arch: x64
           # - os: macos-latest
           #   branch: macos
     runs-on: ${{ matrix.os }}
@@ -220,7 +221,7 @@ jobs:
         run: |
           APP_CERT="3rd Party Mac Developer Application: William Bittle (W9HCQKU68J)"
           INST_CERT="3rd Party Mac Developer Installer: William Bittle (W9HCQKU68J)"
-          ARCH=$(echo "$RUNNER_ARCH" | tr '[:upper:]' '[:lower:]')
+          ARCH="${{ matrix.arch }}"
 
           APP_ENTITLEMENTS="./packaging/macos64/app/entitlements.plist"
           EMB_ENTITLEMENTS="./packaging/macos64/app/embed-entitlements.plist"
@@ -242,6 +243,7 @@ jobs:
 
           # make the work folders
           echo "Creating working directories: $WORK_DIR"
+          rm -rf "$WORK_DIR"
           mkdir -p "$IMAGE_DIR"
           mkdir -p "$PACKAGES_DIR"
 
@@ -357,7 +359,7 @@ jobs:
         run: |
           APP_CERT="Developer ID Application: William Bittle (W9HCQKU68J)"
           INST_CERT="Developer ID Installer: William Bittle (W9HCQKU68J)"
-          ARCH=$(echo "$RUNNER_ARCH" | tr '[:upper:]' '[:lower:]')
+          ARCH="${{ matrix.arch }}"
 
           APP_ENTITLEMENTS="./packaging/macos64/app/entitlements.plist"
           EMB_ENTITLEMENTS="./packaging/macos64/app/embed-entitlements.plist"
@@ -379,6 +381,7 @@ jobs:
 
           # make the work folders
           echo "Creating working directories: $WORK_DIR"
+          rm -rf "$WORK_DIR"
           mkdir -p "$IMAGE_DIR"
           mkdir -p "$PACKAGES_DIR"
 
