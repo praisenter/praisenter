@@ -354,6 +354,7 @@ jobs:
         run: |
           APP_CERT="Developer ID Application: William Bittle (W9HCQKU68J)"
           INST_CERT="Developer ID Installer: William Bittle (W9HCQKU68J)"
+          ARCH=$(echo "$RUNNER_ARCH" | tr '[:upper:]' '[:lower:]')
 
           APP_ENTITLEMENTS="./packaging/macos64/app/entitlements.plist"
           EMB_ENTITLEMENTS="./packaging/macos64/app/embed-entitlements.plist"
