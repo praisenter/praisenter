@@ -170,7 +170,7 @@ jobs:
 
       # Setup for macos signing (MACOS)
       - name: Install the Apple certificate and provisioning profile
-        if: runner.os == 'Macos'
+        if: runner.os == 'macOS'
         env:
           PKG_DEVELOPER_ID_APPLICATION_CERTIFICATE_BASE64: ${{ secrets.PKG_DEVELOPER_ID_APPLICATION_CERTIFICATE_BASE64 }}
           PKG_DEVELOPER_ID_INSTALLER_CERTIFICATE_BASE64: ${{ secrets.PKG_DEVELOPER_ID_INSTALLER_CERTIFICATE_BASE64 }}
@@ -213,7 +213,7 @@ jobs:
 
       # Package and sign for for the MacOS store
       - name: Package and sign for MacOS store
-        if: runner.os == 'Macos'
+        if: runner.os == 'macOS'
         run: |
           APP_CERT="3rd Party Mac Developer Application: William Bittle (W9HCQKU68J)"
           INST_CERT="3rd Party Mac Developer Installer: William Bittle (W9HCQKU68J)"
@@ -350,7 +350,7 @@ jobs:
 		  
       # Package and sign for for MacOS adhoc deployment
       - name: Package and sign for MacOS adhoc deployment
-        if: runner.os == 'Macos'
+        if: runner.os == 'macOS'
         run: |
           APP_CERT="Developer ID Application: William Bittle (W9HCQKU68J)"
           INST_CERT="Developer ID Installer: William Bittle (W9HCQKU68J)"
