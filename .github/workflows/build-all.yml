@@ -20,7 +20,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest] # macos-latest
+        os: [ubuntu-latest, windows-latest, macos-15-intel, macos-latest] # macos-latest
     runs-on: ${{ matrix.os }}
     steps:
       # Get latest from the current branch
@@ -49,7 +49,7 @@ jobs:
       # Get latest LFS files
       - name: Check out Git LFS content
         run: git lfs checkout
-      
+
       # This pulls the version number from the release-version.txt file
       - name: Read version
         id: readversion
@@ -58,12 +58,12 @@ jobs:
           $content = Get-Content release-version.txt
           Write-Host "VERSION_NUMBER: $content"
           echo "VERSION_NUMBER=$content" >> $Env:GITHUB_ENV
-
+          
       # Add MSBuild (WINDOWS)
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v2
         if: runner.os == 'Windows'
-        
+
       # Install FFmpeg (UBUNTU)
       - name: Install FFmpeg
         if: runner.os == 'Linux'
@@ -71,7 +71,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libavcodec-dev libavformat-dev
 
-      # Install Wix 6
+      # Install Wix 6 (WINDOWS)
       # https://github.com/petr-panteleyev/jpackage-gradle-plugin/issues/38#issuecomment-2873402088
       - name: Install WiX 6
         run: |
@@ -89,9 +89,8 @@ jobs:
           java-package: jdk+fx
           cache: 'maven'
       
-      # Run the Maven Build (WINDOWS/UBUNTU)
+      # Run the Maven Build
       - name: "Build with Maven"
-        if: matrix.os != 'macos-latest'
         run: mvn -B clean install --file pom.xml
 
       # Now attempt to build the msix (WINDOWS)
@@ -107,12 +106,15 @@ jobs:
           $xml.Save($filePath)
 
       # Copy all the build artifacts to the /App folder (WINDOWS)
-      - name: "Copy application msix location"
+      - name: "Copy msi to msix location"
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path "./packaging/windows64/msix/Praisenter/App"
-          Copy-Item -Path "./target/installer-work/image/Praisenter/*" -Destination "./packaging/windows64/msix/Praisenter/App" -Recurse
+          $copied = Copy-Item -Path "./target/installer-work/image/Praisenter/*" -Destination "./packaging/windows64/msix/Praisenter/App" -Recurse -PassThru
+          $copied | ForEach-Object {
+            Write-Host "Copied: '$($_.FullName)'"
+          }
 
       # Build the msixupload file (WINDOWS)
       - name: Build MSIX package
@@ -128,7 +130,10 @@ jobs:
         if: runner.os == 'Linux'
         shell: pwsh
         run: |
-          Copy-Item "./target/praisenter_${{ env.VERSION_NUMBER }}_amd64.deb" "./packaging/linux64/snap/praisenter.deb"
+          $source = "./target/praisenter_${{ env.VERSION_NUMBER }}_amd64.deb"
+          $target = "./packaging/linux64/snap/praisenter.deb"
+          Copy-Item $source $target
+          Write-Host "Copied: '$source' to '$target'"
 
       # Update metainfo.xml (UBUNTU)
       - name: Set metainfo.xml version number
@@ -157,60 +162,23 @@ jobs:
         if: runner.os == 'Linux'
         shell: pwsh
         run: |
-          Copy-Item "${{ steps.snapcraft.outputs.snap }}" "./target/praisenter_${{ env.VERSION_NUMBER }}_amd64.snap"
+          $source = "${{ steps.snapcraft.outputs.snap }}"
+          $target = "./target/praisenter_${{ env.VERSION_NUMBER }}_amd64.snap"
+          Copy-Item $source $target
+          Write-Host "Copied: '$source' to '$target'"
 
-      # - name: "Build with Maven (macOS No Signing)"
-      #   env:
-      #     MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
-      #     MACOS_CERTIFICATE_PWD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
-      #   if: ${{ env.MACOS_CERTIFICATE == null && matrix.os == 'macos-latest' }}
-      #   run: mvn -B clean install --file pom.xml
-      # - name: "Build with Maven (macOS Signed)"
-      #   env:
-      #     MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
-      #     MACOS_CERTIFICATE_PWD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
-      #   if: ${{ env.MACOS_CERTIFICATE != null && matrix.os == 'macos-latest' }}
-      #   run: |
-      #     echo $MACOS_CERTIFICATE | base64 --decode > certificate.p12
-      #     security create-keychain -p temppass build.keychain
-      #     security default-keychain -s build.keychain
-      #     security unlock-keychain -p temppass build.keychain
-      #     security import certificate.p12 -k build.keychain -P $MACOS_CERTIFICATE_PWD -T /usr/bin/codesign
-      #     security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k temppass build.keychain
-      #     export IDENTITY=$(security find-identity -v)
-      #     echo $(security find-identity -v)
-      #     mvn -B clean install  -Pmacos-sign --file pom.xml
-      # - name: "Codesign DMG"
-      #   env:
-      #     MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
-      #     MACOS_CERTIFICATE_PWD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
-      #   if: ${{ env.MACOS_CERTIFICATE != null && matrix.os == 'macos-latest' }}
-      #   run: |
-      #     export DMG_PATH=$(ls ./target/*.dmg)
-      #     /usr/bin/codesign --deep --force -s ${{ env.DEV_IDENTITY}} $DMG_PATH -v
-      #     echo DMG_PATH=$DMG_PATH >> $GITHUB_ENV
-      #     echo ${{ env.DMG_PATH }}
-      # - name: "Notarize DMG"
-      #   env:
-      #     APP_EMAIL: ${{ secrets.APP_EMAIL }}
-      #     APP_PASS: ${{ secrets.APP_PASS }}
-      #   if: ${{ env.APP_EMAIL != null && matrix.os == 'macos-latest' }}
-      #   uses: GuillaumeFalourd/xcode-notarize@v1
-      #   with:
-      #     product-path: ${{ env.DMG_PATH }}
-      #     primary-bundle-id: ${{ env.PRIMARY_BUNDLE_ID }}
-      #     appstore-connect-username: ${{ secrets.APP_EMAIL }}
-      #     appstore-connect-password: ${{ secrets.APP_PASS }}
-      # - name: "Staple DMG"
-      #   env:
-      #     APP_EMAIL: ${{ secrets.APP_EMAIL }}
-      #     APP_PASS: ${{ secrets.APP_PASS }}
-      #   if: ${{ env.APP_EMAIL != null && matrix.os == 'macos-latest' }}
-      # ISSUE: this package doesn't exist anymore
-      #   uses: devbotsxyz/xcode-staple@v1
-      #   with:
-      #     product-path: ${{ env.DMG_PATH }}
-
+      # Rename the *.app with version+arch (MACOS)
+	  - name: Rename MacOS app
+        if: runner.os == 'Macos'
+        shell: pwsh
+        run: |
+          $arch = "${{ runner.arch }}".ToLower()
+          $source = "./target/Praisenter.app"
+          $newName = "Praisenter_${{ env.VERSION_NUMBER }}_$arch.app"
+          Rename-Item -Path $source -NewName $newName -ErrorAction Stop
+          Write-Host "Renamed '$source' to '$newName'"
+		  
+      # Publish the artifacts
       - name: Publish artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -221,7 +189,7 @@ jobs:
             ./target/*.msixupload
             ./target/*.deb
             ./target/*.snap
-          # ${{ env.DMG_PATH }}
+            ./target/*.app
 
   github-release:
     needs: build
@@ -243,53 +211,58 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v4
 
-      # Now create the LATEST release
-      - name: Update Latest Release
-        uses: marvinpinto/action-automatic-releases@latest
-        with:
-          repo_token: "${{ secrets.GITHUB_TOKEN}}"
-          automatic_release_tag: latest
-          prerelease: false
-          title: Praisenter Latest
-          files: |
-            ./dist-windows-latest/*.msi
-            ./dist-windows-latest/*.msixupload
-            ./dist-ubuntu-latest/*.deb
-            ./dist-ubuntu-latest/*.snap
-          # ./dist-macos-latest/*.dmg
+#      # Now create the LATEST release
+#      - name: Update Latest Release
+#        uses: softprops/action-gh-release@v2
+#        with:
+#          token: "${{ secrets.GITHUB_TOKEN}}"
+#          name: Praisenter Latest
+#          tag_name: latest
+#          prerelease: false
+#          generate_release_notes: true
+#          files: |
+#            ./dist-windows-latest/*.msi
+#            ./dist-windows-latest/*.msixupload
+#            ./dist-ubuntu-latest/*.deb
+#            ./dist-ubuntu-latest/*.snap
+#            ./dist-macos-15-intel/*.app
+#            ./dist-macos-latest/*.app
 
       # Create one release called 3.2.1 (for example)
       - name: Create Versioned Release
-        uses: marvinpinto/action-automatic-releases@latest
+        uses: softprops/action-gh-release@v2
         with:
-          repo_token: "${{ secrets.GITHUB_TOKEN}}"
-          automatic_release_tag: ${{ env.VERSION_NUMBER }}
+          token: "${{ secrets.GITHUB_TOKEN}}"
+          name: Praisenter v${{ env.VERSION_NUMBER }}
+          tag_name: ${{ env.VERSION_NUMBER }}
           prerelease: false
-          title: Praisenter v${{ env.VERSION_NUMBER }}
+          generate_release_notes: true
+          make_latest: true
           files: | 
             ./dist-windows-latest/*.msi
             ./dist-windows-latest/*.msixupload
             ./dist-ubuntu-latest/*.deb
             ./dist-ubuntu-latest/*.snap
-          # ./dist-macos-latest/*.dmg
+            ./dist-macos-15-intel/*.app
+            ./dist-macos-latest/*.app
 
-      # Now pull the latest release body
-      - name: Read release notes
-        id: release
-        uses: cardinalby/git-get-release-action@v1
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          tag: ${{ env.VERSION_NUMBER }}
-
-      # Now update the versioned release with the same body
-      - name: Copy release notes
-        uses: meeDamian/github-release@2.0
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ env.VERSION_NUMBER }}
-          body: ${{ steps.release.outputs.body }}
-          allow_override: true
+#      # Now pull the latest release body
+#      - name: Read release notes
+#        id: release
+#        uses: cardinalby/git-get-release-action@v1
+#        env:
+#          GITHUB_TOKEN: ${{ github.token }}
+#        with:
+#          tag: ${{ env.VERSION_NUMBER }}
+#
+#      # Now update the versioned release with the same body
+#      - name: Copy release notes
+#        uses: meeDamian/github-release@2.0
+#        with:
+#          token: ${{ secrets.GITHUB_TOKEN }}
+#          tag: ${{ env.VERSION_NUMBER }}
+#          body: ${{ steps.release.outputs.body }}
+#          allow_override: true
 
   # store-deploy:
   #   needs: github-release
