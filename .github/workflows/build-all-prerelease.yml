@@ -190,6 +190,9 @@ jobs:
           STORE_PROVISION_PROFILE_PATH=$RUNNER_TEMP/store/embedded.mobileprovision
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
 
+          mkdir -p $RUNNER_TEMP/adhoc
+          mkdir -p $RUNNER_TEMP/store
+
           # import certificate and provisioning profile from secrets
           echo -n "$PKG_DEVELOPER_ID_APPLICATION_CERTIFICATE_BASE64" | base64 --decode -o $DEVELOPER_ID_APPLICATION_CERT_PATH
           echo -n "$PKG_DEVELOPER_ID_INSTALLER_CERTIFICATE_BASE64" | base64 --decode -o $DEVELOPER_ID_INSTALLER_CERT_PATH
