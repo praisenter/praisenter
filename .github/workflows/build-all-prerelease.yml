@@ -215,9 +215,9 @@ jobs:
       - name: Package and sign for MacOS store
         if: runner.os == 'Macos'
         run: |
-          ARCH=$(echo "$RUNNER_ARCH" | tr '[:upper:]' '[:lower:]')
           APP_CERT="3rd Party Mac Developer Application: William Bittle (W9HCQKU68J)"
           INST_CERT="3rd Party Mac Developer Installer: William Bittle (W9HCQKU68J)"
+          ARCH=$(echo "$RUNNER_ARCH" | tr '[:upper:]' '[:lower:]')
 
           APP_ENTITLEMENTS="./packaging/macos64/app/entitlements.plist"
           EMB_ENTITLEMENTS="./packaging/macos64/app/embed-entitlements.plist"
