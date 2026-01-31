@@ -13,14 +13,14 @@ jobs:
     strategy:
       matrix:
         include:
-          # - os: ubuntu-latest
-          #   branch: master
-          # - os: windows-latest
-          #   branch: master
+          - os: ubuntu-latest
+            branch: master
+          - os: windows-latest
+            branch: master
           - os: macos-15-intel
             branch: macos
-          # - os: macos-latest
-          #   branch: macos
+          - os: macos-latest
+            branch: macos
     runs-on: ${{ matrix.os }}
     steps:
       # Get latest from the current branch
