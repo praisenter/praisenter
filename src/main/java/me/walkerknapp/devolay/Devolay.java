@@ -10,6 +10,9 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 /**
  * Used to control loading of Devolay and NDI libraries.  
  * 
@@ -45,7 +48,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * </pre>
  */
 public class Devolay {
-
+	private static final Logger LOGGER = LogManager.getLogger();
     private static final AtomicBoolean librariesLoaded = new AtomicBoolean(false);
     private static Path extractedDevolayNativesPath = null;
     private static Path extractedNDINativesPath = null;
@@ -56,6 +59,7 @@ public class Devolay {
      * libraries from anywhere.
      */
     static {
+    	LOGGER.info("Loading Praisenter-specific Devolay class");
         String devolayLibraryName = System.mapLibraryName("devolay-natives");
         String ndiLibraryName = System.mapLibraryName("ndi");
         String libraryExtension = devolayLibraryName.substring(devolayLibraryName.indexOf('.'));

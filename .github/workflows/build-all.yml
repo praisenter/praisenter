@@ -1,7 +1,3 @@
-
-# This workflow will build a Java project with Maven
-# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-maven
-
 name: Build All
 
 on:
@@ -12,50 +8,37 @@ on:
   workflow_dispatch:
     branches: [ master ]
 
-# env:
-#   DEV_IDENTITY: BXPZTQZ35S # Your Apple Dev identity, something like BXPZTQZ35S
-#   PRIMARY_BUNDLE_ID: com.example.App # Unique to your app, often the launcher class
-
 jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-15-intel, macos-latest] # macos-latest
+        include:
+          - os: ubuntu-latest
+            branch: master
+            arch: x64
+          - os: windows-latest
+            branch: master
+            arch: x64
+          - os: macos-15-intel
+            branch: master
+            arch: x64
+          # - os: macos-latest
+          #   branch: macos
     runs-on: ${{ matrix.os }}
     steps:
-      # Get latest from the current branch
-      - uses: actions/checkout@v4
-        # with:
-        #   lfs: true
-
-      # List git LFS files
-      - name: Create Git LFS file list
-        run: git lfs ls-files -l |cut -d' ' -f1 |sort >.git/lfs-hashes.txt
-
-      # Restore LFS files from cache
-      - name: Restore Git LFS object cache
-        uses: actions/cache@v4
+      # Get latest from the specific branch and LFS files
+      # this uses a cached lfs checkout to speed up the process
+      - name: Checkout code
+        uses: nschloe/action-cached-lfs-checkout@v1
         with:
-          path: .git/lfs
-          key: ${{ runner.os }}-lfsdata-v1-${{ hashFiles('.git/lfs-hashes.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-lfsdata-v1-
-            ${{ runner.os }}-lfsdata
-
-      # Check latest LFS files
-      - name: Fetch any needed Git LFS objects and prune extraneous ones
-        run: git lfs fetch --prune
-
-      # Get latest LFS files
-      - name: Check out Git LFS content
-        run: git lfs checkout
+          ref: ${{ matrix.branch }}
 
       # This pulls the version number from the release-version.txt file
       - name: Read version
         id: readversion
         shell: pwsh
         run: |
-          $content = Get-Content release-version.txt
+          $content = Get-Content next-version.txt
           Write-Host "VERSION_NUMBER: $content"
           echo "VERSION_NUMBER=$content" >> $Env:GITHUB_ENV
           
@@ -167,17 +150,98 @@ jobs:
           Copy-Item $source $target
           Write-Host "Copied: '$source' to '$target'"
 
-      # Rename the *.app with version+arch (MACOS)
-      - name: Rename MacOS app
-        if: runner.os == 'Macos'
-        shell: pwsh
+      # Setup for macos signing (MACOS)
+      - name: Install the Apple certificate and provisioning profile
+        if: runner.os == 'macOS'
+        env:
+          PKG_DEVELOPER_ID_APPLICATION_CERTIFICATE_BASE64: ${{ secrets.PKG_DEVELOPER_ID_APPLICATION_CERTIFICATE_BASE64 }}
+          PKG_DEVELOPER_ID_INSTALLER_CERTIFICATE_BASE64: ${{ secrets.PKG_DEVELOPER_ID_INSTALLER_CERTIFICATE_BASE64 }}
+          PKG_MAC_DEVELOPER_APPLICATION_CERTIFICATE_BASE64: ${{ secrets.PKG_MAC_DEVELOPER_APPLICATION_CERTIFICATE_BASE64 }}
+          PKG_MAC_DEVELOPER_INSTALLER_CERTIFICATE_BASE64: ${{ secrets.PKG_MAC_DEVELOPER_INSTALLER_CERTIFICATE_BASE64 }}
+          PKG_CERTIFICATE_PASSWORD: ${{ secrets.PKG_CERTIFICATE_PASSWORD }}
+          PKG_ADHOC_PROVISION_PROFILE_BASE64: ${{ secrets.PKG_ADHOC_PROVISION_PROFILE_BASE64 }}
+          PKG_STORE_PROVISION_PROFILE_BASE64: ${{ secrets.PKG_STORE_PROVISION_PROFILE_BASE64 }}
+          PKG_KEYCHAIN_PASSWORD: ${{ secrets.PKG_KEYCHAIN_PASSWORD }}
         run: |
-          $arch = "${{ runner.arch }}".ToLower()
-          $source = "./target/Praisenter.app"
-          $newName = "Praisenter_${{ env.VERSION_NUMBER }}_$arch.app"
-          Rename-Item -Path $source -NewName $newName -ErrorAction Stop
-          Write-Host "Renamed '$source' to '$newName'"
-		  
+          # create variables
+          DEVELOPER_ID_APPLICATION_CERT_PATH=$RUNNER_TEMP/developer_id_application.p12
+          DEVELOPER_ID_INSTALLER_CERT_PATH=$RUNNER_TEMP/developer_id_installer.p12
+          MAC_DEVELOPER_APPLICATION_CERT_PATH=$RUNNER_TEMP/mac_developer_application.p12
+          MAC_DEVELOPER_INSTALLER_CERT_PATH=$RUNNER_TEMP/mac_developer_installer.p12
+          ADHOC_PROVISION_PROFILE_PATH=$RUNNER_TEMP/adhoc/embedded.mobileprovision
+          STORE_PROVISION_PROFILE_PATH=$RUNNER_TEMP/store/embedded.mobileprovision
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+
+          mkdir -p $RUNNER_TEMP/adhoc
+          mkdir -p $RUNNER_TEMP/store
+
+          # import certificate and provisioning profile from secrets
+          echo -n "$PKG_DEVELOPER_ID_APPLICATION_CERTIFICATE_BASE64" | base64 --decode -o $DEVELOPER_ID_APPLICATION_CERT_PATH
+          echo -n "$PKG_DEVELOPER_ID_INSTALLER_CERTIFICATE_BASE64" | base64 --decode -o $DEVELOPER_ID_INSTALLER_CERT_PATH
+          echo -n "$PKG_MAC_DEVELOPER_APPLICATION_CERTIFICATE_BASE64" | base64 --decode -o $MAC_DEVELOPER_APPLICATION_CERT_PATH
+          echo -n "$PKG_MAC_DEVELOPER_INSTALLER_CERTIFICATE_BASE64" | base64 --decode -o $MAC_DEVELOPER_INSTALLER_CERT_PATH
+          echo -n "$PKG_ADHOC_PROVISION_PROFILE_BASE64" | base64 --decode -o $ADHOC_PROVISION_PROFILE_PATH
+          echo -n "$PKG_STORE_PROVISION_PROFILE_BASE64" | base64 --decode -o $STORE_PROVISION_PROFILE_PATH
+
+          # create temporary keychain
+          security create-keychain -p "$PKG_KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p "$PKG_KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+
+          # import certificates to keychain
+          security import $DEVELOPER_ID_APPLICATION_CERT_PATH -P "$PKG_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security import $DEVELOPER_ID_INSTALLER_CERT_PATH -P "$PKG_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security import $MAC_DEVELOPER_APPLICATION_CERT_PATH -P "$PKG_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security import $MAC_DEVELOPER_INSTALLER_CERT_PATH -P "$PKG_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security set-key-partition-list -S apple-tool:,apple: -k "$PKG_KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security list-keychain -d user -s $KEYCHAIN_PATH
+
+      # Package and sign for for the MacOS store (MACOS)
+      - name: Package and sign for MacOS store
+        if: runner.os == 'macOS'
+        uses: ./.github/actions/macos-package
+        with:
+          app-cert-name: "3rd Party Mac Developer Application: William Bittle (W9HCQKU68J)"
+          install-cert-name: "3rd Party Mac Developer Installer: William Bittle (W9HCQKU68J)"
+          provisioning-profile: "${{ runner.temp }}/store/embedded.mobileprovision"
+          architecture: "${{ matrix.arch }}"
+          app-version: "${{ env.VERSION_NUMBER }}"
+          pkg-suffix: "_store"
+        
+      # Package and sign for for MacOS adhoc deployment (MACOS)
+      - name: Package and sign for MacOS adhoc deployment
+        if: runner.os == 'macOS'
+        uses: ./.github/actions/macos-package
+        with:
+          app-cert-name: "Developer ID Application: William Bittle (W9HCQKU68J)"
+          install-cert-name: "Developer ID Installer: William Bittle (W9HCQKU68J)"
+          provisioning-profile: "${{ runner.temp }}/adhoc/embedded.mobileprovision"
+          architecture: "${{ matrix.arch }}"
+          app-version: "${{ env.VERSION_NUMBER }}"
+          pkg-suffix: "_adhoc"
+
+      # Notarize the adhoc package (MACOS)
+      - name: Notarize MacOS adhoc package
+        if: runner.os == 'macOS'
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+        run: |
+          PACKAGE="./target/Praisenter_${{ env.VERSION_NUMBER }}_${{ matrix.arch }}_adhoc.pkg"
+          echo "Notarize package"
+          xcrun notarytool submit "$PACKAGE" --apple-id "$APPLE_ID" --password "$APPLE_PASSWORD" --team-id "$APPLE_TEAM_ID" --output-format "json" --wait
+
+          echo ""
+          echo "<------------------------------------------------->"
+          echo "Staple the package" 
+          xcrun stapler staple "$PACKAGE"
+
+          echo ""
+          echo "<------------------------------------------------->"
+          echo "Verify the pkg is install ready"
+          spctl --assess --type install -v "$PACKAGE"
+
       # Publish the artifacts
       - name: Publish artifacts
         uses: actions/upload-artifact@v4
@@ -189,7 +253,7 @@ jobs:
             ./target/*.msixupload
             ./target/*.deb
             ./target/*.snap
-            ./target/*.app
+            ./target/*.pkg
 
   github-release:
     needs: build
@@ -203,7 +267,7 @@ jobs:
         id: readversion
         shell: pwsh
         run: |
-          $content = Get-Content release-version.txt
+          $content = Get-Content next-version.txt
           Write-Host "VERSION_NUMBER: $content"
           echo "VERSION_NUMBER=$content" >> $Env:GITHUB_ENV
 
@@ -211,30 +275,13 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v4
 
-#      # Now create the LATEST release
-#      - name: Update Latest Release
-#        uses: softprops/action-gh-release@v2
-#        with:
-#          token: "${{ secrets.GITHUB_TOKEN}}"
-#          name: Praisenter Latest
-#          tag_name: latest
-#          prerelease: false
-#          generate_release_notes: true
-#          files: |
-#            ./dist-windows-latest/*.msi
-#            ./dist-windows-latest/*.msixupload
-#            ./dist-ubuntu-latest/*.deb
-#            ./dist-ubuntu-latest/*.snap
-#            ./dist-macos-15-intel/*.app
-#            ./dist-macos-latest/*.app
-
       # Create one release called 3.2.1 (for example)
-      - name: Create Versioned Release
+      - name: Create Versioned Pre-Release
         uses: softprops/action-gh-release@v2
         with:
           token: "${{ secrets.GITHUB_TOKEN}}"
           name: Praisenter v${{ env.VERSION_NUMBER }}
-          tag_name: ${{ env.VERSION_NUMBER }}
+          tag_name: v${{ env.VERSION_NUMBER }}
           prerelease: false
           generate_release_notes: true
           make_latest: true
@@ -243,45 +290,5 @@ jobs:
             ./dist-windows-latest/*.msixupload
             ./dist-ubuntu-latest/*.deb
             ./dist-ubuntu-latest/*.snap
-            ./dist-macos-15-intel/*.app
-            ./dist-macos-latest/*.app
-
-#      # Now pull the latest release body
-#      - name: Read release notes
-#        id: release
-#        uses: cardinalby/git-get-release-action@v1
-#        env:
-#          GITHUB_TOKEN: ${{ github.token }}
-#        with:
-#          tag: ${{ env.VERSION_NUMBER }}
-#
-#      # Now update the versioned release with the same body
-#      - name: Copy release notes
-#        uses: meeDamian/github-release@2.0
-#        with:
-#          token: ${{ secrets.GITHUB_TOKEN }}
-#          tag: ${{ env.VERSION_NUMBER }}
-#          body: ${{ steps.release.outputs.body }}
-#          allow_override: true
-
-  # store-deploy:
-  #   needs: github-release
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     # Get latest from the current branch
-  #     - uses: actions/checkout@v2
-
-  #     # This pulls the version number from the release-version.txt file
-  #     - name: Read version
-  #       id: readversion
-  #       shell: pwsh
-  #       run: |
-  #         $content = Get-Content release-version.txt
-  #         Write-Host "VERSION_NUMBER: $content"
-  #         echo "VERSION_NUMBER=$content" >> $Env:GITHUB_ENV
-
-  #     # Download all artifacts
-  #     - name: Download artifacts
-  #       uses: actions/download-artifact@v4
-
-  #     # now push to the stores
+            ./dist-macos-15-intel/*.pkg
+          # ./dist-macos-latest/*.pkg

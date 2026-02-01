@@ -13,17 +13,21 @@ jobs:
     strategy:
       matrix:
         include:
-          # - os: ubuntu-latest
-          #   branch: master
-          # - os: windows-latest
-          #   branch: master
+          - os: ubuntu-latest
+            branch: master
+            arch: x64
+          - os: windows-latest
+            branch: master
+            arch: x64
           - os: macos-15-intel
-            branch: macos
+            branch: master
             arch: x64
           # - os: macos-latest
           #   branch: macos
     runs-on: ${{ matrix.os }}
     steps:
+      # Get latest from the specific branch and LFS files
+      # this uses a cached lfs checkout to speed up the process
       - name: Checkout code
         uses: nschloe/action-cached-lfs-checkout@v1
         with:

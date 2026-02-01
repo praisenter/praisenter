@@ -241,6 +241,12 @@
 		    <artifactId>commons-compress</artifactId>
 		    <version>1.28.0</version>
 		</dependency>
+    	<dependency>
+    		<groupId>me.walkerknapp</groupId>
+    		<artifactId>devolay</artifactId>
+    		<version>2.1.1</version>
+    		<classifier>integrated</classifier> 
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -446,18 +452,9 @@
                 <jfx.platform>mac</jfx.platform>
                 <package>app</package>
                 <!-- This property is used to specify the modules included in the (custom) JVM image. -->
-                <!-- NOTE: for MacOS javafx.web has an issue with App Store deployment: https://bugs.openjdk.org/browse/JDK-8289521 -->
+                <!-- for MacOS javafx.web has an issue with App Store deployment: https://bugs.openjdk.org/browse/JDK-8289521 -->
 		        <jvm.modules>java.base,java.management,java.net.http,java.sql,java.xml,java.desktop,javafx.base,javafx.controls,javafx.graphics,javafx.media,javafx.swing,java.naming,jdk.crypto.ec,jdk.xml.dom</jvm.modules>
             </properties>
-            <dependencies>
-            <!--
-            	<dependency>
-            		<groupId>me.walkerknapp</groupId>
-            		<artifactId>devolay</artifactId>
-            		<version>2.1.1</version>
-				</dependency>
-            -->
-            </dependencies>
         </profile>
          
         <profile>
@@ -475,14 +472,6 @@
                 <!-- This property is used to specify the modules included in the (custom) JVM image. -->
 		        <jvm.modules>java.base,java.management,java.net.http,java.sql,java.xml,java.desktop,javafx.base,javafx.controls,javafx.graphics,javafx.media,javafx.swing,javafx.web,java.naming,jdk.crypto.ec,jdk.xml.dom</jvm.modules>
             </properties>
-            <dependencies>
-            	<dependency>
-            		<groupId>me.walkerknapp</groupId>
-            		<artifactId>devolay</artifactId>
-            		<version>2.1.1</version>
-            		<classifier>integrated</classifier> 
-				</dependency>
-            </dependencies>
         </profile>
         
         <profile>
@@ -499,14 +488,6 @@
         		<!-- This property is used to specify the modules included in the (custom) JVM image. -->
 		        <jvm.modules>java.base,java.management,java.net.http,java.sql,java.xml,java.desktop,javafx.base,javafx.controls,javafx.graphics,javafx.media,javafx.swing,javafx.web,java.naming,jdk.crypto.ec,jdk.xml.dom</jvm.modules>
             </properties>
-            <dependencies>
-            	<dependency>
-            		<groupId>me.walkerknapp</groupId>
-            		<artifactId>devolay</artifactId>
-            		<version>2.1.1</version>
-            		<classifier>integrated</classifier> 
-				</dependency>
-            </dependencies>
         </profile>
 
     </profiles>
