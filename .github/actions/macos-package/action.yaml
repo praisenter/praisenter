@@ -24,6 +24,7 @@ runs:
   steps:
     # Package and sign for for the MacOS store
     - name: Package and sign for MacOS store
+      shell: bash
       run: |
         APP_CERT="${{ inputs.app-cert-name }}"
         INST_CERT="${{ inputs.install-cert-name }}"
