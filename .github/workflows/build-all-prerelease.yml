@@ -29,34 +29,6 @@ jobs:
         with:
           ref: ${{ matrix.branch }}
 
-      # # Get latest from the current branch
-      # - uses: actions/checkout@v4
-      #   with:
-      #     ref: ${{ matrix.branch }}
-      #   #   lfs: true
-
-      # # List git LFS files
-      # - name: Create Git LFS file list
-      #   run: git lfs ls-files -l |cut -d' ' -f1 |sort >.git/lfs-hashes.txt
-
-      # # Restore LFS files from cache
-      # - name: Restore Git LFS object cache
-      #   uses: actions/cache@v4
-      #   with:
-      #     path: .git/lfs
-      #     key: ${{ runner.os }}-lfsdata-v1-${{ hashFiles('.git/lfs-hashes.txt') }}
-      #     restore-keys: |
-      #       ${{ runner.os }}-lfsdata-v1-
-      #       ${{ runner.os }}-lfsdata
-
-      # # Check latest LFS files
-      # - name: Fetch any needed Git LFS objects and prune extraneous ones
-      #   run: git lfs fetch --prune
-
-      # # Get latest LFS files
-      # - name: Check out Git LFS content
-      #   run: git lfs checkout
-
       # This pulls the version number from the release-version.txt file
       - name: Read version
         id: readversion
@@ -291,7 +263,7 @@ jobs:
         id: readversion
         shell: pwsh
         run: |
-          $content = Get-Content release-version.txt
+          $content = Get-Content next-version.txt
           Write-Host "VERSION_NUMBER: $content"
           echo "VERSION_NUMBER=$content" >> $Env:GITHUB_ENV
 
@@ -304,8 +276,8 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           token: "${{ secrets.GITHUB_TOKEN}}"
-          name: Praisenter v${{ env.VERSION_NUMBER }}.prerelease
-          tag_name: ${{ env.VERSION_NUMBER }}.prerelease
+          name: Praisenter v${{ env.VERSION_NUMBER }}-alpha
+          tag_name: v${{ env.VERSION_NUMBER }}-alpha
           prerelease: true
           generate_release_notes: true
           make_latest: false
@@ -316,43 +288,3 @@ jobs:
             ./dist-ubuntu-latest/*.snap
             ./dist-macos-15-intel/*.pkg
           # ./dist-macos-latest/*.pkg
-
-#      # Now pull the latest release body
-#      - name: Read release notes
-#        id: release
-#        uses: cardinalby/git-get-release-action@v1
-#        env:
-#          GITHUB_TOKEN: ${{ github.token }}
-#        with:
-#          tag: ${{ env.VERSION_NUMBER }}
-#
-#      # Now update the versioned release with the same body
-#      - name: Copy release notes
-#        uses: meeDamian/github-release@2.0
-#        with:
-#          token: ${{ secrets.GITHUB_TOKEN }}
-#          tag: ${{ env.VERSION_NUMBER }}
-#          body: ${{ steps.release.outputs.body }}
-#          allow_override: true
-
-  # store-deploy:
-  #   needs: github-release
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     # Get latest from the current branch
-  #     - uses: actions/checkout@v2
-
-  #     # This pulls the version number from the release-version.txt file
-  #     - name: Read version
-  #       id: readversion
-  #       shell: pwsh
-  #       run: |
-  #         $content = Get-Content release-version.txt
-  #         Write-Host "VERSION_NUMBER: $content"
-  #         echo "VERSION_NUMBER=$content" >> $Env:GITHUB_ENV
-
-  #     # Download all artifacts
-  #     - name: Download artifacts
-  #       uses: actions/download-artifact@v4
-
-  #     # now push to the stores
