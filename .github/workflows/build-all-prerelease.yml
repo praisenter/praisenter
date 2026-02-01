@@ -306,9 +306,9 @@ jobs:
           token: "${{ secrets.GITHUB_TOKEN}}"
           name: Praisenter v${{ env.VERSION_NUMBER }}.prerelease
           tag_name: ${{ env.VERSION_NUMBER }}.prerelease
-          prerelease: false
+          prerelease: true
           generate_release_notes: true
-          make_latest: true
+          make_latest: false
           files: | 
             ./dist-windows-latest/*.msi
             ./dist-windows-latest/*.msixupload
