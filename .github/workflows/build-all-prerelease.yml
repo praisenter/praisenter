@@ -223,7 +223,7 @@ jobs:
       # Package and sign for for the MacOS store (MACOS)
       - name: Package and sign for MacOS store
         if: runner.os == 'macOS'
-        uses: ./.github/actions/macos-package
+        uses: ./.github/workflows/actions/macos-package
         with:
           app-cert-name: "3rd Party Mac Developer Application: William Bittle (W9HCQKU68J)"
           install-cert-name: "3rd Party Mac Developer Installer: William Bittle (W9HCQKU68J)"
@@ -235,7 +235,7 @@ jobs:
       # Package and sign for for MacOS adhoc deployment (MACOS)
       - name: Package and sign for MacOS adhoc deployment
         if: runner.os == 'macOS'
-        uses: ./.github/actions/macos-package
+        uses: ./.github/workflows/actions/macos-package
         with:
           app-cert-name: "Developer ID Application: William Bittle (W9HCQKU68J)"
           install-cert-name: "Developer ID Installer: William Bittle (W9HCQKU68J)"
