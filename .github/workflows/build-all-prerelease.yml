@@ -1,7 +1,3 @@
-
-# This workflow will build a Java project with Maven
-# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-maven
-
 name: Build All Pre-Release
 
 on:
@@ -12,43 +8,54 @@ on:
   workflow_dispatch:
     branches: [ master ]
 
-# env:
-#   DEV_IDENTITY: BXPZTQZ35S # Your Apple Dev identity, something like BXPZTQZ35S
-#   PRIMARY_BUNDLE_ID: com.example.App # Unique to your app, often the launcher class
-
 jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest] # macos-latest
+        include:
+          # - os: ubuntu-latest
+          #   branch: master
+          # - os: windows-latest
+          #   branch: master
+          - os: macos-15-intel
+            branch: macos
+            arch: x64
+          # - os: macos-latest
+          #   branch: macos
     runs-on: ${{ matrix.os }}
     steps:
-      # Get latest from the current branch
-      - uses: actions/checkout@v4
-        # with:
-        #   lfs: true
-
-      # List git LFS files
-      - name: Create Git LFS file list
-        run: git lfs ls-files -l |cut -d' ' -f1 |sort >.git/lfs-hashes.txt
-
-      # Restore LFS files from cache
-      - name: Restore Git LFS object cache
-        uses: actions/cache@v4
+      - name: Checkout code
+        uses: nschloe/action-cached-lfs-checkout@v1
         with:
-          path: .git/lfs
-          key: ${{ runner.os }}-lfsdata-v1-${{ hashFiles('.git/lfs-hashes.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-lfsdata-v1-
-            ${{ runner.os }}-lfsdata
+          ref: ${{ matrix.branch }}
 
-      # Check latest LFS files
-      - name: Fetch any needed Git LFS objects and prune extraneous ones
-        run: git lfs fetch --prune
+      # # Get latest from the current branch
+      # - uses: actions/checkout@v4
+      #   with:
+      #     ref: ${{ matrix.branch }}
+      #   #   lfs: true
 
-      # Get latest LFS files
-      - name: Check out Git LFS content
-        run: git lfs checkout
+      # # List git LFS files
+      # - name: Create Git LFS file list
+      #   run: git lfs ls-files -l |cut -d' ' -f1 |sort >.git/lfs-hashes.txt
+
+      # # Restore LFS files from cache
+      # - name: Restore Git LFS object cache
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: .git/lfs
+      #     key: ${{ runner.os }}-lfsdata-v1-${{ hashFiles('.git/lfs-hashes.txt') }}
+      #     restore-keys: |
+      #       ${{ runner.os }}-lfsdata-v1-
+      #       ${{ runner.os }}-lfsdata
+
+      # # Check latest LFS files
+      # - name: Fetch any needed Git LFS objects and prune extraneous ones
+      #   run: git lfs fetch --prune
+
+      # # Get latest LFS files
+      # - name: Check out Git LFS content
+      #   run: git lfs checkout
 
       # This pulls the version number from the release-version.txt file
       - name: Read version
@@ -71,7 +78,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libavcodec-dev libavformat-dev
 
-      # Install Wix 6
+      # Install Wix 6 (WINDOWS)
       # https://github.com/petr-panteleyev/jpackage-gradle-plugin/issues/38#issuecomment-2873402088
       - name: Install WiX 6
         run: |
@@ -89,9 +96,8 @@ jobs:
           java-package: jdk+fx
           cache: 'maven'
       
-      # Run the Maven Build (WINDOWS/UBUNTU)
+      # Run the Maven Build
       - name: "Build with Maven"
-        if: matrix.os != 'macos-latest'
         run: mvn -B clean install --file pom.xml
 
       # Now attempt to build the msix (WINDOWS)
@@ -107,12 +113,15 @@ jobs:
           $xml.Save($filePath)
 
       # Copy all the build artifacts to the /App folder (WINDOWS)
-      - name: "Copy application msix location"
+      - name: "Copy msi to msix location"
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path "./packaging/windows64/msix/Praisenter/App"
-          Copy-Item -Path "./target/installer-work/image/Praisenter/*" -Destination "./packaging/windows64/msix/Praisenter/App" -Recurse
+          $copied = Copy-Item -Path "./target/installer-work/image/Praisenter/*" -Destination "./packaging/windows64/msix/Praisenter/App" -Recurse -PassThru
+          $copied | ForEach-Object {
+            Write-Host "Copied: '$($_.FullName)'"
+          }
 
       # Build the msixupload file (WINDOWS)
       - name: Build MSIX package
@@ -128,7 +137,10 @@ jobs:
         if: runner.os == 'Linux'
         shell: pwsh
         run: |
-          Copy-Item "./target/praisenter_${{ env.VERSION_NUMBER }}_amd64.deb" "./packaging/linux64/snap/praisenter.deb"
+          $source = "./target/praisenter_${{ env.VERSION_NUMBER }}_amd64.deb"
+          $target = "./packaging/linux64/snap/praisenter.deb"
+          Copy-Item $source $target
+          Write-Host "Copied: '$source' to '$target'"
 
       # Update metainfo.xml (UBUNTU)
       - name: Set metainfo.xml version number
@@ -157,60 +169,104 @@ jobs:
         if: runner.os == 'Linux'
         shell: pwsh
         run: |
-          Copy-Item "${{ steps.snapcraft.outputs.snap }}" "./target/praisenter_${{ env.VERSION_NUMBER }}_amd64.snap"
+          $source = "${{ steps.snapcraft.outputs.snap }}"
+          $target = "./target/praisenter_${{ env.VERSION_NUMBER }}_amd64.snap"
+          Copy-Item $source $target
+          Write-Host "Copied: '$source' to '$target'"
 
-      # - name: "Build with Maven (macOS No Signing)"
-      #   env:
-      #     MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
-      #     MACOS_CERTIFICATE_PWD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
-      #   if: ${{ env.MACOS_CERTIFICATE == null && matrix.os == 'macos-latest' }}
-      #   run: mvn -B clean install --file pom.xml
-      # - name: "Build with Maven (macOS Signed)"
-      #   env:
-      #     MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
-      #     MACOS_CERTIFICATE_PWD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
-      #   if: ${{ env.MACOS_CERTIFICATE != null && matrix.os == 'macos-latest' }}
-      #   run: |
-      #     echo $MACOS_CERTIFICATE | base64 --decode > certificate.p12
-      #     security create-keychain -p temppass build.keychain
-      #     security default-keychain -s build.keychain
-      #     security unlock-keychain -p temppass build.keychain
-      #     security import certificate.p12 -k build.keychain -P $MACOS_CERTIFICATE_PWD -T /usr/bin/codesign
-      #     security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k temppass build.keychain
-      #     export IDENTITY=$(security find-identity -v)
-      #     echo $(security find-identity -v)
-      #     mvn -B clean install  -Pmacos-sign --file pom.xml
-      # - name: "Codesign DMG"
-      #   env:
-      #     MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
-      #     MACOS_CERTIFICATE_PWD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
-      #   if: ${{ env.MACOS_CERTIFICATE != null && matrix.os == 'macos-latest' }}
-      #   run: |
-      #     export DMG_PATH=$(ls ./target/*.dmg)
-      #     /usr/bin/codesign --deep --force -s ${{ env.DEV_IDENTITY}} $DMG_PATH -v
-      #     echo DMG_PATH=$DMG_PATH >> $GITHUB_ENV
-      #     echo ${{ env.DMG_PATH }}
-      # - name: "Notarize DMG"
-      #   env:
-      #     APP_EMAIL: ${{ secrets.APP_EMAIL }}
-      #     APP_PASS: ${{ secrets.APP_PASS }}
-      #   if: ${{ env.APP_EMAIL != null && matrix.os == 'macos-latest' }}
-      #   uses: GuillaumeFalourd/xcode-notarize@v1
-      #   with:
-      #     product-path: ${{ env.DMG_PATH }}
-      #     primary-bundle-id: ${{ env.PRIMARY_BUNDLE_ID }}
-      #     appstore-connect-username: ${{ secrets.APP_EMAIL }}
-      #     appstore-connect-password: ${{ secrets.APP_PASS }}
-      # - name: "Staple DMG"
-      #   env:
-      #     APP_EMAIL: ${{ secrets.APP_EMAIL }}
-      #     APP_PASS: ${{ secrets.APP_PASS }}
-      #   if: ${{ env.APP_EMAIL != null && matrix.os == 'macos-latest' }}
-      # ISSUE: this package doesn't exist anymore
-      #   uses: devbotsxyz/xcode-staple@v1
-      #   with:
-      #     product-path: ${{ env.DMG_PATH }}
+      # Setup for macos signing (MACOS)
+      - name: Install the Apple certificate and provisioning profile
+        if: runner.os == 'macOS'
+        env:
+          PKG_DEVELOPER_ID_APPLICATION_CERTIFICATE_BASE64: ${{ secrets.PKG_DEVELOPER_ID_APPLICATION_CERTIFICATE_BASE64 }}
+          PKG_DEVELOPER_ID_INSTALLER_CERTIFICATE_BASE64: ${{ secrets.PKG_DEVELOPER_ID_INSTALLER_CERTIFICATE_BASE64 }}
+          PKG_MAC_DEVELOPER_APPLICATION_CERTIFICATE_BASE64: ${{ secrets.PKG_MAC_DEVELOPER_APPLICATION_CERTIFICATE_BASE64 }}
+          PKG_MAC_DEVELOPER_INSTALLER_CERTIFICATE_BASE64: ${{ secrets.PKG_MAC_DEVELOPER_INSTALLER_CERTIFICATE_BASE64 }}
+          PKG_CERTIFICATE_PASSWORD: ${{ secrets.PKG_CERTIFICATE_PASSWORD }}
+          PKG_ADHOC_PROVISION_PROFILE_BASE64: ${{ secrets.PKG_ADHOC_PROVISION_PROFILE_BASE64 }}
+          PKG_STORE_PROVISION_PROFILE_BASE64: ${{ secrets.PKG_STORE_PROVISION_PROFILE_BASE64 }}
+          PKG_KEYCHAIN_PASSWORD: ${{ secrets.PKG_KEYCHAIN_PASSWORD }}
+        run: |
+          # create variables
+          DEVELOPER_ID_APPLICATION_CERT_PATH=$RUNNER_TEMP/developer_id_application.p12
+          DEVELOPER_ID_INSTALLER_CERT_PATH=$RUNNER_TEMP/developer_id_installer.p12
+          MAC_DEVELOPER_APPLICATION_CERT_PATH=$RUNNER_TEMP/mac_developer_application.p12
+          MAC_DEVELOPER_INSTALLER_CERT_PATH=$RUNNER_TEMP/mac_developer_installer.p12
+          ADHOC_PROVISION_PROFILE_PATH=$RUNNER_TEMP/adhoc/embedded.mobileprovision
+          STORE_PROVISION_PROFILE_PATH=$RUNNER_TEMP/store/embedded.mobileprovision
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
 
+          mkdir -p $RUNNER_TEMP/adhoc
+          mkdir -p $RUNNER_TEMP/store
+
+          # import certificate and provisioning profile from secrets
+          echo -n "$PKG_DEVELOPER_ID_APPLICATION_CERTIFICATE_BASE64" | base64 --decode -o $DEVELOPER_ID_APPLICATION_CERT_PATH
+          echo -n "$PKG_DEVELOPER_ID_INSTALLER_CERTIFICATE_BASE64" | base64 --decode -o $DEVELOPER_ID_INSTALLER_CERT_PATH
+          echo -n "$PKG_MAC_DEVELOPER_APPLICATION_CERTIFICATE_BASE64" | base64 --decode -o $MAC_DEVELOPER_APPLICATION_CERT_PATH
+          echo -n "$PKG_MAC_DEVELOPER_INSTALLER_CERTIFICATE_BASE64" | base64 --decode -o $MAC_DEVELOPER_INSTALLER_CERT_PATH
+          echo -n "$PKG_ADHOC_PROVISION_PROFILE_BASE64" | base64 --decode -o $ADHOC_PROVISION_PROFILE_PATH
+          echo -n "$PKG_STORE_PROVISION_PROFILE_BASE64" | base64 --decode -o $STORE_PROVISION_PROFILE_PATH
+
+          # create temporary keychain
+          security create-keychain -p "$PKG_KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p "$PKG_KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+
+          # import certificates to keychain
+          security import $DEVELOPER_ID_APPLICATION_CERT_PATH -P "$PKG_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security import $DEVELOPER_ID_INSTALLER_CERT_PATH -P "$PKG_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security import $MAC_DEVELOPER_APPLICATION_CERT_PATH -P "$PKG_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security import $MAC_DEVELOPER_INSTALLER_CERT_PATH -P "$PKG_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security set-key-partition-list -S apple-tool:,apple: -k "$PKG_KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security list-keychain -d user -s $KEYCHAIN_PATH
+
+      # Package and sign for for the MacOS store (MACOS)
+      - name: Package and sign for MacOS store
+        if: runner.os == 'macOS'
+        uses: ./.github/actions/macos-package
+        with:
+          app-cert-name: "3rd Party Mac Developer Application: William Bittle (W9HCQKU68J)"
+          install-cert-name: "3rd Party Mac Developer Installer: William Bittle (W9HCQKU68J)"
+          provisioning-profile: "${{ runner.temp }}/store/embedded.mobileprovision"
+          architecture: "${{ matrix.arch }}"
+          app-version: "${{ env.VERSION_NUMBER }}"
+          pkg-suffix: "_store"
+        
+      # Package and sign for for MacOS adhoc deployment (MACOS)
+      - name: Package and sign for MacOS adhoc deployment
+        if: runner.os == 'macOS'
+        uses: ./.github/actions/macos-package
+        with:
+          app-cert-name: "Developer ID Application: William Bittle (W9HCQKU68J)"
+          install-cert-name: "Developer ID Installer: William Bittle (W9HCQKU68J)"
+          provisioning-profile: "${{ runner.temp }}/adhoc/embedded.mobileprovision"
+          architecture: "${{ matrix.arch }}"
+          app-version: "${{ env.VERSION_NUMBER }}"
+          pkg-suffix: "_adhoc"
+
+      # Notarize the adhoc package (MACOS)
+      - name: Notarize MacOS adhoc package
+        if: runner.os == 'macOS'
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+        run: |
+          PACKAGE="./Praisenter_${{ env.VERSION_NUMBER }}_${{ matrix.arch }}_adhoc.pkg"
+          echo "Notarize package"
+          xcrun notarytool submit "$PACKAGE" --apple-id "$APPLE_ID" --password "$APPLE_PASSWORD" --team-id "$APPLE_TEAM_ID" --output-format "json" --wait
+
+          echo ""
+          echo "<------------------------------------------------->"
+          echo "Staple the package" 
+          xcrun stapler staple "$PACKAGE"
+
+          echo ""
+          echo "<------------------------------------------------->"
+          echo "Verify the pkg is install ready"
+          spctl --assess --type install -v "$PACKAGE"
+
+      # Publish the artifacts
       - name: Publish artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -221,7 +277,7 @@ jobs:
             ./target/*.msixupload
             ./target/*.deb
             ./target/*.snap
-          # ${{ env.DMG_PATH }}
+            ./target/*.pkg
 
   github-release:
     needs: build
@@ -244,37 +300,40 @@ jobs:
         uses: actions/download-artifact@v4
 
       # Create one release called 3.2.1 (for example)
-      - name: Create Versioned Release
-        uses: marvinpinto/action-automatic-releases@latest
+      - name: Create Versioned Pre-Release
+        uses: softprops/action-gh-release@v2
         with:
-          repo_token: "${{ secrets.GITHUB_TOKEN}}"
-          automatic_release_tag: ${{ env.VERSION_NUMBER }}
-          prerelease: true
-          title: Praisenter v${{ env.VERSION_NUMBER }}
+          token: "${{ secrets.GITHUB_TOKEN}}"
+          name: Praisenter v${{ env.VERSION_NUMBER }}.prerelease
+          tag_name: ${{ env.VERSION_NUMBER }}.prerelease
+          prerelease: false
+          generate_release_notes: true
+          make_latest: true
           files: | 
             ./dist-windows-latest/*.msi
             ./dist-windows-latest/*.msixupload
             ./dist-ubuntu-latest/*.deb
             ./dist-ubuntu-latest/*.snap
-          # ./dist-macos-latest/*.dmg
+            ./dist-macos-15-intel/*.pkg
+          # ./dist-macos-latest/*.pkg
 
-      # Now pull the latest release body
-      - name: Read release notes
-        id: release
-        uses: cardinalby/git-get-release-action@v1
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          tag: ${{ env.VERSION_NUMBER }}
-
-      # Now update the versioned release with the same body
-      - name: Copy release notes
-        uses: meeDamian/github-release@2.0
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ env.VERSION_NUMBER }}
-          body: ${{ steps.release.outputs.body }}
-          allow_override: true
+#      # Now pull the latest release body
+#      - name: Read release notes
+#        id: release
+#        uses: cardinalby/git-get-release-action@v1
+#        env:
+#          GITHUB_TOKEN: ${{ github.token }}
+#        with:
+#          tag: ${{ env.VERSION_NUMBER }}
+#
+#      # Now update the versioned release with the same body
+#      - name: Copy release notes
+#        uses: meeDamian/github-release@2.0
+#        with:
+#          token: ${{ secrets.GITHUB_TOKEN }}
+#          tag: ${{ env.VERSION_NUMBER }}
+#          body: ${{ steps.release.outputs.body }}
+#          allow_override: true
 
   # store-deploy:
   #   needs: github-release
