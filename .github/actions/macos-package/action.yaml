@@ -158,4 +158,4 @@ runs:
         echo ""
         echo "<------------------------------------------------->"
         echo "Run productbuild"
-        productbuild --resources "$CONFIG_DIR" --product "$CONFIG_DIR/product-def.plist" --distribution "$CONFIG_DIR/distribution.dist" --identifier org.praisenter --version "$VERSION" --sign "$INST_CERT" --timestamp --package-path "$PACKAGES_DIR" "./Praisenter_${{ env.VERSION_NUMBER }}_$ARCH$SUFFIX.pkg"
+        productbuild --resources "$CONFIG_DIR" --product "$CONFIG_DIR/product-def.plist" --distribution "$CONFIG_DIR/distribution.dist" --identifier org.praisenter --version "$VERSION" --sign "$INST_CERT" --timestamp --package-path "$PACKAGES_DIR" "$TARGET_DIR/Praisenter_${{ env.VERSION_NUMBER }}_$ARCH$SUFFIX.pkg"
