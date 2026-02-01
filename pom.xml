@@ -444,6 +444,7 @@
             <activation>
                 <os>
                     <family>mac</family>
+                    <arch>x86_64</arch>
                 </os>
             </activation>
             <properties>
@@ -463,6 +464,7 @@
                 <os>
                     <family>unix</family>
                     <name>Linux</name>
+                    <arch>amd64</arch>
                 </os>
             </activation>
             <properties>
@@ -479,6 +481,7 @@
             <activation>
                 <os>
                     <family>windows</family>
+                    <arch>amd64</arch>
                 </os>
             </activation>
             <properties>
