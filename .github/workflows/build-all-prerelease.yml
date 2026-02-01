@@ -252,7 +252,7 @@ jobs:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
         run: |
-          PACKAGE="./Praisenter_${{ env.VERSION_NUMBER }}_${{ matrix.arch }}_adhoc.pkg"
+          PACKAGE="./target/Praisenter_${{ env.VERSION_NUMBER }}_${{ matrix.arch }}_adhoc.pkg"
           echo "Notarize package"
           xcrun notarytool submit "$PACKAGE" --apple-id "$APPLE_ID" --password "$APPLE_PASSWORD" --team-id "$APPLE_TEAM_ID" --output-format "json" --wait
 
