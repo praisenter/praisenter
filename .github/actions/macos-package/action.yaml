@@ -35,13 +35,9 @@ runs:
 
         APP_ENTITLEMENTS="./packaging/macos64/app/entitlements.plist"
         EMB_ENTITLEMENTS="./packaging/macos64/app/embed-entitlements.plist"
-        CONFIG_TEMPLATES="../packaging/macos64/app/config"
+        CONFIG_TEMPLATES="./packaging/macos64/app/config"
 
-        # change to the work directory
-        echo "Switching to target directory"
-        cd ./target
-
-        TARGET_DIR=$(pwd)
+        TARGET_DIR="./target"
         echo "$TARGET_DIR"
 
         WORK_DIR="$TARGET_DIR/pkg-work"
@@ -59,30 +55,30 @@ runs:
 
         # copy the app-image to the image directory
         echo "Copying app-image: $IMAGE to work directory: $IMAGE_DIR"
-        cp -R "./$IMAGE" "$IMAGE_DIR/$IMAGE"
+        cp -R "$TARGET_DIR/$IMAGE" "$IMAGE_DIR/$IMAGE"
 
         echo "Copying config to work directory: $CONFIG_DIR"
         cp -R "$CONFIG_TEMPLATES" "$WORK_DIR"
 
         # copy the dylibs into the app dir
         echo "Copying binaries to /app directory"
-        cp ../packaging/macos64/app/exec/libSecurityScopedBookmarkLibrary.dylib "$IMAGE_DIR/$IMAGE/Contents/app"
-        cp ../packaging/macos64/app/exec/libndi.dylib "$IMAGE_DIR/$IMAGE/Contents/app"
-        cp ../packaging/macos64/app/exec/libdevolay-natives.dylib "$IMAGE_DIR/$IMAGE/Contents/app"
-        cp ../packaging/macos64/app/exec/ffmpeg "$IMAGE_DIR/$IMAGE/Contents/app"
-        cp ../packaging/macos64/app/exec/ffprobe "$IMAGE_DIR/$IMAGE/Contents/app"
+        cp ./packaging/macos64/app/exec/libSecurityScopedBookmarkLibrary.dylib "$IMAGE_DIR/$IMAGE/Contents/app"
+        cp ./packaging/macos64/app/exec/libndi.dylib "$IMAGE_DIR/$IMAGE/Contents/app"
+        cp ./packaging/macos64/app/exec/libdevolay-natives.dylib "$IMAGE_DIR/$IMAGE/Contents/app"
+        cp ./packaging/macos64/app/exec/ffmpeg "$IMAGE_DIR/$IMAGE/Contents/app"
+        cp ./packaging/macos64/app/exec/ffprobe "$IMAGE_DIR/$IMAGE/Contents/app"
 
         # copy in the provisioning profile
-        echo "Copying provisioning profile"
+        echo "Copying provisioning profile: '$PROV_PROFILE'"
         cp "$PROV_PROFILE" "$IMAGE_DIR/$IMAGE/Contents/embedded.provisionprofile"
 
         # copy Assets.car
         echo "Copying Assets.car"
-        cp ../packaging/macos64/app/resources/Assets.car "$IMAGE_DIR/$IMAGE/Contents/Resources/Assets.car"
+        cp ./packaging/macos64/app/resources/Assets.car "$IMAGE_DIR/$IMAGE/Contents/Resources/Assets.car"
 
         # copy privacy manifest
         echo "Copying privacy manifest"
-        cp ../packaging/macos64/app/content/PrivacyInfo.xcprivacy "$IMAGE_DIR/$IMAGE/Contents/Resources/PrivacyInfo.xcprivacy"
+        cp ./packaging/macos64/app/content/PrivacyInfo.xcprivacy "$IMAGE_DIR/$IMAGE/Contents/Resources/PrivacyInfo.xcprivacy"
 
         echo "Reading version number file"
         VERSION_PLACEHOLDER="#VERSION#"
