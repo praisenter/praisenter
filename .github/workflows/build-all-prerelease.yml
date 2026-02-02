@@ -82,7 +82,7 @@ jobs:
         shell: pwsh
         run: |
           $source = "./target/Praisenter-${{ env.VERSION_NUMBER }}.msi"
-          $target = "./target/Praisenter_${{ env.VERSION_NUMBER }}_${{ matrix.arch }}.msi"
+          $target = "Praisenter_${{ env.VERSION_NUMBER }}_${{ matrix.arch }}.msi"
           Rename-Item -Path $source -NewName $target
           Write-Host "Renamed: '$source' to '$target'"
 
