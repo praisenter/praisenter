@@ -270,7 +270,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # Get latest from the current branch
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
+        fetch-depth: 0
 
       # This pulls the version number from the release-version.txt file
       - name: Read version
