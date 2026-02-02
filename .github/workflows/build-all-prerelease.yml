@@ -76,6 +76,16 @@ jobs:
       - name: "Build with Maven"
         run: mvn -B clean install --file pom.xml
 
+      # Rename the MSI with architecture (WINDOWS)
+      - name: "Rename MSI with architecture"
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $source = "./target/Praisenter-${{ env.VERSION_NUMBER }}.msi"
+          $target = "./target/Praisenter_${{ env.VERSION_NUMBER }}_${{ matrix.arch }}.msi"
+          Rename-Item -Path $source -NewName $target
+          Write-Host "Renamed: '$source' to '$target'"
+
       # Now attempt to build the msix (WINDOWS)
       - name: "Set appxmanifest version number"
         if: runner.os == 'Windows'
@@ -275,6 +285,17 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v4
 
+      # Get commit log since last tag
+      - name: Get commits since last tag
+        id: commits_since_last
+        run: |
+          LAST_TAG=$(git describe --tags --abbrev=0)
+          # commit hash link - commit message (author)
+          COMMIT_LOG=$(git log $LAST_TAG..HEAD --pretty=format:"* [%h](https://github.com/praisenter/praisenter/commit/%H) - %s (%an)")
+          echo "$LOG_OUTPUT" > CHANGELOG.txt
+          # Verify file content in logs
+          cat CHANGELOG.txt
+
       # Create one release called 3.2.1 (for example)
       - name: Create Versioned Pre-Release
         uses: softprops/action-gh-release@v2
@@ -282,8 +303,9 @@ jobs:
           token: "${{ secrets.GITHUB_TOKEN}}"
           name: Praisenter v${{ env.VERSION_NUMBER }}-alpha
           tag_name: v${{ env.VERSION_NUMBER }}-alpha
+          body_path: CHANGELOG.txt
           prerelease: true
-          generate_release_notes: true
+          generate_release_notes: false
           make_latest: false
           files: | 
             ./dist-windows-latest/*.msi
