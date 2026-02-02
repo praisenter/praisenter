@@ -293,7 +293,7 @@ jobs:
         run: |
           LAST_TAG=$(git describe --tags --abbrev=0)
           # commit hash link - commit message (author)
-          COMMIT_LOG=$(git log $LAST_TAG..HEAD --pretty=format:"* [%h](https://github.com/praisenter/praisenter/commit/%H) - %s (%an)")
+          COMMIT_LOG=$(git log $LAST_TAG..HEAD --pretty=format:"- %h: %s (%an)")
           echo "$COMMIT_LOG"
           echo "$COMMIT_LOG" > CHANGELOG.txt
           # Verify file content in logs
