@@ -287,11 +287,11 @@ jobs:
       - name: Download artifacts
         uses: actions/download-artifact@v4
 
-      # Get commit log since last tag
+      # Get commit log since last non-alpha tag
       - name: Get commits since last tag
         id: commits_since_last
         run: |
-          LAST_TAG=$(git describe --tags --abbrev=0)
+          LAST_TAG=$(git describe --tags --abbrev=0 --exclude "*-alpha")
           # commit hash link - commit message (author)
           COMMIT_LOG=$(git log $LAST_TAG..HEAD --pretty=format:"- %h: %s (%an)")
           echo "$COMMIT_LOG"
