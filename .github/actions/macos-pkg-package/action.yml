@@ -1,0 +1,65 @@
+name: "Package macOS pkg Installer"
+inputs:
+  app-image-dir:
+    description: "The directory containing the application image"
+    required: true
+  install-cert-name:
+    description: "The name of the installer certificate used to sign the installer"
+    required: true
+  architecture:
+    description: "The target architecture for the build"
+    required: true
+  app-version:
+    description: "The application version number"
+    required: true
+  pkg-suffix:
+    description: "The suffix to append to the package filename"
+    required: false
+    default: ""
+runs:
+  using: "composite"
+  steps:
+    # Package and sign for for the MacOS store
+    - name: Package and sign for MacOS store
+      shell: bash
+      run: |
+        APP_IMAGE_DIR="${{ inputs.app-image-dir }}"
+        INST_CERT="${{ inputs.install-cert-name }}"
+        ARCH="${{ inputs.architecture }}"
+        VERSION="${{ inputs.app-version }}"
+        SUFFIX="${{ inputs.pkg-suffix }}"
+
+        CONFIG_TEMPLATES="./packaging/macos64/app/config"
+
+        TARGET_DIR="./target"
+        echo "$TARGET_DIR"
+
+        WORK_DIR="$TARGET_DIR/pkg-work"
+        CONFIG_DIR="$WORK_DIR/config"
+        PACKAGES_DIR="$WORK_DIR/packages"
+
+        # make the work folders
+        echo "Creating working directories: $WORK_DIR"
+        rm -rf "$WORK_DIR"
+        mkdir -p "$PACKAGES_DIR"
+
+        echo "Copying config to work directory: $CONFIG_DIR"
+        cp -R "$CONFIG_TEMPLATES" "$WORK_DIR"
+
+        echo "Reading version number file"
+        VERSION_PLACEHOLDER="#VERSION#"
+        echo "Replacing: '$VERSION_PLACEHOLDER' with version: '$VERSION'"
+
+        # update the .dist files with the latest version
+        echo "Update distribution.dlist with the latest version
+        sed -i '' "s/$VERSION_PLACEHOLDER/$VERSION/g" "$CONFIG_DIR/distribution.dist"
+
+        echo ""
+        echo "<------------------------------------------------->"
+        echo "Run pkgbuild"
+        pkgbuild -vv --root "$APP_IMAGE_DIR" --install-location /Applications --component-plist "$CONFIG_DIR/cpl.plist" --identifier org.praisenter "$PACKAGES_DIR/Praisenter-app.pkg" --version "$VERSION"
+
+        echo ""
+        echo "<------------------------------------------------->"
+        echo "Run productbuild"
+        productbuild --resources "$CONFIG_DIR" --product "$CONFIG_DIR/product-def.plist" --distribution "$CONFIG_DIR/distribution.dist" --identifier org.praisenter --version "$VERSION" --sign "$INST_CERT" --timestamp --package-path "$PACKAGES_DIR" "$TARGET_DIR/Praisenter_${{ env.VERSION_NUMBER }}_$ARCH$SUFFIX.pkg"

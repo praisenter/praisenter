@@ -1,24 +1,26 @@
+# This action packages and signs the app bundle produced by jpackage
+# The key elements of the process are:
+#   1. Add all native files to the Contents/app directory so they can be loaded/used in sandbox mode
+#   2. Copy in the provisioning profile
+#   3. Copy in Assets.car and PrivacyInfo.xcprivacy files
+#   4. Update the Info.plist with the correct version number
+#   5. Sign all internal components (dylibs, executables) including those inside jar files
+#   6. Sign the app bundle
+
 name: "Package macOS pkg Installer"
 inputs:
   app-cert-name:
     description: "The name of the application certificate used to sign the app"
     required: true
-  install-cert-name:
-    description: "The name of the installer certificate used to sign the installer"
-    required: true
   provisioning-profile:
     description: "The provisioning profile file for the MacOS store"
-    required: true
-  architecture:
-    description: "The target architecture for the build"
     required: true
   app-version:
     description: "The application version number"
     required: true
-  pkg-suffix:
-    description: "The suffix to append to the package filename"
-    required: false
-    default: ""
+  output-dir:
+    description: "The output directory for the packaged and signed app"
+    required: true
 runs:
   using: "composite"
   steps:
@@ -27,23 +29,18 @@ runs:
       shell: bash
       run: |
         APP_CERT="${{ inputs.app-cert-name }}"
-        INST_CERT="${{ inputs.install-cert-name }}"
-        ARCH="${{ inputs.architecture }}"
         PROV_PROFILE="${{ inputs.provisioning-profile }}"
         VERSION="${{ inputs.app-version }}"
-        SUFFIX="${{ inputs.pkg-suffix }}"
+        OUTPUT_DIR="${{ inputs.output-dir }}"
 
         APP_ENTITLEMENTS="./packaging/macos64/app/entitlements.plist"
         EMB_ENTITLEMENTS="./packaging/macos64/app/embed-entitlements.plist"
-        CONFIG_TEMPLATES="./packaging/macos64/app/config"
 
         TARGET_DIR="./target"
         echo "$TARGET_DIR"
 
-        WORK_DIR="$TARGET_DIR/pkg-work"
-        CONFIG_DIR="$WORK_DIR/config"
+        WORK_DIR="$TARGET_DIR/app-work"
         IMAGE_DIR="$WORK_DIR/image"
-        PACKAGES_DIR="$WORK_DIR/packages"
         JAR_DIR="$WORK_DIR/jars"
         IMAGE="Praisenter.app"
 
@@ -51,17 +48,13 @@ runs:
         echo "Creating working directories: $WORK_DIR"
         rm -rf "$WORK_DIR"
         mkdir -p "$IMAGE_DIR"
-        mkdir -p "$PACKAGES_DIR"
 
         # copy the app-image to the image directory
         echo "Copying app-image: $IMAGE to work directory: $IMAGE_DIR"
         cp -R "$TARGET_DIR/$IMAGE" "$IMAGE_DIR/$IMAGE"
 
-        echo "Copying config to work directory: $CONFIG_DIR"
-        cp -R "$CONFIG_TEMPLATES" "$WORK_DIR"
-
         # copy the dylibs into the app dir
-        echo "Copying binaries to /app directory"
+        echo "Copying binaries to /Contents/app directory"
         cp ./packaging/macos64/app/exec/libSecurityScopedBookmarkLibrary.dylib "$IMAGE_DIR/$IMAGE/Contents/app"
         cp ./packaging/macos64/app/exec/libndi.dylib "$IMAGE_DIR/$IMAGE/Contents/app"
         cp ./packaging/macos64/app/exec/libdevolay-natives.dylib "$IMAGE_DIR/$IMAGE/Contents/app"
@@ -69,25 +62,24 @@ runs:
         cp ./packaging/macos64/app/exec/ffprobe "$IMAGE_DIR/$IMAGE/Contents/app"
 
         # copy in the provisioning profile
-        echo "Copying provisioning profile: '$PROV_PROFILE'"
+        echo "Copying provisioning profile: '$PROV_PROFILE' to the /Contents directory"
         cp "$PROV_PROFILE" "$IMAGE_DIR/$IMAGE/Contents/embedded.provisionprofile"
 
         # copy Assets.car
-        echo "Copying Assets.car"
+        echo "Copying Assets.car to the /Contents/Resources directory"
         cp ./packaging/macos64/app/resources/Assets.car "$IMAGE_DIR/$IMAGE/Contents/Resources/Assets.car"
 
         # copy privacy manifest
-        echo "Copying privacy manifest"
+        echo "Copying privacy manifest to the /Contents/Resources directory"
         cp ./packaging/macos64/app/content/PrivacyInfo.xcprivacy "$IMAGE_DIR/$IMAGE/Contents/Resources/PrivacyInfo.xcprivacy"
 
         echo "Reading version number file"
         VERSION_PLACEHOLDER="#VERSION#"
         echo "Replacing: '$VERSION_PLACEHOLDER' with version: '$VERSION'"
 
-        # update the Info.plist and .dist files with the latest version
-        echo "Update Info.plist and distribution.dlist with the latest version"
+        # update the Info.plist with the latest version
+        echo "Update Info.plist with the latest version"
         sed -i '' "s/$VERSION_PLACEHOLDER/$VERSION/g" "$IMAGE_DIR/$IMAGE/Contents/Info.plist"
-        sed -i '' "s/$VERSION_PLACEHOLDER/$VERSION/g" "$CONFIG_DIR/distribution.dist"
 
         echo ""
         echo "<------------------------------------------------->"
@@ -100,7 +92,7 @@ runs:
                     codesign -vvvv --options runtime --deep --force --timestamp --sign "$APP_CERT" "$BINARY"
                 else
                   # only executables need entitlements added to the signature
-                  echo "Signing internal component '$BINARY' with entitlements"
+                  echo "Signing internal component '$BINARY' with embedded entitlements"
                   codesign -vvvv --options runtime --deep --force --timestamp --entitlements "$EMB_ENTITLEMENTS" --sign "$APP_CERT" "$BINARY"
                 fi
             else
@@ -152,10 +144,6 @@ runs:
 
         echo ""
         echo "<------------------------------------------------->"
-        echo "Run pkgbuild"
-        pkgbuild -vv --root "$IMAGE_DIR" --install-location /Applications --component-plist "$CONFIG_DIR/cpl.plist" --identifier org.praisenter "$PACKAGES_DIR/Praisenter-app.pkg" --version "$VERSION"
-
-        echo ""
-        echo "<------------------------------------------------->"
-        echo "Run productbuild"
-        productbuild --resources "$CONFIG_DIR" --product "$CONFIG_DIR/product-def.plist" --distribution "$CONFIG_DIR/distribution.dist" --identifier org.praisenter --version "$VERSION" --sign "$INST_CERT" --timestamp --package-path "$PACKAGES_DIR" "$TARGET_DIR/Praisenter_${{ env.VERSION_NUMBER }}_$ARCH$SUFFIX.pkg"
+        echo "Copying packaged and signed app to output directory: $OUTPUT_DIR"
+        mkdir -p "$OUTPUT_DIR"
+        cp -R "$IMAGE_DIR/$IMAGE" "$OUTPUT_DIR/$IMAGE"

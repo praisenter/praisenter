@@ -174,6 +174,7 @@ jobs:
           PKG_KEYCHAIN_PASSWORD: ${{ secrets.PKG_KEYCHAIN_PASSWORD }}
         run: |
           # create variables
+          echo "Setting up certificates and provisioning profiles"
           DEVELOPER_ID_APPLICATION_CERT_PATH=$RUNNER_TEMP/developer_id_application.p12
           DEVELOPER_ID_INSTALLER_CERT_PATH=$RUNNER_TEMP/developer_id_installer.p12
           MAC_DEVELOPER_APPLICATION_CERT_PATH=$RUNNER_TEMP/mac_developer_application.p12
@@ -182,10 +183,15 @@ jobs:
           STORE_PROVISION_PROFILE_PATH=$RUNNER_TEMP/store/embedded.mobileprovision
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
 
+          # make a few temp directories for provisioning profiles and app images
+          echo "Creating temporary directories"
           mkdir -p $RUNNER_TEMP/adhoc
           mkdir -p $RUNNER_TEMP/store
+          mkdir -p $RUNNER_TEMP/adhoc/app-image
+          mkdir -p $RUNNER_TEMP/store/app-image
 
-          # import certificate and provisioning profile from secrets
+          # decode certificate and provisioning profile from secrets
+          echo "Decoding certificates and provisioning profiles"
           echo -n "$PKG_DEVELOPER_ID_APPLICATION_CERTIFICATE_BASE64" | base64 --decode -o $DEVELOPER_ID_APPLICATION_CERT_PATH
           echo -n "$PKG_DEVELOPER_ID_INSTALLER_CERTIFICATE_BASE64" | base64 --decode -o $DEVELOPER_ID_INSTALLER_CERT_PATH
           echo -n "$PKG_MAC_DEVELOPER_APPLICATION_CERTIFICATE_BASE64" | base64 --decode -o $MAC_DEVELOPER_APPLICATION_CERT_PATH
@@ -194,11 +200,13 @@ jobs:
           echo -n "$PKG_STORE_PROVISION_PROFILE_BASE64" | base64 --decode -o $STORE_PROVISION_PROFILE_PATH
 
           # create temporary keychain
+          echo "Creating temporary keychain at: $KEYCHAIN_PATH"
           security create-keychain -p "$PKG_KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
           security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
           security unlock-keychain -p "$PKG_KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
 
           # import certificates to keychain
+          echo "Importing certificates to keychain"
           security import $DEVELOPER_ID_APPLICATION_CERT_PATH -P "$PKG_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
           security import $DEVELOPER_ID_INSTALLER_CERT_PATH -P "$PKG_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
           security import $MAC_DEVELOPER_APPLICATION_CERT_PATH -P "$PKG_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
@@ -206,26 +214,44 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple: -k "$PKG_KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
           security list-keychain -d user -s $KEYCHAIN_PATH
 
-      # Package and sign for for the MacOS store (MACOS)
-      - name: Package and sign for MacOS store
+      # Alter and sign app bundle for MacOS store (MACOS)
+      - name: Alter and sign app bundle for MacOS store
         if: runner.os == 'macOS'
-        uses: ./.github/actions/macos-package
+        uses: ./.github/actions/macos-app-package
         with:
-          app-cert-name: "3rd Party Mac Developer Application: William Bittle (W9HCQKU68J)"
-          install-cert-name: "3rd Party Mac Developer Installer: William Bittle (W9HCQKU68J)"
+          app-cert-name: ${{ secrets.PKG_MAC_DEVELOPER_APPLICATION_CERTIFICATE_NAME }}
           provisioning-profile: "${{ runner.temp }}/store/embedded.mobileprovision"
+          app-version: "${{ env.VERSION_NUMBER }}"
+          output-dir: "${{ runner.temp }}/store/app-image"
+
+      # Package and sign PKG for the MacOS store (MACOS)
+      - name: Package and sign PKG for MacOS store
+        if: runner.os == 'macOS'
+        uses: ./.github/actions/macos-pkg-package
+        with:
+          app-image-dir: "${{ runner.temp }}/store/app-image"
+          install-cert-name: ${{ secrets.PKG_MAC_DEVELOPER_INSTALLER_CERTIFICATE_NAME }}
           architecture: "${{ matrix.arch }}"
           app-version: "${{ env.VERSION_NUMBER }}"
           pkg-suffix: "_store"
-        
-      # Package and sign for for MacOS adhoc deployment (MACOS)
-      - name: Package and sign for MacOS adhoc deployment
+      
+      # Alter and sign app bundle for MacOS adhoc deployment (MACOS)
+      - name: Alter and sign app bundle for MacOS adhoc deployment
         if: runner.os == 'macOS'
-        uses: ./.github/actions/macos-package
+        uses: ./.github/actions/macos-app-package
         with:
-          app-cert-name: "Developer ID Application: William Bittle (W9HCQKU68J)"
-          install-cert-name: "Developer ID Installer: William Bittle (W9HCQKU68J)"
+          app-cert-name: ${{ secrets.PKG_DEVELOPER_ID_APPLICATION_CERTIFICATE_NAME }}
           provisioning-profile: "${{ runner.temp }}/adhoc/embedded.mobileprovision"
+          app-version: "${{ env.VERSION_NUMBER }}"
+          output-dir: "${{ runner.temp }}/adhoc/app-image"
+
+      # Package and sign PKG for MacOS adhoc deployment (MACOS)
+      - name: Package and sign PKG for MacOS adhoc deployment
+        if: runner.os == 'macOS'
+        uses: ./.github/actions/macos-pkg-package
+        with:
+          app-image-dir: "${{ runner.temp }}/adhoc/app-image"
+          install-cert-name: ${{ secrets.PKG_DEVELOPER_ID_INSTALLER_CERTIFICATE_NAME }}
           architecture: "${{ matrix.arch }}"
           app-version: "${{ env.VERSION_NUMBER }}"
           pkg-suffix: "_adhoc"
@@ -252,6 +278,46 @@ jobs:
           echo "Verify the pkg is install ready"
           spctl --assess --type install -v "$PACKAGE"
 
+      # Install create-dmg (MACOS)
+      - name: Install create-dmg via brew
+        if: runner.os == 'macOS'
+        run: |
+          brew install create-dmg
+
+      # Build a DMG file (MACOS)
+      - name: Create DMG file
+        if: runner.os == 'macOS'
+        run: |
+          mkdir -p ./target/dmg-work
+          cp -R "${{ runner.temp }}/adhoc/app-image/" "./target/dmg-work/"
+          create-dmg --volname "Praisenter" --volicon "./packaging/macos64/app/resources/Praisenter.icns" --background "./packaging/macos64/dmg/resources/background.tiff" --window-size 600 420 --icon-size 140 --icon "Praisenter.app" 138 155 --app-drop-link 464 155 "./target/Praisenter_${{ env.VERSION_NUMBER }}_${{ matrix.arch }}.dmg" "./target/dmg-work/"
+
+      # Sign and notarize DMG (MACOS)
+      - name: Sign and notarize DMG
+        if: runner.os == 'macOS'
+        env:
+          CERT_NAME: ${{ secrets.PKG_DEVELOPER_ID_APPLICATION_CERTIFICATE_NAME }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+        run: |
+          PACKAGE="./target/Praisenter_${{ env.VERSION_NUMBER }}_${{ matrix.arch }}.dmg"
+          echo "Sign the DMG"
+          codesign -s "$CERT_NAME" --timestamp -i org.praisenter "$PACKAGE"
+
+          echo "Notarize the DMG"
+          xcrun notarytool submit "$PACKAGE" --apple-id "$APPLE_ID" --password "$APPLE_PASSWORD" --team-id "$APPLE_TEAM_ID" --output-format "json" --wait
+
+          echo ""
+          echo "<------------------------------------------------->"
+          echo "Staple the DMG" 
+          xcrun stapler staple "$PACKAGE"
+
+          echo ""
+          echo "<------------------------------------------------->"
+          echo "Verify the DMG is install ready"
+          spctl --assess --type install -v "$PACKAGE"
+
       # Publish the artifacts
       - name: Publish artifacts
         uses: actions/upload-artifact@v4
@@ -264,6 +330,7 @@ jobs:
             ./target/*.deb
             ./target/*.snap
             ./target/*.pkg
+            ./target/*.dmg
 
   github-release:
     needs: build
@@ -316,4 +383,6 @@ jobs:
             ./dist-ubuntu-latest/*.deb
             ./dist-ubuntu-latest/*.snap
             ./dist-macos-15-intel/*.pkg
+            ./dist-macos-15-intel/*.dmg
           # ./dist-macos-latest/*.pkg
+          # ./dist-macos-latest/*.dmg
