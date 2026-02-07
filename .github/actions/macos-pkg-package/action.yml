@@ -51,7 +51,7 @@ runs:
         echo "Replacing: '$VERSION_PLACEHOLDER' with version: '$VERSION'"
 
         # update the .dist files with the latest version
-        echo "Update distribution.dlist with the latest version
+        echo "Update distribution.dlist with the latest version"
         sed -i '' "s/$VERSION_PLACEHOLDER/$VERSION/g" "$CONFIG_DIR/distribution.dist"
 
         echo ""
