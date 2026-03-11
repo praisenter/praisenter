@@ -43,6 +43,7 @@ public final class WorkspaceConfiguration implements ReadOnlyWorkspaceConfigurat
 	
 	private final BooleanProperty renumberBibleWarningEnabled;
 	private final BooleanProperty reorderBibleWarningEnabled;
+	private final BooleanProperty routeBibleQrEnabled;
 	
 	private final IntegerProperty thumbnailWidth;
 	private final IntegerProperty thumbnailHeight;
@@ -85,6 +86,7 @@ public final class WorkspaceConfiguration implements ReadOnlyWorkspaceConfigurat
 		
 		this.renumberBibleWarningEnabled = new SimpleBooleanProperty(true);
 		this.reorderBibleWarningEnabled = new SimpleBooleanProperty(true);
+		this.routeBibleQrEnabled = new SimpleBooleanProperty(false);
 		
 		this.thumbnailWidth = new SimpleIntegerProperty(Constants.THUMBNAIL_SIZE);
 		this.thumbnailHeight = new SimpleIntegerProperty(Constants.THUMBNAIL_SIZE);
@@ -240,6 +242,22 @@ public final class WorkspaceConfiguration implements ReadOnlyWorkspaceConfigurat
 	@Override
 	public BooleanProperty reorderBibleWarningEnabledProperty() {
 		return this.reorderBibleWarningEnabled;
+	}
+
+	@Override
+	@JsonProperty
+	public boolean isRouteBibleQrEnabled() {
+		return this.routeBibleQrEnabled.get();
+	}
+
+	@JsonProperty
+	public void setRouteBibleQrEnabled(boolean enabled) {
+		this.routeBibleQrEnabled.set(enabled);
+	}
+
+	@Override
+	public BooleanProperty routeBibleQrEnabledProperty() {
+		return this.routeBibleQrEnabled;
 	}
 
 	@Override

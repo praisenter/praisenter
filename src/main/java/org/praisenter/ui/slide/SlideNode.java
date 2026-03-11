@@ -11,10 +11,16 @@ import org.praisenter.ui.bind.MappedList2;
 import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 
 final class SlideNode extends SlideRegionNode<Slide> implements Playable {
 	private final Pane components;
+	private final ImageView routeBibleQr;
 	private final MappedList2<SlideComponentNode<?>, SlideComponent> mapping;
 	private final ObservableList<SlideComponentNode<?>> mappingUnmodifiable;
 	
@@ -38,8 +44,40 @@ final class SlideNode extends SlideRegionNode<Slide> implements Playable {
 		});
 		Bindings.bindContent(this.components.getChildren(), this.mapping);
 		this.mappingUnmodifiable = FXCollections.unmodifiableObservableList(this.mapping);
-		
-		this.content.getChildren().add(this.components);
+
+		this.routeBibleQr = new ImageView();
+		this.routeBibleQr.setFitWidth(112);
+		this.routeBibleQr.setFitHeight(112);
+		this.routeBibleQr.setPreserveRatio(true);
+		this.routeBibleQr.setSmooth(true);
+		this.routeBibleQr.managedProperty().bind(this.routeBibleQr.visibleProperty());
+		this.routeBibleQr.visibleProperty().bind(Bindings.createBooleanBinding(() -> {
+			return RouteBibleQrOverlay.shouldShow(
+				context.getWorkspaceConfiguration().isRouteBibleQrEnabled(),
+				region.getPlaceholderData(),
+				this.mode.get()
+			);
+		}, region.placeholderDataProperty(), context.getWorkspaceConfiguration().routeBibleQrEnabledProperty(), this.mode));
+		this.routeBibleQr.imageProperty().bind(Bindings.createObjectBinding(() -> {
+			if (!RouteBibleQrOverlay.shouldShow(
+				context.getWorkspaceConfiguration().isRouteBibleQrEnabled(),
+				region.getPlaceholderData(),
+				this.mode.get()
+			)) {
+				return null;
+			}
+
+			String referenceLabel = RouteBibleQrOverlay.getReferenceLabel(region.getPlaceholderData());
+			if (referenceLabel == null) {
+				return null;
+			}
+
+			return new Image(RouteBibleQrOverlay.buildQrUrl(referenceLabel), 112, 112, true, true, true);
+		}, region.placeholderDataProperty(), context.getWorkspaceConfiguration().routeBibleQrEnabledProperty(), this.mode));
+		StackPane.setAlignment(this.routeBibleQr, Pos.BOTTOM_RIGHT);
+		StackPane.setMargin(this.routeBibleQr, new Insets(16));
+
+		this.content.getChildren().addAll(this.components, this.routeBibleQr);
 	}
 
 	@Override

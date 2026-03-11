@@ -17,6 +17,7 @@ public interface ReadOnlyWorkspaceConfiguration extends MediaConfiguration, Slid
 	
 	public boolean isRenumberBibleWarningEnabled();
 	public boolean isReorderBibleWarningEnabled();
+	public boolean isRouteBibleQrEnabled();
 	
 	public String getLanguageTag();
 	public String getThemeName();
@@ -40,6 +41,7 @@ public interface ReadOnlyWorkspaceConfiguration extends MediaConfiguration, Slid
 	
 	public ReadOnlyBooleanProperty renumberBibleWarningEnabledProperty();
 	public ReadOnlyBooleanProperty reorderBibleWarningEnabledProperty();
+	public ReadOnlyBooleanProperty routeBibleQrEnabledProperty();
 	
 	public ReadOnlyIntegerProperty thumbnailWidthProperty();
 	public ReadOnlyIntegerProperty thumbnailHeightProperty();

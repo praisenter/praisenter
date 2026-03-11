@@ -277,6 +277,13 @@ public final class SettingsPage extends BorderPane implements Page {
 		tglBibleReorderWarning.selectedProperty().addListener((obs, ov, nv) -> {
 			configuration.setReorderBibleWarningEnabled(nv);
 		});
+
+		// Route Bible QR
+		ToggleSwitch tglRouteBibleQr = new ToggleSwitch();
+		tglRouteBibleQr.setSelected(configuration.isRouteBibleQrEnabled());
+		tglRouteBibleQr.selectedProperty().addListener((obs, ov, nv) -> {
+			configuration.setRouteBibleQrEnabled(nv);
+		});
 		
 		// debug mode
 		ToggleSwitch tglDebugMode = new ToggleSwitch();
@@ -344,7 +351,10 @@ public final class SettingsPage extends BorderPane implements Page {
 		Tile tleBibleReorderWarning = new Tile(Translations.get("settings.bible.reorderWarning"), Translations.get("settings.bible.reorderWarning.description"));
 		tleBibleReorderWarning.setAction(tglBibleReorderWarning);
 		tleBibleReorderWarning.setActionHandler(tglBibleReorderWarning::fire);
-		VBox boxBible = new VBox(lblBible, new Separator(Orientation.HORIZONTAL), tleBibleRenumberWarning, tleBibleReorderWarning);
+		Tile tleRouteBibleQr = new Tile("Show Route Bible QR", "Adds an optional Route Bible QR overlay to Bible verse presentation slides only.");
+		tleRouteBibleQr.setAction(tglRouteBibleQr);
+		tleRouteBibleQr.setActionHandler(tglRouteBibleQr::fire);
+		VBox boxBible = new VBox(lblBible, new Separator(Orientation.HORIZONTAL), tleBibleRenumberWarning, tleBibleReorderWarning, tleRouteBibleQr);
 
 		Label lblMedia = new Label(Translations.get("settings.media"));
 		lblMedia.getStyleClass().add(Styles.TITLE_3);
