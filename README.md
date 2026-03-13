@@ -5,12 +5,12 @@
 
 A free and open source presentation software package for Churches, providing display of Bible verses, songs, notifications, and custom slides to a secondary displays, typically a projector, monitor or television.
 
-## Optional Route Bible QR for Bible slides
+## Optional route.bible QR for Bible slides
 
-Praisenter can optionally show a Route Bible QR overlay on Bible verse presentation slides.
+Praisenter can optionally show a route.bible QR overlay on Bible verse presentation slides.
 
 * Open `Settings -> Bible`
-* Turn on `Show Route Bible QR`
+* Turn on `Show route.bible QR`
 * Bible verse presentation slides will render a bottom-right QR overlay
 * Songs, notifications, and other non-Bible slides stay unchanged
 
