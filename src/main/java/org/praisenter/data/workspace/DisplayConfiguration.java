@@ -11,10 +11,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -36,6 +38,8 @@ public final class DisplayConfiguration implements BibleConfiguration, ReadOnlyD
 	private final IntegerProperty y;
 	private final IntegerProperty width;
 	private final IntegerProperty height;
+	private final DoubleProperty outputScaleX;
+	private final DoubleProperty outputScaleY;
 	private final IntegerProperty framesPerSecond;
 	
 	private final ObjectProperty<UUID> bibleTemplateId;
@@ -65,6 +69,8 @@ public final class DisplayConfiguration implements BibleConfiguration, ReadOnlyD
 		this.y = new SimpleIntegerProperty();
 		this.width = new SimpleIntegerProperty();
 		this.height = new SimpleIntegerProperty();
+		this.outputScaleX = new SimpleDoubleProperty(1.0);
+		this.outputScaleY = new SimpleDoubleProperty(1.0);
 		this.framesPerSecond = new SimpleIntegerProperty();
 		
 		this.bibleTemplateId = new SimpleObjectProperty<>();
@@ -81,8 +87,9 @@ public final class DisplayConfiguration implements BibleConfiguration, ReadOnlyD
 		this.queuedSlidesReadOnly = FXCollections.unmodifiableObservableList(this.queuedSlides);
 		
 		this.defaultName.bind(Bindings.createStringBinding(() -> {
-			return "ID=" + (this.id.get() + 1) + " (" + this.x.get() + "," + this.y.get() + ") " + this.width.get() + "x" + this.height.get();
-		}, this.id, this.x, this.y, this.width, this.height));
+			int scale = (int)(this.getOutputScaleX() * 100);
+			return "ID=" + (this.id.get() + 1) + " (" + this.x.get() + "," + this.y.get() + ") " + this.getWidth() + "x" + this.getHeight() + (scale != 100 ? " " + scale + "%" : "");
+		}, this.id, this.x, this.y, this.outputScaleX, this.outputScaleY, this.width, this.height));
 		
 		this.label.bind(Bindings.createStringBinding(() -> {
 			String n = this.name.get();
@@ -105,6 +112,8 @@ public final class DisplayConfiguration implements BibleConfiguration, ReadOnlyD
 		dc.y.set(this.y.get());
 		dc.width.set(this.width.get());
 		dc.height.set(this.height.get());
+		dc.outputScaleX.set(this.outputScaleX.get());
+		dc.outputScaleY.set(this.outputScaleY.get());
 		dc.framesPerSecond.set(this.framesPerSecond.get());
 		dc.bibleTemplateId.set(this.bibleTemplateId.get());
 		dc.songTemplateId.set(this.songTemplateId.get());
@@ -295,6 +304,38 @@ public final class DisplayConfiguration implements BibleConfiguration, ReadOnlyD
 	@Override
 	public IntegerProperty heightProperty() {
 		return this.height;
+	}
+	
+	@Override
+	@JsonProperty
+	public double getOutputScaleX() {
+		return this.outputScaleX.get();
+	}
+	
+	@JsonProperty
+	public void setOutputScaleX(double outputScaleX) {
+		this.outputScaleX.set(outputScaleX);
+	}
+	
+	@Override
+	public DoubleProperty outputScaleXProperty() {
+		return this.outputScaleX;
+	}
+	
+	@Override
+	@JsonProperty
+	public double getOutputScaleY() {
+		return this.outputScaleY.get();
+	}
+	
+	@JsonProperty
+	public void setOutputScaleY(double outputScaleY) {
+		this.outputScaleY.set(outputScaleY);
+	}
+	
+	@Override
+	public DoubleProperty outputScaleYProperty() {
+		return this.outputScaleY;
 	}
 	
 	@Override

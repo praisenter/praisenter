@@ -6,6 +6,7 @@ import org.praisenter.data.Copyable;
 import org.praisenter.data.slide.ReadOnlySlideReference;
 
 import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.beans.property.ReadOnlyIntegerProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
@@ -26,6 +27,8 @@ public interface ReadOnlyDisplayConfiguration extends Copyable {
 	public int getY();
 	public int getWidth();
 	public int getHeight();
+	public double getOutputScaleX();
+	public double getOutputScaleY();
 	public int getFramesPerSecond();
 	
 	public UUID getBibleTemplateId();
@@ -46,6 +49,8 @@ public interface ReadOnlyDisplayConfiguration extends Copyable {
 	public ReadOnlyIntegerProperty yProperty();
 	public ReadOnlyIntegerProperty widthProperty();
 	public ReadOnlyIntegerProperty heightProperty();
+	public ReadOnlyDoubleProperty outputScaleXProperty();
+	public ReadOnlyDoubleProperty outputScaleYProperty();
 	public ReadOnlyIntegerProperty framesPerSecondProperty();
 	public ReadOnlyIntegerProperty controllingDisplayIdProperty();
 	

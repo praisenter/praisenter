@@ -101,19 +101,42 @@ public final class ScreenDisplayTarget extends Stage implements DisplayTarget {
 		
 		// events
 		
+		// JAVABUG (H) 07/20/26 [workaround] output scale is not properly accounted for
+		// When we create a Stage, it defaults to the primary screen. If that screen has an output scaling
+		// other than 1.0, then the new Stage will inherit that scaling even after being moved to a screen
+		// with a different output scaling
+		// https://bugs.openjdk.org/browse/JDK-8251912
+		// https://bugs.openjdk.org/browse/JDK-8281058
+		
+		// OUTPUTSCALE-WORKAROUND
+		// To work around the issue, we set the (x,y) location of the Stage so that it gets the correct 
+		// output scale settings for the screen it's on. Then, when we show the stage, we set the width
+		// to something arbitrary, then set the width to the real value.
 		this.setX(configuration.getX());
 		this.setY(configuration.getY());
-		this.setWidth(configuration.getWidth());
-		this.setHeight(configuration.getHeight());
-		this.setMinWidth(configuration.getWidth());
-		this.setMinHeight(configuration.getHeight());
-		this.setMaxWidth(configuration.getWidth());
-		this.setMaxHeight(configuration.getHeight());
 		
 		this.titleProperty().bind(configuration.labelProperty());
 		
 		if (configuration.isActive()) {
+			// OUTPUTSCALE-WORKAROUND
+			// To ensure the width/height actually change, we need to change
+			// the width to something else, then back to the value we want
+			this.setWidth(100);
+			this.setHeight(100);
+			this.setMinWidth(100);
+			this.setMinHeight(100);
+			this.setMaxWidth(100);
+			this.setMaxHeight(100);
+			
 			this.show();
+			
+			// OUTPUTSCALE-WORKAROUND
+			this.setWidth(configuration.getWidth());
+			this.setHeight(configuration.getHeight());
+			this.setMinWidth(configuration.getWidth());
+			this.setMinHeight(configuration.getHeight());
+			this.setMaxWidth(configuration.getWidth());
+			this.setMaxHeight(configuration.getHeight());
 		}
 		
 		this.activeListener = (obs, ov, nv) -> {
@@ -124,7 +147,25 @@ public final class ScreenDisplayTarget extends Stage implements DisplayTarget {
 				// hide the window
 				this.hide();
 			} else if (!this.isShowing()) {
+				// OUTPUTSCALE-WORKAROUND
+				// To ensure the width/height actually change, we need to change
+				// the width to something else, then back to the value we want
+				this.setWidth(100);
+				this.setHeight(100);
+				this.setMinWidth(100);
+				this.setMinHeight(100);
+				this.setMaxWidth(100);
+				this.setMaxHeight(100);
+				
 				this.show();
+				
+				// OUTPUTSCALE-WORKAROUND
+				this.setWidth(configuration.getWidth());
+				this.setHeight(configuration.getHeight());
+				this.setMinWidth(configuration.getWidth());
+				this.setMinHeight(configuration.getHeight());
+				this.setMaxWidth(configuration.getWidth());
+				this.setMaxHeight(configuration.getHeight());
 			}
 		};
 		configuration.activeProperty().addListener(this.activeListener);

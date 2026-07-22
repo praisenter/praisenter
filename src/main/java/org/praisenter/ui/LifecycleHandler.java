@@ -404,6 +404,16 @@ public final class LifecycleHandler {
         	} else if (this.isInScreenBounds(x, y, w, h)) {
     			stage.setX(x);
     			stage.setY(y);
+    		} else {
+    			// the stage is not within any screen bounds
+    			// so check the width/height against the primary screen
+    			Rectangle2D bounds = Screen.getPrimary().getBounds();
+    			if (x + w > bounds.getWidth()) {
+    				stage.setWidth(MIN_WIDTH);
+    			}
+    			if (y + h > bounds.getHeight()) {
+    				stage.setHeight(MIN_HEIGHT);
+    			}
     		}
     		
     		// check for maximized
@@ -566,7 +576,7 @@ public final class LifecycleHandler {
     private boolean isInScreenBounds(double x, double y, double w, double h) {
     	Rectangle2D bounds = new Rectangle2D(x, y, w, h);
         for (Screen screen : Screen.getScreens()) {
-            Rectangle2D sb = ScreenHelper.getScaledScreenBounds(screen);
+        	Rectangle2D sb = screen.getBounds();
             if (bounds.intersects(sb)) {
             	return true;
             }

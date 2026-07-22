@@ -10,7 +10,6 @@ import org.apache.logging.log4j.Logger;
 import org.praisenter.data.workspace.DisplayConfiguration;
 import org.praisenter.data.workspace.DisplayType;
 import org.praisenter.ui.GlobalContext;
-import org.praisenter.ui.ScreenHelper;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
@@ -87,6 +86,12 @@ public final class DisplayManager {
 		DesktopState whatHappened = DesktopState.NO_CHANGE;
 		List<Screen> screens = new ArrayList<Screen>(Screen.getScreens());
 		int sSize = screens.size();
+		
+		// print screens
+		for (int i = 0; i < screens.size(); i++) {
+			Screen screen = screens.get(i);
+			LOGGER.info("#{} ({}, {}) {}x{} [{}/{}] {}", i, screen.getBounds().getMinX(), screen.getBounds().getMinY(), screen.getBounds().getWidth(), screen.getBounds().getHeight(), screen.getOutputScaleX(), screen.getOutputScaleY(), screen.getDpi());
+		}
 		
 		// get the configured displays
 		ObservableList<DisplayConfiguration> configurations = this.context.getWorkspaceConfiguration().getDisplayConfigurations();
@@ -234,7 +239,7 @@ public final class DisplayManager {
 	}
 	
 	private DisplayConfiguration createDisplayConfigurationFromScreen(Screen screen, int index, boolean isPrimary) {
-		Rectangle2D bounds = ScreenHelper.getScaledScreenBounds(screen);
+		Rectangle2D bounds = screen.getBounds();
 		DisplayConfiguration display = new DisplayConfiguration();
 		display.setHeight((int)bounds.getHeight());
 		display.setId(index);
@@ -242,17 +247,21 @@ public final class DisplayManager {
 		display.setWidth((int)bounds.getWidth());
 		display.setX((int)screen.getBounds().getMinX());
 		display.setY((int)screen.getBounds().getMinY());
+		display.setOutputScaleX(screen.getOutputScaleX());
+		display.setOutputScaleY(screen.getOutputScaleY());
 		display.setType(DisplayType.SCREEN);
 		display.setFramesPerSecond(-1);
 		return display;
 	}
 	
 	private void updateScreenConfiguration(Screen screen, DisplayConfiguration configuration) {
-		Rectangle2D bounds = ScreenHelper.getScaledScreenBounds(screen);
+		Rectangle2D bounds = screen.getBounds();
 		configuration.setHeight((int)bounds.getHeight());
 		configuration.setWidth((int)bounds.getWidth());
 		configuration.setX((int)screen.getBounds().getMinX());
 		configuration.setY((int)screen.getBounds().getMinY());
+		configuration.setOutputScaleX(screen.getOutputScaleX());
+		configuration.setOutputScaleY(screen.getOutputScaleY());
 	}
 
 	private void updateScreenLocation(ScreenDisplayTarget target) {
@@ -284,7 +293,7 @@ public final class DisplayManager {
 		
 		// otherwise, it needs to be in the list of screens with the
 		// same index and must have the same dimensions and position
-		Rectangle2D bounds = ScreenHelper.getScaledScreenBounds(screen);
+		Rectangle2D bounds = screen.getBounds();
 		boolean positionChanged = false;
 		if ((int)bounds.getMinX() != configuration.getX() ||
 			(int)bounds.getMinY() != configuration.getY()) {
@@ -296,6 +305,13 @@ public final class DisplayManager {
 		if ((int)bounds.getWidth() != configuration.getWidth() ||
 			(int)bounds.getHeight() != configuration.getHeight()) {
 			LOGGER.info("Display {} resolution has changed.", id);
+			resolutionChanged = true;
+		}
+		
+		// if the scale changes, then the resolution changed
+		if (screen.getOutputScaleX() != configuration.getOutputScaleX() ||
+			screen.getOutputScaleY() != configuration.getOutputScaleY()) {
+			LOGGER.info("Display {} scale has changed.", id);
 			resolutionChanged = true;
 		}
 		

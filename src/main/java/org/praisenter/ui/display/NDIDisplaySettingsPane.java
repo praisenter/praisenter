@@ -28,7 +28,6 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.geometry.Rectangle2D;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
@@ -206,8 +205,8 @@ public final class NDIDisplaySettingsPane extends BorderPane {
 	
 	private boolean isNativeResolution(Resolution r) {
 		for (Screen screen : Screen.getScreens()) {
-			Rectangle2D bounds = ScreenHelper.getScaledScreenBounds(screen);
-			if ((int)bounds.getWidth() == r.getWidth() && (int)bounds.getHeight() == r.getHeight()) {
+			Resolution c = ScreenHelper.getResolution(screen);
+			if (c.getWidth() == r.getWidth() && c.getHeight() == r.getHeight()) {
 				return true;
 			}
 		}
