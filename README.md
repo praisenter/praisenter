@@ -5,10 +5,22 @@
 
 A free and open source presentation software package for Churches, providing display of Bible verses, songs, notifications, and custom slides to a secondary displays, typically a projector, monitor or television.
 
+<a href="https://get.microsoft.com/installer/download/9phhwb94w800?referrer=appbadge" target="_self" >
+	<img src="https://get.microsoft.com/images/en-us%20light.svg" width="210"/>
+</a>
+
+<a href="https://snapcraft.io/praisenter">
+    <img alt="Get it from the Snap Store" src=https://snapcraft.io/en/light/install.svg />
+</a>
+
+<a href="https://apps.apple.com/us/app/praisenter/id6756894623?mt=12&itscg=30200&itsct=apps_box_badge&mttnsubad=6756894623">
+	<img src="https://toolbox.marketingtools.apple.com/api/v2/badges/download-on-the-app-store/white/en-us?releaseDate=1769472000" alt="Download on the App Store" width="170" />
+</a>
+    
 ## Requirements:
 * Windows 10 x64 22H2 or higher (most testing occurs on Windows 11)
 * Ubuntu 22.04 x64 or higher
-* Mac OS 11 x64 or higher (coming...)
+* Mac OS 10.15 x64 or higher
 * Plenty of RAM (4 or more)
 * A decent/recent multicore CPU
 * At least 2 video outputs
