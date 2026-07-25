@@ -5,17 +5,11 @@
 
 A free and open source presentation software package for Churches, providing display of Bible verses, songs, notifications, and custom slides to a secondary displays, typically a projector, monitor or television.
 
-<a href="https://get.microsoft.com/installer/download/9phhwb94w800?referrer=appbadge" target="_self" style="text-decoration: none;">
-	<img src="https://get.microsoft.com/images/en-us%20light.svg" width="210"/>
-</a>
-
-<a href="https://snapcraft.io/praisenter" style="text-decoration: none;">
-    <img alt="Get it from the Snap Store" src=https://snapcraft.io/en/light/install.svg />
-</a>
-
-<a href="https://apps.apple.com/us/app/praisenter/id6756894623?mt=12&itscg=30200&itsct=apps_box_badge&mttnsubad=6756894623" style="text-decoration: none;">
-	<img src="https://toolbox.marketingtools.apple.com/api/v2/badges/download-on-the-app-store/white/en-us?releaseDate=1769472000" alt="Download on the App Store" width="172" />
-</a>
+<a href="https://get.microsoft.com/installer/download/9phhwb94w800?referrer=appbadge" target="_self"><img src="https://get.microsoft.com/images/en-us%20light.svg" width="210"/></a>
+&nbsp;
+<a href="https://snapcraft.io/praisenter"><img alt="Get it from the Snap Store" src=https://snapcraft.io/en/light/install.svg /></a>
+&nbsp;
+<a href="https://apps.apple.com/us/app/praisenter/id6756894623?mt=12&itscg=30200&itsct=apps_box_badge&mttnsubad=6756894623"><img src="https://toolbox.marketingtools.apple.com/api/v2/badges/download-on-the-app-store/white/en-us?releaseDate=1769472000" alt="Download on the App Store" width="172" /></a>
     
 ## Requirements:
 * Windows 10 x64 22H2 or higher (most testing occurs on Windows 11)
