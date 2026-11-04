@@ -84,8 +84,49 @@ Bibles and songs lyrics support bulk editing for easy copy/paste from other sour
 ![Bulk Editing](https://praisenter.org/assets/img/features/bulk-edit.png)
 
 ## Building:
-Install WiX Toolset 6.x:
-https://github.com/wixtoolset/wix/releases
+
+### General Setup
+1. Install [Git](https://git-scm.com/downloads) and [Git LFS](https://git-lfs.com/), then clone the repository with its LFS files:
+
+   ```shell
+   git lfs install
+   git clone https://github.com/wnbittle/praisenter.git
+   cd praisenter
+   git lfs pull
+   ```
+
+2. Install a **JDK 25** for your operating system and CPU architecture. The project and CI use **Azul Zulu 25 with JavaFX** (`jdk+fx`); for example, the Windows x64 build uses the Zulu FX JDK 25.0.2. Download the JDK (not a JRE) from [Azul Zulu Downloads](https://www.azul.com/downloads/?package=jdk-fx#zulu) and select Java 25, the JDK FX package, and your platform/architecture. JavaFX dependencies are also declared in `pom.xml` and Maven will resolve them during the build.
+
+### VS Code Setup
+
+1. Install [Visual Studio Code](https://code.visualstudio.com/).
+
+2. Install the **Extension Pack for Java** (`vscjava.vscode-java-pack`) and **Maven for Java** (`vscjava.vscode-maven`). The Java pack includes the Java language support, debugger, test runner, and project manager extensions.
+
+3. Set `JAVA_HOME` to the JDK installation directory (the directory containing `bin`), and add its `bin` directory to `PATH` so `java` and `javac` are available. For example, on Windows:
+
+   ```text
+   JAVA_HOME=C:\Program Files\Zulu\zulu-25
+   PATH=%JAVA_HOME%\bin;...
+   ```
+
+   On macOS or Linux, add `export JAVA_HOME=/path/to/jdk-25` and `export PATH="$JAVA_HOME/bin:$PATH"` to your shell profile. Restart VS Code after changing environment variables. The workspace `.vscode/settings.json` also sets `JAVA_HOME` for Maven terminals; update its `maven.terminal.customEnv` value to your JDK path, or remove that override if you rely on the environment inherited by VS Code.
+
+4. Install [Apache Maven](https://maven.apache.org/download.cgi) (3.9 or newer); this repository does not include the Maven Wrapper. Set `MAVEN_HOME` or `M2_HOME` if required by your installation and add Maven's `bin` directory to `PATH`. Confirm the tools are visible in a new VS Code terminal:
+
+   ```shell
+   java -version
+   javac -version
+   mvn -version
+   ```
+
+5. Open the repository folder in VS Code and allow the Java and Maven extensions to import the Maven project. Build and test with:
+
+   ```shell
+   mvn clean install
+   ```
+
+   To run the application from Maven, use `mvn javafx:run`. The repository also includes a **Praisenter** launch configuration; select it in Run and Debug to start debugging.
 
 ### Maven
 ```shell
@@ -94,6 +135,12 @@ mvn clean install
 
 ### Microsoft Store
 https://partner.microsoft.com/en-us/dashboard/products
+
+On Windows, the full Maven build also creates an installer using `jpackage`. Install the [.NET SDK](https://dotnet.microsoft.com/download) and [WiX Toolset 6.x](https://github.com/wixtoolset/wix/releases), including the WiX Util and UI extensions, and ensure the `wix` command is on `PATH`. WiX is not needed for Java editing or running the application.
+
+Install WiX Toolset 6.x:
+https://github.com/wixtoolset/wix/releases
+
 
 ### Ubuntu Snap
 ```shell
@@ -195,4 +242,3 @@ This will convert the folder of images into an iconset, this can be verified by 
 1. Navigate to the directory containing your `icon.iconset` in the terminal
 2. Run `iconutil` with the following command: `iconutil -c icns icon.iconset`
 3. Your `icon.icns` will be generated in the current directory
-

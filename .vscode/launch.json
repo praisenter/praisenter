@@ -1,0 +1,22 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Praisenter",
+            "request": "launch",
+            "mainClass": "org.praisenter.ui.Launcher",
+            "projectName": "praisenter",
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "classPaths": ["$Runtime"],
+            "modulePaths": ["$Runtime"],
+            "vmArgs": [
+                "--enable-native-access=ALL-UNNAMED",
+                "-XX:+ShowCodeDetailsInExceptionMessages",
+                "--limit-modules=java.base,java.management,java.net.http,java.sql,java.xml,java.desktop,java.naming,jdk.crypto.ec,jdk.xml.dom"
+            ],
+            "shortenCommandLine": "argfile"
+        }
+    ]
+}

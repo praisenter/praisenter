@@ -16,3 +16,6 @@ packaging/windows64/msix/Praisenter/obj/
 /jdeps-output.txt
 .DS_Store
 *.provisionprofile
+/.apt_generated/
+/.apt_generated_tests/
+.vscode/settings.json

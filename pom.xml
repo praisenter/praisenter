@@ -195,6 +195,14 @@
 			<artifactId>javafx-web</artifactId>
 			<version>26.0.1</version>
 			<classifier>${jfx.platform}</classifier>
+            <!-- Exclude the jdk-jsobject dependency for javafx-web -->
+            <!-- This can be removed once we moved to a JDK higher than 25 -->
+            <exclusions>
+                <exclusion>
+                    <groupId>org.openjfx</groupId>
+                    <artifactId>jdk-jsobject</artifactId>
+                </exclusion>
+            </exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
@@ -393,6 +401,9 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-clean-plugin</artifactId>
                     <version>3.5.0</version>
+                    <configuration>
+                        <force>true</force>
+                    </configuration>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
