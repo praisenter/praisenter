@@ -7,7 +7,7 @@ A free and open source presentation software package for Churches, providing dis
 
 <a href="https://get.microsoft.com/installer/download/9phhwb94w800?referrer=appbadge" target="_self"><img src="https://get.microsoft.com/images/en-us%20light.svg" width="210"/></a>
 &nbsp;
-<a href="https://snapcraft.io/praisenter"><img alt="Get it from the Snap Store" src=https://snapcraft.io/en/light/install.svg /></a>
+<a href="https://snapcraft.io/praisenter"><img alt="Get it from the Snap Store" src=https://snapcraft.io/en/light/install.svg width="180"/></a>
 &nbsp;
 <a href="https://apps.apple.com/us/app/praisenter/id6756894623?mt=12&itscg=30200&itsct=apps_box_badge&mttnsubad=6756894623"><img src="https://toolbox.marketingtools.apple.com/api/v2/badges/download-on-the-app-store/white/en-us?releaseDate=1769472000" alt="Download on the App Store" width="172" /></a>
     
