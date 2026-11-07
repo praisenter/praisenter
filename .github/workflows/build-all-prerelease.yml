@@ -22,8 +22,9 @@ jobs:
           - os: macos-15-intel
             branch: master
             arch: x64
-          # - os: macos-latest
-          #   branch: macos
+          - os: macos-latest
+            branch: master
+            arch: arm64
     runs-on: ${{ matrix.os }}
     steps:
       # Get latest from the specific branch and LFS files
@@ -384,5 +385,5 @@ jobs:
             ./dist-ubuntu-latest/*.snap
             ./dist-macos-15-intel/*.pkg
             ./dist-macos-15-intel/*.dmg
-          # ./dist-macos-latest/*.pkg
-          # ./dist-macos-latest/*.dmg
+            ./dist-macos-latest/*.pkg
+            ./dist-macos-latest/*.dmg

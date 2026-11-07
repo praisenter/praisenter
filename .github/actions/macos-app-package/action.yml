@@ -7,7 +7,8 @@
 #   5. Sign all internal components (dylibs, executables) including those inside jar files
 #   6. Sign the app bundle
 
-name: "Package macOS pkg Installer"
+name: "Package macOS App Bundle"
+description: "Action to package and sign the macOS app bundle for the application"
 inputs:
   app-cert-name:
     description: "The name of the application certificate used to sign the app"
@@ -53,13 +54,13 @@ runs:
         echo "Copying app-image: $IMAGE to work directory: $IMAGE_DIR"
         cp -R "$TARGET_DIR/$IMAGE" "$IMAGE_DIR/$IMAGE"
 
-        # copy the dylibs into the app dir
-        echo "Copying binaries to /Contents/app directory"
-        cp ./packaging/macos64/app/exec/libSecurityScopedBookmarkLibrary.dylib "$IMAGE_DIR/$IMAGE/Contents/app"
-        cp ./packaging/macos64/app/exec/libndi.dylib "$IMAGE_DIR/$IMAGE/Contents/app"
-        cp ./packaging/macos64/app/exec/libdevolay-natives.dylib "$IMAGE_DIR/$IMAGE/Contents/app"
-        cp ./packaging/macos64/app/exec/ffmpeg "$IMAGE_DIR/$IMAGE/Contents/app"
-        cp ./packaging/macos64/app/exec/ffprobe "$IMAGE_DIR/$IMAGE/Contents/app"
+        # # copy the dylibs into the app dir
+        # echo "Copying binaries to /Contents/app directory"
+        # cp ./packaging/macos64/app/exec/libSecurityScopedBookmarkLibrary.dylib "$IMAGE_DIR/$IMAGE/Contents/app"
+        # cp ./packaging/macos64/app/exec/libndi.dylib "$IMAGE_DIR/$IMAGE/Contents/app"
+        # cp ./packaging/macos64/app/exec/libdevolay-natives.dylib "$IMAGE_DIR/$IMAGE/Contents/app"
+        # cp ./packaging/macos64/app/exec/ffmpeg "$IMAGE_DIR/$IMAGE/Contents/app"
+        # cp ./packaging/macos64/app/exec/ffprobe "$IMAGE_DIR/$IMAGE/Contents/app"
 
         # copy in the provisioning profile
         echo "Copying provisioning profile: '$PROV_PROFILE' to the /Contents directory"
@@ -136,6 +137,11 @@ runs:
         echo "<------------------------------------------------->"
         echo "Signing app bundle" 
         codesign -vvvv --options runtime --force --timestamp --entitlements "$APP_ENTITLEMENTS" --sign "$APP_CERT" "$IMAGE_DIR/$IMAGE"
+
+        echo ""
+        echo "<------------------------------------------------->"
+        echo "Verifying completed application bundle"
+        codesign --verify --deep --strict --verbose=4 "$IMAGE_DIR/$IMAGE"
 
         echo ""
         echo "<------------------------------------------------->"

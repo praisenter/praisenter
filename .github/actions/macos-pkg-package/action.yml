@@ -1,4 +1,5 @@
 name: "Package macOS pkg Installer"
+description: "Action to package and sign a macOS pkg installer for the application"
 inputs:
   app-image-dir:
     description: "The directory containing the application image"
@@ -29,6 +30,16 @@ runs:
         VERSION="${{ inputs.app-version }}"
         SUFFIX="${{ inputs.pkg-suffix }}"
 
+        HOST_ARCHITECTURES=""
+        if [ "$ARCH" == "x64" ] || [ "$ARCH" == "x86_64" ]; then
+            HOST_ARCHITECTURES="x86_64"
+        elif [ "$ARCH" == "aarch64" ] || [ "$ARCH" == "arm64" ]; then
+            HOST_ARCHITECTURES="arm64"
+        else
+            echo "Unsupported architecture: $ARCH"
+            exit 1
+        fi
+
         CONFIG_TEMPLATES="./packaging/macos64/app/config"
 
         TARGET_DIR="./target"
@@ -50,9 +61,10 @@ runs:
         VERSION_PLACEHOLDER="#VERSION#"
         echo "Replacing: '$VERSION_PLACEHOLDER' with version: '$VERSION'"
 
-        # update the .dist files with the latest version
-        echo "Update distribution.dlist with the latest version"
-        sed -i '' "s/$VERSION_PLACEHOLDER/$VERSION/g" "$CONFIG_DIR/distribution.dist"
+        # update the .dist files with the latest version and host architecture
+        ARCH_PLACEHOLDER="#HOST_ARCHITECTURES#"
+        echo "Update distribution.dlist with the latest version and host architecture"
+        sed -i '' -e "s/$VERSION_PLACEHOLDER/$VERSION/g" -e "s/$ARCH_PLACEHOLDER/$HOST_ARCHITECTURES/g" "$CONFIG_DIR/distribution.dist"
 
         echo ""
         echo "<------------------------------------------------->"
@@ -62,4 +74,4 @@ runs:
         echo ""
         echo "<------------------------------------------------->"
         echo "Run productbuild"
-        productbuild --resources "$CONFIG_DIR" --product "$CONFIG_DIR/product-def.plist" --distribution "$CONFIG_DIR/distribution.dist" --identifier org.praisenter --version "$VERSION" --sign "$INST_CERT" --timestamp --package-path "$PACKAGES_DIR" "$TARGET_DIR/Praisenter_${{ env.VERSION_NUMBER }}_$ARCH$SUFFIX.pkg"
+        productbuild --resources "$CONFIG_DIR" --product "$CONFIG_DIR/product-def.plist" --distribution "$CONFIG_DIR/distribution.dist" --identifier org.praisenter --version "$VERSION" --sign "$INST_CERT" --timestamp --package-path "$PACKAGES_DIR" "$TARGET_DIR/Praisenter_${VERSION}_${ARCH}${SUFFIX}.pkg"

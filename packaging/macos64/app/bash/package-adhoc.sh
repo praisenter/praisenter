@@ -26,6 +26,8 @@
 # 9. Staple the installer pkg
 ##################################################################
 
+set -euo pipefail
+
 APP_CERT="Developer ID Application: William Bittle (W9HCQKU68J)"
 INST_CERT="Developer ID Installer: William Bittle (W9HCQKU68J)"
 
@@ -59,13 +61,13 @@ cp -R "./$IMAGE" "$IMAGE_DIR/$IMAGE"
 echo "Copying config to work directory: $CONFIG_DIR"
 cp -R "$CONFIG_TEMPLATES" "$WORK_DIR"
 
-# copy the dylibs into the app dir
-echo "Copying binaries to /app directory"
-cp ../packaging/macos64/app/exec/libSecurityScopedBookmarkLibrary.dylib "$IMAGE_DIR/$IMAGE/Contents/app"
-cp ../packaging/macos64/app/exec/libndi.dylib "$IMAGE_DIR/$IMAGE/Contents/app"
-cp ../packaging/macos64/app/exec/libdevolay-natives.dylib "$IMAGE_DIR/$IMAGE/Contents/app"
-cp ../packaging/macos64/app/exec/ffmpeg "$IMAGE_DIR/$IMAGE/Contents/app"
-cp ../packaging/macos64/app/exec/ffprobe "$IMAGE_DIR/$IMAGE/Contents/app"
+# # copy the dylibs into the app dir
+# echo "Copying binaries to /app directory"
+# cp ../packaging/macos64/app/exec/libSecurityScopedBookmarkLibrary.dylib "$IMAGE_DIR/$IMAGE/Contents/app"
+# cp ../packaging/macos64/app/exec/libndi.dylib "$IMAGE_DIR/$IMAGE/Contents/app"
+# cp ../packaging/macos64/app/exec/libdevolay-natives.dylib "$IMAGE_DIR/$IMAGE/Contents/app"
+# cp ../packaging/macos64/app/exec/ffmpeg "$IMAGE_DIR/$IMAGE/Contents/app"
+# cp ../packaging/macos64/app/exec/ffprobe "$IMAGE_DIR/$IMAGE/Contents/app"
 
 # copy in the provisioning profile
 echo "Copying provisioning profile"
@@ -86,8 +88,11 @@ echo "Replacing: '$VERSION_PLACEHOLDER' with version: '$VERSION'"
 
 # update the Info.plist and .dist files with the latest version
 echo "Update Info.plist and distribution.dlist with the latest version"
+ARCH_PLACEHOLDER="#HOST_ARCHITECTURES#"
+# intentially hard coded for simplicity
+ARCH="x86_64"
 sed -i '' "s/$VERSION_PLACEHOLDER/$VERSION/g" "$IMAGE_DIR/$IMAGE/Contents/Info.plist"
-sed -i '' "s/$VERSION_PLACEHOLDER/$VERSION/g" "$CONFIG_DIR/distribution.dist"
+sed -i '' -e "s/$VERSION_PLACEHOLDER/$VERSION/g" -e "s/$ARCH_PLACEHOLDER/$ARCH/g" "$CONFIG_DIR/distribution.dist"
 
 echo ""
 echo "<------------------------------------------------->"
@@ -144,6 +149,11 @@ echo ""
 echo "<------------------------------------------------->"
 echo "Signing app bundle" 
 codesign -vvvv --options runtime --force --timestamp --entitlements "$APP_ENTITLEMENTS" --sign "$APP_CERT" "$IMAGE_DIR/$IMAGE"
+
+echo ""
+echo "<------------------------------------------------->"
+echo "Verifying completed application bundle"
+codesign --verify --deep --strict --verbose=4 "$IMAGE_DIR/$IMAGE"
 
 echo ""
 echo "<------------------------------------------------->"

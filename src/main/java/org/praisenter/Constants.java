@@ -153,5 +153,5 @@ public final class Constants {
 	public static final String FORMAT_PROPERTY_NAME = "@format";
 	
 	/** The version property name in praisenter formats */
-	public static final String VERSION_PROPERTY_NAME = "@version";	
+	public static final String VERSION_PROPERTY_NAME = "@version";
 }

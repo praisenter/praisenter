@@ -51,6 +51,12 @@ public final class RuntimeProperties {
 	
 	/** True if the JVM is a 32 bit JVM */
 	public static final boolean IS_32 = is32Bit();
+
+	/** CUSTOM VM ARG: The directory where FFmpeg native executables are stored */
+	public static final String FFMPEG_DIRECTORY = getFFmpegDirectory();
+
+	/** CUSTOM VM ARG: The directory where NDI native libraries are stored */
+	public static final String NDI_DIRECTORY = getNDIDirectory();
 	
 	/** 
 	 * The path to the user's home directory
@@ -302,6 +308,14 @@ public final class RuntimeProperties {
 		// MacOS when running in sandbox mode
 		// /Users/{username}/Library/Containers/org.praisenter/Data
 		return System.getProperty("user.dir");
+	}
+
+	private static final String getFFmpegDirectory() {
+		return System.getProperty("praisenter.ffmpeg.dir");
+	}
+
+	private static final String getNDIDirectory() {
+		return System.getProperty("praisenter.ndi.dir");
 	}
 	
 	// FEATURE (L-L) We could get better OS name using a command line:

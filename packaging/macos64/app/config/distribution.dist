@@ -9,7 +9,7 @@
     <pkg-ref id="org.praisenter"></pkg-ref>
   </choice>
   <pkg-ref id="org.praisenter" version="#VERSION#" onConclusion="none">Praisenter-app.pkg</pkg-ref>
-  <options customize="never" require-scripts="false" hostArchitectures="x86_64"></options>
+  <options customize="never" require-scripts="false" hostArchitectures="#HOST_ARCHITECTURES#"></options>
   <choices-outline>
     <line choice="default">
       <line choice="org.praisenter"></line>

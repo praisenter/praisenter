@@ -14,7 +14,9 @@
             "vmArgs": [
                 "--enable-native-access=ALL-UNNAMED",
                 "-XX:+ShowCodeDetailsInExceptionMessages",
-                "--limit-modules=java.base,java.management,java.net.http,java.sql,java.xml,java.desktop,java.naming,jdk.crypto.ec,jdk.xml.dom"
+                "--limit-modules=java.base,java.management,java.net.http,java.sql,java.xml,java.desktop,java.naming,jdk.crypto.ec,jdk.xml.dom,jdk.jsobject",
+                "-Dpraisenter.ffmpeg.dir=${workspaceFolder}/target/dependency/natives/ffmpeg/bin",
+                "-Dpraisenter.ndi.dir=${workspaceFolder}/target/dependency/natives/ndi/lib"
             ],
             "shortenCommandLine": "argfile"
         }

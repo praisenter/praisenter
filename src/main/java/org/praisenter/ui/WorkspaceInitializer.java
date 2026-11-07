@@ -11,10 +11,9 @@ import org.praisenter.data.SingleFileManager;
 import org.praisenter.data.workspace.WorkspaceManager;
 import org.praisenter.data.workspace.WorkspaceReference;
 import org.praisenter.data.workspace.Workspaces;
+import org.praisenter.macos.ssb.SecurityScopedBookmarks;
 import org.praisenter.utility.RuntimeProperties;
 import org.praisenter.utility.StringManipulator;
-
-import com.plexteq.ssb.nativeimpl.SecurityScopedBookmarks;
 
 final class WorkspaceInitializer {
 	private static final Logger LOGGER = LogManager.getLogger();
@@ -43,7 +42,7 @@ final class WorkspaceInitializer {
 			if (StringManipulator.isNullOrEmpty(token)) {
 				LOGGER.info("Creating security scoped bookmark for workspace: '" + path.toAbsolutePath() + "'");
 				try {
-					token = SecurityScopedBookmarks.createBookmarkImpl(path.toUri().toString());
+					token = SecurityScopedBookmarks.createBookmark(path.toUri().toString());
 					wr.setSecurityToken(token);
 					LOGGER.info("Security scoped bookmark created successfully for workspace: '" + path.toAbsolutePath() + "'");
 				} catch (Exception ex) {
@@ -56,7 +55,7 @@ final class WorkspaceInitializer {
 			} else {
 				try {
 	    			LOGGER.info("Acquiring security scoped bookmark for workspace '" + path.toAbsolutePath() + "'");
-	    			SecurityScopedBookmarks.startResourceAccessingImpl(token);
+	    			SecurityScopedBookmarks.startResourceAccessing(token);
 	    			LOGGER.info("Security scoped bookmark for workspace '" + path.toAbsolutePath() + "' acquired successfully");
 	    		} catch (Exception ex) {
 	    			LOGGER.error("Failed to acquire the security scoped bookmark for workspace: '" + path.toAbsolutePath() + "'", ex);

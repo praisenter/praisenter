@@ -24,6 +24,8 @@
 --java-options "--add-opens=javafx.controls/javafx.scene.control.skin=ALL-UNNAMED"
 --java-options "--add-opens=javafx.graphics/javafx.scene=ALL-UNNAMED"
 --java-options "--enable-native-access=ALL-UNNAMED,javafx.graphics,javafx.media,javafx.web"
+--java-options "-Dpraisenter.ffmpeg.dir=$APPDIR/natives/ffmpeg/bin"
+--java-options "-Dpraisenter.ndi.dir=$APPDIR/natives/ndi/lib"
 --mac-package-identifier "org.praisenter"
 --mac-package-name ${app.vendor}
 --mac-app-category utilities

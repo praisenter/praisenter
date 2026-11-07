@@ -249,11 +249,21 @@
 		    <artifactId>commons-compress</artifactId>
 		    <version>1.28.0</version>
 		</dependency>
-    	<dependency>
+    	<!-- <dependency>
     		<groupId>me.walkerknapp</groupId>
     		<artifactId>devolay</artifactId>
     		<version>2.1.1</version>
     		<classifier>integrated</classifier> 
+		</dependency> -->
+        <dependency>
+    		<groupId>org.praisenter</groupId>
+    		<artifactId>ndi-bridge</artifactId>
+    		<version>0.1.0</version>
+		</dependency>
+        <dependency>
+    		<groupId>org.praisenter</groupId>
+    		<artifactId>macos-ssb-bridge</artifactId>
+    		<version>0.1.0</version>
 		</dependency>
 	</dependencies>
 
@@ -269,20 +279,10 @@
                 </includes>
             </resource>
 
-            <!-- Add the default resource path back in - by overriding above it disables the default -->
+            <!-- Add the default resource path -->
             <resource>
                 <directory>${project.basedir}/src/main/resources</directory>
-                <includes>
-                	<include>META-INF/**/**</include>
-                	<include>org/praisenter/config/*</include>
-                	<include>org/praisenter/data/*</include>
-                	<include>org/praisenter/images/*</include>
-                	<include>org/praisenter/logo/*</include>
-                	<include>org/praisenter/styles/*</include>
-                	<include>org/praisenter/translations/*</include>
-                	<include>org/praisenter/manual/**/*</include>
-                	<include>org/praisenter/data/media/tools/${platform}/*</include>
-                </includes>
+                <filtering>false</filtering>
             </resource>
         </resources>
 	
@@ -321,6 +321,33 @@
                             <!-- The JavaFX libraries are bundled into the custom JVM, so we don't want to duplicate
                             them in the bundled app and installer. This command skips all of the JavaFX by groupId. -->
                             <excludeGroupIds>org.openjfx</excludeGroupIds>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>unpack-natives</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>unpack</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>org.praisenter</groupId>
+                                    <artifactId>ffmpeg</artifactId>
+                                    <version>8.1-1</version>
+                                    <type>zip</type>
+                                    <classifier>${ffmpeg.platform}</classifier>
+                                    <outputDirectory>${project.build.directory}/dependency/natives/ffmpeg</outputDirectory>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>org.praisenter</groupId>
+                                    <artifactId>ndi</artifactId>
+                                    <version>6.3.2.0-1</version>
+                                    <type>zip</type>
+                                    <classifier>${ndi.platform}</classifier>
+                                    <outputDirectory>${project.build.directory}/dependency/natives/ndi</outputDirectory>
+                                </artifactItem>
+                            </artifactItems>
                         </configuration>
                     </execution>
                 </executions>
@@ -460,8 +487,29 @@
             </activation>
             <properties>
                 <platform>macos64</platform>
-                <!-- mac-aarch64 for M1 -->
                 <jfx.platform>mac</jfx.platform>
+                <ffmpeg.platform>macos-x86_64</ffmpeg.platform>
+                <ndi.platform>macos-x86_64</ndi.platform>
+                <package>app</package>
+                <!-- This property is used to specify the modules included in the (custom) JVM image. -->
+                <!-- for MacOS javafx.web has an issue with App Store deployment: https://bugs.openjdk.org/browse/JDK-8289521 -->
+		        <jvm.modules>java.base,java.management,java.net.http,java.sql,java.xml,java.desktop,javafx.base,javafx.controls,javafx.graphics,javafx.media,javafx.swing,java.naming,jdk.crypto.ec,jdk.xml.dom</jvm.modules>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>mac-aarch64-active</id>
+            <activation>
+                <os>
+                    <family>mac</family>
+                    <arch>aarch64</arch>
+                </os>
+            </activation>
+            <properties>
+                <platform>macos64</platform>
+                <jfx.platform>mac-aarch64</jfx.platform>
+                <ffmpeg.platform>macos-aarch64</ffmpeg.platform>
+                <ndi.platform>macos-aarch64</ndi.platform>
                 <package>app</package>
                 <!-- This property is used to specify the modules included in the (custom) JVM image. -->
                 <!-- for MacOS javafx.web has an issue with App Store deployment: https://bugs.openjdk.org/browse/JDK-8289521 -->
@@ -481,6 +529,8 @@
             <properties>
                 <platform>linux64</platform>
                 <jfx.platform>linux</jfx.platform>
+                <ffmpeg.platform>linux-x86_64</ffmpeg.platform>
+                <ndi.platform>linux-x86_64</ndi.platform>
                 <package>deb</package>
                 <!-- This property is used to specify the modules included in the (custom) JVM image. -->
 		        <jvm.modules>java.base,java.management,java.net.http,java.sql,java.xml,java.desktop,javafx.base,javafx.controls,javafx.graphics,javafx.media,javafx.swing,javafx.web,java.naming,jdk.crypto.ec,jdk.xml.dom</jvm.modules>
@@ -498,6 +548,8 @@
             <properties>
                 <platform>windows64</platform>
                 <jfx.platform>win</jfx.platform>
+                <ffmpeg.platform>windows-x86_64</ffmpeg.platform>
+                <ndi.platform>windows-x86_64</ndi.platform>
                 <package>msi</package>
         		<!-- This property is used to specify the modules included in the (custom) JVM image. -->
 		        <jvm.modules>java.base,java.management,java.net.http,java.sql,java.xml,java.desktop,javafx.base,javafx.controls,javafx.graphics,javafx.media,javafx.swing,javafx.web,java.naming,jdk.crypto.ec,jdk.xml.dom</jvm.modules>

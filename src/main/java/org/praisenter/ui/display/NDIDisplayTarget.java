@@ -17,6 +17,9 @@ import org.praisenter.data.slide.graphics.SlidePaint;
 import org.praisenter.data.slide.media.MediaComponent;
 import org.praisenter.data.slide.media.MediaObject;
 import org.praisenter.data.workspace.DisplayConfiguration;
+import org.praisenter.ndibridge.NdiFrameFourCCType;
+import org.praisenter.ndibridge.NdiSender;
+import org.praisenter.ndibridge.NdiVideoFrame;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.slide.SlideMode;
 import org.praisenter.ui.slide.SlideView;
@@ -42,9 +45,6 @@ import javafx.scene.shape.StrokeLineJoin;
 import javafx.scene.shape.StrokeType;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import me.walkerknapp.devolay.DevolayFrameFourCCType;
-import me.walkerknapp.devolay.DevolaySender;
-import me.walkerknapp.devolay.DevolayVideoFrame;
 
 public final class NDIDisplayTarget implements DisplayTarget {
 	private static final Logger LOGGER = LogManager.getLogger();
@@ -57,7 +57,7 @@ public final class NDIDisplayTarget implements DisplayTarget {
 	private final SlideView notificationView;
 	private final Stage stage;
 	
-	private final DevolaySender ndiTarget;
+	private final NdiSender ndiTarget;
 	private final FramesPerSecondTimer frameProducer;
 	private final PriorityBlockingQueue<NDIVideoFrame> frameQueue;
 	private final Thread frameConsumer;
@@ -79,7 +79,7 @@ public final class NDIDisplayTarget implements DisplayTarget {
     // Use two frame buffers because one will typically be in flight (being used by NDI send) while the other is being filled.
     
     private final int NDIFPS;
-    private final DevolayVideoFrame videoFrame;
+    private final NdiVideoFrame videoFrame;
     private final byte[] convertBuffer;
     private final ByteBuffer[] frameBuffers;
     
@@ -132,9 +132,9 @@ public final class NDIDisplayTarget implements DisplayTarget {
 		this.stage.setScene(scene);
 		this.stage.show();
 		
-		this.videoFrame = new DevolayVideoFrame();
+		this.videoFrame = new NdiVideoFrame();
 		this.videoFrame.setResolution(this.width, this.height);
-		this.videoFrame.setFourCCType(DevolayFrameFourCCType.BGRA);
+		this.videoFrame.setFourCCType(NdiFrameFourCCType.BGRA);
 		this.videoFrame.setLineStride(this.width * this.pixelDepth);
 		this.videoFrame.setFrameRate(this.NDIFPS, 1);
 	    
@@ -177,7 +177,7 @@ public final class NDIDisplayTarget implements DisplayTarget {
 		
         final String ndiName = configuration.getName();
         
-        this.ndiTarget = new DevolaySender(ndiName);
+        this.ndiTarget = new NdiSender(ndiName);
 		this.frameQueue = new PriorityBlockingQueue<>();
 		
 		this.activeListener = (obs, ov, nv) -> {
@@ -354,16 +354,19 @@ public final class NDIDisplayTarget implements DisplayTarget {
 	private final void sendClearFrame() {
 		if (this.ndiTarget != null) {
 			LOGGER.debug("Sending clear frame to NDI");
-			final DevolayVideoFrame videoFrame = new DevolayVideoFrame();
-	        videoFrame.setResolution(this.width, this.height);
-	        videoFrame.setFourCCType(DevolayFrameFourCCType.BGRA);
-	        videoFrame.setLineStride(this.width * this.pixelDepth);
-	        videoFrame.setFrameRate(this.configuration.getFramesPerSecond(), 1);
-	        
-	        ByteBuffer buffer = frameBuffers[bufferIndex];
-	        writeTransparentToBuffer(buffer);
-	        videoFrame.setData(buffer);
-			this.ndiTarget.sendVideoFrame(videoFrame);
+			try (final NdiVideoFrame videoFrame = new NdiVideoFrame()) {
+		        videoFrame.setResolution(this.width, this.height);
+		        videoFrame.setFourCCType(NdiFrameFourCCType.BGRA);
+		        videoFrame.setLineStride(this.width * this.pixelDepth);
+		        videoFrame.setFrameRate(this.configuration.getFramesPerSecond(), 1);
+		        
+		        ByteBuffer buffer = frameBuffers[bufferIndex];
+		        writeTransparentToBuffer(buffer);
+		        videoFrame.setData(buffer);
+				this.ndiTarget.sendVideoFrame(videoFrame);
+			} catch (Exception e) {
+				LOGGER.error("Error sending clear frame to NDI", e);
+			}
 			
 			this.bufferIndex++;
             if (this.bufferIndex > 1) {
@@ -410,6 +413,7 @@ public final class NDIDisplayTarget implements DisplayTarget {
 			// release the NDI natives
 			LOGGER.debug("Releasing NDI resources");
 			this.ndiTarget.close();
+			this.videoFrame.close();
 			
 			LOGGER.debug("Clearing NDI frame queue");
 			this.frameQueue.clear();

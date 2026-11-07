@@ -28,6 +28,8 @@ import org.praisenter.data.workspace.WorkspaceConfiguration;
 import org.praisenter.data.workspace.WorkspaceManager;
 import org.praisenter.data.workspace.WorkspaceReference;
 import org.praisenter.data.workspace.Workspaces;
+import org.praisenter.macos.ssb.SecurityScopedBookmarks;
+import org.praisenter.ndibridge.NdiBridge;
 import org.praisenter.ui.controls.Dialogs;
 import org.praisenter.ui.controls.WindowHelper;
 import org.praisenter.ui.themes.StyleSheets;
@@ -37,8 +39,6 @@ import org.praisenter.ui.upgrade.InstallUpgradeHandler;
 import org.praisenter.ui.upgrade.UpgradeChecker;
 import org.praisenter.utility.RuntimeProperties;
 import org.praisenter.utility.StringManipulator;
-
-import com.plexteq.ssb.nativeimpl.SecurityScopedBookmarks;
 
 import atlantafx.base.theme.PrimerDark;
 import javafx.animation.Animation;
@@ -60,7 +60,6 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.util.Duration;
-import me.walkerknapp.devolay.Devolay;
 
 public final class LifecycleHandler {
 	/** The array of Java FX features that Praisenter uses */
@@ -140,6 +139,9 @@ public final class LifecycleHandler {
     	LOGGER.info("JVM Args:  " + RuntimeProperties.JVM_ARGUMENTS);
     	LOGGER.info("Java Home: " + RuntimeProperties.JAVA_HOME);
     	LOGGER.info("User Home: " + RuntimeProperties.USER_HOME);
+		LOGGER.info("User Home: " + RuntimeProperties.USER_HOME);
+		LOGGER.info("FFmpeg Directory: " + RuntimeProperties.FFMPEG_DIRECTORY);
+		LOGGER.info("NDI Directory: " + RuntimeProperties.NDI_DIRECTORY);
     	LOGGER.info("Locale:    " + Locale.getDefault().toLanguageTag());
     	
     	// log supported features
@@ -159,40 +161,36 @@ public final class LifecycleHandler {
     	LOGGER.info("Verifying required Java FX features.");
     	for (ConditionalFeature feature : REQUIRED_JAVAFX_FEATURES) {
     		if (!Platform.isSupported(feature)) {
-    			// not supported, attempt to show the user an error message
-    			Alert a = Dialogs.exception(
-    					stage,
-    					Translations.get("init.feature.missing.title"), 
-    					Translations.get("init.feature.missing.header"), 
-    					feature.name());
-    			a.showAndWait();
-    			LOGGER.info("User closed exception dialog. Exiting application.");
-    			Platform.exit();
+				this.showErrorAlertThenExit(
+					LOGGER,
+					stage,
+					Translations.get("init.feature.missing.title"), 
+					Translations.get("init.feature.missing.header"), 
+					feature.name());
+				return;
     		}
     	}
     	LOGGER.info("Required features present.");
-    	
-    	// if MacOS, load the dylib
-    	// NOTE: This requires the .dylib to be present in the packaged application
-    	if (RuntimeProperties.IS_MAC_OS) {
-    		String libName = "SecurityScopedBookmarkLibrary";
-    		LOGGER.info("Loading library: '" + libName + "'");
-    		try {
-    			if (RuntimeProperties.IS_MAC_OS_SANDBOX) {
-    				// loading from the java.library.path locations by name
-    				LOGGER.info("Loading library via name: '" + libName + "'");
-    	    		System.loadLibrary(libName);
-    			} else {
-    				// otherwise load from packaging directory (eclipse)
-    				Path path = Paths.get(RuntimeProperties.USER_DIR).resolve("packaging").resolve("macos64").resolve("app").resolve("exec").resolve(System.mapLibraryName(libName));
-    				LOGGER.info("Loading library from path: '" + path.toAbsolutePath().toString() + "'");
-    				System.load(path.toString());
-    			}
-    			LOGGER.info("The library '" + libName + "' was loaded successfully.");
-    		} catch (UnsatisfiedLinkError ex) {
-    			LOGGER.error("Failed to load dynamic library: '" + libName + "'", ex);
-    		}
-    	}
+
+		// verify custom VM args
+		if (RuntimeProperties.NDI_DIRECTORY == null || RuntimeProperties.NDI_DIRECTORY.isBlank()) {
+			this.showErrorAlertThenExit(
+				LOGGER,
+				stage,
+				Translations.get("init.vmarg.missing.title"), 
+				Translations.get("init.vmarg.missing.header"), 
+				"Custom VM argument '-Dpraisenter.ndi.dir' was not specified.");
+			return;
+		}
+		if (RuntimeProperties.FFMPEG_DIRECTORY == null || RuntimeProperties.FFMPEG_DIRECTORY.isBlank()) {
+			this.showErrorAlertThenExit(
+				LOGGER,
+				stage,
+				Translations.get("init.vmarg.missing.title"), 
+				Translations.get("init.vmarg.missing.header"), 
+				"Custom VM argument '-Dpraisenter.ffmpeg.dir' was not specified.");
+			return;
+		}
     	
 		// load NDI libraries
 		// as far as testing go, it appears that I can do this many times without issue
@@ -201,41 +199,40 @@ public final class LifecycleHandler {
 		LOGGER.debug("Attempting to load NDI/Devolay natives");
 		final Reference<Boolean> isNDIReady = new Reference<Boolean>(false);
 		try {
-			int result;
+			int result = 1;
+			Path ndiDirectory = Paths.get(RuntimeProperties.NDI_DIRECTORY);
+			Path ndiPath = null;
 			if (RuntimeProperties.IS_MAC_OS) {
-    			Path basePath;
-    			if (RuntimeProperties.IS_MAC_OS_SANDBOX) {
-					// for running in macos sandbox mode
-    				basePath = Paths.get(RuntimeProperties.JAVA_HOME).getParent().getParent().getParent().resolve("app");
-    			} else {
-					// for running in eclipse
-    				basePath = Paths.get(RuntimeProperties.USER_DIR).resolve("packaging").resolve("macos64").resolve("app").resolve("exec");
-    			}
-				// TODO we probably need another condition for DMG deployment since I don't think it would work the same way....
-    			// we have to load them manually from a different location
-				Path dpath = basePath.resolve("libdevolay-natives.dylib");
-				Path ndipath = basePath.resolve("libndi.dylib");
-				LOGGER.info("Loading devolay library from: '" + dpath.toAbsolutePath().toString() + "'");
-				LOGGER.info("Loading NDI library from: '" + ndipath.toAbsolutePath().toString() + "'");
-				result = Devolay.loadLibraries(dpath, ndipath);
+				ndiPath = ndiDirectory.resolve("libndi.dylib");
+    		} else if (RuntimeProperties.IS_WINDOWS_OS) {
+				ndiPath = ndiDirectory.resolve("Processing.NDI.Lib.x64.dll");
+    		} else if (RuntimeProperties.IS_LINUX_OS) {
+				ndiPath = ndiDirectory.resolve("libndi.so");
     		} else {
-    			LOGGER.info("Loading devolay/NDI libraries from extracted locations using integrated package");
-    			result = Devolay.loadLibraries();
-    		}
-			
+				LOGGER.error("Unsupported operating system for NDI/Devolay libraries");
+			}
+
+			if (ndiPath != null) {
+				LOGGER.info("Loading NDI library from: '" + ndiPath.toAbsolutePath().toString() + "'");
+				result = NdiBridge.loadLibraries(ndiPath.toAbsolutePath());
+			}
+
     		if (result == 0) {
             	// all is well
             	LOGGER.info("Devolay/NDI libraries loaded successfully");
             	isNDIReady.set(true);
             } else {
             	LOGGER.error("Devolay/NDI libraries failed to load with result: {}", result);
+				if (result < 0) {
+					LOGGER.error(NdiBridge.getLastLoadError());
+				}
             }
 		} catch (IllegalStateException ex) {
-			LOGGER.error("Failed to load Devolay / NDI native libraries: ", ex);
+			LOGGER.error("Failed to load NDI native libraries: ", ex);
 		} catch (UnsatisfiedLinkError ex) {
-			LOGGER.error("Failed to load Devolay / NDI native libraries: ", ex);
+			LOGGER.error("Failed to load NDI native libraries: ", ex);
 		} catch (Exception ex) {
-			LOGGER.error("Failed to load Devolay / NDI native libraries: ", ex);
+			LOGGER.error("Failed to load NDI native libraries: ", ex);
 		}
     	
     	// title
@@ -573,6 +570,18 @@ public final class LifecycleHandler {
 		});
 	}
 
+	private void showErrorAlertThenExit(Logger LOGGER, Window owner, String title, String header, String message) {
+		LOGGER.error(message);
+		Alert a = Dialogs.exception(
+				owner,
+				title, 
+				header, 
+				message);
+		a.showAndWait();
+		LOGGER.info("User closed exception dialog. Exiting application.");
+		Platform.exit();
+	}
+
     private boolean isInScreenBounds(double x, double y, double w, double h) {
     	Rectangle2D bounds = new Rectangle2D(x, y, w, h);
         for (Screen screen : Screen.getScreens()) {
@@ -697,7 +706,7 @@ public final class LifecycleHandler {
 			if (RuntimeProperties.IS_MAC_OS && !StringManipulator.isNullOrEmpty(securityToken)) {
 				try {
 					LOGGER.info("Releasing security scoped bookmark for workspace '" + path + "'");
-					SecurityScopedBookmarks.stopResourceAccessingImpl(securityToken);
+					SecurityScopedBookmarks.stopResourceAccessing(securityToken);
 					LOGGER.info("Security scoped bookmark for workspace '" + path + "' released successfully");
 				} catch (Exception ex) {
 					LOGGER.error("Failed to release the security scoped bookmark for workspace: '" + path + "'", ex);

@@ -126,8 +126,6 @@ Bibles and songs lyrics support bulk editing for easy copy/paste from other sour
    mvn clean install
    ```
 
-   To run the application from Maven, use `mvn javafx:run`. The repository also includes a **Praisenter** launch configuration; select it in Run and Debug to start debugging.
-
 ### Maven
 ```shell
 mvn clean install
@@ -161,30 +159,6 @@ snap disconnect praisenter:avahi-control
 # to upload a new snap to the snapstore
 snapcraft login
 snapcraft upload ./praisenter_3.1.3_amd64.snap
-```
-
-### FFmpeg Static Builds
-https://github.com/BtbN/FFmpeg-Builds
-
-### Git LFS
-The FFmpeg binaries are too large for GitHub to track so they are stored in Git LFS.
-
-To update the files, ensure that when you clone the repo that you initialize Git LFS:
-```shell
-git lfs install
-```
-
-To install Git LFS:
-https://docs.github.com/en/repositories/working-with-files/managing-large-files/installing-git-large-file-storage
-
-Current Git LFS tracked objects:
-```shell
-git lfs track src/main/resources/org/praisenter/data/media/tools/linux64/ffmpeg
-git lfs track src/main/resources/org/praisenter/data/media/tools/linux64/ffprobe
-git lfs track src/main/resources/org/praisenter/data/media/tools/windows64/ffmpeg.exe
-git lfs track src/main/resources/org/praisenter/data/media/tools/windows64/ffprobe.exe
-git lfs track packaging/macos64/app/exec/ffmpeg
-git lfs track packaging/macos64/app/exec/ffprobe
 ```
 
 ### macOS deployment
