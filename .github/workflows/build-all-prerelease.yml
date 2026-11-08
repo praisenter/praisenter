@@ -269,6 +269,10 @@ jobs:
           echo "Notarize package"
           xcrun notarytool submit "$PACKAGE" --apple-id "$APPLE_ID" --password "$APPLE_PASSWORD" --team-id "$APPLE_TEAM_ID" --output-format "json" --wait
 
+          echo "Work around stapling issue (actions/runner-images#14924)"
+          echo "block return out quick proto udp from any to any port 443" | sudo pfctl -f -
+          sudo pfctl -E
+
           echo ""
           echo "<------------------------------------------------->"
           echo "Staple the package" 
@@ -308,6 +312,10 @@ jobs:
 
           echo "Notarize the DMG"
           xcrun notarytool submit "$PACKAGE" --apple-id "$APPLE_ID" --password "$APPLE_PASSWORD" --team-id "$APPLE_TEAM_ID" --output-format "json" --wait
+
+          echo "Work around stapling issue (actions/runner-images#14924)"
+          echo "block return out quick proto udp from any to any port 443" | sudo pfctl -f -
+          sudo pfctl -E
 
           echo ""
           echo "<------------------------------------------------->"
