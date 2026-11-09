@@ -13,6 +13,9 @@ jobs:
     strategy:
       matrix:
         include:
+          - os: ubuntu-22.04
+            branch: master
+            arch: x64
           - os: ubuntu-latest
             branch: master
             arch: x64
@@ -121,7 +124,7 @@ jobs:
 
       # Copy deb to snap folder (UBUNTU)
       - name: Copy deb to snap folder
-        if: runner.os == 'Linux'
+        if: matrix.os == 'ubuntu-latest'
         shell: pwsh
         run: |
           $source = "./target/praisenter_${{ env.VERSION_NUMBER }}_amd64.deb"
@@ -131,7 +134,7 @@ jobs:
 
       # Update metainfo.xml (UBUNTU)
       - name: Set metainfo.xml version number
-        if: runner.os == 'Linux'
+        if: matrix.os == 'ubuntu-latest'
         shell: pwsh
         run: |
           $filePath = "./packaging/linux64/snap/praisenter.metainfo.xml"
@@ -145,7 +148,7 @@ jobs:
       # - name: Install Snapcraft
       #   uses: samuelmeuli/action-snapcraft@v2
       - name: Build snap file
-        if: runner.os == 'Linux'
+        if: matrix.os == 'ubuntu-latest'
         id: snapcraft
         uses: snapcore/action-build@v1
         with:
@@ -153,7 +156,7 @@ jobs:
 
       # Copy snap to target folder (UBUNTU)
       - name: Copy snap to target folder
-        if: runner.os == 'Linux'
+        if: matrix.os == 'ubuntu-latest'
         shell: pwsh
         run: |
           $source = "${{ steps.snapcraft.outputs.snap }}"
@@ -327,8 +330,19 @@ jobs:
           echo "Verify the DMG is install ready"
           spctl --assess --type install -v "$PACKAGE"
 
-      # Publish the artifacts
+      # Only publish the Debian package built on the oldest supported Ubuntu.
+      - name: Publish Debian artifact
+        if: matrix.os == 'ubuntu-22.04'
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ matrix.os }}
+          retention-days: 1
+          if-no-files-found: error
+          path: ./target/*.deb
+
+      # The ubuntu-latest Debian package is only an input to the Snap build.
       - name: Publish artifacts
+        if: matrix.os != 'ubuntu-22.04'
         uses: actions/upload-artifact@v4
         with:
           name: dist-${{ matrix.os }}
@@ -336,7 +350,6 @@ jobs:
           path: |
             ./target/*.msi
             ./target/*.msixupload
-            ./target/*.deb
             ./target/*.snap
             ./target/*.pkg
             ./target/*.dmg
@@ -389,7 +402,7 @@ jobs:
           files: | 
             ./dist-windows-latest/*.msi
             ./dist-windows-latest/*.msixupload
-            ./dist-ubuntu-latest/*.deb
+            ./dist-ubuntu-22.04/*.deb
             ./dist-ubuntu-latest/*.snap
             ./dist-macos-15-intel/*.pkg
             ./dist-macos-15-intel/*.dmg

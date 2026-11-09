@@ -14,7 +14,7 @@ A free and open source presentation software package for Churches, providing dis
 ## Requirements:
 * Windows 10 x64 22H2 or higher (most testing occurs on Windows 11)
 * Ubuntu 22.04 x64 or higher
-* Mac OS 10.15 to 27 (when Rosetta support is ended)
+* Mac OS 13.0 to 27 (when Rosetta support is ended)
 * Plenty of RAM (4 or more)
 * A decent/recent multicore CPU
 * At least 2 video outputs
@@ -141,6 +141,8 @@ https://github.com/wixtoolset/wix/releases
 
 
 ### Ubuntu Snap
+The [release](.github/workflows/build-all.yml) and [prerelease](.github/workflows/build-all-prerelease.yml) workflows publish the `.deb` built on `ubuntu-22.04`. A separate `ubuntu-latest` job builds the `.snap`, using its own `.deb` as an intermediate input only; that job does not publish a `.deb`.
+
 ```shell
 # to build the snap, navigate to the /snapcraft folder, copy the praisenter.deb there, then run
 snapcraft pack
