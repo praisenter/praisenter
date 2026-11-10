@@ -42,7 +42,7 @@ final class WorkspaceInitializer {
 			if (StringManipulator.isNullOrEmpty(token)) {
 				LOGGER.info("Creating security scoped bookmark for workspace: '" + path.toAbsolutePath() + "'");
 				try {
-					token = SecurityScopedBookmarks.createBookmark(path.toUri().toString());
+					token = SecurityScopedBookmarks.createBookmark(path.toAbsolutePath().toString());
 					wr.setSecurityToken(token);
 					LOGGER.info("Security scoped bookmark created successfully for workspace: '" + path.toAbsolutePath() + "'");
 				} catch (Exception ex) {
