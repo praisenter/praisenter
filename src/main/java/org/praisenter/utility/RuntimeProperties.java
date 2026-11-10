@@ -78,8 +78,21 @@ public final class RuntimeProperties {
 
 	/**
 	 * Returns the path to the application home directory
+	 * Windows:
+	 * user.home
+	 * Linux:
+	 * user.home or SNAP_USER_COMMON if running as a Snap package
+	 * MacOS:
+	 * /Users/{username}/Library/Containers/org.praisenter/Data
 	 */
 	public static final String APP_HOME = getApplicationHome();
+
+	/**
+	 * The path to the Linux Snap home directory if running as a Snap package,
+	 * or null if not running as a Snap package.
+	 * This is pulled from the environment variable SNAP_USER_COMMON
+	 */
+	public static final String SNAP_HOME = getLinuxSnapHome();
 	
 	/** The path to where the JVM was started from */
 	public static final String JAVA_HOME = getJavaHomeDirectory();

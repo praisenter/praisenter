@@ -35,6 +35,7 @@ A free and open source presentation software package for Churches, providing dis
 * Support for export/import of content (build at home, export, import at church)
 * Support for adding slides to a service queue (no auto-play yet)
 * Support for bulk editing Bible verses/song lyrics
+* NDI (video only) output
 * And more!
 
 ## Screenshots:
@@ -86,16 +87,7 @@ Bibles and songs lyrics support bulk editing for easy copy/paste from other sour
 ## Building:
 
 ### General Setup
-1. Install [Git](https://git-scm.com/downloads) and [Git LFS](https://git-lfs.com/), then clone the repository with its LFS files:
-
-   ```shell
-   git lfs install
-   git clone https://github.com/wnbittle/praisenter.git
-   cd praisenter
-   git lfs pull
-   ```
-
-2. Install a **JDK 25** for your operating system and CPU architecture. The project and CI use **Azul Zulu 25 with JavaFX** (`jdk+fx`); for example, the Windows x64 build uses the Zulu FX JDK 25.0.2. Download the JDK (not a JRE) from [Azul Zulu Downloads](https://www.azul.com/downloads/?package=jdk-fx#zulu) and select Java 25, the JDK FX package, and your platform/architecture. JavaFX dependencies are also declared in `pom.xml` and Maven will resolve them during the build.
+Install a **JDK 25 or higher** for your operating system and CPU architecture. The project and CI use **Azul Zulu 25 with JavaFX** (`jdk+fx`); for example, the Windows x64 build uses the Zulu FX JDK 25.0.2. Download the JDK (not a JRE) from [Azul Zulu Downloads](https://www.azul.com/downloads/?package=jdk-fx#zulu) and select Java 25, the JDK FX package, and your platform/architecture. JavaFX dependencies are also declared in `pom.xml` and Maven will resolve them during the build.
 
 ### VS Code Setup
 
@@ -131,7 +123,7 @@ Bibles and songs lyrics support bulk editing for easy copy/paste from other sour
 mvn clean install
 ```
 
-### Microsoft Store
+### Windows
 https://partner.microsoft.com/en-us/dashboard/products
 
 On Windows, the full Maven build also creates an installer using `jpackage`. Install the [.NET SDK](https://dotnet.microsoft.com/download) and [WiX Toolset 6.x](https://github.com/wixtoolset/wix/releases), including the WiX Util and UI extensions, and ensure the `wix` command is on `PATH`. WiX is not needed for Java editing or running the application.
@@ -140,14 +132,16 @@ Install WiX Toolset 6.x:
 https://github.com/wixtoolset/wix/releases
 
 
-### Ubuntu Snap
-The [release](.github/workflows/build-all.yml) and [prerelease](.github/workflows/build-all-prerelease.yml) workflows publish the `.deb` built on `ubuntu-22.04`. A separate `ubuntu-latest` job builds the `.snap`, using its own `.deb` as an intermediate input only; that job does not publish a `.deb`.
+### Ubuntu
+The project produces two artifacts for Ubuntu: A Debian package (.deb) and a Snapcraft Snap (.snap).  The `.snap` is the preferred installation method since it's built using `core22` and supports multiple versions of Ubuntu.  The `.deb` is an alternative installation method, but only supports the version of Ubuntu it was build on - in this case whatever the GitHub runner `ubuntu-latest` is on.
 
 ```shell
 # to build the snap, navigate to the /snapcraft folder, copy the praisenter.deb there, then run
 snapcraft pack
 # to install a locally built snap
 sudo snap install --devmode ./praisenter.snap
+# to install the github produced snap in sandbox mode
+sudo snap install --dangerous ./praisenter.snap
 # to uninstall a snap
 sudo snap remove praisenter
 
@@ -161,6 +155,24 @@ snap disconnect praisenter:avahi-control
 # to upload a new snap to the snapstore
 snapcraft login
 snapcraft upload ./praisenter_3.1.3_amd64.snap
+```
+
+To test NDI on Ubuntu you need to:
+```shell
+# Install OBS Studio
+sudo snap install obs-studio
+# Install NDI runtime for obs studio
+sudo snap install ndi-runtime-obs-studio
+# Install DistroAV for obs studio
+sudo snap install distroav-obs-studio
+
+# connect required plugs
+sudo snap connect obs-studio:obs-plugins ndi-runtime-obs-studio:obs-plugins
+sudo snap connect obs-studio:obs-plugins distroav-obs-studio:obs-plugins
+sudo snap connect obs-studio:avahi-control
+
+# if using the .snap version of praisenter
+sudo snap connect praisenter:avahi-control
 ```
 
 ### macOS deployment
