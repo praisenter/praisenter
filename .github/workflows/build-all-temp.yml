@@ -1,0 +1,375 @@
+name: Build All Pre-Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      pre-release:
+        type: boolean
+        required: true
+        default: true
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            branch: ${{ github.ref }}
+            arch: x64
+          - os: windows-latest
+            branch: ${{ github.ref }}
+            arch: x64
+          - os: macos-15-intel
+            branch: ${{ github.ref }}
+            arch: x64
+          - os: macos-latest
+            branch: ${{ github.ref }}
+            arch: arm64
+    runs-on: ${{ matrix.os }}
+    steps:
+      # Get latest from the branch
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ matrix.branch }}
+
+      # This pulls the version number from the release-version.txt file
+      - name: Read version
+        id: readversion
+        shell: pwsh
+        run: |
+          $content = Get-Content next-version.txt
+          Write-Host "VERSION_NUMBER: $content"
+          echo "VERSION_NUMBER=$content" >> $Env:GITHUB_ENV
+          
+      # Setup Java w/ JavaFX
+      - name: Set up JDK 25
+        uses: actions/setup-java@v5
+        with:
+          java-version: 25
+          distribution: 'zulu'
+          java-package: jdk+fx
+          cache: 'maven'
+      
+      - name: Build Windows
+        if: runner.os == 'Windows'
+        uses: ./.github/actions/windows-build
+        with:
+          wix-version: 6.0.2
+          architecture: ${{ matrix.arch }}
+          app-version: ${{ env.VERSION_NUMBER }}
+          msix-identity-name: ${{ secrets.MSIX_IDENTITY_NAME }}
+          msix-identity-publisher: ${{ secrets.MSIX_IDENTITY_PUBLISHER }}
+
+      - name: Build Ubuntu
+        if: runner.os == 'Linux'
+        uses: ./.github/actions/ubuntu-build
+        with:
+          architecture: ${{ matrix.arch }}
+          app-version: ${{ env.VERSION_NUMBER }}
+
+      - name: Build MacOS
+        if: runner.os == 'macOS'
+        uses: ./.github/actions/macos-app-build
+        with:
+          architecture: ${{ matrix.arch }}
+          app-version: ${{ env.VERSION_NUMBER }}
+
+      # Publish all build artifacts
+      - name: Publish artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ matrix.os }}
+          retention-days: 1
+          path: |
+            ./target/*.msi
+            ./target/*.msixupload
+            ./target/*.snap
+            ./target/*.deb
+
+      # Publish all build artifacts
+      - name: Publish artifacts
+        uses: actions/upload-artifact@v4
+        if: runner.os == 'macOS'
+        with:
+          name: macos-app-${{ matrix.arch }}
+          retention-days: 1
+          path: |
+            ./target/*.tar.gz
+
+  macos-universal:
+    needs: build
+    runs-on: macos-latest
+    steps:
+      # Get latest from the branch
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Download macOS app images
+        uses: actions/download-artifact@v4
+        with:
+          pattern: macos-app-*
+          path: ${{ runner.temp }}/macos-apps
+
+      # Use lipo to create a universal binary for MacOS
+      - name: Build MacOS Universal
+        uses: ./.github/actions/macos-app-build-universal
+
+      # Publish all build artifacts
+      - name: Publish artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-universal-app
+          retention-days: 1
+          path: |
+            ./target/*.tar.gz
+
+  macos-package-sign:
+    needs: [build, macos-universal]
+    runs-on: macos-latest
+    steps:
+      # Get latest from the branch
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.ref }}
+
+      # This pulls the version number from the release-version.txt file
+      - name: Read version
+        id: readversion
+        shell: pwsh
+        run: |
+          $content = Get-Content next-version.txt
+          Write-Host "VERSION_NUMBER: $content"
+          echo "VERSION_NUMBER=$content" >> $Env:GITHUB_ENV
+
+      # Download the macOS universal app artifact
+      - name: Download macOS app images
+        uses: actions/download-artifact@v4
+        with:
+          name: macos-universal-app
+          path: ${{ runner.temp }}/macos-apps
+
+      # Extract the universal .app
+      - name: Extract macOS universal app
+        shell: bash
+        run: |
+          mkdir -p "./target"
+          tar -xzf ${{ runner.temp }}/macos-apps/macos-app-universal.tar.gz -C "./target"
+
+      # Setup for macos signing (MACOS)
+      - name: Install the Apple certificate and provisioning profile
+        env:
+          PKG_DEVELOPER_ID_APPLICATION_CERTIFICATE_BASE64: ${{ secrets.PKG_DEVELOPER_ID_APPLICATION_CERTIFICATE_BASE64 }}
+          PKG_DEVELOPER_ID_INSTALLER_CERTIFICATE_BASE64: ${{ secrets.PKG_DEVELOPER_ID_INSTALLER_CERTIFICATE_BASE64 }}
+          PKG_MAC_DEVELOPER_APPLICATION_CERTIFICATE_BASE64: ${{ secrets.PKG_MAC_DEVELOPER_APPLICATION_CERTIFICATE_BASE64 }}
+          PKG_MAC_DEVELOPER_INSTALLER_CERTIFICATE_BASE64: ${{ secrets.PKG_MAC_DEVELOPER_INSTALLER_CERTIFICATE_BASE64 }}
+          PKG_CERTIFICATE_PASSWORD: ${{ secrets.PKG_CERTIFICATE_PASSWORD }}
+          PKG_ADHOC_PROVISION_PROFILE_BASE64: ${{ secrets.PKG_ADHOC_PROVISION_PROFILE_BASE64 }}
+          PKG_STORE_PROVISION_PROFILE_BASE64: ${{ secrets.PKG_STORE_PROVISION_PROFILE_BASE64 }}
+          PKG_KEYCHAIN_PASSWORD: ${{ secrets.PKG_KEYCHAIN_PASSWORD }}
+        run: |
+          # create variables
+          echo "Setting up certificates and provisioning profiles"
+          DEVELOPER_ID_APPLICATION_CERT_PATH=$RUNNER_TEMP/developer_id_application.p12
+          DEVELOPER_ID_INSTALLER_CERT_PATH=$RUNNER_TEMP/developer_id_installer.p12
+          MAC_DEVELOPER_APPLICATION_CERT_PATH=$RUNNER_TEMP/mac_developer_application.p12
+          MAC_DEVELOPER_INSTALLER_CERT_PATH=$RUNNER_TEMP/mac_developer_installer.p12
+          ADHOC_PROVISION_PROFILE_PATH=$RUNNER_TEMP/adhoc/embedded.mobileprovision
+          STORE_PROVISION_PROFILE_PATH=$RUNNER_TEMP/store/embedded.mobileprovision
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+
+          # make a few temp directories for provisioning profiles and app images
+          echo "Creating temporary directories"
+          mkdir -p $RUNNER_TEMP/adhoc
+          mkdir -p $RUNNER_TEMP/store
+          mkdir -p $RUNNER_TEMP/adhoc/app-image
+          mkdir -p $RUNNER_TEMP/store/app-image
+
+          # decode certificate and provisioning profile from secrets
+          echo "Decoding certificates and provisioning profiles"
+          echo -n "$PKG_DEVELOPER_ID_APPLICATION_CERTIFICATE_BASE64" | base64 --decode -o $DEVELOPER_ID_APPLICATION_CERT_PATH
+          echo -n "$PKG_DEVELOPER_ID_INSTALLER_CERTIFICATE_BASE64" | base64 --decode -o $DEVELOPER_ID_INSTALLER_CERT_PATH
+          echo -n "$PKG_MAC_DEVELOPER_APPLICATION_CERTIFICATE_BASE64" | base64 --decode -o $MAC_DEVELOPER_APPLICATION_CERT_PATH
+          echo -n "$PKG_MAC_DEVELOPER_INSTALLER_CERTIFICATE_BASE64" | base64 --decode -o $MAC_DEVELOPER_INSTALLER_CERT_PATH
+          echo -n "$PKG_ADHOC_PROVISION_PROFILE_BASE64" | base64 --decode -o $ADHOC_PROVISION_PROFILE_PATH
+          echo -n "$PKG_STORE_PROVISION_PROFILE_BASE64" | base64 --decode -o $STORE_PROVISION_PROFILE_PATH
+
+          # create temporary keychain
+          echo "Creating temporary keychain at: $KEYCHAIN_PATH"
+          security create-keychain -p "$PKG_KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p "$PKG_KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+
+          # import certificates to keychain
+          echo "Importing certificates to keychain"
+          security import $DEVELOPER_ID_APPLICATION_CERT_PATH -P "$PKG_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security import $DEVELOPER_ID_INSTALLER_CERT_PATH -P "$PKG_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security import $MAC_DEVELOPER_APPLICATION_CERT_PATH -P "$PKG_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security import $MAC_DEVELOPER_INSTALLER_CERT_PATH -P "$PKG_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security set-key-partition-list -S apple-tool:,apple: -k "$PKG_KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security list-keychain -d user -s $KEYCHAIN_PATH
+
+      # Alter and sign app bundle for MacOS store (MACOS)
+      - name: Alter and sign app bundle for MacOS store
+        uses: ./.github/actions/macos-app-package
+        with:
+          app-cert-name: ${{ secrets.PKG_MAC_DEVELOPER_APPLICATION_CERTIFICATE_NAME }}
+          provisioning-profile: "${{ runner.temp }}/store/embedded.mobileprovision"
+          app-version: "${{ env.VERSION_NUMBER }}"
+          output-dir: "${{ runner.temp }}/store/app-image"
+
+      # Package and sign PKG for the MacOS store (MACOS)
+      - name: Package and sign PKG for MacOS store
+        uses: ./.github/actions/macos-pkg-package2
+        with:
+          app-image-dir: "${{ runner.temp }}/store/app-image"
+          install-cert-name: ${{ secrets.PKG_MAC_DEVELOPER_INSTALLER_CERTIFICATE_NAME }}
+          app-version: "${{ env.VERSION_NUMBER }}"
+          pkg-suffix: "_store"
+      
+      # Alter and sign app bundle for MacOS adhoc deployment (MACOS)
+      - name: Alter and sign app bundle for MacOS adhoc deployment
+        uses: ./.github/actions/macos-app-package
+        with:
+          app-cert-name: ${{ secrets.PKG_DEVELOPER_ID_APPLICATION_CERTIFICATE_NAME }}
+          provisioning-profile: "${{ runner.temp }}/adhoc/embedded.mobileprovision"
+          app-version: "${{ env.VERSION_NUMBER }}"
+          output-dir: "${{ runner.temp }}/adhoc/app-image"
+
+      # Package and sign PKG for MacOS adhoc deployment (MACOS)
+      - name: Package and sign PKG for MacOS adhoc deployment
+        uses: ./.github/actions/macos-pkg-package2
+        with:
+          app-image-dir: "${{ runner.temp }}/adhoc/app-image"
+          install-cert-name: ${{ secrets.PKG_DEVELOPER_ID_INSTALLER_CERTIFICATE_NAME }}
+          app-version: "${{ env.VERSION_NUMBER }}"
+          pkg-suffix: "_adhoc"
+
+      # Notarize the adhoc package (MACOS)
+      - name: Notarize MacOS adhoc package
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+        run: |
+          PACKAGE="./target/Praisenter_${{ env.VERSION_NUMBER }}_adhoc.pkg"
+          echo "Notarize package"
+          xcrun notarytool submit "$PACKAGE" --apple-id "$APPLE_ID" --password "$APPLE_PASSWORD" --team-id "$APPLE_TEAM_ID" --output-format "json" --wait
+
+          echo "Work around stapling issue (actions/runner-images#14924)"
+          echo "block return out quick proto udp from any to any port 443" | sudo pfctl -f -
+          sudo pfctl -E
+
+          echo ""
+          echo "<------------------------------------------------->"
+          echo "Staple the package" 
+          xcrun stapler staple "$PACKAGE"
+
+          echo ""
+          echo "<------------------------------------------------->"
+          echo "Verify the pkg is install ready"
+          spctl --assess --type install -v "$PACKAGE"
+
+      # Install create-dmg (MACOS)
+      - name: Install create-dmg via brew
+        run: |
+          brew install create-dmg
+
+      # Build a DMG file (MACOS)
+      - name: Create DMG file
+        run: |
+          mkdir -p ./target/dmg-work
+          cp -R "${{ runner.temp }}/adhoc/app-image/" "./target/dmg-work/"
+          create-dmg --volname "Praisenter" --volicon "./packaging/macos64/app/resources/Praisenter.icns" --background "./packaging/macos64/dmg/resources/background.tiff" --window-size 600 420 --icon-size 140 --icon "Praisenter.app" 138 155 --app-drop-link 464 155 "./target/Praisenter_${{ env.VERSION_NUMBER }}.dmg" "./target/dmg-work/"
+
+      # Sign and notarize DMG (MACOS)
+      - name: Sign and notarize DMG
+        env:
+          CERT_NAME: ${{ secrets.PKG_DEVELOPER_ID_APPLICATION_CERTIFICATE_NAME }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+        run: |
+          PACKAGE="./target/Praisenter_${{ env.VERSION_NUMBER }}.dmg"
+          echo "Sign the DMG"
+          codesign -s "$CERT_NAME" --timestamp -i org.praisenter "$PACKAGE"
+
+          echo "Notarize the DMG"
+          xcrun notarytool submit "$PACKAGE" --apple-id "$APPLE_ID" --password "$APPLE_PASSWORD" --team-id "$APPLE_TEAM_ID" --output-format "json" --wait
+
+          echo "Work around stapling issue (actions/runner-images#14924)"
+          echo "block return out quick proto udp from any to any port 443" | sudo pfctl -f -
+          sudo pfctl -E
+
+          echo ""
+          echo "<------------------------------------------------->"
+          echo "Staple the DMG" 
+          xcrun stapler staple "$PACKAGE"
+
+          echo ""
+          echo "<------------------------------------------------->"
+          echo "Verify the DMG is install ready"
+          spctl --assess --type install -v "$PACKAGE"
+
+      # Publish all build artifacts
+      - name: Publish artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-macos-universal
+          retention-days: 1
+          path: |
+            ./target/*.pkg
+            ./target/*.dmg
+
+  github-release:
+    needs: [build, macos-universal, macos-package-sign]
+    runs-on: ubuntu-latest
+    steps:
+      # Get latest from the current branch
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # This pulls the version number from the release-version.txt file
+      - name: Read version
+        id: readversion
+        shell: pwsh
+        run: |
+          $content = Get-Content next-version.txt
+          Write-Host "VERSION_NUMBER: $content"
+          echo "VERSION_NUMBER=$content" >> $Env:GITHUB_ENV
+
+      # Download all artifacts
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+
+      # Get commit log since last non-alpha tag
+      - name: Get commits since last tag
+        id: commits_since_last
+        run: |
+          LAST_TAG=$(git describe --tags --abbrev=0 --exclude "*-alpha")
+          # commit hash link - commit message (author)
+          COMMIT_LOG=$(git log $LAST_TAG..HEAD --pretty=format:"- %h: %s (%an)")
+          echo "$COMMIT_LOG"
+          echo "$COMMIT_LOG" > CHANGELOG.txt
+          # Verify file content in logs
+          cat CHANGELOG.txt
+
+      # Create one release called 3.2.1 (for example)
+      - name: Create Versioned Pre-Release
+        uses: softprops/action-gh-release@v2
+        with:
+          token: "${{ secrets.GITHUB_TOKEN}}"
+          name: Praisenter v${{ env.VERSION_NUMBER }}${{ inputs.pre-release && '-alpha' || '' }}
+          tag_name: v${{ env.VERSION_NUMBER }}${{ inputs.pre-release && '-alpha' || '' }}
+          body_path: CHANGELOG.txt
+          prerelease: ${{ inputs.pre-release }}
+          generate_release_notes: false
+          make_latest: ${{ !inputs.pre-release }}
+          files: | 
+            ./dist-windows-latest/*.msi
+            ./dist-windows-latest/*.msixupload
+            ./dist-ubuntu-latest/*.deb
+            ./dist-ubuntu-latest/*.snap
+            ./dist-macos-universal/*.pkg
+            ./dist-macos-universal/*.dmg

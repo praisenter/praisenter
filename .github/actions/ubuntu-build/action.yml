@@ -1,0 +1,64 @@
+name: "Ubuntu build action"
+description: "Action to package and sign a Ubuntu deb and snap"
+inputs:
+  architecture:
+    description: "The target architecture for the build"
+    required: true
+    default: "x64"
+  app-version:
+    description: "The application version number"
+    required: true
+runs:
+  using: "composite"
+  steps:
+    # Install FFmpeg (UBUNTU)
+    - name: Install FFmpeg
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libavcodec-dev libavformat-dev
+
+    # Run the Maven Build
+    - name: "Build with Maven"
+      shell: pwsh
+      run: |
+        mvn -B clean install --file pom.xml
+
+    # Copy deb to snap folder (UBUNTU)
+    - name: Copy deb to snap folder
+      shell: pwsh
+      run: |
+        $source = "./target/praisenter_${{ inputs.app-version }}_amd64.deb"
+        $target = "./packaging/linux64/snap/praisenter.deb"
+        Copy-Item $source $target
+        Write-Host "Copied: '$source' to '$target'"
+
+    # Update metainfo.xml (UBUNTU)
+    - name: Set metainfo.xml version number
+      shell: pwsh
+      run: |
+        $filePath = "./packaging/linux64/snap/praisenter.metainfo.xml"
+        $date = Get-Date -Format "yyyy-MM-dd"
+        $xml = [xml](Get-Content -Path $filePath)
+        $xml.component.releases.release.version = "${{ inputs.app-version }}"
+        $xml.component.releases.release.date = "$date"
+        $xml.Save($filePath)
+
+    # # Install snapcraft (UBUNTU)
+    # - name: Install Snapcraft
+    #   uses: samuelmeuli/action-snapcraft@v2
+    - name: Build snap file
+      id: snapcraft
+      uses: snapcore/action-build@v1
+      with:
+        path: ./packaging/linux64/snap/
+
+    # Copy snap to target folder (UBUNTU)
+    - name: Copy snap to target folder
+      shell: pwsh
+      run: |
+        $source = "${{ steps.snapcraft.outputs.snap }}"
+        $target = "./target/praisenter_${{ inputs.app-version }}_amd64.snap"
+        Copy-Item $source $target
+        Write-Host "Copied: '$source' to '$target'"
+

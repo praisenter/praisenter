@@ -1,0 +1,23 @@
+name: "MacOS app build action"
+description: "Action to build a .app via maven/jpackage"
+inputs:
+  architecture:
+    description: "The target architecture for the build"
+    required: true
+    default: "x64"
+  app-version:
+    description: "The application version number"
+    required: true
+runs:
+  using: "composite"
+  steps:
+    # Run the Maven Build
+    - name: "Build with Maven"
+      shell: pwsh
+      run: |
+        mvn -B clean install --file pom.xml
+
+    - name: Archive macOS app image
+      shell: bash
+      run: |
+        tar -C ./target -czf "$GITHUB_WORKSPACE/target/macos-app-${{ inputs.architecture }}.tar.gz" Praisenter.app

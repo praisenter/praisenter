@@ -1,0 +1,73 @@
+name: "MacOS build universal app"
+description: "Action to build a universal macOS app from arm64 and x64 images"
+# inputs:
+#   app-version:
+#     description: "The application version number"
+#     required: true
+runs:
+  using: "composite"
+  steps:
+    # Use lipo to create a universal binary from arm64 and x64 app images
+    - name: Merge app images
+      shell: bash
+      run: |
+        ARM_DIR="$RUNNER_TEMP/macos-arm64"
+        X64_DIR="$RUNNER_TEMP/macos-x64"
+        mkdir -p "$ARM_DIR" "$X64_DIR" ./target
+        tar -xzf "$RUNNER_TEMP/macos-apps/macos-app-arm64/macos-app-arm64.tar.gz" -C "$ARM_DIR"
+        tar -xzf "$RUNNER_TEMP/macos-apps/macos-app-x64/macos-app-x64.tar.gz" -C "$X64_DIR"
+        ARM_APP="$ARM_DIR/Praisenter.app"
+        X64_APP="$X64_DIR/Praisenter.app"
+        UNIVERSAL_APP="./target/Praisenter.app"
+        ditto "$ARM_APP" "$UNIVERSAL_APP"
+        TEMP_SLICES="$(mktemp -d "$RUNNER_TEMP/lipo.XXXXXX")"
+
+        is_macho() {
+          file -b "$1" | grep -q 'Mach-O'
+        }
+
+        while IFS= read -r -d '' ARM_FILE; do
+          if ! is_macho "$ARM_FILE"; then
+            continue
+          fi
+          RELATIVE_PATH="${ARM_FILE#"$ARM_APP"/}"
+          X64_FILE="$X64_APP/$RELATIVE_PATH"
+          OUTPUT_FILE="$UNIVERSAL_APP/$RELATIVE_PATH"
+          if [ ! -f "$X64_FILE" ] || ! is_macho "$X64_FILE"; then
+            echo "Missing x86_64 Mach-O counterpart: $RELATIVE_PATH" >&2
+            exit 1
+          fi
+          echo "Merging $RELATIVE_PATH"
+          lipo -verify_arch arm64 "$ARM_FILE"
+          lipo -verify_arch x86_64 "$X64_FILE"
+          ARM_SLICE="$ARM_FILE"
+          X64_SLICE="$X64_FILE"
+          if [ "$(lipo -archs "$ARM_FILE")" != "arm64" ]; then
+            ARM_SLICE="$TEMP_SLICES/arm64"
+            lipo "$ARM_FILE" -thin arm64 -output "$ARM_SLICE"
+          fi
+          if [ "$(lipo -archs "$X64_FILE")" != "x86_64" ]; then
+            X64_SLICE="$TEMP_SLICES/x86_64"
+            lipo "$X64_FILE" -thin x86_64 -output "$X64_SLICE"
+          fi
+          lipo -create "$ARM_SLICE" "$X64_SLICE" -output "$OUTPUT_FILE"
+          chmod "$(stat -f %Lp "$ARM_FILE")" "$OUTPUT_FILE"
+          lipo -verify_arch arm64 x86_64 "$OUTPUT_FILE"
+        done < <(find "$ARM_APP" -type f -print0)
+
+        while IFS= read -r -d '' X64_FILE; do
+          if ! is_macho "$X64_FILE"; then
+            continue
+          fi
+          RELATIVE_PATH="${X64_FILE#"$X64_APP"/}"
+          if [ ! -f "$ARM_APP/$RELATIVE_PATH" ] || ! is_macho "$ARM_APP/$RELATIVE_PATH"; then
+            echo "Missing arm64 Mach-O counterpart: $RELATIVE_PATH" >&2
+            exit 1
+          fi
+        done < <(find "$X64_APP" -type f -print0)
+        lipo -verify_arch arm64 x86_64 "$UNIVERSAL_APP/Contents/MacOS/Praisenter"
+
+    - name: Archive macOS app image
+      shell: bash
+      run: |
+        tar -C ./target -czf "$GITHUB_WORKSPACE/target/macos-app-universal.tar.gz" Praisenter.app

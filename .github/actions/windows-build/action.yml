@@ -1,0 +1,79 @@
+name: "Windows build action"
+description: "Action to package and sign a Windows msi and msix"
+inputs:
+  wix-version:
+    description: "The version of WiX to install"
+    required: true
+    default: "6.0.2"
+  architecture:
+    description: "The target architecture for the build"
+    required: true
+    default: "x64"
+  app-version:
+    description: "The application version number"
+    required: true
+  msix-identity-name:
+    description: "The MSIX identity name"
+    required: true
+  msix-identity-publisher:
+    description: "The MSIX identity publisher"
+    required: true
+runs:
+  using: "composite"
+  steps:
+    # Add MSBuild (WINDOWS)
+    - name: Add msbuild to PATH
+      uses: microsoft/setup-msbuild@v2
+
+    # Install Wix 6 (WINDOWS)
+    # https://github.com/petr-panteleyev/jpackage-gradle-plugin/issues/38#issuecomment-2873402088
+    - name: Install WiX 6
+      shell: pwsh
+      run: |
+        dotnet tool install --global wix --version ${{ inputs.wix-version }}
+        wix extension add -g WixToolset.Util.wixext/${{ inputs.wix-version }}
+        wix extension add -g WixToolset.Ui.wixext/${{ inputs.wix-version }}
+
+    # Run the Maven Build
+    - name: "Build with Maven"
+      shell: pwsh
+      run: |
+        mvn -B clean install --file pom.xml
+
+    # Rename the MSI with architecture (WINDOWS)
+    - name: "Rename MSI with architecture"
+      shell: pwsh
+      run: |
+        $source = "./target/Praisenter-${{ inputs.app-version }}.msi"
+        $target = "Praisenter_${{ inputs.app-version }}_${{ inputs.architecture }}.msi"
+        Rename-Item -Path $source -NewName $target
+        Write-Host "Renamed: '$source' to '$target'"
+
+    # Now attempt to build the msix (WINDOWS)
+    - name: "Set appxmanifest version number"
+      shell: pwsh
+      run: |
+        $filePath = "./packaging/windows64/msix/Praisenter/Package.appxmanifest"
+        $xml = [xml](Get-Content -Path $filePath)
+        $xml.Package.Identity.Name = "${{ inputs.msix-identity-name }}"
+        $xml.Package.Identity.Publisher = "${{ inputs.msix-identity-publisher }}"
+        $xml.Package.Identity.Version = "${{ inputs.app-version }}.0"
+        $xml.Save($filePath)
+
+    # Copy all the build artifacts to the /App folder (WINDOWS)
+    - name: "Copy msi to msix location"
+      shell: pwsh
+      run: |
+        New-Item -ItemType Directory -Force -Path "./packaging/windows64/msix/Praisenter/App"
+        $copied = Copy-Item -Path "./target/installer-work/image/Praisenter/*" -Destination "./packaging/windows64/msix/Praisenter/App" -Recurse -PassThru
+        $copied | ForEach-Object {
+          Write-Host "Copied: '$($_.FullName)'"
+        }
+
+    # Build the msixupload file (WINDOWS)
+    - name: Build MSIX package
+      shell: pwsh
+      run: |
+        Push-Location -Path ./packaging/windows64/msix/Praisenter
+        MSBuild.exe /nologo /restore /p:AppxBundle=Never /p:UapAppxPackageBuildMode=StoreUpload  /p:Configuration=Release /p:Platform=x64 /p:AppxPackageDir=..\..\..\..\target\ /p:AppxPackageSigningEnabled=false /p:AppxBundlePlatforms=${{ inputs.architecture }}
+        Pop-Location
