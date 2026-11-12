@@ -54,14 +54,6 @@ runs:
         echo "Copying app-image: $IMAGE to work directory: $IMAGE_DIR"
         cp -R "$TARGET_DIR/$IMAGE" "$IMAGE_DIR/$IMAGE"
 
-        # # copy the dylibs into the app dir
-        # echo "Copying binaries to /Contents/app directory"
-        # cp ./packaging/macos64/app/exec/libSecurityScopedBookmarkLibrary.dylib "$IMAGE_DIR/$IMAGE/Contents/app"
-        # cp ./packaging/macos64/app/exec/libndi.dylib "$IMAGE_DIR/$IMAGE/Contents/app"
-        # cp ./packaging/macos64/app/exec/libdevolay-natives.dylib "$IMAGE_DIR/$IMAGE/Contents/app"
-        # cp ./packaging/macos64/app/exec/ffmpeg "$IMAGE_DIR/$IMAGE/Contents/app"
-        # cp ./packaging/macos64/app/exec/ffprobe "$IMAGE_DIR/$IMAGE/Contents/app"
-
         # copy in the provisioning profile
         echo "Copying provisioning profile: '$PROV_PROFILE' to the /Contents directory"
         cp "$PROV_PROFILE" "$IMAGE_DIR/$IMAGE/Contents/embedded.provisionprofile"
