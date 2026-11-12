@@ -1,4 +1,4 @@
-name: Build All Pre-Release
+name: Build All
 
 on:
   workflow_dispatch:
