@@ -328,7 +328,7 @@
                                 <artifactItem>
                                     <groupId>org.praisenter</groupId>
                                     <artifactId>ffmpeg</artifactId>
-                                    <version>8.1-1</version>
+                                    <version>8.1-2</version>
                                     <type>zip</type>
                                     <classifier>${ffmpeg.platform}</classifier>
                                     <outputDirectory>${project.build.directory}/dependency/natives/ffmpeg</outputDirectory>
@@ -336,7 +336,7 @@
                                 <artifactItem>
                                     <groupId>org.praisenter</groupId>
                                     <artifactId>ndi</artifactId>
-                                    <version>6.3.2.0-1</version>
+                                    <version>6.3.2.0-2</version>
                                     <type>zip</type>
                                     <classifier>${ndi.platform}</classifier>
                                     <outputDirectory>${project.build.directory}/dependency/natives/ndi</outputDirectory>
