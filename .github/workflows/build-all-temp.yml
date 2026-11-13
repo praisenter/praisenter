@@ -133,7 +133,16 @@ jobs:
         with:
           ref: ${{ github.ref }}
 
-      # This pulls the version number from the release-version.txt file
+      # Setup Java w/ JavaFX
+      - name: Set up JDK 25
+        uses: actions/setup-java@v5
+        with:
+          java-version: 25
+          distribution: 'zulu'
+          java-package: jdk+fx
+          cache: 'maven'
+      
+          # This pulls the version number from the release-version.txt file
       - name: Read version
         id: readversion
         shell: pwsh
