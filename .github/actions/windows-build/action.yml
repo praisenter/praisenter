@@ -23,7 +23,7 @@ runs:
   steps:
     # Add MSBuild (WINDOWS)
     - name: Add msbuild to PATH
-      uses: microsoft/setup-msbuild@v2
+      uses: microsoft/setup-msbuild@v3
 
     # Install Wix 6 (WINDOWS)
     # https://github.com/petr-panteleyev/jpackage-gradle-plugin/issues/38#issuecomment-2873402088
