@@ -33,13 +33,17 @@ runs:
           RELATIVE_PATH="${ARM_FILE#"$ARM_APP"/}"
           X64_FILE="$X64_APP/$RELATIVE_PATH"
           OUTPUT_FILE="$UNIVERSAL_APP/$RELATIVE_PATH"
+          if lipo "$ARM_FILE" -verify_arch arm64 x86_64; then
+            echo "Skipping already universal binary: $RELATIVE_PATH"
+            continue
+          fi
           if [ ! -f "$X64_FILE" ] || ! is_macho "$X64_FILE"; then
             echo "Missing x86_64 Mach-O counterpart: $RELATIVE_PATH" >&2
             exit 1
           fi
           echo "Merging $RELATIVE_PATH"
-          lipo -verify_arch arm64 "$ARM_FILE"
-          lipo -verify_arch x86_64 "$X64_FILE"
+          lipo "$ARM_FILE" -verify_arch arm64
+          lipo "$X64_FILE" -verify_arch x86_64
           ARM_SLICE="$ARM_FILE"
           X64_SLICE="$X64_FILE"
           if [ "$(lipo -archs "$ARM_FILE")" != "arm64" ]; then
@@ -52,7 +56,7 @@ runs:
           fi
           lipo -create "$ARM_SLICE" "$X64_SLICE" -output "$OUTPUT_FILE"
           chmod "$(stat -f %Lp "$ARM_FILE")" "$OUTPUT_FILE"
-          lipo -verify_arch arm64 x86_64 "$OUTPUT_FILE"
+          lipo "$OUTPUT_FILE" -verify_arch arm64 x86_64
         done < <(find "$ARM_APP" -type f -print0)
 
         while IFS= read -r -d '' X64_FILE; do
@@ -65,7 +69,7 @@ runs:
             exit 1
           fi
         done < <(find "$X64_APP" -type f -print0)
-        lipo -verify_arch arm64 x86_64 "$UNIVERSAL_APP/Contents/MacOS/Praisenter"
+        lipo "$UNIVERSAL_APP/Contents/MacOS/Praisenter" -verify_arch arm64 x86_64
 
     - name: Archive macOS app image
       shell: bash
