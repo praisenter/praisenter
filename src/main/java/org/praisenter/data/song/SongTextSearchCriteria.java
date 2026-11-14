@@ -20,6 +20,7 @@ public final class SongTextSearchCriteria extends SearchCriteria {
 	@Override
 	public Query createQuery(Analyzer analyzer) throws IOException {
 		Query query = super.createQuery(analyzer);
+		if (query == null) return null;
 		
 		BooleanQuery.Builder builder = new BooleanQuery.Builder();
 		builder.add(query, Occur.MUST);

@@ -47,6 +47,7 @@ public final class BibleTextSearchCriteria extends SearchCriteria {
 	@Override
 	public Query createQuery(Analyzer analyzer) throws IOException {
 		Query query = super.createQuery(analyzer);
+		if (query == null) return null;
 		
 		BooleanQuery.Builder builder = new BooleanQuery.Builder();
 		builder.add(query, Occur.MUST);
@@ -57,11 +58,9 @@ public final class BibleTextSearchCriteria extends SearchCriteria {
 		if (this.bibleId != null) {
 			// then filter by the bible
 			builder.add(new TermQuery(new Term(Indexable.FIELD_ID, this.bibleId.toString())), Occur.FILTER);
-			//check if the book number was supplied
-			if (this.bookNumber > 0) {
-				// then filter by the book number too
-				builder.add(IntPoint.newExactQuery(Bible.FIELD_BOOK_ID, this.bookNumber), Occur.FILTER);
-			}
+		}
+		if (this.bookNumber > 0) {
+			builder.add(IntPoint.newExactQuery(Bible.FIELD_BOOK_ID, this.bookNumber), Occur.FILTER);
 		}
 		
 		return builder.build();
