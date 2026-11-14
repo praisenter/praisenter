@@ -269,15 +269,16 @@ public final class MediaTools {
 				
 				return best;
 			} finally {
-				Files.walk(tempArea)
-			     .sorted((a, b) -> b.compareTo(a)) // reverse; files before dirs
-			     .forEach(p -> {
-			        try { 
-			        	Files.delete(p); 
-			        } catch(IOException e) {
-			        	LOGGER.warn("Failed to delete the temp file '" + p.toAbsolutePath().toString() + "'.", e);
-			        }
-			     });
+				try (var stream = Files.walk(tempArea)) {
+			     	stream.sorted((a, b) -> b.compareTo(a)) // reverse; files before dirs
+					.forEach(p -> {
+						try { 
+							Files.delete(p); 
+						} catch(IOException e) {
+							LOGGER.warn("Failed to delete the temp file '" + p.toAbsolutePath().toString() + "'.", e);
+						}
+					});
+				}
 			}
 		}
 	}
@@ -430,15 +431,16 @@ public final class MediaTools {
 						hasVideo,
 						hasAudio);
 			} finally {
-				Files.walk(tempArea)
-				     .sorted((a, b) -> b.compareTo(a)) // reverse; files before dirs
-				     .forEach(p -> {
-				        try { 
-				        	Files.delete(p); 
-				        } catch(IOException e) {
-				        	LOGGER.warn("Failed to delete the temp file '" + p.toAbsolutePath().toString() + "'.", e);
-				        }
-				     });
+				try (var stream = Files.walk(tempArea)) {
+			     	stream.sorted((a, b) -> b.compareTo(a)) // reverse; files before dirs
+					.forEach(p -> {
+						try { 
+							Files.delete(p); 
+						} catch(IOException e) {
+							LOGGER.warn("Failed to delete the temp file '" + p.toAbsolutePath().toString() + "'.", e);
+						}
+					});
+				}
 			}
 		}
 	}
