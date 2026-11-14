@@ -62,18 +62,16 @@ public class SearchCriteria {
 	protected final List<String> getTokens(Analyzer analyzer) throws IOException {
 		List<String> tokens = new ArrayList<String>();
 		
-		TokenStream stream = analyzer.tokenStream(this.field, this.terms);
-		CharTermAttribute attr = stream.addAttribute(CharTermAttribute.class);
-		stream.reset();
+		try (TokenStream stream = analyzer.tokenStream(this.field, this.terms)) {
+			CharTermAttribute attr = stream.addAttribute(CharTermAttribute.class);
+			stream.reset();
 
-		while (stream.incrementToken()) {
-			tokens.add(attr.toString());
+			while (stream.incrementToken()) {
+				tokens.add(attr.toString());
+			}
+			
+			return tokens;
 		}
-		
-		stream.end();
-		stream.close();
-		
-		return tokens;
 	}
 	
 	protected final Query createBasicQuery(Analyzer analyzer) throws IOException {

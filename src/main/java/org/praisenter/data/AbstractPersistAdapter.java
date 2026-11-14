@@ -267,6 +267,7 @@ public abstract class AbstractPersistAdapter<T extends Persistable, E extends Pa
 	
 	private void unzip(Path zip, Path folder) throws IOException {
 		// JAVABUG (L) 11/01/23 [workaround] Native java.util.zip package can't support zips 4GB or bigger or elements 2GB or bigger
+		Path extractionRoot = folder.toAbsolutePath().normalize();
         try (ZipFile zipFile = ZipFile.builder().setPath(zip).get()) {
         	Enumeration<ZipArchiveEntry> entries = zipFile.getEntries();
         	while (entries.hasMoreElements()) {
@@ -276,12 +277,17 @@ public abstract class AbstractPersistAdapter<T extends Persistable, E extends Pa
         			continue;
         			
         		if (zipFile.canReadEntryData(entry)) {
-        			Path file = folder.resolve(entry.getName());
+					Path file = extractionRoot.resolve(entry.getName()).normalize();
+					if (!file.startsWith(extractionRoot)) {
+						throw new IOException("ZIP entry escapes the extraction directory: " + entry.getName());
+					}
         			Files.createDirectories(file.getParent());
         			// NOTE: I tried using Files.copy here but it was super slow
         			// with large (> 1GB) files.  I'm guessing due to an internal 
         			// buffer size that's pretty small
-        			this.copy(zipFile.getInputStream(entry), file);
+					try (InputStream stream = zipFile.getInputStream(entry)) {
+        				this.copy(stream, file);
+					}
         		}
         	}
         }

@@ -54,11 +54,15 @@ public final class SearchIndex {
 	
 	public synchronized void update(Indexable item) throws IOException {
 		List<Document> docs = item.index();
-		if (docs == null || docs.isEmpty()) return;
 		IndexWriterConfig config = new IndexWriterConfig(this.analyzer);
 		config.setOpenMode(OpenMode.CREATE_OR_APPEND);
 		try (IndexWriter writer = new IndexWriter(this.directory, config)) {
-			writer.updateDocuments(new Term(Indexable.FIELD_ID, item.getId().toString()), docs);	
+			Term id = new Term(Indexable.FIELD_ID, item.getId().toString());
+			if (docs == null || docs.isEmpty()) {
+				writer.deleteDocuments(id);
+			} else {
+				writer.updateDocuments(id, docs);
+			}
 		}
 	}
 	
@@ -114,8 +118,7 @@ public final class SearchIndex {
 				// get the text around the match
 				List<SearchTextMatch> matches = new ArrayList<SearchTextMatch>();
 				
-				try {
-					TokenStream tokens = TokenSources.getTokenStream(Indexable.FIELD_TEXT, null, text, this.analyzer, -1);
+				try (TokenStream tokens = TokenSources.getTokenStream(Indexable.FIELD_TEXT, null, text, this.analyzer, -1)) {
 					String[] fragments = highlighter.getBestFragments(tokens, text, 10);
 					
 					for (String fragment : fragments) {

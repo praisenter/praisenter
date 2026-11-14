@@ -124,32 +124,34 @@ public class PraisenterFormatProvider<T extends Persistable> implements ImportEx
 		        		}
 		        		
 						// wrap the stream in a stream that can reset
-						BufferedInputStream zbis = new BufferedInputStream(zipFile.getInputStream(entry));
-						zbis.mark(Integer.MAX_VALUE);
+						try (InputStream entryStream = zipFile.getInputStream(entry);
+							 BufferedInputStream zbis = new BufferedInputStream(entryStream)) {
+							zbis.mark(Integer.MAX_VALUE);
 						
-						LOGGER.trace("Checking zip entry '{}'", entry.getName());
-						if (MimeType.JSON.check(zbis, entry.getName())) {
-							zbis.reset();
-							
-							try {
-								LOGGER.trace("Zip entry '{}' is a JSON file, reading and checking format", entry.getName());
-								byte[] data = Streams.read(zbis);
-								ByteArrayInputStream bais = new ByteArrayInputStream(data);
-								PraisenterFormat format = JsonIO.getPraisenterFormat(bais);
+							LOGGER.trace("Checking zip entry '{}'", entry.getName());
+							if (MimeType.JSON.check(zbis, entry.getName())) {
+								zbis.reset();
 								
-								if (format != null && format.is(this.clazz)) {
-									bais.reset();
-									LOGGER.debug("Zip entry '{}' matches the format for '{}', attempting import", entry.getName(), this.clazz.getName());
-									T item = JsonIO.read(bais, this.clazz);
-									boolean isUpdate = adapter.upsert(item);
-									if (isUpdate) {
-										result.getUpdated().add(item);
-									} else {
-										result.getCreated().add(item);
+								try {
+									LOGGER.trace("Zip entry '{}' is a JSON file, reading and checking format", entry.getName());
+									byte[] data = Streams.read(zbis);
+									ByteArrayInputStream bais = new ByteArrayInputStream(data);
+									PraisenterFormat format = JsonIO.getPraisenterFormat(bais);
+									
+									if (format != null && format.is(this.clazz)) {
+										bais.reset();
+										LOGGER.debug("Zip entry '{}' matches the format for '{}', attempting import", entry.getName(), this.clazz.getName());
+										T item = JsonIO.read(bais, this.clazz);
+										boolean isUpdate = adapter.upsert(item);
+										if (isUpdate) {
+											result.getUpdated().add(item);
+										} else {
+											result.getCreated().add(item);
+										}
 									}
+								} catch (Exception ex) {
+									LOGGER.trace("Failed to determine if '" + entry.getName() + "' was in the Praisenter json format.", ex);
 								}
-							} catch (Exception ex) {
-								LOGGER.trace("Failed to determine if '" + entry.getName() + "' was in the Praisenter json format.", ex);
 							}
 						}
 					}
@@ -163,7 +165,8 @@ public class PraisenterFormatProvider<T extends Persistable> implements ImportEx
 				
 				if (format != null && format.is(this.clazz)) {
 					LOGGER.debug("File '{}' matches the format for '{}', attempting import", path.getFileName(), this.clazz.getName());
-					T item = JsonIO.read(bis, this.clazz);
+					bais.reset();
+					T item = JsonIO.read(bais, this.clazz);
 					boolean isUpdate = adapter.upsert(item);
 					if (isUpdate) {
 						result.getUpdated().add(item);

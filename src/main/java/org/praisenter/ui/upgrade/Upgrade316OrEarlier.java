@@ -27,12 +27,11 @@ final class Upgrade316OrEarlier implements VersionUpgradeHandler {
 		WorkspacePathResolver pathResolver = workspaceManager.getWorkspacePathResolver();
 		Path mediaPath = pathResolver.getMediaPath();
 		Path toolsPath = mediaPath.resolve("tools");
-		try {
+		try (var stream = Files.walk(toolsPath)) {
 			logger.debug("Attempting the contents of '{}' to prepare for upgrade", toolsPath);
-			Files.walk(toolsPath)
-	            .filter(Files::isRegularFile)
-	            .map(Path::toFile)
-	            .forEach(File::delete);
+			stream.filter(Files::isRegularFile)
+	              .map(Path::toFile)
+	              .forEach(File::delete);
 		} catch (IOException e) {
 			logger.error("Failed to delete the contents of the tools path - can't upgrade ffmpeg & ffprobe tools", e);
 		}

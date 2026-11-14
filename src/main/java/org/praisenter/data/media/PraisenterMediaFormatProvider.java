@@ -134,37 +134,39 @@ final class PraisenterMediaFormatProvider extends PraisenterFormatProvider<Media
 				files.add(entryName);
 
 				// wrap the stream in a stream that can reset
-				BufferedInputStream zbis = new BufferedInputStream(zipFile.getInputStream(entry));
-				zbis.mark(Integer.MAX_VALUE);
+				try (InputStream entryStream = zipFile.getInputStream(entry);
+					BufferedInputStream zbis = new BufferedInputStream(entryStream)) {
+					zbis.mark(Integer.MAX_VALUE);
 
-				// check if the entry is a media json file
-				LOGGER.trace("Checking if '{}' is media metadata", entryName);
-				if (MimeType.JSON.check(zbis, entryName)) {
-					zbis.reset();
-					try {
-						// read the stream to the end
-						byte[] data = Streams.read(zbis);
-						ByteArrayInputStream bais = new ByteArrayInputStream(data);
-						PraisenterFormat format = JsonIO.getPraisenterFormat(bais);
-						
-						// check the format
-						if (format != null && format.is(Media.class)) {
-							LOGGER.trace("Entry '{}' is media metadata", entryName);
-							bais.reset();
-							Media media = JsonIO.read(bais, Media.class);
-							if (media.getMediaType() == MediaType.IMAGE) {
-								media.setMediaImagePath(mpr.getMediaPath(media));	
-							} else if (media.getMediaType() == MediaType.AUDIO) {
-								media.setMediaImagePath(mpr.getThumbPath(media));
-							} else {
-								media.setMediaImagePath(mpr.getImagePath(media));
+					// check if the entry is a media json file
+					LOGGER.trace("Checking if '{}' is media metadata", entryName);
+					if (MimeType.JSON.check(zbis, entryName)) {
+						zbis.reset();
+						try {
+							// read the stream to the end
+							byte[] data = Streams.read(zbis);
+							ByteArrayInputStream bais = new ByteArrayInputStream(data);
+							PraisenterFormat format = JsonIO.getPraisenterFormat(bais);
+							
+							// check the format
+							if (format != null && format.is(Media.class)) {
+								LOGGER.trace("Entry '{}' is media metadata", entryName);
+								bais.reset();
+								Media media = JsonIO.read(bais, Media.class);
+								if (media.getMediaType() == MediaType.IMAGE) {
+									media.setMediaImagePath(mpr.getMediaPath(media));	
+								} else if (media.getMediaType() == MediaType.AUDIO) {
+									media.setMediaImagePath(mpr.getThumbPath(media));
+								} else {
+									media.setMediaImagePath(mpr.getImagePath(media));
+								}
+								media.setMediaPath(mpr.getMediaPath(media));
+								media.setMediaThumbnailPath(mpr.getThumbPath(media));
+								metadata.add(media);
 							}
-							media.setMediaPath(mpr.getMediaPath(media));
-							media.setMediaThumbnailPath(mpr.getThumbPath(media));
-							metadata.add(media);
+						} catch (Exception ex) {
+							LOGGER.warn("Failed to read resource '" + entryName + "' as a Media object.", ex);
 						}
-					} catch (Exception ex) {
-						LOGGER.warn("Failed to read resource '" + entryName + "' as a Media object.", ex);
 					}
 				}
 			}
@@ -262,9 +264,10 @@ final class PraisenterMediaFormatProvider extends PraisenterFormatProvider<Media
 						if (outputPath == null)  {
 							continue;
 						}
-						try {
+
+						try (InputStream entryStream = zipFile.getInputStream(entry)) {
 							LOGGER.trace("Extracting file '{}'", name);
-							Files.copy(zipFile.getInputStream(entry), outputPath, StandardCopyOption.REPLACE_EXISTING);
+							Files.copy(entryStream, outputPath, StandardCopyOption.REPLACE_EXISTING);
 						} catch (Exception ex) {
 							success = false;
 							LOGGER.warn("Failed to copy zip entry '" + entry.getName() + "' to '" + outputPath + "' due to: " + ex.getMessage(), ex);

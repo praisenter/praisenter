@@ -127,9 +127,11 @@ final class UnboundBibleFormatProvider implements ImportExportProvider<Bible> {
         		}
         		
 				if (entry.getName().equalsIgnoreCase(bookFileName)) {
-					LOGGER.debug("Reading UnboundBible .zip file contents: " + bookFileName);
-					bookMap = readBooks(bible, bookFileName, zipFile.getInputStream(entry));
-					LOGGER.debug("UnboundBible .zip file contents read successfully: " + bookFileName);
+					try (InputStream stream = zipFile.getInputStream(entry)) {
+						LOGGER.debug("Reading UnboundBible .zip file contents: " + bookFileName);
+						bookMap = readBooks(bible, bookFileName, stream);
+						LOGGER.debug("UnboundBible .zip file contents read successfully: " + bookFileName);
+					}
 					break;
 				}
 			}
@@ -157,9 +159,11 @@ final class UnboundBibleFormatProvider implements ImportExportProvider<Bible> {
         		}
         		
 				if (entry.getName().equalsIgnoreCase(verseFileName) || entry.getName().toLowerCase().endsWith("_utf8.txt")) {
-					LOGGER.debug("Reading UnboundBible .zip file contents: " + verseFileName);
-					result.getWarnings().addAll(readVerses(bible, bookMap, verseFileName, zipFile.getInputStream(entry)));
-					LOGGER.debug("UnboundBible .zip file contents read successfully: " + verseFileName);
+					try (InputStream stream = zipFile.getInputStream(entry)) {
+						LOGGER.debug("Reading UnboundBible .zip file contents: " + verseFileName);
+						result.getWarnings().addAll(readVerses(bible, bookMap, verseFileName, stream));
+						LOGGER.debug("UnboundBible .zip file contents read successfully: " + verseFileName);
+					}
 				}
 			}
 		}
