@@ -20,10 +20,13 @@ public final class InOrderExecutionManager {
 		this.nextOperation = operation;
 		if (nextOperation == null) {
 			//LOGGER.debug("Updating the future to include a run of the next operation");
-			this.lastOperation = this.lastOperation.thenComposeAsync((o) -> {
+			this.lastOperation = this.lastOperation.handle((o, ex) -> null).thenComposeAsync((o) -> {
 				//LOGGER.debug("Next operation is about to be called, so clearing it");
-				final Supplier<CompletableFuture<Void>> toExecute = this.nextOperation;
-				this.nextOperation = null;
+				final Supplier<CompletableFuture<Void>> toExecute;
+				synchronized (this) {
+					toExecute = this.nextOperation;
+					this.nextOperation = null;
+				}
 				//LOGGER.debug("Running the next operation");
 				return toExecute.get();
 			});
