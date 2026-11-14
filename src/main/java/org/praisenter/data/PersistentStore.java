@@ -97,6 +97,7 @@ public final class PersistentStore<T extends Persistable> {
 				T test = this.items.get(i);
 				if (test.getId().equals(item.getId())) {
 					index = i;
+					break;
 				}
 			}
 			if (index >= 0 && index < this.items.size()) {
@@ -141,14 +142,22 @@ public final class PersistentStore<T extends Persistable> {
 			}
 		}).thenCompose(AsyncHelper.onJavaFXThreadAndWait((result) -> {
 			if (result != null) {
+				// update all existing items in the list
 				for (T item : result.getUpdated()) {
-					int index = this.items.indexOf(item);
-					if (index < 0 || index >= this.items.size()) {
-						this.items.add(item);
-					} else {
+					int index = -1;
+					for (int i = 0; i < this.items.size(); i++) {
+						T test = this.items.get(i);
+						if (test.getId().equals(item.getId())) {
+							index = i;
+							break;
+						}
+					}
+					if (index >= 0 && index < this.items.size()) {
 						this.items.set(index, item);
 					}
 				}
+
+				// add all newly created items to the list
 				this.items.addAll(result.getCreated());
 			}
 			return result;
