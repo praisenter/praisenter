@@ -151,14 +151,14 @@ public final class Slide extends SlideRegion implements ReadOnlySlide, ReadOnlyS
 		slide.createdDate.set(this.createdDate.get());
 		slide.modifiedDate.set(this.modifiedDate.get());
 		slide.name.set(this.name.get());
-		slide.placeholderData.set(this.placeholderData.get());
+		slide.placeholderData.set(this.placeholderData.get() != null ? this.placeholderData.get().copy() : null);
 		slide.time.set(this.time.get());
 		for (SlideComponent component : this.components) {
 			slide.components.add(component.copy());
 		}
 		slide.tags.addAll(this.tags);
 		slide.thumbnailPath.set(this.thumbnailPath.get());
-		slide.transition.set(this.transition.get());
+		slide.transition.set(this.transition.get() != null ? this.transition.get().copy() : null);
 		return slide;
 	}
 	
