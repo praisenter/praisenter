@@ -251,6 +251,9 @@ public final class MediaTools {
 						if (Files.isRegularFile(path) && path.getFileName().toString().startsWith("frame")) {
 							try {
 								BufferedImage image = ImageIO.read(path.toFile());
+								if (image == null) 
+									continue;
+								
 								double logAvgLuminance = ImageManipulator.getLogAverageLuminance(image);
 								
 								// how far from the middle is the score?
@@ -380,9 +383,9 @@ public final class MediaTools {
 				
 				JsonNode format = root.get("format");
 				JsonNode streams = root.get("streams");
-				JsonNode techName = format.get("format_name");
-				JsonNode longName = format.get("format_long_name");
-				JsonNode duration = format.get("duration");
+				JsonNode techName = format != null ? format.get("format_name") : null;
+				JsonNode longName = format != null ? format.get("format_long_name") : null;
+				JsonNode duration = format != null ? format.get("duration") : null;
 				JsonNode width = null;
 				JsonNode height = null;
 				boolean hasVideo = false;
@@ -392,32 +395,36 @@ public final class MediaTools {
 				String desc = longName != null ? longName.asText() : null;
 				
 				List<MediaCodec> codecs = new ArrayList<MediaCodec>();
-				Iterator<JsonNode> it = streams.elements();
-				while (it.hasNext()) {
-					JsonNode stream = it.next();
-					
-					JsonNode codeName = stream.get("codec_name");
-					JsonNode codeDesc = stream.get("codec_long_name");
-					JsonNode type = stream.get("codec_type");
-					
-					String cn = codeName != null ? codeName.asText() : null;
-					String cd = codeDesc != null ? codeDesc.asText() : null;
-					
-					CodecType codecType = null;
-					if ("video".equals(type.asText())) {
-						codecType = CodecType.VIDEO;
+				if (streams != null) {
+					Iterator<JsonNode> it = streams.elements();
+					while (it.hasNext()) {
+						JsonNode stream = it.next();
 						
-						hasVideo = true;
-						width = stream.get("width");
-						height = stream.get("height");
-					} else if ("audio".equals(type.asText())) {
-						codecType = CodecType.AUDIO;
-						hasAudio = true;
-					}
-					
-					if (codecType != null) {
-						MediaCodec codec = new MediaCodec(codecType, cn, cd);
-						codecs.add(codec);
+						JsonNode codeName = stream.get("codec_name");
+						JsonNode codeDesc = stream.get("codec_long_name");
+						JsonNode type = stream.get("codec_type");
+						
+						String cn = codeName != null ? codeName.asText() : null;
+						String cd = codeDesc != null ? codeDesc.asText() : null;
+						
+						CodecType codecType = null;
+						if (type != null) {
+							if ("video".equals(type.asText())) {
+								codecType = CodecType.VIDEO;
+								
+								hasVideo = true;
+								width = stream.get("width");
+								height = stream.get("height");
+							} else if ("audio".equals(type.asText())) {
+								codecType = CodecType.AUDIO;
+								hasAudio = true;
+							}
+						}
+						
+						if (codecType != null) {
+							MediaCodec codec = new MediaCodec(codecType, cn, cd);
+							codecs.add(codec);
+						}
 					}
 				}
 				

@@ -193,12 +193,14 @@ final class RawVideoMediaFormatProvider extends AbstractMediaFormatProvider {
 			throw new MediaImportException("Failed to store media metadata for '" + media.getName() + "'.", ex);
 		}
 		
-		try {
-			// write the image
-			ImageIO.write(image, mpr.getImageExtension(), mpr.getImagePath(media).toFile());
-		} catch (Exception ex) {
-			this.delete(target, mpr.getPath(media));
-			throw new MediaImportException("Failed to store image for media '" + media.getName() + "'.", ex);
+		if (image != null) {
+			try {
+				// write the image
+				ImageIO.write(image, mpr.getImageExtension(), mpr.getImagePath(media).toFile());
+			} catch (Exception ex) {
+				this.delete(target, mpr.getPath(media));
+				throw new MediaImportException("Failed to store image for media '" + media.getName() + "'.", ex);
+			}
 		}
 		
 		try {
