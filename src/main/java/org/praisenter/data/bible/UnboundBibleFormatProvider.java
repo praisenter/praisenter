@@ -101,7 +101,9 @@ final class UnboundBibleFormatProvider implements ImportExportProvider<Bible> {
 
 		String name = path.getFileName().toString();
 		int d = name.lastIndexOf(".");
-		name = name.substring(0, d);
+		if (d >= 0) {
+			name = name.substring(0, d);
+		}
 		
 		// set the important file names
 		final String bookFileName = "book_names.txt";
