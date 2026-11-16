@@ -2,7 +2,9 @@ package org.praisenter.utility;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
@@ -25,48 +27,46 @@ public final class CommandLine {
 	public static final String execute(List<String> command) throws IOException, InterruptedException, CommandLineExecutionException {
 		// remove empty list elements because of 
 		// https://bugs.java.com/bugdatabase/view_bug.do?bug_id=JDK-8268939
-		command.removeIf(s -> s == null || s.isBlank() || s.isEmpty());
+		List<String> cleanedCommand = new ArrayList<>(command);
+		cleanedCommand.removeIf(s -> s == null || s.isBlank() || s.isEmpty());
 		
 		// run the command
-		ProcessBuilder pb = new ProcessBuilder(command);
+		ProcessBuilder pb = new ProcessBuilder(cleanedCommand);
 		pb.redirectErrorStream(true);
 		Process process = null;
 		
 		try {
-			LOGGER.info("Starting process with command: " + String.join(" ", command));
+			LOGGER.info("Starting process with command: " + String.join(" ", cleanedCommand));
 			process = pb.start();
 			LOGGER.info("Waiting for process to complete...");
 			
 			// we must read the input streams otherwise they fill up
 			// and the sub process will hang
-			BufferedReader input = new BufferedReader(new InputStreamReader(process.getInputStream()));
-	        String line = null;
-	        StringBuilder s = new StringBuilder();
-	        // readLine is a blocking call so this will pause us until the
-	        // executable completes or encounters an error
-	        while((line = input.readLine()) != null) {
-	            s.append(line).append(Constants.NEW_LINE);
-	        }
-	        
-        	// just in case i guess
-        	int exitCode = process.waitFor();
-        	LOGGER.info("Process completed with exitcode = " + exitCode);
-        	
-        	// attempt to close the input stream
-        	try {
-				input.close();
-			} catch (IOException e) {
-				LOGGER.warn("Failed to close process input stream.");
+			try (InputStream stream = process.getInputStream();
+				InputStreamReader isr = new InputStreamReader(stream);
+				BufferedReader input = new BufferedReader(isr)) {
+					
+				String line = null;
+				StringBuilder s = new StringBuilder();
+				// readLine is a blocking call so this will pause us until the
+				// executable completes or encounters an error
+				while((line = input.readLine()) != null) {
+					s.append(line).append(Constants.NEW_LINE);
+				}
+				
+				// just in case i guess
+				int exitCode = process.waitFor();
+				LOGGER.info("Process completed with exitcode = " + exitCode);
+				
+				// check the exit code
+				if (exitCode != 0) {
+					String message = s.toString();
+					LOGGER.error(message);
+					throw new CommandLineExecutionException(exitCode, message);
+				}
+				
+				return s.toString();
 			}
-        	
-        	// check the exit code
-        	if (exitCode != 0) {
-        		String message = s.toString();
-        		LOGGER.error(message);
-    			throw new CommandLineExecutionException(exitCode, message);
-    		}
-        	
-        	return s.toString();
 		} finally {
 			// always try to clean up the process
 			if (process != null) {
