@@ -29,6 +29,10 @@ public final class StringManipulator {
 	 */
 	public static String toFileName(String string, String replacement) {
 		if (string == null) return null;
+
+		if (replacement == null) {
+			replacement = "";
+		}
 		
 		StringBuilder filename = new StringBuilder();
 
@@ -72,7 +76,7 @@ public final class StringManipulator {
 	 */
 	public static String toFileName(String string, String defaultString, int maxLength, String replacement) {
 		// strip invalid characters
-		string = toFileName(string, replacement == null ? "" : replacement);
+		string = toFileName(string, replacement);
 		
 		// is it null or empty?
 		if (string == null || string.length() == 0) {
