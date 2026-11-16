@@ -1,7 +1,6 @@
 ![alt tag](https://github.com/wnbittle/praisenter/blob/master/site-logo.png)
 
-[![Release Build](https://github.com/wnbittle/praisenter/actions/workflows/build-all.yml/badge.svg)](https://github.com/wnbittle/praisenter/actions/workflows/build-all.yml)
-[![Pre-release Build](https://github.com/wnbittle/praisenter/actions/workflows/build-all-prerelease.yml/badge.svg)](https://github.com/wnbittle/praisenter/actions/workflows/build-all-prerelease.yml)
+[![Last Build](https://github.com/wnbittle/praisenter/actions/workflows/build-all.yml/badge.svg)](https://github.com/wnbittle/praisenter/actions/workflows/build-all.yml)
 
 A free and open source presentation software package for Churches, providing display of Bible verses, songs, notifications, and custom slides to a secondary displays, typically a projector, monitor or television.
 
