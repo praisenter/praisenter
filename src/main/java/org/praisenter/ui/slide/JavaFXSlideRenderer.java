@@ -137,10 +137,19 @@ public final class JavaFXSlideRenderer implements SlideRenderer {
 	
 	@Override
 	public BufferedImage renderThumbnail(Slide slide, int width, int height) {
+		LOGGER.debug("Taking slide snapshot");
 		Image fxImage = this.render(slide);
+		if (fxImage == null) 
+			return null;
+
 		// convert to a buffered image so we can manipulate it
+		LOGGER.debug("Converting Java FX image to buffered image");
 		BufferedImage image = SwingFXUtils.fromFXImage(fxImage, null);
+		if (image == null)
+			return null;
+
 		// make sure its a in the right format for scaling
+		LOGGER.debug("Making sure image format is correct");
 		image = ImageUtil.toBuffered(image, BufferedImage.TYPE_INT_ARGB);
 		
 		LOGGER.debug("Creating thumbnail from slide snapshot");
