@@ -5,7 +5,9 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
-import org.praisenter.async.InOrderExecutionManager;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.praisenter.async.CoalescingInOrderExecutionManager;
 
 import javafx.application.Platform;
 import javafx.beans.InvalidationListener;
@@ -14,10 +16,12 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 
 final class AsyncBinding<T> implements ObservableValue<T> {
+	private static final Logger LOGGER = LogManager.getLogger();
+
     private T value;
     private Supplier<T> func;
     
-    private InOrderExecutionManager asyncExecutionManager;
+    private CoalescingInOrderExecutionManager asyncExecutionManager;
     
     private List<InvalidationListener> invalidationListeners;
     private List<ChangeListener<? super T>> changeListeners;
@@ -25,11 +29,10 @@ final class AsyncBinding<T> implements ObservableValue<T> {
     private InvalidationListener invalidationListener;
     
     public AsyncBinding(Supplier<T> func, Observable... dependencies) {
-    	//this.source = value;
     	this.value = null;
     	this.func = func;
     	
-    	this.asyncExecutionManager = new InOrderExecutionManager();
+    	this.asyncExecutionManager = new CoalescingInOrderExecutionManager();
     	this.invalidationListeners = new ArrayList<InvalidationListener>(1);
     	this.changeListeners = new ArrayList<ChangeListener<? super T>>(1);
     	
@@ -49,7 +52,11 @@ final class AsyncBinding<T> implements ObservableValue<T> {
     			Platform.runLater(() -> {
     				this.applyResult(result, isInvalidation);
     			});
-    		});
+    		}).whenComplete((v, f) -> {
+				if (f != null) {
+					LOGGER.error("Failed to recompute async binding value", f);
+				}
+			});
     	});
     }
     
