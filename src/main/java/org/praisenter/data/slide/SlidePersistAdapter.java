@@ -47,7 +47,9 @@ public final class SlidePersistAdapter extends AbstractPersistAdapter<Slide, Sli
 	protected void create(Path path, Slide item) throws IOException {
 		Path thumbnailPath = this.pathResolver.getThumbPath(item);
 		BufferedImage image = this.renderer.renderThumbnail(item, this.configuration.getThumbnailWidth(), this.configuration.getThumbnailHeight());
-		ImageIO.write(image, this.pathResolver.getThumbExtension(), thumbnailPath.toFile());
+		if (image != null) {
+			ImageIO.write(image, this.pathResolver.getThumbExtension(), thumbnailPath.toFile());
+		}
 		// NOTE: need to set the thumbnail path because it won't be set
 		item.setThumbnailPath(thumbnailPath);
 		JsonIO.write(path, item);
@@ -57,7 +59,9 @@ public final class SlidePersistAdapter extends AbstractPersistAdapter<Slide, Sli
 	protected void update(Path path, Slide item) throws IOException {
 		Path thumbnailPath = this.pathResolver.getThumbPath(item);
 		BufferedImage image = this.renderer.renderThumbnail(item, this.configuration.getThumbnailWidth(), this.configuration.getThumbnailHeight());
-		ImageIO.write(image, this.pathResolver.getThumbExtension(), thumbnailPath.toFile());
+		if (image != null) {
+			ImageIO.write(image, this.pathResolver.getThumbExtension(), thumbnailPath.toFile());
+		}
 		// NOTE: need to set the thumbnail path every time 
 		// in the case of the slide being new where the field
 		// will stay null until the editor is closed and re-opened
