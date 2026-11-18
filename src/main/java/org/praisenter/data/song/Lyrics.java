@@ -97,11 +97,11 @@ public final class Lyrics implements ReadOnlyLyrics, Copyable {
 					return auth;
 				// otherwise its the first with type words
 				} else if (Author.TYPE_LYRICS.equals(type) && matchType < 1) {
-					auth = author;
+					author = auth;
 					matchType = 1;
 				// otherwise its the first with type music
 				} else if (Author.TYPE_MUSIC.equals(type) && matchType < 2) {
-					auth = author;
+					author = auth;
 					matchType = 2;
 				}
 				// otherwise its the first
