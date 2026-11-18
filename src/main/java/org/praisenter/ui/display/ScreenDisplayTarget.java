@@ -181,6 +181,7 @@ public final class ScreenDisplayTarget extends Stage implements DisplayTarget {
 		this.configuration.activeProperty().removeListener(this.activeListener);
 		
 		this.slideView.dispose();
+		this.notificationView.dispose();
 		
 		this.container.getChildren().clear();
 		
