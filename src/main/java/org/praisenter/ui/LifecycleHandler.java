@@ -677,8 +677,8 @@ public final class LifecycleHandler {
 				alert.show();
 			});
 			return false;
-		}).thenCompose((shouldContinue) -> {
-			// check if we should continue or not
+		}).thenComposeAsync((shouldContinue) -> {
+			// we need to run this in a different thread so that we don't block the JavaFX thread
 			if (shouldContinue) {
 				return this.waitForAsyncTaskCompletion(LOGGER);
 			}
