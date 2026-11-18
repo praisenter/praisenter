@@ -7,9 +7,10 @@ public final class Formatter {
 	private static final NumberFormat TIME_FORMAT = new DecimalFormat("00");
 	private static final NumberFormat ONE_DECIMAL_PLACE = new DecimalFormat("0.0");
 	private static final long[] BYTE_SCALE = new long[] {
-			1024, // 1 kilobyte
-			1024 * 1024, // 1 megabyte
-			1024 * 1024 * 1024, // 1 gigabyte
+			1024l, // 1 kilobyte
+			1024l * 1024l, // 1 megabyte
+			1024l * 1024l * 1024l, // 1 gigabyte
+			1024l * 1024l * 1024l * 1024l, // 1 terabyte
 		};
 	
 	private Formatter() {}
