@@ -4,9 +4,9 @@ import java.nio.ByteBuffer;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -48,6 +48,10 @@ import javafx.stage.StageStyle;
 
 public final class NDIDisplayTarget implements DisplayTarget {
 	private static final Logger LOGGER = LogManager.getLogger();
+
+	// one second worth of frames at 60 fps
+	private static final int MAX_FRAME_QUEUE_SIZE = 60;
+	private static final int FRAME_CONSUMER_SHUTDOWN_TIMEOUT_MILLISECONDS = 1000;
 	
 	private final GlobalContext context;
 	private final DisplayConfiguration configuration;
@@ -67,7 +71,7 @@ public final class NDIDisplayTarget implements DisplayTarget {
     private final int height;
     private final int pixelDepth;
     
-    private boolean disposed;
+    private final AtomicBoolean disposed;
     private boolean sentHideFrame;
     
     // NDI Consumer state
@@ -96,7 +100,7 @@ public final class NDIDisplayTarget implements DisplayTarget {
 		this.width = configuration.getWidth();
         this.height = configuration.getHeight();
         this.pixelDepth = 4;
-		this.disposed = false;
+		this.disposed = new AtomicBoolean(false);
 		this.sentHideFrame = false;
 		
 		// NOTE: when running on the laptop, it didn't matter what the NDI frame rate was
@@ -196,7 +200,7 @@ public final class NDIDisplayTarget implements DisplayTarget {
 		params.setFill(Color.TRANSPARENT);
 		
 		this.frameProducer = new FramesPerSecondTimer(configuration.getFramesPerSecond(), (frame) -> {
-			if (this.disposed) {
+			if (this.disposed.get()) {
 				return;
 			}
 			if (configuration.isActive()) {
@@ -212,8 +216,25 @@ public final class NDIDisplayTarget implements DisplayTarget {
 		});
 		
 		this.frameConsumer = new Thread(() -> {
-			ndiSendLoop();
-		});
+			try {
+				ndiSendLoop();
+			} finally {
+				// attempt to send a clear frame before releasing NDI resources
+				try {
+					this.sendClearFrame();
+				} finally {
+					// now release the NDI resources
+					LOGGER.debug("Releasing NDI resources");
+					try {
+						this.ndiTarget.close();
+					} finally {
+						this.videoFrame.close();
+					}
+					LOGGER.debug("NDI cleanup complete");
+				}
+			}
+		}, "NDI frame consumer");
+		this.frameConsumer.setDaemon(true);
 		
 		this.frameProducer.start();
 		this.frameConsumer.start();
@@ -267,6 +288,14 @@ public final class NDIDisplayTarget implements DisplayTarget {
 	private final void generateFrame(SnapshotParameters params, long frameNumber) {
 		WritableImage image = this.container.snapshot(params, null);
 		this.frameQueue.offer(new NDIVideoFrame(image, frameNumber));
+		// check the queue size for debugging purposes
+		// pop the queue until we have MAX_FRAME_QUEUE_SIZE or fewer frames
+		while (this.frameQueue.size() > MAX_FRAME_QUEUE_SIZE) {
+			NDIVideoFrame droppedFrame = this.frameQueue.poll();
+			if (droppedFrame != null) {
+				LOGGER.warn("Dropped frame {} from queue to maintain size limit. Current size: {}", droppedFrame.getFrameNumber(), this.frameQueue.size());
+			}
+		}
 	}
 	
 	private final void ndiSendLoop() {
@@ -275,13 +304,15 @@ public final class NDIDisplayTarget implements DisplayTarget {
         
         // now run forever, pushing any frames we receive to NDI
         long startTime = System.nanoTime();
-        while (!this.disposed) {
+        while (!this.disposed.get()) {
         	// attempt to get a frame from the frame queue
         	NDIVideoFrame frame = null;
 			try {
 				frame = this.frameQueue.poll(frameWaitTime, TimeUnit.MILLISECONDS);
 			} catch (InterruptedException e) {
-				LOGGER.warn("Waiting for a frame was interrupted.");
+				// An interrupt is used to wake the consumer during shutdown.
+				LOGGER.debug("NDI frame consumer interrupted.");
+				break;
 			}
 			
 			// the frame can be null if we waited long enough and we still
@@ -328,7 +359,7 @@ public final class NDIDisplayTarget implements DisplayTarget {
         
         LOGGER.debug("Stopping NDI consumer thread. disposed={}", this.disposed);
 	}
-	
+
 	private final void writeImageToBuffer(WritableImage image, ByteBuffer data) {
         data.position(0);
 
@@ -381,14 +412,17 @@ public final class NDIDisplayTarget implements DisplayTarget {
 	}
 	
 	public void dispose() {
-		LOGGER.debug("Marking NDI display target as disposed");
-		this.disposed = true;
+		if (!this.disposed.compareAndSet(false, true))
+			return;
 		
+		LOGGER.debug("Marking NDI display target as disposed");
+
 		if (this.stage != null) {
 			this.stage.hide();
 		}
 		
 		this.slideView.dispose();
+		this.notificationView.dispose();
 		this.container.getChildren().clear();
 		this.configuration.activeProperty().removeListener(this.activeListener);
 		
@@ -396,30 +430,23 @@ public final class NDIDisplayTarget implements DisplayTarget {
 		this.frameProducer.stop();
 		LOGGER.debug("NDI Frame producer stopped");
 		
-		CompletableFuture.runAsync(() -> {
-			// stop the frame consumer
-			if (this.frameConsumer != null) {
-				try {
-					this.frameConsumer.join();
-					LOGGER.debug("NDI frame consumer stopped");
-				} catch (InterruptedException e) {
-					LOGGER.warn("Waiting for the NDI consumer thread to complete was interrupted.");
-				}
-			}
-			
-			// send one last clear frame
-			this.sendClearFrame();
-			
-			// release the NDI natives
-			LOGGER.debug("Releasing NDI resources");
-			this.ndiTarget.close();
-			this.videoFrame.close();
-			
-			LOGGER.debug("Clearing NDI frame queue");
-			this.frameQueue.clear();
-			
-			LOGGER.debug("NDI clean up complete");
-		});
+		// clear all frames from the queue
+		LOGGER.debug("Clearing NDI frame queue");
+		this.frameQueue.clear();
+		this.frameConsumer.interrupt();
+
+		try {
+			this.frameConsumer.join(FRAME_CONSUMER_SHUTDOWN_TIMEOUT_MILLISECONDS);
+		} catch (InterruptedException ex) {
+			Thread.currentThread().interrupt();
+			LOGGER.warn("Waiting for the NDI consumer thread to stop was interrupted; native cleanup will run when it exits.", ex);
+		}
+
+		if (this.frameConsumer.isAlive()) {
+			LOGGER.warn("NDI consumer thread did not stop within {} milliseconds; native cleanup is deferred until it exits.", FRAME_CONSUMER_SHUTDOWN_TIMEOUT_MILLISECONDS);
+		} else {
+			LOGGER.debug("NDI frame consumer stopped and native cleanup completed");
+		}
 	}
 
 
@@ -491,7 +518,7 @@ public final class NDIDisplayTarget implements DisplayTarget {
 			
 			SlidePaint scsp = sc.getBackground();
 			if (scsp != null && scsp instanceof MediaObject) {
-				MediaObject mo = ((MediaObject) sp);
+				MediaObject mo = ((MediaObject) scsp);
 				if (mo != null) {
 					mo.setMuted(true);
 				}
