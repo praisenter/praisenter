@@ -109,7 +109,7 @@ public final class MediaConverter {
 			MediaPlayer player = new MediaPlayer(m);
 			// set the player attributes
 			player.setMute(mute);
-			player.setCycleCount(loop ? MediaPlayer.INDEFINITE : 0);
+			player.setCycleCount(loop ? MediaPlayer.INDEFINITE : 1);
 			player.setOnError(() -> { LOGGER.error(player.getError()); });
 			
 			return player;

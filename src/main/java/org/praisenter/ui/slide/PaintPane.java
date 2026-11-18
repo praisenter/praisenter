@@ -377,7 +377,7 @@ final class PaintPane extends StackPane implements Playable {
 				this.mediaView.setMediaPlayer(player);
 			} else {
 				player.setMute(mode == SlideMode.PREVIEW || nv.isMuted());
-				player.setCycleCount(nv.isLoopEnabled() ? MediaPlayer.INDEFINITE : 0);
+				player.setCycleCount(nv.isLoopEnabled() ? MediaPlayer.INDEFINITE : 1);
 			}
 		}
 	}
