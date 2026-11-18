@@ -16,6 +16,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
 import javafx.scene.image.Image;
 
 public final class ImageCache {
@@ -101,7 +102,7 @@ public final class ImageCache {
 	 * @param id the id
 	 * @return true if the id exists, and it's image is non-null
 	 */
-	public boolean isImageCached(UUID id) {
+	public synchronized boolean isImageCached(UUID id) {
 		ImageCacheKey key = new ImageCacheKey(ImageCacheKeyType.MEDIA_IMAGE, id.toString());
 		if (this.images.containsKey(key)) {
 			Image image = this.images.get(key).get();
@@ -143,7 +144,10 @@ public final class ImageCache {
 		// load the images
 		List<Image> imgs = new ArrayList<>();
 		for (var entry : images.entrySet()) {
-			imgs.add(this.getOrLoadImage(entry.getKey(), entry.getValue()));
+			Image image = this.getOrLoadImage(entry.getKey(), entry.getValue());
+			if (image != null) {
+				imgs.add(image);
+			}
 		}
 		
 		// now try to wait on them
@@ -171,21 +175,41 @@ public final class ImageCache {
 		for (Image image : images) {
 			CompletableFuture<Void> future = new CompletableFuture<Void>();
 			tasks.add(future);
-			if (image.isBackgroundLoading()) {
-				image.progressProperty().addListener((obs, ov, nv) -> {
-					if (nv.doubleValue() == 1.0) {
-						// then it's done
-						LOGGER.trace("Image '{}' has completed loading.", image.getUrl());
-						future.complete(null);
-					}
+			
+			// create listeners for progress and error events
+			final ChangeListener<Number> progressListener = (obs, ov, nv) -> {
+				if (nv.doubleValue() == 1.0) {
+					// then it's done
+					LOGGER.trace("Image '{}' has completed loading.", image.getUrl());
+					future.complete(null);
+				}
+			};
+			final ChangeListener<Boolean> errorListener = (obs, ov, nv) -> {
+				if (nv) {
+					LOGGER.error("Image '" + image.getUrl() + "' has failed to load: ", image.getException());
+					future.complete(null);
+				}
+			};
+			
+			// when the future is completed, remove the listeners
+			future.handleAsync((res, ex) -> {
+				Platform.runLater(() -> {
+					image.progressProperty().removeListener(progressListener);
+					image.errorProperty().removeListener(errorListener);
 				});
-				image.errorProperty().addListener((obs, ov, nv) -> {
-					if (nv) {
-						LOGGER.error("Image '" + image.getUrl() + "' has failed to load: ", image.getException());
-						future.complete(null);
-					}
-				});
-			} else {
+				return null;
+			});
+
+			// add the listeners
+			image.progressProperty().addListener(progressListener);
+			image.errorProperty().addListener(errorListener);
+
+			// then inspect current state to see if it's already done or has an error
+			if (image.getProgress() == 1.0) {
+				LOGGER.trace("Image '{}' has completed loading.", image.getUrl());
+				future.complete(null);
+			} else if (image.isError()) {
+				LOGGER.error("Image '" + image.getUrl() + "' has failed to load: ", image.getException());
 				future.complete(null);
 			}
 		}
@@ -209,7 +233,7 @@ public final class ImageCache {
 	/**
 	 * Removes everything from the cache.
 	 */
-	public void clear() {
+	public synchronized void clear() {
 		this.images.clear();
 	}
 	
