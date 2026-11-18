@@ -1,7 +1,6 @@
 package org.praisenter.ui;
 
 import java.io.IOException;
-import java.lang.ref.SoftReference;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,12 +21,25 @@ import javafx.scene.image.Image;
 public final class ImageCache {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
-	private final Map<ImageCacheKey, SoftReference<Image>> images;
+	private final Map<ImageCacheKey, CachedImage> images;
 
 	public ImageCache() {
-		this.images = new HashMap<ImageCacheKey, SoftReference<Image>>();
+		this.images = new HashMap<ImageCacheKey, CachedImage>();
 	}
 	
+	/**
+	 * Private class used to hold a strong reference to an image
+	 * after being loaded from the supplier
+	 */
+	private final class SuppliedImage {
+		final Image image;
+		final CachedImage cachedImage;
+		public SuppliedImage(Image image, CachedImage cachedImage) {
+			this.image = image;
+			this.cachedImage = cachedImage;
+		}
+	}
+
 	/**
 	 * Returns the image for the given path, loading it if necessary.
 	 * <p>
@@ -36,23 +48,42 @@ public final class ImageCache {
 	 * @param supplier the function to load the image if it doesn't exist
 	 * @return Image
 	 */
-	private synchronized Image getOrLoad(ImageCacheKey key, Supplier<Image> supplier) {
+	private synchronized Image getOrLoad(ImageCacheKey key, String location, Supplier<SuppliedImage> supplier) {
 		this.evict();
 		if (this.images.containsKey(key)) {
-			Image image = this.images.get(key).get();
+			CachedImage cachedImage = this.images.get(key);
+			Image image = cachedImage.getImage();
 			if (image != null) {
-				LOGGER.trace("Image for key: {} found in cache.", key);
-				return image;
+				LOGGER.trace("Image for key: {} found in cache. Last modified date: {}", key, cachedImage.getLastModified());
+				if (cachedImage.hasLocationChanged(location)) {
+					LOGGER.debug("Image for key: {} has changed location. Reloading...", key);
+					this.images.remove(key);
+					cachedImage = null;
+				} else if (cachedImage.hasUpdated()) {
+					LOGGER.debug("Image for key: {} is outdated. Reloading...", key);
+					this.images.remove(key);
+					cachedImage = null;
+				} else {
+					return image;
+				}
 			}
 		}
+
 		LOGGER.debug("Image for key: {} was not found in the cache. Loading...", key);
-		Image image = supplier.get();
+		SuppliedImage suppliedImage = supplier.get();
+		if (suppliedImage == null) {
+			return null;
+		}
+
+		CachedImage cachedImage = suppliedImage.cachedImage;
+		Image image = suppliedImage.image;
 		if (image != null) {
 			LOGGER.debug("Image loaded for key: {}", key);
-			this.images.put(key, new SoftReference<Image>(image));
+			this.images.put(key, cachedImage);
 		} else {
 			LOGGER.warn("Image was loaded but was null.", key);
 		}
+
 		return image;
 	}
 	
@@ -67,10 +98,12 @@ public final class ImageCache {
 	 */
 	public Image getOrLoadThumbnail(UUID id, Path path) {
 		ImageCacheKey key = new ImageCacheKey(ImageCacheKeyType.THUMBNAIL, id.toString());
-		return getOrLoad(key, () -> {
+		return getOrLoad(key, path.toAbsolutePath().toString(), () -> {
 			try {
 				LOGGER.debug("Converting BufferedImage into Image.");
-				return this.load(path.toUri().toURL().toExternalForm());
+				Image image = this.load(path);
+				CachedImage cachedImage = CachedImage.fromPath(image, path);
+				return new SuppliedImage(image, cachedImage);
 			} catch (Exception ex) {
 				LOGGER.error("Failed to convert buffered image for '" + id + "'", ex);
 			}
@@ -87,9 +120,11 @@ public final class ImageCache {
 	 */
 	public Image getOrLoadImage(UUID id, Path path) {
 		ImageCacheKey key = new ImageCacheKey(ImageCacheKeyType.MEDIA_IMAGE, id.toString());
-		return getOrLoad(key, () -> {
+		return getOrLoad(key, path.toAbsolutePath().toString(), () -> {
 			try {
-				return this.load(path.toUri().toURL().toExternalForm());
+				Image image = this.load(path);
+				CachedImage cachedImage = CachedImage.fromPath(image, path);
+				return new SuppliedImage(image, cachedImage);
 			} catch (Exception ex) {
 				LOGGER.error("Failed to load image from path '" + path.toAbsolutePath().toString() + "'", ex);
 			}
@@ -99,14 +134,19 @@ public final class ImageCache {
 
 	/**
 	 * Returns true if the given image id is present in the image cache.
+	 * <p>
+	 * NOTE: This only checks for the presence of the image in the cache and 
+	 * whether it is non-null. It does not check if the image has been updated
+	 * on the file system.  In most cases this doesn't matter because cached
+	 * images are from Images or Videos which can't be updated in Praisenter.
 	 * @param id the id
 	 * @return true if the id exists, and it's image is non-null
 	 */
 	public synchronized boolean isImageCached(UUID id) {
 		ImageCacheKey key = new ImageCacheKey(ImageCacheKeyType.MEDIA_IMAGE, id.toString());
 		if (this.images.containsKey(key)) {
-			Image image = this.images.get(key).get();
-			if (image != null) {
+			CachedImage ci = this.images.get(key);
+			if (ci != null && ci.getImageReference().get() != null) {
 				return true;
 			}
 		}
@@ -123,10 +163,12 @@ public final class ImageCache {
 	 */
 	public Image getOrLoadClasspathImage(String classpath) {
 		ImageCacheKey key = new ImageCacheKey(ImageCacheKeyType.APPLICATION_IMAGE, classpath);
-		return getOrLoad(key, () -> {
+		return getOrLoad(key, classpath, () -> {
 			try {
 				LOGGER.debug("Loading image from classpath '{}'.", classpath);
-				return this.load(ImageCache.class.getResource(classpath).toExternalForm());
+				Image image = this.load(ImageCache.class.getResource(classpath).toExternalForm());
+				CachedImage cachedImage = CachedImage.fromString(image, classpath);
+				return new SuppliedImage(image, cachedImage);
 			} catch (Exception ex) {
 				LOGGER.error("Failed to load image from path '" + classpath + "'", ex);
 			}
@@ -220,16 +262,16 @@ public final class ImageCache {
 	 * Removes keys from the cache whose soft references have been collected.
 	 */
 	private void evict() {
-		Iterator<SoftReference<Image>> it = this.images.values().iterator();
+		Iterator<CachedImage> it = this.images.values().iterator();
 		while (it.hasNext()) {
-			SoftReference<Image> ref = it.next();
-			if (ref.get() == null) {
+			CachedImage ref = it.next();
+			if (ref.getImage() == null) {
 				it.remove();
 				LOGGER.debug("Image with key '{}' has been evicted from the image cache.");
 			}
 		}
 	}
-	
+
 	/**
 	 * Removes everything from the cache.
 	 */
@@ -237,6 +279,18 @@ public final class ImageCache {
 		this.images.clear();
 	}
 	
+	/**
+	 * Loads an Image from the given path.
+	 * @param path the path
+	 * @return Image
+	 * @throws IOException 
+	 */
+	private Image load(Path path) throws IOException {
+		String url = path.toUri().toURL().toExternalForm();
+		Image image = this.load(url);
+		return image;
+	}
+
 	/**
 	 * Loads an Image from the given path.
 	 * @param path the path
