@@ -991,7 +991,7 @@ public final class GlobalContext {
 		return CompletableFuture.supplyAsync(() -> {
 			try {
 				BufferedImage img = SwingFXUtils.fromFXImage(image, null);
-				Files.createDirectories(tempFile);
+				Files.createDirectories(tempPath);
 				ImageIO.write(img, "png", tempFile.toFile());
 				return tempFile;
 			} catch (IOException e) {
