@@ -280,6 +280,13 @@ final class UnboundBibleFormatProvider implements ImportExportProvider<Bible> {
 				if (data.length < 4) {
 					LOGGER.error("Expected at least 4 columns of tab delimited data, but found " + data.length + " columns at line " + i + " of " + fileName);
 					throw new InvalidImportExportFormatException(fileName + ":" + i);
+				// we MUST have the required columns: orig_book_index, orig_chapter, orig_verse, text
+				} else if (columnMapping[0] == -1 || columnMapping[1] == -1 || columnMapping[2] == -1 || columnMapping[5] == -1) {
+					LOGGER.error("Missing required column mapping at line " + i + " of " + fileName);
+					throw new InvalidImportExportFormatException(fileName + ":" + i);
+				} else if (data.length <= columnMapping[0] || data.length <= columnMapping[1] || data.length <= columnMapping[2] || data.length <= columnMapping[5]) {
+					LOGGER.error("Insufficient columns at line " + i + " of " + fileName);
+					throw new InvalidImportExportFormatException(fileName + ":" + i);
 				} else {
 					try {
 						// dont bother checking the mapping on these since they are necessary
@@ -288,6 +295,16 @@ final class UnboundBibleFormatProvider implements ImportExportProvider<Bible> {
 						
 						// get the book
 						Book book = bookMap.get(bc);
+
+						// handle the case where the book does not exist in the map
+						if (book == null) {
+							book = new Book();
+							book.setName(bc);
+							book.setNumber(0);
+							bible.getBooks().add(book);
+							bookMap.put(bc, book);
+						}
+
 						// get the chapter
 						Chapter chapter = book.getChapter(cn);
 						// check for chapter not exists
