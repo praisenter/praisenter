@@ -11,7 +11,7 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Function;
+import java.util.concurrent.CompletionException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -334,6 +334,11 @@ public class SlideView extends Region implements Playable {
 		// handle new display
 		return this.prepare(slide, data).thenAccept((prepared) -> {
 			LOGGER.trace("Slide '{}' is prepared", slide);
+			// check if prepared slide is null
+			if (prepared == null) {
+				LOGGER.warn("Prepared slide is null, skipping render");
+				return;
+			}
 			// at this point we need to know whether this one is old
 			// before attempting to present it
 			PreparedSlide current = this.slide.get();
@@ -349,6 +354,9 @@ public class SlideView extends Region implements Playable {
 			// currently transitioning slide (the transition is in
 			// progress)
 			this.renderPreparedSlide(prepared, transition);
+		}).exceptionally((ex) -> {
+			LOGGER.error("Failed to prepare and render slide: ", ex);
+			return null;
 		});
 	}
 
@@ -887,7 +895,14 @@ public class SlideView extends Region implements Playable {
 				// otherwise, we have to go into another thread to wait for media to spool
 				future = CompletableFuture.completedFuture(slideNode).thenRunAsync(() -> {
 					// then on a thread-pool thread, wait for the media to be ready
-					this.waitForMediaReady(slideNode);
+					try {
+						this.waitForMediaReady(slideNode);
+					} catch (InterruptedException ex) {
+						Platform.runLater(() -> {
+							slideNode.dispose();
+						});
+						throw new CompletionException("Failed to prepare slide, the thread was interrupted while waiting for media to be ready", ex);
+					}
 				}).thenComposeAsync(AsyncHelper.onJavaFXThreadAndWait((v) -> {
 					// then on the JavaFX thread, add to the prepared SlideNode to the
 					// prepared queue and signal it's ready
@@ -901,7 +916,6 @@ public class SlideView extends Region implements Playable {
 			// load the media asynchronously in an executor thread
 			future = this.preLoadImagesAsync(mediaToLoad).thenCompose((v) -> {
 				CompletableFuture<PreparedSlide> ps = new CompletableFuture<PreparedSlide>();
-				CompletableFuture<PreparedSlide> sn = new CompletableFuture<PreparedSlide>();
 				
 				Platform.runLater(() -> {
 					// then on the JavaFX thread build the SlideNode
@@ -918,25 +932,31 @@ public class SlideView extends Region implements Playable {
 					} else {
 						CompletableFuture.completedFuture(slideNode).thenRunAsync(() -> {
 							// then on a thread-pool thread, wait for the media to be ready
-							this.waitForMediaReady(slideNode);
+							try {
+								this.waitForMediaReady(slideNode);
+							} catch (InterruptedException ex) {
+								// complete the future exceptionally
+								Platform.runLater(() -> {
+									slideNode.dispose();
+								});
+								ps.completeExceptionally(ex);
+								throw new CompletionException("Failed to prepare slide, the thread was interrupted while waiting for media to be ready", ex);
+							}
 						}).thenComposeAsync(AsyncHelper.onJavaFXThreadAndWait(() -> {
 							// then on the JavaFX thread, add to the prepared SlideNode to the
 							// prepared queue and signal it's ready
 							LOGGER.trace("Slide '{}' is ready for view", slide);
 							PreparedSlide ptr = new PreparedSlide(slide, data, slideNode, time);
-							sn.complete(ptr);
+							ps.complete(ptr);
 						}));
 					}
 				});
 				
-				return sn.applyToEither(ps, Function.identity());
+				return ps;
 			});
 		}
 
-		return future.exceptionally(t -> {
-			LOGGER.error("Failed to prepare slide: ", t);
-			return null;
-		});
+		return future;
 	}
 	
 	
@@ -990,28 +1010,24 @@ public class SlideView extends Region implements Playable {
 	}
 	
 	
-	private void waitForMediaReady(SlideNode node) {
+	private void waitForMediaReady(SlideNode node) throws InterruptedException {
 		int waitTimeInMS = 0;
 		final int waitTimeIncrementInMS = 100;
 		final int maxWaitTimeInMS = 5 * 1000;
 		
 		LOGGER.trace("Staring wait for media players");
 		while (!node.isReady()) {
-			try {
-				Thread.sleep(waitTimeIncrementInMS);
-				waitTimeInMS += waitTimeIncrementInMS;
-			} catch (InterruptedException e) {
-				LOGGER.error("The thread waiting for media players to get ready was interrupted", e);
-				break;
-			}
+			Thread.sleep(waitTimeIncrementInMS);
+			waitTimeInMS += waitTimeIncrementInMS;
 			
 			if (waitTimeInMS >= maxWaitTimeInMS) {
 				LOGGER.warn("Waiting for media to get ready took too long {} ms", waitTimeInMS);
 				break;
 			}
 		}
-			
-		LOGGER.trace("Media players are ready!");
+		
+		if (node.isReady())
+			LOGGER.trace("Media players are ready!");
 	}
 	
 	// properties

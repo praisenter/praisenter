@@ -29,7 +29,7 @@ public interface ImportExportProvider<T extends Persistable> {
 	 * @param name the file, stream, or entry name
 	 * @param stream the stream
 	 * @return boolean
-	 * @throws IOException
+	 * @throws IOException if an I/O error occurs during import
 	 */
 	public boolean isSupported(String name, InputStream stream) throws IOException;
 	
@@ -40,7 +40,7 @@ public interface ImportExportProvider<T extends Persistable> {
 	 * @param adapter the persist adapter
 	 * @param path the target path
 	 * @param data the data to write
-	 * @throws IOException
+	 * @throws IOException if an I/O error occurs during import
 	 */
 	public void exp(PersistAdapter<T> adapter, Path path, T data) throws IOException;
 	
@@ -51,7 +51,7 @@ public interface ImportExportProvider<T extends Persistable> {
 	 * @param adapter the persist adapter
 	 * @param stream the target stream
 	 * @param data the data to write
-	 * @throws IOException
+	 * @throws IOException if an I/O error occurs during import
 	 */
 	public void exp(PersistAdapter<T> adapter, OutputStream stream, T data) throws IOException;
 	
@@ -60,7 +60,7 @@ public interface ImportExportProvider<T extends Persistable> {
 	 * @param adapter the persist adapter
 	 * @param stream the target zip stream
 	 * @param data the data to write
-	 * @throws IOException
+	 * @throws IOException if an I/O error occurs during import
 	 */
 	public void exp(PersistAdapter<T> adapter, ZipArchiveOutputStream stream, T data) throws IOException;
 	
@@ -71,7 +71,8 @@ public interface ImportExportProvider<T extends Persistable> {
 	 * @param adapter the persist adapter to import the item to
 	 * @param path the source file path
 	 * @return {@link DataImportResult}
-	 * @throws IOException
+	 * @throws IOException if an I/O error occurs during import
+	 * @throws InterruptedException if the import process is interrupted
 	 */
-	public DataImportResult<T> imp(PersistAdapter<T> adapter, Path path) throws IOException;
+	public DataImportResult<T> imp(PersistAdapter<T> adapter, Path path) throws IOException, InterruptedException;
 }

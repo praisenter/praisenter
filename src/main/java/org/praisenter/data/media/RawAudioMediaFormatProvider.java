@@ -118,7 +118,7 @@ final class RawAudioMediaFormatProvider extends AbstractMediaFormatProvider {
 	}
 	
 	@Override
-	public DataImportResult<Media> imp(PersistAdapter<Media> adapter, Path path) throws IOException {
+	public DataImportResult<Media> imp(PersistAdapter<Media> adapter, Path path) throws IOException, InterruptedException {
 		MediaPathResolver mpr = (MediaPathResolver)adapter.getPathResolver();
 		UUID id = UUID.randomUUID();
 		
@@ -126,16 +126,25 @@ final class RawAudioMediaFormatProvider extends AbstractMediaFormatProvider {
 		String extension = this.getExtension(path);
 		Path target = mpr.getMediaPath().resolve(mpr.getFileName(id, extension));
 		
-		// are we doing transcoding?
-		if (this.configuration.isAudioTranscodingEnabled() && this.isValidTranscodeCommand(MediaType.AUDIO)) {
-			extension = this.configuration.getAudioTranscodeExtension();
-			// get the proper target path
-			target = mpr.getMediaPath().resolve(mpr.getFileName(id, extension));
-			// transcode the file
-			this.transcode(path, target, MediaType.AUDIO);
-		} else {
-			// just copy the file
-			Files.copy(path, target, StandardCopyOption.REPLACE_EXISTING);
+		try {
+			// are we doing transcoding?
+			if (this.configuration.isAudioTranscodingEnabled() && this.isValidTranscodeCommand(MediaType.AUDIO)) {
+				extension = this.configuration.getAudioTranscodeExtension();
+				// get the proper target path
+				target = mpr.getMediaPath().resolve(mpr.getFileName(id, extension));
+				// transcode the file
+				this.transcode(path, target, MediaType.AUDIO);
+			} else {
+				// just copy the file
+				Files.copy(path, target, StandardCopyOption.REPLACE_EXISTING);
+			}
+		} catch (InterruptedException ex) {
+			this.delete(target);
+			throw ex;
+		} catch (IOException e) {
+			// it's possible that the target file was partially created before the exception occurred
+			this.delete(target);
+			throw new MediaImportException("Failed to copy/transcode the media to '" + target.toAbsolutePath().toString() + "'", e);
 		}
 		
 		// now that the media is the proper location and in the proper format
@@ -150,9 +159,9 @@ final class RawAudioMediaFormatProvider extends AbstractMediaFormatProvider {
 			if (!metadata.hasAudio()) {
 				throw new MediaImportException("No audio stream was found in the file '" + path.toAbsolutePath().toString() + "'.");
 			}
-		} catch (InterruptedException e) {
+		} catch (InterruptedException ex) {
 			this.delete(target);
-			throw new MediaImportException("The process to extract metadata from '" + path.toAbsolutePath().toString() + "' was interrupted.", e);
+			throw ex;
 		} catch (IOException e) {
 			this.delete(target);
 			throw new MediaImportException("The process to extract metadata from '" + path.toAbsolutePath().toString() + "' failed.", e);

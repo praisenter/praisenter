@@ -132,6 +132,8 @@ public final class PersistentStore<T extends Persistable> {
 					}
 				}
 				return result;
+			} catch (InterruptedException ex) {
+				throw new CompletionException(ex);
 			} catch (Exception ex) {
 				if (isTypeKnown) {
 					throw new CompletionException(ex);

@@ -24,8 +24,8 @@ import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.LockMap;
-//import org.praisenter.data.json.JsonIO;
 import org.praisenter.utility.MimeType;
+import org.praisenter.utility.RuntimeInterruptException;
 
 public abstract class AbstractPersistAdapter<T extends Persistable, E extends PathResolver<T>> implements PersistAdapter<T> {
 	/** The class-level logger */
@@ -180,12 +180,12 @@ public abstract class AbstractPersistAdapter<T extends Persistable, E extends Pa
 	}
 
 	@Override
-	public DataImportResult<T> importData(Path path) throws IOException {
+	public DataImportResult<T> importData(Path path) throws IOException, InterruptedException {
 		Collection<ImportExportProvider<T>> providers = this.importExportProviders.values();
 		return this.importFile(path, providers);
 	}
 
-	private DataImportResult<T> importFile(Path path, Collection<ImportExportProvider<T>> providers) throws IOException {
+	private DataImportResult<T> importFile(Path path, Collection<ImportExportProvider<T>> providers) throws IOException, InterruptedException {
 		DataImportResult<T> results = new DataImportResult<>();
 		
 		LOGGER.debug("Importing data from '{}'", path.toAbsolutePath());
@@ -204,6 +204,8 @@ public abstract class AbstractPersistAdapter<T extends Persistable, E extends Pa
 					if (!res.isEmpty()) {
 						break;
 					}
+				} catch (InterruptedException ex) {
+					throw ex;
 				} catch (Exception ex) {
 					LOGGER.warn("Failed to import '" + path.toAbsolutePath() + "' using provider '" + provider.getClass().getName() + "'", ex);
 				}
@@ -235,11 +237,17 @@ public abstract class AbstractPersistAdapter<T extends Persistable, E extends Pa
 								try {
 									DataImportResult<T> res = this.importFile(p, providers);
 									results.add(res);
-								} catch (IOException e) {
-									LOGGER.debug("Failed to import file '" + p.toAbsolutePath() + "'", e);
+								} catch (InterruptedException ex) {
+									// throw a runtime exception - we'll check for this later
+									throw new RuntimeInterruptException(ex);
+								} catch (IOException ex) {
+									LOGGER.debug("Failed to import file '" + p.toAbsolutePath() + "'", ex);
 								}
 							}
 					    });
+					} catch (RuntimeInterruptException ex) {
+						// rethrow the cause as an InterruptedException
+						throw ex.getCause();
 					}
 				} finally {
 					// when done, clean up the temp directory

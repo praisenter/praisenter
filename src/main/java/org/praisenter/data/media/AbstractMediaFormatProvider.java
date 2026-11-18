@@ -112,24 +112,29 @@ abstract class AbstractMediaFormatProvider implements ImportExportProvider<Media
 			// loop through the readers until we find one that works
 			while (readers.hasNext()) {
 				ImageReader reader = readers.next();
-				reader.setInput(in);
-				// read and correct the image
-				LOGGER.debug("Correcting orientation of '{}'.", source);
-				BufferedImage image = ImageManipulator.correctExifOrientation(reader.read(0), orientation);
-				
-				// convert so that saving a JPG with alpha doesn't alter the image
-				if (image.getColorModel().hasAlpha() && ("JPG".equals(reader.getFormatName().toUpperCase()) || "JPEG".equals(reader.getFormatName().toUpperCase()))) {
-					LOGGER.debug("Converting color model of '{}'.", source);
-					BufferedImage bi = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_RGB);
-					Graphics2D g2d = bi.createGraphics();
-					g2d.drawImage(image, 0, 0, null);
-					g2d.dispose();
-					image = bi;
+				try {
+					reader.setInput(in);
+					// read and correct the image
+					LOGGER.debug("Correcting orientation of '{}'.", source);
+					BufferedImage image = ImageManipulator.correctExifOrientation(reader.read(0), orientation);
+					
+					// convert so that saving a JPG with alpha doesn't alter the image
+					String formatName = reader.getFormatName();
+					if (image.getColorModel().hasAlpha() && ("JPG".equals(formatName.toUpperCase()) || "JPEG".equals(formatName.toUpperCase()))) {
+						LOGGER.debug("Converting color model of '{}'.", source);
+						BufferedImage bi = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_RGB);
+						Graphics2D g2d = bi.createGraphics();
+						g2d.drawImage(image, 0, 0, null);
+						g2d.dispose();
+						image = bi;
+					}
+					
+					LOGGER.debug("Writing corrected image to media library.");
+					ImageIO.write(image, formatName, target.toFile());
+					break;
+				} finally {
+					reader.dispose();
 				}
-				
-				LOGGER.debug("Writing corrected image to media library.");
-				ImageIO.write(image, reader.getFormatName(), target.toFile());
-				break;
 			}
 		}
 	}
@@ -198,8 +203,9 @@ abstract class AbstractMediaFormatProvider implements ImportExportProvider<Media
 	 * @param target the target file
 	 * @param type the media type
 	 * @throws MediaImportException if an error occurs during transcoding
+	 * @throws InterruptedException if the transcoding process is interrupted
 	 */
-	protected final void transcode(Path source, Path target, MediaType type) throws MediaImportException {
+	protected final void transcode(Path source, Path target, MediaType type) throws MediaImportException, InterruptedException {
 		// split the command by whitespace
 		String command = (type == MediaType.VIDEO 
 				 ? this.configuration.getVideoTranscodeCommand()
@@ -214,8 +220,6 @@ abstract class AbstractMediaFormatProvider implements ImportExportProvider<Media
 			this.tools.ffmpegTranscode(settings, source, target);
 		} catch (IOException ex) {
 			throw new MediaImportException("Failed to transcode media '" + source.toAbsolutePath().toString() + "'.", ex);
-		} catch (InterruptedException ex) {
-			throw new MediaImportException("Failed to transcode media '" + source.toAbsolutePath().toString() + "' due to the process being interrupted.", ex);
 		}
 	}
 	

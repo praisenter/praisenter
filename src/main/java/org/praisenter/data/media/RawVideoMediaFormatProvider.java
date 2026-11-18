@@ -115,7 +115,7 @@ final class RawVideoMediaFormatProvider extends AbstractMediaFormatProvider {
 	}
 	
 	@Override
-	public DataImportResult<Media> imp(PersistAdapter<Media> adapter, Path path) throws IOException {
+	public DataImportResult<Media> imp(PersistAdapter<Media> adapter, Path path) throws IOException, InterruptedException {
 		MediaPathResolver mpr = (MediaPathResolver)adapter.getPathResolver();
 		
 		UUID id = UUID.randomUUID();
@@ -124,16 +124,25 @@ final class RawVideoMediaFormatProvider extends AbstractMediaFormatProvider {
 		String extension = this.getExtension(path);
 		Path target = mpr.getMediaPath().resolve(mpr.getFileName(id, extension));
 		
-		// are we doing transcoding?
-		if (this.configuration.isVideoTranscodingEnabled() && this.isValidTranscodeCommand(MediaType.VIDEO)) {
-			extension = this.configuration.getVideoTranscodeExtension();
-			// get the proper target path
-			target = mpr.getMediaPath().resolve(mpr.getFileName(id, extension));
-			// transcode the file
-			this.transcode(path, target, MediaType.VIDEO);
-		} else {
-			// just copy the file
-			Files.copy(path, target, StandardCopyOption.REPLACE_EXISTING);
+		try {
+			// are we doing transcoding?
+			if (this.configuration.isVideoTranscodingEnabled() && this.isValidTranscodeCommand(MediaType.VIDEO)) {
+				extension = this.configuration.getVideoTranscodeExtension();
+				// get the proper target path
+				target = mpr.getMediaPath().resolve(mpr.getFileName(id, extension));
+				// transcode the file
+				this.transcode(path, target, MediaType.VIDEO);
+			} else {
+				// just copy the file
+				Files.copy(path, target, StandardCopyOption.REPLACE_EXISTING);
+			}
+		} catch (InterruptedException ex) {
+			this.delete(target);
+			throw ex;
+		} catch (IOException e) {
+			// it's possible that the target file was partially created before the exception occurred
+			this.delete(target);
+			throw new MediaImportException("Failed to copy/transcode the media to '" + target.toAbsolutePath().toString() + "'", e);
 		}
 		
 		// now that the media is the proper location and in the proper format
@@ -148,9 +157,9 @@ final class RawVideoMediaFormatProvider extends AbstractMediaFormatProvider {
 			if (!metadata.hasVideo()) {
 				throw new MediaImportException("No video stream was found in the file '" + path.toAbsolutePath().toString() + "'.");
 			}
-		} catch (InterruptedException e) {
+		} catch (InterruptedException ex) {
 			this.delete(target);
-			throw new MediaImportException("The process to extract metadata from '" + path.toAbsolutePath().toString() + "' was interrupted.", e);
+			throw ex;
 		} catch (IOException e) {
 			this.delete(target);
 			throw new MediaImportException("The process to extract metadata from '" + path.toAbsolutePath().toString() + "' failed.", e);
@@ -164,7 +173,10 @@ final class RawVideoMediaFormatProvider extends AbstractMediaFormatProvider {
 			
 			LOGGER.debug("Video media '{}' - searching for best frame.", path);
 			image = this.tools.ffmpegExtractFrame(command, path);
-		} catch (Exception ex) {
+		} catch (InterruptedException ex) {
+			this.delete(target);
+			throw ex;
+		} catch (IOException ex) {
 			LOGGER.warn("Failed to extract frame from video '" + path.toAbsolutePath().toString() + "'.");
 		}
 
@@ -211,7 +223,9 @@ final class RawVideoMediaFormatProvider extends AbstractMediaFormatProvider {
 				thumb = this.createThumbnail(image);
 				this.drawFilmOnFrame(thumb);
 			}
-			ImageIO.write(thumb, mpr.getThumbExtension(), mpr.getThumbPath(media).toFile());
+			if (thumb != null) {
+				ImageIO.write(thumb, mpr.getThumbExtension(), mpr.getThumbPath(media).toFile());
+			}
 		} catch (Exception ex) {
 			this.delete(target, mpr.getPath(media), mpr.getImagePath(media));
 			throw new MediaImportException("Failed to store thumbnail for media '" + media.getName() + "'.", ex);

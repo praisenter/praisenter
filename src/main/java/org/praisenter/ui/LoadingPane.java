@@ -365,7 +365,11 @@ final class LoadingPane extends Pane {
 	private void waitForAnimation() {
 		try {
 			Thread.sleep(ANIMATION_DURATION);
-		} catch (InterruptedException e) {}
+		} catch (InterruptedException e) {
+			// intentionally not setting the interrupted flag because 
+			// we want the process to continue in this case
+			LOGGER.debug("Animation wait interrupted; continuing startup");
+		}
 	}
 	
 	/**

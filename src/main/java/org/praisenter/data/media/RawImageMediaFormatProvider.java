@@ -129,11 +129,16 @@ final class RawImageMediaFormatProvider extends AbstractMediaFormatProvider {
 		Path target = mpr.getMediaPath().resolve(mpr.getFileName(id, extension));
 				
 		// correct orientation if EXIF header is present
-		int orientation = this.getExifOrientation(path);
-		if (orientation != -1) {
-			this.copyAndCorrectOrientation(path, target, orientation);
-		} else {
-			Files.copy(path, target);
+		try {
+			int orientation = this.getExifOrientation(path);
+			if (orientation != -1) {
+				this.copyAndCorrectOrientation(path, target, orientation);
+			} else {
+				Files.copy(path, target);
+			}
+		} catch (Exception ex) {
+			this.delete(target);
+			throw new MediaImportException("Failed to copy image media to library or correct orientation for '" + path.getFileName().toString() + "'.", ex);
 		}
 		
 		// read the image
@@ -142,8 +147,9 @@ final class RawImageMediaFormatProvider extends AbstractMediaFormatProvider {
 			// loop through the readers until we find one that works
 			while (readers.hasNext()) {
 				ImageReader reader = readers.next();
-				reader.setInput(in);
 				try {
+					reader.setInput(in);
+
 					// read the image
 					BufferedImage image = reader.read(0);
 					
@@ -176,14 +182,6 @@ final class RawImageMediaFormatProvider extends AbstractMediaFormatProvider {
 						throw new MediaImportException("Failed to store media metadata for '" + media.getName() + "'.", ex);
 					}
 					
-//					try {
-//						// write the image
-//						ImageIO.write(image, fmt, mpr.getImagePath(media).toFile());
-//					} catch (Exception ex) {
-//						this.delete(target, mpr.getPath(media));
-//						throw new MediaImportException("Failed to store image for media '" + media.getName() + "'.", ex);
-//					}
-					
 					try {
 						// write the thumbnail
 						BufferedImage thumb = this.createThumbnail(image);
@@ -208,6 +206,10 @@ final class RawImageMediaFormatProvider extends AbstractMediaFormatProvider {
 			this.delete(target);
 			LOGGER.error("No image reader was found for the file '{}'.", path.toAbsolutePath().toString());
 			throw new MediaImportException("No image reader was found for the file '" + path.toAbsolutePath().toString() + "'.");
+		} catch (Exception ex) {
+			this.delete(target);
+			LOGGER.error("Failed to import image media from file '{}'.", path.toAbsolutePath().toString(), ex);
+			throw new MediaImportException("Failed to import image media from file '" + path.toAbsolutePath().toString() + "'.", ex);
 		}
 	}
 	

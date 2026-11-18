@@ -15,7 +15,7 @@ public interface PersistAdapter<T extends Persistable> {
 	public void delete(T item) throws IOException;
 	public boolean upsert(T item) throws IOException;
 	public Object getLock(UUID id);
-	public DataImportResult<T> importData(Path path) throws IOException;
+	public DataImportResult<T> importData(Path path) throws IOException, InterruptedException;
 	public void exportData(ImportExportFormat format, ZipArchiveOutputStream destination, List<T> items) throws IOException;
 	public void exportData(ImportExportFormat format, Path path, T item) throws IOException;
 	public Path getFilePath(T item);

@@ -191,6 +191,9 @@ public final class MediaTools {
 				int adjustment = 0;
 				try {
 					adjustment = this.ffmpegGetNormalizedDecibelOffset(source, settings.getTargetMeanVolume());
+				} catch (InterruptedException ex) {
+					// just rethrow
+					throw ex;
 				} catch (Exception ex) {
 					LOGGER.error("Failed to detect volume: " + ex.getMessage(), ex);
 				}
@@ -281,6 +284,8 @@ public final class MediaTools {
 							LOGGER.warn("Failed to delete the temp file '" + p.toAbsolutePath().toString() + "'.", e);
 						}
 					});
+				} catch (Exception ex) {
+					LOGGER.warn("Failed to clean up temp area '" + tempArea.toAbsolutePath().toString() + "'.", ex);
 				}
 			}
 		}
@@ -447,6 +452,8 @@ public final class MediaTools {
 							LOGGER.warn("Failed to delete the temp file '" + p.toAbsolutePath().toString() + "'.", e);
 						}
 					});
+				} catch (Exception ex) {
+					LOGGER.warn("Failed to clean up temp area '" + tempArea.toAbsolutePath().toString() + "'.", ex);
 				}
 			}
 		}
