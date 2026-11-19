@@ -91,7 +91,9 @@ public final class BackgroundTask implements ReadOnlyBackgroundTask, Comparable<
 	}
 	
 	public void setOperation(String operation) {
-		this.operation.set(operation);
+		this.executeOnJavaFXThread(() -> {
+			this.operation.set(operation);
+		});
 	}
 	
 	@Override
@@ -121,7 +123,9 @@ public final class BackgroundTask implements ReadOnlyBackgroundTask, Comparable<
 	}
 	
 	public void setType(String type) {
-		this.type.set(type);
+		this.executeOnJavaFXThread(() -> {
+			this.type.set(type);
+		});
 	}
 	
 	@Override
