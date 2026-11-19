@@ -60,7 +60,7 @@ import javafx.util.Duration;
  * @version 3.0.0
  * @see <a href="http://docs.oracle.com/javase/8/javafx/media-tutorial/playercontrol.htm#sthref18">Controlling Media Playback</a>
  */
-public final class MediaPreview extends BorderPane implements Playable {
+public final class MediaPreview extends BorderPane implements Playable, AutoCloseable {
 	private static final String MEDIA_PREVIEW_CSS = "p-media-preview";
 	private static final String MEDIA_PREVIEW_CONTROLS_CSS = "p-media-preview-controls";
 	
@@ -351,7 +351,7 @@ public final class MediaPreview extends BorderPane implements Playable {
     }
     
     @Override
-    public void dispose() {
+    public void close() {
     	MediaPlayer player = this.player.get();
     	this.player.set(null);
     	if (player != null) {

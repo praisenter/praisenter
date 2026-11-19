@@ -138,9 +138,9 @@ abstract class SlideRegionNode<T extends SlideRegion> extends StackPane implemen
 	}
 	
 	@Override
-	public void dispose() {
+	public void close() {
 		// media
-		this.background.dispose();
+		this.background.close();
 	}
 	
 	// resets the UI to the source data

@@ -1,17 +1,19 @@
 package org.praisenter.data.search;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.CharArraySet;
 import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
-import org.apache.lucene.index.DirectoryReader;
-import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
@@ -20,87 +22,153 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.SearcherManager;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.highlight.Highlighter;
 import org.apache.lucene.search.highlight.NullFragmenter;
 import org.apache.lucene.search.highlight.QueryScorer;
 import org.apache.lucene.search.highlight.TokenSources;
 import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.FSDirectory;
 
-public final class SearchIndex {
-	/** The class-level logger */
+public final class SearchIndex implements AutoCloseable {
 	private static final Logger LOGGER = LogManager.getLogger();
 
-	/** The file-system index */
-	private Directory directory;
+	private final Path indexPath;
+	private final Directory directory;
+	private final Analyzer analyzer;
+	private final IndexWriter indexWriter;
+	private final SearcherManager searcherManager;
+	private final AtomicBoolean closed;
 	
-	/** The analyzer for the index */
-	private Analyzer analyzer;
-	
-	public SearchIndex(Directory directory, Analyzer analyzer) {
+	protected SearchIndex(
+			Path path, 
+			Directory directory, 
+			Analyzer analyzer, 
+			IndexWriter writer, 
+			SearcherManager searcherManager) {
+		this.indexPath = path;
 		this.directory = directory;
 		this.analyzer = analyzer;
+		this.indexWriter = writer;
+		this.searcherManager = searcherManager;
+		this.closed = new AtomicBoolean(false);
+	}
+
+	public static final SearchIndex open(Path indexPath) throws IOException {
+		FSDirectory directory = FSDirectory.open(indexPath);
+
+		Analyzer analyzer = new StandardAnalyzer(new CharArraySet(1, true));
+		IndexWriterConfig config = new IndexWriterConfig(analyzer);
+		config.setOpenMode(OpenMode.CREATE_OR_APPEND);
+
+		try {
+			IndexWriter writer = new IndexWriter(directory, config);
+
+			try {
+				SearcherManager searcherManager = new SearcherManager(writer, true, true, null);
+				return new SearchIndex(indexPath, directory, analyzer, writer, searcherManager);
+			} catch (IOException e) {
+				try { 
+					writer.close();
+				} catch (IOException ex) { 
+					LOGGER.error("Failed to close writer after searcher manager creation failure", ex); 
+				}
+				throw e;
+			}
+		} catch (IOException e) {
+			analyzer.close();
+			try { 
+				directory.close();
+			} catch (IOException ex) { 
+				LOGGER.error("Failed to close directory after analyzer creation failure", ex); 
+			}
+			throw e;
+		}
 	}
 	
+	public Path getIndexPath() {
+		return this.indexPath;
+	}
+
+	public boolean isDisposed() {
+		return this.closed.get();
+	}
+
+	private void throwIfDisposed() throws IOException {
+		if (this.closed.get()) 
+			throw new IOException("SearchIndex is disposed");
+	}
+
+	private void refreshSearchManager() {
+		try {
+			this.searcherManager.maybeRefresh();
+		} catch (IOException e) {
+			LOGGER.error("Failed to refresh searcher manager - will try again on the next search", e);
+		}
+	}
+
 	public synchronized void create(Indexable item) throws IOException {
+		this.throwIfDisposed();
 		List<Document> docs = item.index();
 		if (docs == null || docs.isEmpty()) return;
-		IndexWriterConfig config = new IndexWriterConfig(this.analyzer);
-		config.setOpenMode(OpenMode.CREATE_OR_APPEND);
-		try (IndexWriter writer = new IndexWriter(this.directory, config)) {
-			writer.updateDocuments(new Term(Indexable.FIELD_ID, item.getId().toString()), docs);	
-		}
+		this.indexWriter.updateDocuments(new Term(Indexable.FIELD_ID, item.getId().toString()), docs);
+		this.indexWriter.commit();
+		this.refreshSearchManager();
 	}
 	
 	public synchronized void update(Indexable item) throws IOException {
+		this.throwIfDisposed();
 		List<Document> docs = item.index();
-		IndexWriterConfig config = new IndexWriterConfig(this.analyzer);
-		config.setOpenMode(OpenMode.CREATE_OR_APPEND);
-		try (IndexWriter writer = new IndexWriter(this.directory, config)) {
-			Term id = new Term(Indexable.FIELD_ID, item.getId().toString());
-			if (docs == null || docs.isEmpty()) {
-				writer.deleteDocuments(id);
-			} else {
-				writer.updateDocuments(id, docs);
-			}
+		Term id = new Term(Indexable.FIELD_ID, item.getId().toString());
+		if (docs == null || docs.isEmpty()) {
+			this.indexWriter.deleteDocuments(id);
+		} else {
+			this.indexWriter.updateDocuments(id, docs);
 		}
+		this.indexWriter.commit();
+		this.refreshSearchManager();
 	}
 	
 	public synchronized void delete(Indexable item) throws IOException {
-		IndexWriterConfig config = new IndexWriterConfig(this.analyzer);
-		config.setOpenMode(OpenMode.CREATE_OR_APPEND);
-		try (IndexWriter writer = new IndexWriter(this.directory, config)) {
-			writer.deleteDocuments(new Term(Indexable.FIELD_ID, item.getId().toString()));	
-		}
+		this.throwIfDisposed();
+		this.indexWriter.deleteDocuments(new Term(Indexable.FIELD_ID, item.getId().toString()));
+		this.indexWriter.commit();
+		this.refreshSearchManager();
 	}
 	
 	public synchronized void reindex(Iterable<? extends Indexable> items) throws IOException {
-		IndexWriterConfig config = new IndexWriterConfig(this.analyzer);
-		config.setOpenMode(OpenMode.CREATE);
-		try (IndexWriter writer = new IndexWriter(this.directory, config)) {
-			for (Indexable item : items) {
-				LOGGER.debug("Indexing document {} {}", item.getClass().getName(), item.getName());
-				List<Document> docs = item.index();
-				if (docs == null || docs.isEmpty()) {
-					continue;
-				}
-				writer.updateDocuments(new Term(Indexable.FIELD_ID, item.getId().toString()), docs);	
+		this.throwIfDisposed();
+		this.indexWriter.deleteAll();
+
+		// re-add everything
+		for (Indexable item : items) {
+			LOGGER.debug("Indexing document {} {}", item.getClass().getName(), item.getName());
+			List<Document> docs = item.index();
+			if (docs == null || docs.isEmpty()) {
+				continue;
 			}
+			this.indexWriter.updateDocuments(new Term(Indexable.FIELD_ID, item.getId().toString()), docs);	
 		}
+
+		this.indexWriter.commit();
+
+		this.searcherManager.maybeRefreshBlocking();
 	}
 	
-	public SearchResults search(SearchCriteria criteria) throws IOException {
+	public synchronized SearchResults search(SearchCriteria criteria) throws IOException {
+		this.throwIfDisposed();
+
 		Query query = criteria.createQuery(this.analyzer);
 		if (query == null) 
 			return new SearchResults(criteria, Collections.emptyList());
 		
+		this.refreshSearchManager();
+
 		List<SearchResult> results = new ArrayList<SearchResult>();
 		
-		// NOTE: this doesn't need to be synchronized with the index, it will use a snapshot
-		// of the index at the time it's opened
-		try (IndexReader reader = DirectoryReader.open(this.directory)) {
-			IndexSearcher searcher = new IndexSearcher(reader);
-			
+		IndexSearcher searcher = this.searcherManager.acquire();
+		try {
 			TopDocs result = searcher.search(query, criteria.getMaxResults() + 1);
 			ScoreDoc[] docs = result.scoreDocs;
 			
@@ -133,8 +201,52 @@ public final class SearchIndex {
 				
 				results.add(new SearchResult(document, matches, doc.score));
 			}
+		} finally {
+			this.searcherManager.release(searcher);
 		}
-		
+
 		return new SearchResults(criteria, results);
+	}
+	
+	@Override 
+	public synchronized void close() throws IOException {
+		if (!this.closed.compareAndSet(false, true))
+			return;
+
+		LOGGER.debug("Disposing search index");
+		List<IOException> exceptions = new ArrayList<>();
+		
+		try {
+			this.searcherManager.close();
+		} catch (IOException e) {
+			LOGGER.error("Failed to close searcher manager", e);
+			exceptions.add(e);
+		}
+
+		try {
+			this.indexWriter.close();
+		} catch (IOException e) {
+			LOGGER.error("Failed to close writer", e);
+			exceptions.add(e);
+		}
+
+		this.analyzer.close();
+
+		try {
+			this.directory.close();
+		} catch (IOException e) {
+			LOGGER.error("Failed to close directory", e);
+			exceptions.add(e);
+		}
+
+		// check if anything failed
+		if (!exceptions.isEmpty()) {
+			// collect the exceptions and throw a new one with the suppressed exceptions
+			IOException e = new IOException("Failed to close search index");
+			for (IOException ex : exceptions) {
+				e.addSuppressed(ex);
+			}
+			throw e;
+		}
 	}
 }

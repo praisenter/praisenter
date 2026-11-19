@@ -46,7 +46,7 @@ import javafx.scene.shape.StrokeType;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
-public final class NDIDisplayTarget implements DisplayTarget {
+public final class NDIDisplayTarget implements DisplayTarget, AutoCloseable {
 	private static final Logger LOGGER = LogManager.getLogger();
 
 	// one second worth of frames at 60 fps
@@ -71,7 +71,7 @@ public final class NDIDisplayTarget implements DisplayTarget {
     private final int height;
     private final int pixelDepth;
     
-    private final AtomicBoolean disposed;
+    private final AtomicBoolean closed;
     private boolean sentHideFrame;
     
     // NDI Consumer state
@@ -100,7 +100,7 @@ public final class NDIDisplayTarget implements DisplayTarget {
 		this.width = configuration.getWidth();
         this.height = configuration.getHeight();
         this.pixelDepth = 4;
-		this.disposed = new AtomicBoolean(false);
+		this.closed = new AtomicBoolean(false);
 		this.sentHideFrame = false;
 		
 		// NOTE: when running on the laptop, it didn't matter what the NDI frame rate was
@@ -200,7 +200,7 @@ public final class NDIDisplayTarget implements DisplayTarget {
 		params.setFill(Color.TRANSPARENT);
 		
 		this.frameProducer = new FramesPerSecondTimer(configuration.getFramesPerSecond(), (frame) -> {
-			if (this.disposed.get()) {
+			if (this.closed.get()) {
 				return;
 			}
 			if (configuration.isActive()) {
@@ -304,7 +304,7 @@ public final class NDIDisplayTarget implements DisplayTarget {
         
         // now run forever, pushing any frames we receive to NDI
         long startTime = System.nanoTime();
-        while (!this.disposed.get()) {
+        while (!this.closed.get()) {
         	// attempt to get a frame from the frame queue
         	NDIVideoFrame frame = null;
 			try {
@@ -357,7 +357,7 @@ public final class NDIDisplayTarget implements DisplayTarget {
             }
         }
         
-        LOGGER.debug("Stopping NDI consumer thread. disposed={}", this.disposed);
+        LOGGER.debug("Stopping NDI consumer thread. disposed={}", this.closed);
 	}
 
 	private final void writeImageToBuffer(WritableImage image, ByteBuffer data) {
@@ -411,8 +411,9 @@ public final class NDIDisplayTarget implements DisplayTarget {
 		return this.configuration.getName();
 	}
 	
-	public void dispose() {
-		if (!this.disposed.compareAndSet(false, true))
+	@Override 
+	public void close() {
+		if (!this.closed.compareAndSet(false, true))
 			return;
 		
 		LOGGER.debug("Marking NDI display target as disposed");
@@ -421,8 +422,8 @@ public final class NDIDisplayTarget implements DisplayTarget {
 			this.stage.hide();
 		}
 		
-		this.slideView.dispose();
-		this.notificationView.dispose();
+		this.slideView.close();
+		this.notificationView.close();
 		this.container.getChildren().clear();
 		this.configuration.activeProperty().removeListener(this.activeListener);
 		

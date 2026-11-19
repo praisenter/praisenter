@@ -19,10 +19,6 @@ import java.util.concurrent.ConcurrentMap;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.CharArraySet;
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
-import org.apache.lucene.store.FSDirectory;
 import org.praisenter.async.AsyncHelper;
 import org.praisenter.data.DataImportResult;
 import org.praisenter.data.ImportExportFormat;
@@ -50,7 +46,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableSet;
 
-public final class WorkspaceManager {
+public final class WorkspaceManager implements AutoCloseable {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
 	private final WorkspacePathResolver pathResolver;
@@ -148,9 +144,7 @@ public final class WorkspaceManager {
 		LOGGER.info("Setting up search index...");
 		SearchIndex searchIndex = null;
 		try {
-			final FSDirectory directory = FSDirectory.open(pathResolver.getSearchIndexPath());
-			final Analyzer analyzer = new StandardAnalyzer(new CharArraySet(1, false));
-			searchIndex = new SearchIndex(directory, analyzer);
+			searchIndex = SearchIndex.open(pathResolver.getSearchIndexPath());
 		} catch (Exception ex) {
 			LOGGER.warn("Failed to initialize the search index at '" + pathResolver.getSearchIndexPath() + "': " + ex.getMessage(), ex);
 			throw ex;
@@ -487,5 +481,10 @@ public final class WorkspaceManager {
 		if (!Platform.isFxApplicationThread()) {
 			throw new IllegalStateException("The getItem method must be called on the Java FX UI thread.");
 		}
+	}
+
+	@Override 
+	public void close() throws IOException {
+		this.searchIndex.close();
 	}
 }

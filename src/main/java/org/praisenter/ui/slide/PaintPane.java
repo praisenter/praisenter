@@ -432,7 +432,7 @@ final class PaintPane extends StackPane implements Playable {
 	}
 	
 	@Override
-	public void dispose() {
+	public void close() {
 		// media
 		MediaPlayer mp = this.mediaView.getMediaPlayer();
 		if (mp != null) {

@@ -661,7 +661,7 @@ public final class LifecycleHandler {
     private CompletableFuture<Boolean> disposeContext(Logger LOGGER, GlobalContext context) {
     	return AsyncHelper.onJavaFXThreadAndWait((v) -> {
     		LOGGER.info("Disposing of the context");
-    		context.dispose();
+    		context.close();
     	}).apply(null).exceptionally((e) -> {
     		LOGGER.warn("Failed to dispose of the context: " + e.getMessage(), e);
     		return null;

@@ -29,7 +29,7 @@ package org.praisenter.ui;
  * @author William Bittle
  * @version 3.0.0
  */
-public interface Playable {
+public interface Playable extends AutoCloseable {
 	/**
 	 * Plays any animations or media.
 	 */
@@ -44,9 +44,4 @@ public interface Playable {
 	 * Stops any animations or media.
 	 */
 	public void stop();
-	
-	/**
-	 * Disposes of any resources used for playing.
-	 */
-	public void dispose();
 }

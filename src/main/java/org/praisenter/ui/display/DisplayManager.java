@@ -18,7 +18,7 @@ import javafx.collections.ObservableList;
 import javafx.geometry.Rectangle2D;
 import javafx.stage.Screen;
 
-public final class DisplayManager {
+public final class DisplayManager implements AutoCloseable {
 	private static final Logger LOGGER = LogManager.getLogger();
 
 	private final GlobalContext context;
@@ -69,12 +69,13 @@ public final class DisplayManager {
 	/**
 	 * Releases any pre-allocated screens or any other resources.
 	 */
-	public void dispose() {
+	@Override
+	public void close() {
 		Screen.getScreens().removeListener(this.screenListener);
 //		this.context.getWorkspaceConfiguration().getDisplayConfigurations().removeListener(this.ndiListener);
 		
 		for (DisplayTarget target : this.targets) {
-			target.dispose();
+			target.close();
 		}
 		
 		this.targets.clear();
@@ -267,12 +268,12 @@ public final class DisplayManager {
 	private void updateScreenLocation(ScreenDisplayTarget target) {
 		int tx = target.getDisplayConfiguration().getX();
 		int ty = target.getDisplayConfiguration().getY();
-		int cx = (int)target.getX();
-		int cy = (int)target.getY();
+		int cx = target.getStageX();
+		int cy = target.getStageY();
 		if (cx != tx || cy != ty) {
 			// then move the target
-			target.setX(tx);
-			target.setY(ty);
+			target.setStageX(tx);
+			target.setStageY(ty);
 		}
 	}
 	
@@ -355,7 +356,7 @@ public final class DisplayManager {
 	private void removeDisplayTargetForDisplayConfiguration(DisplayConfiguration configuration) {
 		DisplayTarget toRemove = this.getDisplayTargetForDisplayConfiguration(configuration);
 		if (toRemove != null) {
-			toRemove.dispose();
+			toRemove.close();
 			this.targets.remove(toRemove);
 		}
 	}

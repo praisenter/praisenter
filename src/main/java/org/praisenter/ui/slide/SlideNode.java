@@ -67,10 +67,10 @@ final class SlideNode extends SlideRegionNode<Slide> implements Playable {
 	}
 	
 	@Override
-	public void dispose() {
-		super.dispose();
+	public void close() {
+		super.close();
 		for (SlideComponentNode<?> child : this.mapping) {
-			child.dispose();
+			child.close();
 		}
 	}
 	

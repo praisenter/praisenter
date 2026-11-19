@@ -54,13 +54,11 @@ final class MediaComponentNode extends SlideComponentNode<MediaComponent> {
 		super.stop();
 		this.media.stop();
 	}
-	
-	/* (non-Javadoc)
-	 * @see org.praisenter.javafx.slide.ObservableSlideRegion#dispose()
-	 */
-	public void dispose() {
-		super.dispose();
-		this.media.dispose();
+		
+	@Override 
+	public void close() {
+		super.close();
+		this.media.close();
 	}
 	
 }

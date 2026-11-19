@@ -263,8 +263,23 @@ public class SlideView extends Region implements Playable {
 		}
 	}
 
+	private void clearPendingPreparedSlides() {
+		PendingPreparedSlide pending = this.requests.poll();
+		while (pending != null) {
+			PreparedSlide ps = pending.getSlide();
+			if (ps != null) {
+				SlideNode node = ps.getNode();
+				if (node != null) {
+					node.close();
+				}
+			}
+			pending = this.requests.poll();
+		}
+		this.requests.clear();
+	}
+
 	@Override
-	public void dispose() {
+	public void close() {
 		Transition tx = this.currentTransition;
 		if (tx != null) {
 			tx.stop();
@@ -277,12 +292,12 @@ public class SlideView extends Region implements Playable {
 		
 		SlideNode slideNode = ps.getNode();
 		if (slideNode != null) {
-			slideNode.dispose();
+			slideNode.close();
 			slideNode = null;
 		}
 		
 		this.slide.set(null);
-		this.requests.clear();
+		this.clearPendingPreparedSlides();
 	}
 	
 	/**
@@ -345,7 +360,7 @@ public class SlideView extends Region implements Playable {
 			if (current != null && current.getTime().isAfter(prepared.getTime())) {
 				LOGGER.warn("Skipping render of '{}'. It's display time of '{}' is before the current slide's ('{}') display time '{}'", prepared.getSlide(), prepared.getTime(), current.getSlide(), current.getTime());
 				SlideNode node = prepared.getNode();
-				node.dispose();
+				node.close();
 				// skip this action
 				return;
 			}
@@ -418,7 +433,7 @@ public class SlideView extends Region implements Playable {
 		// if we don't want to wait
 		LOGGER.debug("A transition is currently in progress, stopping and doing new transition");
 		// clear any pending requests so we don't execute them after ending the current transition
-		this.requests.clear();
+		this.clearPendingPreparedSlides();
 		// jump to the end of the current transition
 		this.currentTransition.jumpTo(this.currentTransition.getCycleDuration());
 		// then stop it
@@ -502,7 +517,7 @@ public class SlideView extends Region implements Playable {
 		if (oldNode != null) {
 			this.surface.getChildren().remove(oldNode);
 			oldNode.mode.unbind();
-			oldNode.dispose();
+			oldNode.close();
 		}
 		
 		// if the new one is not null (not a clear)
@@ -601,7 +616,7 @@ public class SlideView extends Region implements Playable {
 			if (oldNode != null) {
 				this.surface.getChildren().remove(oldNode);
 				oldNode.mode.unbind();
-				oldNode.dispose();
+				oldNode.close();
 			}
 		});
 		
@@ -853,7 +868,7 @@ public class SlideView extends Region implements Playable {
 			LOGGER.trace("Clearing the transition requests stack");
 			// if it's non-null, then clear the stack of all other pending
 			// operations because we only want to run the most recent
-			this.requests.clear();
+			this.clearPendingPreparedSlides();
 			
 			LOGGER.debug("Running most recent transition request");
 			PreparedSlide slide = request.getSlide();
@@ -899,7 +914,7 @@ public class SlideView extends Region implements Playable {
 						this.waitForMediaReady(slideNode);
 					} catch (InterruptedException ex) {
 						Platform.runLater(() -> {
-							slideNode.dispose();
+							slideNode.close();
 						});
 						throw new CompletionException("Failed to prepare slide, the thread was interrupted while waiting for media to be ready", ex);
 					}
@@ -937,7 +952,7 @@ public class SlideView extends Region implements Playable {
 							} catch (InterruptedException ex) {
 								// complete the future exceptionally
 								Platform.runLater(() -> {
-									slideNode.dispose();
+									slideNode.close();
 								});
 								ps.completeExceptionally(ex);
 								throw new CompletionException("Failed to prepare slide, the thread was interrupted while waiting for media to be ready", ex);

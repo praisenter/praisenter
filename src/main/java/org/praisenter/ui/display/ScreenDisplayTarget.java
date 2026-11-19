@@ -29,9 +29,10 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
 
-public final class ScreenDisplayTarget extends Stage implements DisplayTarget {
+public final class ScreenDisplayTarget implements DisplayTarget {
 	@SuppressWarnings("unused")
 	private final GlobalContext context;
+	private final Stage stage;
 	private final DisplayConfiguration configuration;
 	
 	private final Pane container;
@@ -42,16 +43,15 @@ public final class ScreenDisplayTarget extends Stage implements DisplayTarget {
 	private final ChangeListener<? super Boolean> activeListener;
 	
 	public ScreenDisplayTarget(GlobalContext context, DisplayConfiguration configuration) {
-		super(StageStyle.TRANSPARENT);
-		
 		this.context = context;
 		this.configuration = configuration;
+		this.stage = new Stage(StageStyle.TRANSPARENT);
 
     	// icons
-		WindowHelper.setIcons(this);
+		WindowHelper.setIcons(this.stage);
     	
-		this.initModality(Modality.NONE);
-		this.setResizable(false);
+		this.stage.initModality(Modality.NONE);
+		this.stage.setResizable(false);
 		
 		// prevent the user from closing or hiding the window
 		// JAVABUG (M) 06/30/16 [workaround] At some point we need to come up with a way for the sub windows to not be seen; JavaFX does not have a facility for this at this time https://bugs.openjdk.java.net/browse/JDK-8091566
@@ -61,13 +61,13 @@ public final class ScreenDisplayTarget extends Stage implements DisplayTarget {
 		EventHandler<WindowEvent> block = (WindowEvent e) -> {
 			e.consume();
 		};
-		this.setOnCloseRequest(block);
-		this.setOnHiding(block);
+		this.stage.setOnCloseRequest(block);
+		this.stage.setOnHiding(block);
 		
 		this.container = new StackPane();
 		this.container.setBackground(null);
 		
-		this.setScene(new Scene(this.container, Color.TRANSPARENT));
+		this.stage.setScene(new Scene(this.container, Color.TRANSPARENT));
 		
 		// setup debug mode notification
 		if (context.getWorkspaceConfiguration().isDebugModeEnabled()) {
@@ -112,31 +112,31 @@ public final class ScreenDisplayTarget extends Stage implements DisplayTarget {
 		// To work around the issue, we set the (x,y) location of the Stage so that it gets the correct 
 		// output scale settings for the screen it's on. Then, when we show the stage, we set the width
 		// to something arbitrary, then set the width to the real value.
-		this.setX(configuration.getX());
-		this.setY(configuration.getY());
+		this.stage.setX(configuration.getX());
+		this.stage.setY(configuration.getY());
 		
-		this.titleProperty().bind(configuration.labelProperty());
+		this.stage.titleProperty().bind(configuration.labelProperty());
 		
 		if (configuration.isActive()) {
 			// OUTPUTSCALE-WORKAROUND
 			// To ensure the width/height actually change, we need to change
 			// the width to something else, then back to the value we want
-			this.setWidth(100);
-			this.setHeight(100);
-			this.setMinWidth(100);
-			this.setMinHeight(100);
-			this.setMaxWidth(100);
-			this.setMaxHeight(100);
+			this.stage.setWidth(100);
+			this.stage.setHeight(100);
+			this.stage.setMinWidth(100);
+			this.stage.setMinHeight(100);
+			this.stage.setMaxWidth(100);
+			this.stage.setMaxHeight(100);
 			
-			this.show();
+			this.stage.show();
 			
 			// OUTPUTSCALE-WORKAROUND
-			this.setWidth(configuration.getWidth());
-			this.setHeight(configuration.getHeight());
-			this.setMinWidth(configuration.getWidth());
-			this.setMinHeight(configuration.getHeight());
-			this.setMaxWidth(configuration.getWidth());
-			this.setMaxHeight(configuration.getHeight());
+			this.stage.setWidth(configuration.getWidth());
+			this.stage.setHeight(configuration.getHeight());
+			this.stage.setMinWidth(configuration.getWidth());
+			this.stage.setMinHeight(configuration.getHeight());
+			this.stage.setMaxWidth(configuration.getWidth());
+			this.stage.setMaxHeight(configuration.getHeight());
 		}
 		
 		this.activeListener = (obs, ov, nv) -> {
@@ -145,27 +145,27 @@ public final class ScreenDisplayTarget extends Stage implements DisplayTarget {
 				this.slideView.render(null, null, false);
 				this.notificationView.render(null, null, false);
 				// hide the window
-				this.hide();
-			} else if (!this.isShowing()) {
+				this.stage.hide();
+			} else if (!this.stage.isShowing()) {
 				// OUTPUTSCALE-WORKAROUND
 				// To ensure the width/height actually change, we need to change
 				// the width to something else, then back to the value we want
-				this.setWidth(100);
-				this.setHeight(100);
-				this.setMinWidth(100);
-				this.setMinHeight(100);
-				this.setMaxWidth(100);
-				this.setMaxHeight(100);
+				this.stage.setWidth(100);
+				this.stage.setHeight(100);
+				this.stage.setMinWidth(100);
+				this.stage.setMinHeight(100);
+				this.stage.setMaxWidth(100);
+				this.stage.setMaxHeight(100);
 				
-				this.show();
+				this.stage.show();
 				
 				// OUTPUTSCALE-WORKAROUND
-				this.setWidth(configuration.getWidth());
-				this.setHeight(configuration.getHeight());
-				this.setMinWidth(configuration.getWidth());
-				this.setMinHeight(configuration.getHeight());
-				this.setMaxWidth(configuration.getWidth());
-				this.setMaxHeight(configuration.getHeight());
+				this.stage.setWidth(configuration.getWidth());
+				this.stage.setHeight(configuration.getHeight());
+				this.stage.setMinWidth(configuration.getWidth());
+				this.stage.setMinHeight(configuration.getHeight());
+				this.stage.setMaxWidth(configuration.getWidth());
+				this.stage.setMaxHeight(configuration.getHeight());
 			}
 		};
 		configuration.activeProperty().addListener(this.activeListener);
@@ -177,17 +177,18 @@ public final class ScreenDisplayTarget extends Stage implements DisplayTarget {
 		return this.configuration.getLabel();
 	}
 	
-	public void dispose() {
+	@Override 
+	public void close() {
 		this.configuration.activeProperty().removeListener(this.activeListener);
 		
-		this.slideView.dispose();
-		this.notificationView.dispose();
+		this.slideView.close();
+		this.notificationView.close();
 		
 		this.container.getChildren().clear();
 		
-		this.setOnHiding(null);
-		this.setOnCloseRequest(null);
-		this.close();
+		this.stage.setOnHiding(null);
+		this.stage.setOnCloseRequest(null);
+		this.stage.close();
 	}
 	
 	@Override
@@ -214,7 +215,7 @@ public final class ScreenDisplayTarget extends Stage implements DisplayTarget {
 		
 		this.slideView.render(copy, copy.getPlaceholderData(), transtion);
 		
-		this.toFront();
+		this.stage.toFront();
 	}
 	
 	@Override
@@ -241,7 +242,7 @@ public final class ScreenDisplayTarget extends Stage implements DisplayTarget {
 
 		this.notificationView.render(copy, copy.getPlaceholderData(), transtion);
 		
-		this.toFront();
+		this.stage.toFront();
 	}
 	
 	@Override
@@ -258,6 +259,38 @@ public final class ScreenDisplayTarget extends Stage implements DisplayTarget {
 		return this.configuration;
 	}
 	
+	public int getStageX() {
+		return (int)this.stage.getX();
+	}
+
+	public int getStageY() {
+		return (int)this.stage.getY();
+	}
+
+	public int getStageWidth() {
+		return (int)this.stage.getWidth();
+	}
+
+	public int getStageHeight() {
+		return (int)this.stage.getHeight();
+	}
+
+	public void setStageX(int x) {
+		this.stage.setX(x);
+	}
+
+	public void setStageY(int y) {
+		this.stage.setY(y);
+	}
+
+	public void setStageWidth(int width) {
+		this.stage.setWidth(width);
+	}
+
+	public void setStageHeight(int height) {
+		this.stage.setHeight(height);
+	}
+
 //	public Slide getSlide() {
 //		return this.slideView.getSlide();
 //	}

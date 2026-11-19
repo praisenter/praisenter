@@ -93,7 +93,7 @@ import javafx.scene.input.DataFormat;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 
-public final class GlobalContext {
+public final class GlobalContext implements AutoCloseable {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
 	final Application application;
@@ -358,7 +358,8 @@ public final class GlobalContext {
 		this.addMissingResolutionsBasedOnHost();
 	}
 	
-	public void dispose() {
+	@Override 
+	public void close() throws IOException {
 		// remove listeners
 		Screen.getScreens().removeListener(this.screensListener);
 		this.scene.removeListener(this.sceneListener);
@@ -388,10 +389,14 @@ public final class GlobalContext {
 		this.windowFocused.unbind();
 		
 		// clean up resources / memory
-		this.displayManager.dispose();
+		this.displayManager.close();
+		
 		// NOTE: dispose of images AFTER we've disposed of the display targets
 		// otherwise, the images will get loaded again before cleanup
-		this.imageCache.clear();
+		this.imageCache.close();
+
+		// this closes the downstream index
+		this.workspaceManager.close();
 	}
 	
 	/**

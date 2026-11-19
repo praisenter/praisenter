@@ -18,7 +18,7 @@ import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.scene.image.Image;
 
-public final class ImageCache {
+public final class ImageCache implements AutoCloseable {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
 	private final Map<ImageCacheKey, CachedImage> images;
@@ -276,6 +276,11 @@ public final class ImageCache {
 	 * Removes everything from the cache.
 	 */
 	public synchronized void clear() {
+		this.images.clear();
+	}
+
+	@Override
+	public synchronized void close() {
 		this.images.clear();
 	}
 	

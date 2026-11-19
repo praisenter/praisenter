@@ -5,17 +5,18 @@ import org.praisenter.data.slide.Slide;
 import org.praisenter.data.workspace.DisplayConfiguration;
 import org.praisenter.data.workspace.DisplayType;
 
-public interface DisplayTarget extends Comparable<DisplayTarget> {
+public interface DisplayTarget extends Comparable<DisplayTarget>, AutoCloseable {
 	public void displaySlide(final Slide slide, final TextStore data);
 	public void displaySlide(final Slide slide, final TextStore data, boolean transtion);
 	public void displayNotification(final Slide slide, final TextStore data);
 	public void displayNotification(final Slide slide, final TextStore data, boolean transtion);
 	public void clear();
 	public void clear(boolean transition);
+
+	@Override 
+	public void close();
 	
 	public DisplayConfiguration getDisplayConfiguration();
-	
-	public void dispose();
 	
 	@Override
 	default int compareTo(DisplayTarget o) {
