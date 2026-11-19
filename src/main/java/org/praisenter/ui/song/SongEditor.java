@@ -1,6 +1,7 @@
 package org.praisenter.ui.song;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -247,12 +248,17 @@ public final class SongEditor extends BorderPane implements DocumentEditor<Song>
 			                task.setProgress(1.0);
 			                
 			                return pdfFileInText;
-			            }
+			            } else {
+							task.setException(new IOException("Document is encrypted"));
+						}
 			        } catch (Exception e1) {
 						task.setException(e1);
 					}
 					return null;
 				}).thenCompose(AsyncHelper.onJavaFXThreadAndWait((result) -> {
+					if (result == null) 
+						return;
+					
 					this.bulkEditModeValue.set(this.bulkEditModeValue.get() + result);
 				}));
 			}
