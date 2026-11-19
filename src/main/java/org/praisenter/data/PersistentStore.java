@@ -74,7 +74,11 @@ public final class PersistentStore<T extends Persistable> {
 		return CompletableFuture.runAsync(() -> {
 			try {
 				this.adapter.create(item);
-				this.index.create(item);
+				try {
+					this.index.create(item);
+				} catch (Exception ex) {
+					LOGGER.warn("Failed to create index for item: " + item.getId(), ex);
+				}
 			} catch (Exception ex) {
 				throw new CompletionException(ex);
 			}
@@ -87,7 +91,11 @@ public final class PersistentStore<T extends Persistable> {
 		return CompletableFuture.runAsync(() -> {
 			try {
 				this.adapter.update(item);
-				this.index.update(item);
+				try {
+					this.index.update(item);
+				} catch (Exception ex) {
+					LOGGER.warn("Failed to update index for item: " + item.getId(), ex);
+				}
 			} catch (Exception ex) {
 				throw new CompletionException(ex);
 			}
@@ -110,7 +118,11 @@ public final class PersistentStore<T extends Persistable> {
 		return CompletableFuture.runAsync(() -> {
 			try {
 				this.adapter.delete(item);
-				this.index.delete(item);
+				try {
+					this.index.delete(item);
+				} catch (Exception ex) {
+					LOGGER.warn("Failed to delete index for item: " + item.getId(), ex);
+				}
 			} catch (Exception ex) {
 				throw new CompletionException(ex);
 			}
@@ -125,14 +137,23 @@ public final class PersistentStore<T extends Persistable> {
 				DataImportResult<T> result = this.adapter.importData(path);
 				if (result != null) {
 					for (T item : result.getCreated()) {
-						this.index.create(item);
+						try {
+							this.index.create(item);
+						} catch (Exception ex) {
+							LOGGER.warn("Failed to create index for item: " + item.getId(), ex);
+						}
 					}
 					for (T item : result.getUpdated()) {
-						this.index.update(item);
+						try {
+							this.index.update(item);
+						} catch (Exception ex) {
+							LOGGER.warn("Failed to update index for item: " + item.getId(), ex);
+						}
 					}
 				}
 				return result;
 			} catch (InterruptedException ex) {
+				Thread.currentThread().interrupt();
 				throw new CompletionException(ex);
 			} catch (Exception ex) {
 				if (isTypeKnown) {
