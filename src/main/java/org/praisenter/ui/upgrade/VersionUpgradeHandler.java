@@ -10,4 +10,5 @@ public interface VersionUpgradeHandler {
 	public boolean isUpgradeRequired(Version current);
 	public CompletableFuture<Void> beforeLoadUpgrade(Logger logger, WorkspaceManager workspaceManager);
 	public CompletableFuture<Void> afterLoadUpgrade(Logger logger, WorkspaceManager workspaceManager);
+	public boolean requiresReindex();
 }

@@ -39,10 +39,13 @@ final class Upgrade300OrEarlier implements VersionUpgradeHandler {
 	
 	@Override
 	public CompletableFuture<Void> afterLoadUpgrade(Logger logger, WorkspaceManager workspaceManager) {
+		// No specific post-load upgrade steps for this version
+		return CompletableFuture.completedFuture(null);
+	}
+
+	@Override
+	public boolean requiresReindex() {
 		// from 3.0.0 to 3.1.x we update lucene, we should re-index
-		logger.debug("Re-indexing for searching");
-		return workspaceManager.reindex().thenRun(() -> {
-			logger.debug("Re-index completed successfully");
-		});
+		return true;
 	}
 }

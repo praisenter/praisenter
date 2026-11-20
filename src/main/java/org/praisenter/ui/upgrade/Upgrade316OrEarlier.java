@@ -28,22 +28,33 @@ final class Upgrade316OrEarlier implements VersionUpgradeHandler {
 		Path mediaPath = pathResolver.getMediaPath();
 		Path toolsPath = mediaPath.resolve("tools");
 		try (var stream = Files.walk(toolsPath)) {
-			logger.debug("Attempting the contents of '{}' to prepare for upgrade", toolsPath);
+			logger.debug("Deleting the contents of '{}' to prepare for upgrade", toolsPath);
 			stream.filter(Files::isRegularFile)
 	              .map(Path::toFile)
-	              .forEach(File::delete);
+	              .forEach(file -> {
+					try {
+						file.delete();
+					} catch (Exception e) {
+						// if it fails, just keep going with the next file
+						logger.error("Failed to delete file '{}' during upgrade", file.toPath().toAbsolutePath(), e);
+					}
+				  });
 		} catch (IOException e) {
-			logger.error("Failed to delete the contents of the tools path - can't upgrade ffmpeg & ffprobe tools", e);
+			logger.error("Failed to delete the contents of the tools path {} - can't upgrade ffmpeg & ffprobe tools", toolsPath.toAbsolutePath(), e);
+			logger.error("To resolve this, manually delete the contents of the tools path {}.  When startup continues it will attempt to recreate the necessary files.", toolsPath.toAbsolutePath());
 		}
 		return CompletableFuture.completedFuture(null);
 	}
 	
 	@Override
 	public CompletableFuture<Void> afterLoadUpgrade(Logger logger, WorkspaceManager workspaceManager) {
+		// No specific post-load upgrade steps for this version
+		return CompletableFuture.completedFuture(null);
+	}
+
+	@Override
+	public boolean requiresReindex() {
 		// from 3.1.6 to 3.1.x we updated lucene, we should re-index
-		logger.debug("Re-indexing for searching");
-		return workspaceManager.reindex().thenRun(() -> {
-			logger.debug("Re-index completed successfully");
-		});
+		return true;
 	}
 }

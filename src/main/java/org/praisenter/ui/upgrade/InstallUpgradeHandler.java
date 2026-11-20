@@ -52,6 +52,7 @@ public final class InstallUpgradeHandler {
 		this.upgradeHandlers = new ArrayList<>();
 		this.upgradeHandlers.add(new Upgrade300OrEarlier());
 		this.upgradeHandlers.add(new Upgrade316OrEarlier());
+		this.upgradeHandlers.add(new Upgrade3113OrEarlier());
 	}
 	
 	public void performApplicationInstallOrUpgradeSteps() {
@@ -354,6 +355,7 @@ public final class InstallUpgradeHandler {
 		}
 		
 		// run through all the upgrade handlers sequentially
+		boolean reindexRequired = false;
 		CompletableFuture<Void> future = CompletableFuture.completedFuture(null);
 		for (VersionUpgradeHandler handler : this.upgradeHandlers) {
 			if (handler.isUpgradeRequired(workspaceVersion)) {
@@ -361,7 +363,21 @@ public final class InstallUpgradeHandler {
 					workspaceLogger.debug("Executing upgrade handler: '{}'", handler.getClass().getName());
 					return handler.afterLoadUpgrade(workspaceLogger, workspaceManager);
 				});
+				// track if any handler needs a re-index
+				if (handler.requiresReindex()) {
+					reindexRequired = true;
+				}
 			}
+		}
+
+		// if a handler called for re-indexing, perform it now
+		if (reindexRequired) {
+			future = future.thenComposeAsync((v) -> {
+				workspaceLogger.debug("Re-indexing for searching");
+				return workspaceManager.reindex().thenRun(() -> {
+					workspaceLogger.debug("Re-index completed successfully");
+				});
+			});
 		}
 
 		return future.thenRun(() -> {
