@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
@@ -22,6 +23,7 @@ import org.praisenter.ui.bind.BindingHelper;
 import org.praisenter.ui.bind.ObjectConverter;
 import org.praisenter.ui.controls.Dialogs;
 import org.praisenter.ui.translations.Translations;
+import org.praisenter.ui.upgrade.InstallUpgradeHandler;
 
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
@@ -74,7 +76,7 @@ final class WorkspaceSelectionPane extends VBox {
 	
 	private final CompletableFuture<Optional<WorkspaceManager>> future;
 	
-	public WorkspaceSelectionPane(SingleFileManager<Workspaces> workspacesManager) {
+	public WorkspaceSelectionPane(SingleFileManager<Workspaces> workspacesManager, InstallUpgradeHandler installUpgradeHandler) {
 		this.getStyleClass().add(WORKSPACE_SELECTION_PANE_CLASS);
 		
 		this.workspaces = FXCollections.observableArrayList();
@@ -300,9 +302,15 @@ final class WorkspaceSelectionPane extends VBox {
 				this.initializing.set(true);
 				CompletableFuture.supplyAsync(() -> {
 					try {
-						WorkspaceInitializer wi = new WorkspaceInitializer(workspacesManager);
-						WorkspaceManager wm = wi.initializeWorkspace(wr);
-						return wm;
+						// get all the other workspaces
+						Set<WorkspaceReference> otherWorkspaces = workspacesManager.getData().getWorkspaces()
+								.stream()
+								.filter(s -> !s.equals(wr))
+								.collect(Collectors.toSet());
+						
+						// build the workspace manager and initialize the workspace
+						WorkspaceManager wsm = WorkspaceManager.open(wr, otherWorkspaces, installUpgradeHandler);
+						return wsm;
 					} catch (Exception ex) {
 						throw new CompletionException(ex);
 					}

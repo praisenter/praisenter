@@ -317,6 +317,51 @@ public final class InstallUpgradeHandler {
 		
 		return false;
 	}
+
+	/**
+	 * NOTE: SearchIndex reindexing is a two step process since we have to create the WorkspaceManager
+	 * first (which attempts to open the search index) to load all the items.  Once items are loaded, 
+	 * we can then perform the reindexing. The problem is that the WorkspaceManager initializes the
+	 * SearchIndex during its initialization and Lucene will throw an exception if the current index
+	 * is too old.
+	 * <p>
+	 * To solve the problem, we check if a reindex is required as part of the WorkspaceManager 
+	 * initialization process and delete the index if a reindex is required.  Then, the SearchIndex
+	 * is initialized as normal, but it creates a new empty index with the current Lucene version.
+	 * This means that we still need to come back and reindex everything after the WorkspaceManager
+	 * has loaded all the items.
+	 * <p>
+	 * So to review - the steps are:
+	 * 1. Check if a reindex is required during WorkspaceManager initialization.
+	 * 2. Delete the old index if necessary.
+	 * 3. Initialize the SearchIndex with a new empty index.
+	 * 4. Load all items into the WorkspaceManager.
+	 * 5. Perform the reindexing after all items are loaded.
+	 * <p>
+	 * The reindex step is triggered during the LoadingPane's sequence.
+	 * @param workspaceLogger
+	 * @param workspaceVersion
+	 * @return
+	 */
+	public boolean isReindexRequired(Logger workspaceLogger, Version workspaceVersion) {
+		// do we need to upgrade?
+		if (!this.isUpgradeRequired(workspaceLogger, workspaceVersion)) {
+			return false;
+		}
+		
+		// run through all the upgrade handlers sequentially
+		boolean reindexRequired = false;
+		for (VersionUpgradeHandler handler : this.upgradeHandlers) {
+			if (handler.isUpgradeRequired(workspaceVersion)) {
+				// track if any handler needs a re-index
+				if (handler.requiresReindex()) {
+					reindexRequired = true;
+				}
+			}
+		}
+
+		return reindexRequired;
+	}
 	
 	public CompletableFuture<Void> performWorkspacePreLoadUpgradeSteps(Logger workspaceLogger, WorkspaceManager workspaceManager, Version workspaceVersion) {
 		// we'll need to be very careful here if we want to prevent issues where we leave the 

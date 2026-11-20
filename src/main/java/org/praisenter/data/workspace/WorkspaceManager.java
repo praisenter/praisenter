@@ -1,5 +1,6 @@
 package org.praisenter.data.workspace;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -15,10 +16,12 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.stream.Stream;
 
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.praisenter.Version;
 import org.praisenter.async.AsyncHelper;
 import org.praisenter.data.DataImportResult;
 import org.praisenter.data.ImportExportFormat;
@@ -40,6 +43,11 @@ import org.praisenter.data.slide.SlidePersistAdapter;
 import org.praisenter.data.slide.SlideRenderer;
 import org.praisenter.data.song.Song;
 import org.praisenter.data.song.SongPersistAdapter;
+import org.praisenter.macos.ssb.SecurityScopedBookmarks;
+import org.praisenter.ui.WorkspaceInitializationException;
+import org.praisenter.ui.upgrade.InstallUpgradeHandler;
+import org.praisenter.utility.RuntimeProperties;
+import org.praisenter.utility.StringManipulator;
 
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -91,7 +99,49 @@ public final class WorkspaceManager implements AutoCloseable {
 		this.tagsReadOnly = FXCollections.unmodifiableObservableSet(this.tags);
 	}
 	
-	public static WorkspaceManager open(WorkspaceReference workspaceReference, Set<WorkspaceReference> otherWorkspaces) throws IOException {
+	public static WorkspaceManager open(WorkspaceReference workspaceReference, Set<WorkspaceReference> otherWorkspaces, InstallUpgradeHandler installUpgradeHandler) throws WorkspaceInitializationException {
+		// make sure the reference is not null
+		if (workspaceReference == null)
+			throw new WorkspaceInitializationException();
+		
+		// make sure the location is not null
+		Path workspacePath = workspaceReference.getPath();
+		if (workspacePath == null)
+			throw new WorkspaceInitializationException();
+		
+		// once someone tries to launch, check if the bookmark exists
+		// if it doesn't, then assume that they selected the folder
+		// and we need to create the security scoped bookmark
+		if (RuntimeProperties.IS_MAC_OS) {
+			String token = workspaceReference.getSecurityToken();
+			if (StringManipulator.isNullOrEmpty(token)) {
+				LOGGER.info("Creating security scoped bookmark for workspace: '" + workspacePath.toAbsolutePath() + "'");
+				try {
+					token = SecurityScopedBookmarks.createBookmark(workspacePath.toAbsolutePath().toString());
+					workspaceReference.setSecurityToken(token);
+					LOGGER.info("Security scoped bookmark created successfully for workspace: '" + workspacePath.toAbsolutePath() + "'");
+				} catch (Exception ex) {
+					LOGGER.error("Failed to create bookmark for workspace folder '" + workspacePath.toAbsolutePath() + "'", ex);
+					throw new WorkspaceInitializationException(ex);
+				} catch (UnsatisfiedLinkError ex) {
+					LOGGER.error("Failed to create bookmark for workspace folder '" + workspacePath.toAbsolutePath() + "'", ex);
+					throw new WorkspaceInitializationException(ex);
+				}
+			} else {
+				try {
+	    			LOGGER.info("Acquiring security scoped bookmark for workspace '" + workspacePath.toAbsolutePath() + "'");
+	    			SecurityScopedBookmarks.startResourceAccessing(token);
+	    			LOGGER.info("Security scoped bookmark for workspace '" + workspacePath.toAbsolutePath() + "' acquired successfully");
+	    		} catch (Exception ex) {
+	    			LOGGER.error("Failed to acquire the security scoped bookmark for workspace: '" + workspacePath.toAbsolutePath() + "'", ex);
+					throw new WorkspaceInitializationException(ex);
+	    		} catch (UnsatisfiedLinkError ex) {
+	    			LOGGER.error("Failed to acquire the security scoped bookmark for workspace: '" + workspacePath.toAbsolutePath() + "'", ex);
+					throw new WorkspaceInitializationException(ex);
+				}
+			}
+		}
+
 		WorkspacePathResolver pathResolver = new WorkspacePathResolver(workspaceReference.getPath());
 		boolean isNewWorkspace = false;
 		
@@ -113,7 +163,7 @@ public final class WorkspaceManager implements AutoCloseable {
 				Files.createDirectories(path);
 			} catch (Exception ex) {
 				LOGGER.warn("Failed to create the directory '" + path.toAbsolutePath() + "': " + ex.getMessage(), ex);
-				throw ex;
+				throw new WorkspaceInitializationException(ex);
 			}
 		}
 		
@@ -127,7 +177,7 @@ public final class WorkspaceManager implements AutoCloseable {
 				workspaceConfiguration = JsonIO.read(configFilePath, WorkspaceConfiguration.class);
 			} catch (Exception ex) {
 				LOGGER.error("Failed to read the file '" + configFilePath.toAbsolutePath() + "' as '" + WorkspaceConfiguration.class + "': " + ex.getMessage(), ex);
-				throw ex;
+				throw new WorkspaceInitializationException(ex);
 			}
 		} else {
 			// generate the file
@@ -136,7 +186,36 @@ public final class WorkspaceManager implements AutoCloseable {
 			try {
 				JsonIO.write(configFilePath, workspaceConfiguration);
 			} catch (Exception ex) {
-				LOGGER.warn("Failed to save the file '" + configFilePath.toAbsolutePath() + "': " + ex.getMessage(), ex);
+				LOGGER.error("Failed to save the file '" + configFilePath.toAbsolutePath() + "': " + ex.getMessage(), ex);
+				throw new WorkspaceInitializationException(ex);
+			}
+		}
+
+		Version version = null;
+		try {
+			version = Version.parse(workspaceConfiguration.getVersion());
+		} catch (Exception ex) {
+			LOGGER.error("Failed to parse workspace version: " + ex.getMessage(), ex);
+		}
+
+		boolean recreateIndex = installUpgradeHandler.isReindexRequired(LOGGER, version);
+		if (recreateIndex) {
+			Path indexPath = pathResolver.getSearchIndexPath();
+			if (Files.exists(indexPath)) {
+				try(Stream<Path> fileStream = Files.walk(indexPath)) {
+					fileStream
+						.sorted((a, b) -> b.compareTo(a)) // reverse; files before dirs
+						.forEach(p -> {
+							try { 
+								Files.delete(p); 
+							} catch(IOException e) {
+								LOGGER.warn("Failed to delete the temp file '" + p.toAbsolutePath().toString() + "'.", e);
+							}
+						});
+				} catch (IOException ex) {
+					LOGGER.error("Failed to clean up temp directory '" + indexPath.toAbsolutePath() + "'.", ex);
+					throw new WorkspaceInitializationException(ex);
+				}
 			}
 		}
 
@@ -147,7 +226,7 @@ public final class WorkspaceManager implements AutoCloseable {
 			searchIndex = SearchIndex.open(pathResolver.getSearchIndexPath());
 		} catch (Exception ex) {
 			LOGGER.warn("Failed to initialize the search index at '" + pathResolver.getSearchIndexPath() + "': " + ex.getMessage(), ex);
-			throw ex;
+			throw new WorkspaceInitializationException(ex);
 		}
 		
 		return new WorkspaceManager(

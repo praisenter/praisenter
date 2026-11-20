@@ -7,11 +7,13 @@ import java.time.LocalDateTime;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
@@ -269,20 +271,28 @@ public final class LifecycleHandler {
 		CompletableFuture<Optional<WorkspaceManager>> workspacePathFuture = null;
 		if (workspaceReference == null) {
 			// no workspace was given so prompt for one
-			WorkspaceSelectionPane wss = new WorkspaceSelectionPane(fm);
+			WorkspaceSelectionPane wss = new WorkspaceSelectionPane(fm, installer);
 			workspacePathFuture = promptForWorkspace.apply(wss);
 		} else {
 			// a workspace was given (could be from command line or from switching a workspace)
 			LOGGER.info("Workspace path already given - no prompt necessary");
 			try {
-				WorkspaceInitializer wi = new WorkspaceInitializer(fm);
-				WorkspaceManager wm = wi.initializeWorkspace(workspaceReference);
-				workspacePathFuture = CompletableFuture.completedFuture(Optional.of(wm));
+				// get all the other workspaces
+				Set<WorkspaceReference> otherWorkspaces = fm.getData().getWorkspaces()
+						.stream()
+						.filter(s -> !s.equals(workspaceReference))
+						.collect(Collectors.toSet());
+				
+				// build the workspace manager and initialize the workspace
+				WorkspaceManager wsm = WorkspaceManager.open(workspaceReference, otherWorkspaces, installer);
+				LOGGER.info("Workspace '{}' was opened successfully.", workspaceReference.getPath().toAbsolutePath());
+				
+				workspacePathFuture = CompletableFuture.completedFuture(Optional.of(wsm));
 			} catch (Exception ex) {
 				// if we fail to open the workspace head-less then show the workspace selection
 				// so the user can choose a different workspace or re-choose a workspace
-				LOGGER.error("Failed to initialize workspace: '" + workspaceReference.getPath() + "'", ex);
-				WorkspaceSelectionPane wss = new WorkspaceSelectionPane(fm);
+				LOGGER.error("Failed to initialize workspace: '{}'", workspaceReference.getPath().toAbsolutePath(), ex);
+				WorkspaceSelectionPane wss = new WorkspaceSelectionPane(fm, installer);
 				wss.setValue(Optional.of(workspaceReference));
 				wss.setStatus(Translations.get("workspace.path.failed"), false);
 				workspacePathFuture = promptForWorkspace.apply(wss);
