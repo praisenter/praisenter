@@ -1,5 +1,6 @@
 package org.praisenter.ui.slide;
 
+import java.nio.channels.AsynchronousByteChannel;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -10,8 +11,10 @@ import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -27,6 +30,7 @@ import org.praisenter.data.workspace.PlaceholderTransitionBehavior;
 import org.praisenter.ui.GlobalContext;
 import org.praisenter.ui.Playable;
 import org.praisenter.ui.slide.convert.TransitionConverter;
+import org.praisenter.utility.RuntimeInterruptException;
 import org.praisenter.utility.Scaling;
 
 import javafx.animation.Animation.Status;
@@ -516,6 +520,7 @@ public class SlideView extends Region implements Playable {
 		// clean up the old node (if there was one)
 		if (oldNode != null) {
 			this.surface.getChildren().remove(oldNode);
+			oldNode.stop();
 			oldNode.mode.unbind();
 			oldNode.close();
 		}
@@ -615,6 +620,7 @@ public class SlideView extends Region implements Playable {
 		inOutTransition.setOnFinished(e -> {
 			if (oldNode != null) {
 				this.surface.getChildren().remove(oldNode);
+				oldNode.stop();
 				oldNode.mode.unbind();
 				oldNode.close();
 			}
@@ -908,23 +914,21 @@ public class SlideView extends Region implements Playable {
 				future = CompletableFuture.completedFuture(new PreparedSlide(slide, data, slideNode, time));
 			} else {
 				// otherwise, we have to go into another thread to wait for media to spool
-				future = CompletableFuture.completedFuture(slideNode).thenRunAsync(() -> {
-					// then on a thread-pool thread, wait for the media to be ready
-					try {
-						this.waitForMediaReady(slideNode);
-					} catch (InterruptedException ex) {
-						Platform.runLater(() -> {
-							slideNode.close();
-						});
-						throw new CompletionException("Failed to prepare slide, the thread was interrupted while waiting for media to be ready", ex);
-					}
-				}).thenComposeAsync(AsyncHelper.onJavaFXThreadAndWait((v) -> {
+				future = CompletableFuture.completedFuture(slideNode)
+				.thenComposeAsync(this::waitForMediaReady)
+				.thenComposeAsync(AsyncHelper.onJavaFXThreadAndWait((v) -> {
 					// then on the JavaFX thread, add to the prepared SlideNode to the
 					// prepared queue and signal it's ready
 					LOGGER.trace("Slide '{}' is ready for view", slide);
 					PreparedSlide ptr = new PreparedSlide(slide, data, slideNode, time);
 					return ptr;
-				}));
+				})).exceptionally((ex) -> {
+					// handle the exception
+					Platform.runLater(() -> {
+						slideNode.close();
+					});
+					throw new CompletionException(ex);
+				});
 			}
 		} else {
 			// if we have media to load or we're not in the JavaFX thread, then
@@ -945,25 +949,22 @@ public class SlideView extends Region implements Playable {
 						LOGGER.trace("Slide '{}' is ready for view", slide);
 						ps.complete(new PreparedSlide(slide, data, slideNode, time));
 					} else {
-						CompletableFuture.completedFuture(slideNode).thenRunAsync(() -> {
-							// then on a thread-pool thread, wait for the media to be ready
-							try {
-								this.waitForMediaReady(slideNode);
-							} catch (InterruptedException ex) {
-								// complete the future exceptionally
-								Platform.runLater(() -> {
-									slideNode.close();
-								});
-								ps.completeExceptionally(ex);
-								throw new CompletionException("Failed to prepare slide, the thread was interrupted while waiting for media to be ready", ex);
-							}
-						}).thenComposeAsync(AsyncHelper.onJavaFXThreadAndWait(() -> {
+						CompletableFuture.completedFuture(slideNode)
+						.thenComposeAsync(this::waitForMediaReady)
+						.thenComposeAsync(AsyncHelper.onJavaFXThreadAndWait(() -> {
 							// then on the JavaFX thread, add to the prepared SlideNode to the
 							// prepared queue and signal it's ready
 							LOGGER.trace("Slide '{}' is ready for view", slide);
 							PreparedSlide ptr = new PreparedSlide(slide, data, slideNode, time);
 							ps.complete(ptr);
-						}));
+						})).exceptionally((ex) -> {
+							// handle the exception
+							Platform.runLater(() -> {
+								slideNode.close();
+							});
+							ps.completeExceptionally(ex);
+							throw new CompletionException(ex);
+						});
 					}
 				});
 				
@@ -1024,25 +1025,58 @@ public class SlideView extends Region implements Playable {
 		return node;
 	}
 	
+	private CompletableFuture<Boolean> isReady(SlideNode node) {
+		CompletableFuture<Boolean> future = new CompletableFuture<>();
+		Platform.runLater(() -> {
+			future.complete(node.isReady());
+		});
+		return future;
+	}
 	
-	private void waitForMediaReady(SlideNode node) throws InterruptedException {
-		int waitTimeInMS = 0;
+	private CompletableFuture<Boolean> waitForMediaReady(SlideNode node) {
 		final int waitTimeIncrementInMS = 100;
 		final int maxWaitTimeInMS = 5 * 1000;
 		
 		LOGGER.trace("Staring wait for media players");
-		while (!node.isReady()) {
-			Thread.sleep(waitTimeIncrementInMS);
-			waitTimeInMS += waitTimeIncrementInMS;
-			
-			if (waitTimeInMS >= maxWaitTimeInMS) {
-				LOGGER.warn("Waiting for media to get ready took too long {} ms", waitTimeInMS);
-				break;
+		return CompletableFuture.supplyAsync(() -> {
+			int waitTimeInMS = 0;
+			boolean isReady = false;
+			while (!isReady) {
+				try {
+					// Check if the media is ready on the JavaFX thread
+					// and wait for it's response
+					LOGGER.trace("Checking if SlideNode media players are ready...");
+					isReady = this.isReady(node).get();
+				} catch (InterruptedException ex) {
+					LOGGER.warn("Checking if the SlideNode media is ready was interrupted");
+					throw new RuntimeInterruptException(ex);
+				} catch (ExecutionException | CancellationException ex) {
+					LOGGER.warn("Checking if the SlideNode media is ready completed exceptionally or was cancelled");
+					throw new CompletionException(ex);
+				}
+
+				if (!isReady) {
+					// see if we should give up
+					if (waitTimeInMS >= maxWaitTimeInMS) {
+						LOGGER.warn("Waiting for media to get ready took too long {} ms", waitTimeInMS);
+						break;
+					}
+
+					try {
+						Thread.sleep(waitTimeIncrementInMS);
+						waitTimeInMS += waitTimeIncrementInMS;
+					} catch (InterruptedException ex) {
+						LOGGER.warn("Waiting for media to be ready on SlideNode was interrupted");
+						throw new RuntimeInterruptException(ex);
+					}
+				} else {
+					LOGGER.debug("Media players are ready!");
+					return true;
+				}
 			}
-		}
-		
-		if (node.isReady())
-			LOGGER.trace("Media players are ready!");
+
+			return false;
+		});
 	}
 	
 	// properties

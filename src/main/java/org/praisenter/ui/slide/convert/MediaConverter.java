@@ -103,14 +103,45 @@ public final class MediaConverter {
 		try {
 			// attempt to open the media
 			javafx.scene.media.Media m = new javafx.scene.media.Media(media.getMediaPath().toUri().toString());
-			m.setOnError(() -> { LOGGER.error(m.getError()); });
+			m.setOnError(() -> { 
+				LOGGER.error("Failed to load Media '{}'", media.getName());
+				LOGGER.error(m.getError()); 
+			});
 			
 			// create a player
 			MediaPlayer player = new MediaPlayer(m);
 			// set the player attributes
 			player.setMute(mute);
 			player.setCycleCount(loop ? MediaPlayer.INDEFINITE : 1);
-			player.setOnError(() -> { LOGGER.error(player.getError()); });
+			player.setOnError(() -> { 
+				LOGGER.error("Failed to initialize MediaPlayer for media '{}'. Player is in '{}' status.", media.getName(), player.getStatus());
+				LOGGER.error(player.getError()); 
+			});
+			player.setOnEndOfMedia(() -> {
+				LOGGER.debug("MediaPlayer for media '{}' has reached the end of the media.", media.getName());
+			});
+			player.setOnHalted(() -> {
+				LOGGER.error("MediaPlayer for media '{}' transitioned to '{}' status.", media.getName(), player.getStatus());
+				LOGGER.error(player.getError());
+			});
+			player.setOnPaused(() -> {
+				LOGGER.debug("MediaPlayer for media '{}' transitioned to '{}' status.", media.getName(), player.getStatus());
+			});
+			player.setOnPlaying(() -> {
+				LOGGER.debug("MediaPlayer for media '{}' transitioned to '{}' status.", media.getName(), player.getStatus());
+			});
+			player.setOnReady(() -> {
+				LOGGER.debug("MediaPlayer for media '{}' transitioned to '{}' status.", media.getName(), player.getStatus());
+			});
+			player.setOnRepeat(() -> {
+				LOGGER.debug("MediaPlayer for media '{}' is repeating.", media.getName());
+			});
+			player.setOnStalled(() -> {
+				LOGGER.debug("MediaPlayer for media '{}' transitioned to '{}' status.", media.getName(), player.getStatus());
+			});
+			player.setOnStopped(() -> {
+				LOGGER.debug("MediaPlayer for media '{}' transitioned to '{}' status.", media.getName(), player.getStatus());
+			});
 			
 			return player;
 		} catch (Exception ex) {

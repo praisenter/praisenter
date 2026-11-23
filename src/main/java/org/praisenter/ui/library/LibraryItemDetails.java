@@ -337,17 +337,42 @@ final class LibraryItemDetails extends VBox {
 				if (type != MediaType.IMAGE) {
 					try {
 	        			javafx.scene.media.Media m = new javafx.scene.media.Media(media.getMediaPath().toUri().toString());
-	        			Exception ex = m.getError();
-	        			if (ex != null) {
-	        				LOGGER.error("Error loading media " + media.getMediaPath().toAbsolutePath(), ex);
-	        			} else {
-	        				MediaPlayer mp = new MediaPlayer(m);
-	        				ex = mp.getError();
-	        				if (ex != null) {
-	        					LOGGER.error("Error creating media player for " + media.getMediaPath().toAbsolutePath(), ex);
-	        				}
-	        				return mp;
-	        			}
+						m.setOnError(() -> { 
+							LOGGER.error("Failed to load Media '{}'", media.getName());
+							LOGGER.error(m.getError()); 
+						});
+
+						MediaPlayer mp = new MediaPlayer(m);
+						mp.setOnError(() -> { 
+							LOGGER.error("Failed to initialize MediaPlayer for media '{}'. Player is in '{}' status.", media.getName(), mp.getStatus());
+							LOGGER.error(mp.getError()); 
+						});
+						mp.setOnEndOfMedia(() -> {
+							LOGGER.debug("MediaPlayer for media '{}' has reached the end of the media.", media.getName());
+						});
+						mp.setOnHalted(() -> {
+							LOGGER.error("MediaPlayer for media '{}' transitioned to '{}' status.", media.getName(), mp.getStatus());
+							LOGGER.error(mp.getError());
+						});
+						mp.setOnPaused(() -> {
+							LOGGER.debug("MediaPlayer for media '{}' transitioned to '{}' status.", media.getName(), mp.getStatus());
+						});
+						mp.setOnPlaying(() -> {
+							LOGGER.debug("MediaPlayer for media '{}' transitioned to '{}' status.", media.getName(), mp.getStatus());
+						});
+						mp.setOnReady(() -> {
+							LOGGER.debug("MediaPlayer for media '{}' transitioned to '{}' status.", media.getName(), mp.getStatus());
+						});
+						mp.setOnRepeat(() -> {
+							LOGGER.debug("MediaPlayer for media '{}' is repeating.", media.getName());
+						});
+						mp.setOnStalled(() -> {
+							LOGGER.debug("MediaPlayer for media '{}' transitioned to '{}' status.", media.getName(), mp.getStatus());
+						});
+						mp.setOnStopped(() -> {
+							LOGGER.debug("MediaPlayer for media '{}' transitioned to '{}' status.", media.getName(), mp.getStatus());
+						});
+						return mp;
         			} catch (Exception ex) {
         				LOGGER.error("Error loading media " + media.getMediaPath().toAbsolutePath(), ex);
         			}
