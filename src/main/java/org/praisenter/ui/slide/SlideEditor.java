@@ -261,31 +261,28 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 				
 				this.context.importFiles(files).thenComposeAsync(AsyncHelper.onJavaFXThreadAndWait(items -> {
 					this.addMediaComponents(items);
-					e.setDropCompleted(true);
 				})).exceptionally(t -> {
 					LOGGER.error("Failed to import media: ", t);
 					// show the error message
 					return null;
-				}).thenRun(() -> {
-					e.setDropCompleted(true);
 				});
-				
+
+				e.setDropCompleted(true);
 			} else if (db.hasContent(DataFormat.IMAGE)) {
-				String name = "Utitled.png";
+				String name = "Untitled.png";
 				Image image = db.getImage();
 				
 				this.context.importImage(name, image).thenComposeAsync(AsyncHelper.onJavaFXThreadAndWait(item -> {
 					List<Persistable> items = new ArrayList<>();
 					items.add(item);
 					this.addMediaComponents(items);
-					e.setDropCompleted(true);
 				})).exceptionally(t -> {
 					LOGGER.error("Failed to import media: ", t);
 					// show the error message
 					return null;
-				}).thenRun(() -> {
-					e.setDropCompleted(true);
 				});
+
+				e.setDropCompleted(true);
 			}
 		});
 		
