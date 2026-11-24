@@ -7,13 +7,13 @@
     </Properties>
     <Appenders>
 		<Console name="console" target="SYSTEM_OUT">
-			<PatternLayout pattern="${log.pattern}"/>
+			<PatternLayout pattern="${log.pattern}" charset="UTF-8" />
 		</Console>
 
         <RollingFile name="file"
                      fileName="${sys:praisenter.logs.dir}/praisenter.log"
                      filePattern="${logs.archive}/praisenter.log.%d{yyyy-MM-dd}.gz">
-            <PatternLayout pattern="${log.pattern}"/>
+            <PatternLayout pattern="${log.pattern}" charset="UTF-8"/>
             <Policies>
 	            <!-- <TimeBasedTriggeringPolicy interval="1" /> -->
 	            <SizeBasedTriggeringPolicy size="5MB" />
