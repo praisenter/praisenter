@@ -23,6 +23,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import javax.imageio.ImageIO;
@@ -989,52 +990,56 @@ public final class GlobalContext implements AutoCloseable {
 		bt.setType(MimeType.get(name));
 		this.addBackgroundTask(bt);
 		
-		Path tempPath = this.getWorkspaceManager().getWorkspacePathResolver().getBasePath().resolve("temp");
-		Path tempFile = tempPath.resolve(name);
+		final Path path = this.getWorkspaceManager().getWorkspacePathResolver().getBasePath().resolve("temp");
 		
-		LOGGER.info("Beginning import of '{}'", name);
-		return CompletableFuture.supplyAsync(() -> {
+		CompletableFuture<Persistable> future = new CompletableFuture<>();
+		Thread.startVirtualThread(() -> {
+			Path tempPath = null;
+			Path tempFile = null;
 			try {
+				LOGGER.debug("Creating temporary import directory at path {}", path.toAbsolutePath());
+				Files.createDirectories(path);
+				tempPath = Files.createTempDirectory(path, "IMPORT");
+				LOGGER.debug("Temporary path created for import of image: {}", tempPath.toAbsolutePath());
+				tempFile = tempPath.resolve(name);
 				BufferedImage img = SwingFXUtils.fromFXImage(image, null);
-				Files.createDirectories(tempPath);
+				LOGGER.debug("Writing image to temporary file at path: {}", tempFile.toAbsolutePath());
 				ImageIO.write(img, "png", tempFile.toFile());
-				return tempFile;
-			} catch (IOException e) {
-				LOGGER.error("Failed to write clipboard image to temporary location", e);
+
+				LOGGER.debug("Importing image from temporary file: {}", tempFile.toAbsolutePath());
+				var results = this.workspaceManager.importData(tempFile, Bible.class, Slide.class, Media.class, Song.class).get();
+
+				bt.setProgress(1.0);
+				if (results == null || results.size() <= 0) {
+					throw new IOException("No image was imported into the library");
+				}
+				LOGGER.debug("Image imported successfully");
+				future.complete(results.get(0));
+			} catch (InterruptedException ex) {
+				LOGGER.warn("Import of image was interrupted");
+				Thread.currentThread().interrupt();
+				future.completeExceptionally(ex);
+			} catch (ExecutionException | IOException ex) {
+				LOGGER.error("Import of image failed: {}", ex.getMessage(), ex);
+				future.completeExceptionally(ex);
+			} finally {
+				try {
+					if (tempFile != null) 
+						Files.deleteIfExists(tempFile);
+				} catch (Exception ex) {
+					LOGGER.error("Failed to delete the temporary file '" + tempFile.toAbsolutePath() + "'", ex);
+				}
+
+				try {
+					if (tempPath != null) 
+						Files.deleteIfExists(tempPath);
+				} catch (Exception ex) {
+					LOGGER.error("Failed to delete the temporary folder '" + tempPath.toAbsolutePath() + "'", ex);
+				}
 			}
-			return null;
-		}).thenComposeAsync(path -> {
-			if (path != null) {
-				return this.workspaceManager.importData(path, Bible.class, Slide.class, Media.class, Song.class);
-			}
-			return null;
-		}).thenApply(r -> {
-			bt.setProgress(1.0);
-			try {
-				Files.deleteIfExists(tempFile);
-			} catch (Exception ex) {
-				LOGGER.error("Failed to delete the temporary file '" + tempFile.toAbsolutePath() + "'", ex);
-			}
-			
-			if (r != null && r.size() > 0) {
-				return r.get(0);
-			}
-			return null;
-		}).exceptionally(t -> {
-			LOGGER.error("Failed to import '" + name + "' due to: " + t.getMessage(), t);
-			bt.setException(t);
-			
-			try {
-				Files.deleteIfExists(tempFile);
-			} catch (Exception ex) {
-				LOGGER.error("Failed to delete the temporary file '" + tempFile.toAbsolutePath() + "'", ex);
-			}
-			
-			if (t instanceof CompletionException) 
-				throw (CompletionException)t;
-			
-			throw new CompletionException(t);
 		});
+
+		return future;
 	}
 	
 	public CompletableFuture<Void> export(List<Persistable> items, Path path, Map<Class<?>, ImportExportFormat> formats) {
