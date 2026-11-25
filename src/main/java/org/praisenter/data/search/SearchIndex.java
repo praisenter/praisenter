@@ -100,12 +100,9 @@ public final class SearchIndex implements AutoCloseable {
 			throw new IOException("SearchIndex is disposed");
 	}
 
-	private void refreshSearchManager() {
-		try {
-			this.searcherManager.maybeRefresh();
-		} catch (IOException e) {
-			LOGGER.error("Failed to refresh searcher manager - will try again on the next search", e);
-		}
+	public synchronized void refreshSearchManager() throws IOException {
+		this.throwIfDisposed();
+		this.searcherManager.maybeRefreshBlocking();
 	}
 
 	public synchronized void create(Indexable item) throws IOException {
@@ -114,7 +111,6 @@ public final class SearchIndex implements AutoCloseable {
 		if (docs == null || docs.isEmpty()) return;
 		this.indexWriter.updateDocuments(new Term(Indexable.FIELD_ID, item.getId().toString()), docs);
 		this.indexWriter.commit();
-		this.refreshSearchManager();
 	}
 	
 	public synchronized void update(Indexable item) throws IOException {
@@ -127,14 +123,12 @@ public final class SearchIndex implements AutoCloseable {
 			this.indexWriter.updateDocuments(id, docs);
 		}
 		this.indexWriter.commit();
-		this.refreshSearchManager();
 	}
 	
 	public synchronized void delete(Indexable item) throws IOException {
 		this.throwIfDisposed();
 		this.indexWriter.deleteDocuments(new Term(Indexable.FIELD_ID, item.getId().toString()));
 		this.indexWriter.commit();
-		this.refreshSearchManager();
 	}
 	
 	public synchronized void reindex(Iterable<? extends Indexable> items) throws IOException {
