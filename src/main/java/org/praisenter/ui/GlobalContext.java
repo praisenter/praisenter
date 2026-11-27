@@ -1004,7 +1004,10 @@ public final class GlobalContext implements AutoCloseable {
 				tempFile = tempPath.resolve(name);
 				BufferedImage img = SwingFXUtils.fromFXImage(image, null);
 				LOGGER.debug("Writing image to temporary file at path: {}", tempFile.toAbsolutePath());
-				ImageIO.write(img, "png", tempFile.toFile());
+				boolean success = ImageIO.write(img, "png", tempFile.toFile());
+				if (!success) {
+					throw new IOException("Failed to write image to: '" + tempFile.toAbsolutePath().toString() + "'");
+				}
 
 				LOGGER.debug("Importing image from temporary file: {}", tempFile.toAbsolutePath());
 				var results = this.workspaceManager.importData(tempFile, Bible.class, Slide.class, Media.class, Song.class).get();
