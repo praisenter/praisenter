@@ -651,7 +651,9 @@ public final class LifecycleHandler {
     	if (!ForkJoinPool.commonPool().awaitQuiescence(60, TimeUnit.SECONDS)) {
     		LOGGER.warn("Waited 60 seconds for tasks to complete, but they didn't.");
     		// TODO need to prompt user to wait longer or just exit
-    	}
+    	} else {
+			LOGGER.info("All pending async tasks have completed successfully.");
+		}
     	
     	return CompletableFuture.completedFuture(true);
     }

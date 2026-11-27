@@ -10,18 +10,20 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.data.json.JsonIO;
 
-public final class SingleFileManager<T> {
+public final class SingleFileManager<T extends Copyable> {
 	private static final Logger LOGGER = LogManager.getLogger();
 	
+	private final Object lock;
 	private final Path path;
 	private final T data;
 	
 	private SingleFileManager(Path path, T data) {
+		this.lock = new Object();
 		this.path = path;
 		this.data = data;
 	}
 	
-	public static <T> SingleFileManager<T> open(
+	public static <T extends Copyable> SingleFileManager<T> open(
 			Path path, 
 			Class<T> clazz,
 			T defaultValue) throws IOException {
@@ -50,9 +52,12 @@ public final class SingleFileManager<T> {
 	}
 	
 	public CompletableFuture<Void> saveData() {
+		Object copy = this.data.copy();
 		return CompletableFuture.runAsync(() -> {
 			try {
-				JsonIO.write(this.path, this.data);
+				synchronized (this.lock) {
+					JsonIO.write(this.path, copy);
+				}
 			} catch (Exception e) {
 				throw new CompletionException(e);
 			}
