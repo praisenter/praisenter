@@ -76,7 +76,6 @@ public final class PersistentStore<T extends Persistable> {
 				this.adapter.create(item);
 				try {
 					this.index.create(item);
-					this.index.refreshSearchManager();
 				} catch (Exception ex) {
 					LOGGER.warn("Failed to create index for item: " + item.getId(), ex);
 				}
@@ -94,7 +93,6 @@ public final class PersistentStore<T extends Persistable> {
 				this.adapter.update(item);
 				try {
 					this.index.update(item);
-					this.index.refreshSearchManager();
 				} catch (Exception ex) {
 					LOGGER.warn("Failed to update index for item: " + item.getId(), ex);
 				}
@@ -122,7 +120,6 @@ public final class PersistentStore<T extends Persistable> {
 				this.adapter.delete(item);
 				try {
 					this.index.delete(item);
-					this.index.refreshSearchManager();
 				} catch (Exception ex) {
 					LOGGER.warn("Failed to delete index for item: " + item.getId(), ex);
 				}
@@ -139,25 +136,15 @@ public final class PersistentStore<T extends Persistable> {
 			try {
 				DataImportResult<T> result = this.adapter.importData(path);
 				if (result != null) {
-					for (T item : result.getCreated()) {
-						try {
-							this.index.create(item);
-						} catch (Exception ex) {
-							LOGGER.warn("Failed to create index for item: " + item.getId(), ex);
-						}
-					}
-					for (T item : result.getUpdated()) {
-						try {
-							this.index.update(item);
-						} catch (Exception ex) {
-							LOGGER.warn("Failed to update index for item: " + item.getId(), ex);
-						}
-					}
-					// finally, try to update the searcher
 					try {
-						this.index.refreshSearchManager();
+						this.index.create(result.getCreated());
 					} catch (Exception ex) {
-						LOGGER.warn("Failed to refresh search manager after import", ex);
+						LOGGER.warn("Failed to update index for created items", ex);
+					}
+					try {
+						this.index.update(result.getUpdated());
+					} catch (Exception ex) {
+						LOGGER.warn("Failed to update index for updated items", ex);
 					}
 				}
 				return result;

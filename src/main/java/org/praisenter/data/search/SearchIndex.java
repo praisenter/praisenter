@@ -3,6 +3,7 @@ package org.praisenter.data.search;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -105,12 +106,35 @@ public final class SearchIndex implements AutoCloseable {
 		this.searcherManager.maybeRefreshBlocking();
 	}
 
+	public synchronized void commitChanges() throws IOException {
+		this.throwIfDisposed();
+		this.indexWriter.commit();
+	}
+
 	public synchronized void create(Indexable item) throws IOException {
 		this.throwIfDisposed();
 		List<Document> docs = item.index();
 		if (docs == null || docs.isEmpty()) return;
 		this.indexWriter.updateDocuments(new Term(Indexable.FIELD_ID, item.getId().toString()), docs);
 		this.indexWriter.commit();
+		this.searcherManager.maybeRefreshBlocking();
+	}
+
+	public synchronized void create(Collection<? extends Indexable> items) throws IOException {
+		this.throwIfDisposed();
+		for (Indexable item : items) {
+			List<Document> docs = item.index();
+			Term id = new Term(Indexable.FIELD_ID, item.getId().toString());
+			if (docs != null && !docs.isEmpty()) {
+				try {
+					this.indexWriter.updateDocuments(id, docs);
+				} catch (IOException e) {
+					LOGGER.error("Failed to index item {}", item.getId(), e);
+				}
+			}
+		}
+		this.indexWriter.commit();
+		this.searcherManager.maybeRefreshBlocking();
 	}
 	
 	public synchronized void update(Indexable item) throws IOException {
@@ -123,12 +147,33 @@ public final class SearchIndex implements AutoCloseable {
 			this.indexWriter.updateDocuments(id, docs);
 		}
 		this.indexWriter.commit();
+		this.searcherManager.maybeRefreshBlocking();
+	}
+
+	public synchronized void update(Collection<? extends Indexable> items) throws IOException {
+		this.throwIfDisposed();
+		for (Indexable item : items) {
+			List<Document> docs = item.index();
+			Term id = new Term(Indexable.FIELD_ID, item.getId().toString());
+			try {
+				if (docs == null || docs.isEmpty()) {
+					this.indexWriter.deleteDocuments(id);
+				} else {
+					this.indexWriter.updateDocuments(id, docs);
+				}
+			} catch (IOException e) {
+				LOGGER.error("Failed to index item {}", item.getId(), e);
+			}
+		}
+		this.indexWriter.commit();
+		this.searcherManager.maybeRefreshBlocking();
 	}
 	
 	public synchronized void delete(Indexable item) throws IOException {
 		this.throwIfDisposed();
 		this.indexWriter.deleteDocuments(new Term(Indexable.FIELD_ID, item.getId().toString()));
 		this.indexWriter.commit();
+		this.searcherManager.maybeRefreshBlocking();
 	}
 	
 	public synchronized void reindex(Iterable<? extends Indexable> items) throws IOException {
