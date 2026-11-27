@@ -46,7 +46,6 @@ import org.apache.logging.log4j.Logger;
 import org.praisenter.data.DataImportResult;
 import org.praisenter.data.PathResolver;
 import org.praisenter.data.PersistAdapter;
-import org.praisenter.data.json.JsonIO;
 import org.praisenter.data.media.tools.MediaTools;
 import org.praisenter.utility.MimeType;
 
