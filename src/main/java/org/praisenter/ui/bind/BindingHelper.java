@@ -69,8 +69,11 @@ public final class BindingHelper {
 				if (to == null) return;
 				if (isOperating.get()) return;
 				isOperating.set(true);
-				to.setValue(mapper.convertFrom(newValue));
-				isOperating.set(false);
+				try {
+					to.setValue(mapper.convertFrom(newValue));
+				} finally {
+					isOperating.set(false);
+				}
 			}
 		});
 		to.addListener(new ChangeListener<E>() {
@@ -81,8 +84,11 @@ public final class BindingHelper {
 				if (from == null) return;
 				if (isOperating.get()) return;
 				isOperating.set(true);
-				from.setValue(mapper.convertTo(newValue));
-				isOperating.set(false);
+				try {
+					from.setValue(mapper.convertTo(newValue));
+				} finally {
+					isOperating.set(false);
+				}
 			}
 		});
 	}
@@ -110,8 +116,11 @@ public final class BindingHelper {
 				if (to == null) return;
 				if (isOperating.get()) return;
 				isOperating.set(true);
-				to.setValue(mapper.convertFrom(newValue.doubleValue()));
-				isOperating.set(false);
+				try {
+					to.setValue(mapper.convertFrom(newValue.doubleValue()));
+				} finally {
+					isOperating.set(false);
+				}
 			}
 		});
 		to.addListener(new ChangeListener<Number>() {
@@ -122,8 +131,11 @@ public final class BindingHelper {
 				if (from == null) return;
 				if (isOperating.get()) return;
 				isOperating.set(true);
-				from.setValue(mapper.convertTo(newValue.doubleValue()));
-				isOperating.set(false);
+				try {
+					from.setValue(mapper.convertTo(newValue.doubleValue()));
+				} finally {
+					isOperating.set(false);
+				}
 			}
 		});
 	}
