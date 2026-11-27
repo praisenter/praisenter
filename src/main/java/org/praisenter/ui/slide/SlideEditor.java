@@ -515,7 +515,7 @@ public final class SlideEditor extends BorderPane implements DocumentEditor<Slid
 				LOGGER.warn("Failed to paste clipboard content (likely due to a JSON deserialization error", ex);
 			}
 		} else if (clipboard.hasContent(DataFormat.IMAGE)) {
-			String name = StringManipulator.toFileName(Translations.get("action.new.untitled", "") + ".png", "");
+			String name = StringManipulator.toFileName(Translations.get("action.new.untitled", ""), "") + ".png";
 			Image image = clipboard.getImage();
 			
 			this.context.importImage(name, image).thenComposeAsync(AsyncHelper.onJavaFXThreadAndWait(item -> {
