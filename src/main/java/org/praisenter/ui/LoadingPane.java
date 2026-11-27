@@ -28,6 +28,7 @@ import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Background;
@@ -304,9 +305,15 @@ final class LoadingPane extends Pane {
 			List<String> families = Font.getFamilies();
 			Font.getFontNames();
 			// to improve performance of font pickers, we need to preload
-			// the fonts by creating a font for each one
+			// the fonts by creating a font for each one, creating a text
+			// object using that font, and then adding it to a group
+			// to attempt to force rendering of that font
+			Group group = new Group();
 			for (String family : families) {
-				Font.font(family);
+				Font font = Font.font(family);
+				Text text = new Text(family);
+				text.setFont(font);
+				group.getChildren().add(text);
 			}
 			LOGGER.info("Font loading complete");
 			this.progress.set(0.9);
