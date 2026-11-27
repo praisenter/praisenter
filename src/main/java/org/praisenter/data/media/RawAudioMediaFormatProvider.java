@@ -207,9 +207,12 @@ final class RawAudioMediaFormatProvider extends AbstractMediaFormatProvider {
 		try {
 			// write the thumbnail
 			BufferedImage thumb = this.createThumbnail(image);
-			ImageIO.write(thumb, mpr.getThumbExtension(), mpr.getThumbPath(media).toFile());
+			boolean success = ImageIO.write(thumb, mpr.getThumbExtension(), mpr.getThumbPath(media).toFile());
+			if (!success) {
+				throw new IOException("Failed to write thumbnail image to " + mpr.getThumbPath(media).toString());
+			}
 		} catch (Exception ex) {
-			this.delete(target, mpr.getPath(media), mpr.getImagePath(media));
+			this.delete(target, mpr.getPath(media), mpr.getThumbPath(media));
 			throw new MediaImportException("Failed to store image for audio media from the classpath default.", ex);
 		}
 		

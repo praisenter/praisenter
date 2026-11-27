@@ -130,7 +130,10 @@ abstract class AbstractMediaFormatProvider implements ImportExportProvider<Media
 					}
 					
 					LOGGER.debug("Writing corrected image to media library.");
-					ImageIO.write(image, formatName, target.toFile());
+					boolean success = ImageIO.write(image, formatName, target.toFile());
+					if (!success) {
+						throw new IOException("Failed to write image to " + target.toString());
+					}
 					break;
 				} finally {
 					reader.dispose();

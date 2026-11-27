@@ -208,9 +208,12 @@ final class RawVideoMediaFormatProvider extends AbstractMediaFormatProvider {
 		if (image != null) {
 			try {
 				// write the image
-				ImageIO.write(image, mpr.getImageExtension(), mpr.getImagePath(media).toFile());
+				boolean success = ImageIO.write(image, mpr.getImageExtension(), mpr.getImagePath(media).toFile());
+				if (!success) {
+					throw new IOException("Failed to write image to " + mpr.getImagePath(media).toString());
+				}
 			} catch (Exception ex) {
-				this.delete(target, mpr.getPath(media));
+				this.delete(target, mpr.getPath(media), mpr.getImagePath(media));
 				throw new MediaImportException("Failed to store image for media '" + media.getName() + "'.", ex);
 			}
 		}
@@ -224,10 +227,13 @@ final class RawVideoMediaFormatProvider extends AbstractMediaFormatProvider {
 				this.drawFilmOnFrame(thumb);
 			}
 			if (thumb != null) {
-				ImageIO.write(thumb, mpr.getThumbExtension(), mpr.getThumbPath(media).toFile());
+				boolean success = ImageIO.write(thumb, mpr.getThumbExtension(), mpr.getThumbPath(media).toFile());
+				if (!success) {
+					throw new IOException("Failed to write thumbnail image to " + mpr.getThumbPath(media).toString());
+				}
 			}
 		} catch (Exception ex) {
-			this.delete(target, mpr.getPath(media), mpr.getImagePath(media));
+			this.delete(target, mpr.getPath(media), mpr.getThumbPath(media), mpr.getImagePath(media));
 			throw new MediaImportException("Failed to store thumbnail for media '" + media.getName() + "'.", ex);
 		}
 		

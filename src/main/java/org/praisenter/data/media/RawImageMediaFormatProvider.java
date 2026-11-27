@@ -176,7 +176,7 @@ final class RawImageMediaFormatProvider extends AbstractMediaFormatProvider {
 
 					try {
 						// write the JSON data
-						JsonIO.write(mpr.getPath(media), media);
+						adapter.create(media);
 					} catch (Exception ex) {
 						this.delete(target);
 						throw new MediaImportException("Failed to store media metadata for '" + media.getName() + "'.", ex);
@@ -185,9 +185,12 @@ final class RawImageMediaFormatProvider extends AbstractMediaFormatProvider {
 					try {
 						// write the thumbnail
 						BufferedImage thumb = this.createThumbnail(image);
-						ImageIO.write(thumb, mpr.getThumbExtension(), mpr.getThumbPath(media).toFile());
+						boolean success = ImageIO.write(thumb, mpr.getThumbExtension(), mpr.getThumbPath(media).toFile());
+						if (!success) {
+							throw new IOException("Failed to write thumbnail image to " + mpr.getThumbPath(media).toString());
+						}
 					} catch (Exception ex) {
-						this.delete(target, mpr.getPath(media), mpr.getImagePath(media));
+						this.delete(target, mpr.getPath(media), mpr.getThumbPath(media));
 						throw new MediaImportException("Failed to store thumbnail for media '" + media.getName() + "'.", ex);
 					}
 					
