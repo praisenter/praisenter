@@ -5,6 +5,7 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
+import org.praisenter.data.Copyable;
 import org.praisenter.data.json.LocalDateTimeJsonDeserializer;
 import org.praisenter.data.json.LocalDateTimeJsonSerializer;
 
@@ -18,7 +19,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
-public class WorkspaceReference implements ReadonlyWorkspaceReference, Comparable<WorkspaceReference> {
+public class WorkspaceReference implements ReadonlyWorkspaceReference, Copyable, Comparable<WorkspaceReference> {
 	
 	private final ObjectProperty<Path> path;
 	private final ObjectProperty<LocalDateTime> lastOpenDate;
@@ -28,6 +29,15 @@ public class WorkspaceReference implements ReadonlyWorkspaceReference, Comparabl
 		this.path = new SimpleObjectProperty<Path>();
 		this.lastOpenDate = new SimpleObjectProperty<LocalDateTime>();
 		this.securityToken = new SimpleStringProperty();
+	}
+	
+	@Override
+	public WorkspaceReference copy() {
+		WorkspaceReference copy = new WorkspaceReference();
+		copy.setPath(this.path.get());
+		copy.setLastOpenDate(this.lastOpenDate.get());
+		copy.setSecurityToken(this.securityToken.get());
+		return copy;
 	}
 	
 	@JsonCreator

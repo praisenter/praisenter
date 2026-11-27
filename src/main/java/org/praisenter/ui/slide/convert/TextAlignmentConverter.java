@@ -49,6 +49,8 @@ public final class TextAlignmentConverter {
 	 * @return Insets
 	 */
 	public static Insets toJavaFX(SlidePadding padding) {
+		if (padding == null) 
+			return Insets.EMPTY;
 		return new Insets(padding.getTop(), padding.getRight(), padding.getBottom(), padding.getLeft());
 	}
 	
@@ -58,6 +60,8 @@ public final class TextAlignmentConverter {
 	 * @return {@link SlidePadding}
 	 */
 	public static SlidePadding fromJavaFX(Insets insets) {
+		if (insets == null)
+			return new SlidePadding();
 		return new SlidePadding(insets.getTop(), insets.getRight(), insets.getBottom(), insets.getLeft());
 	}
 	

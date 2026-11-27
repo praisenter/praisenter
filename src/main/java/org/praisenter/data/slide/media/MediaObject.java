@@ -81,7 +81,9 @@ public final class MediaObject implements ReadOnlyMediaObject, SlidePaint, Copya
 	@Override
 	public MediaObject copy() {
 		MediaObject mo = new MediaObject();
-		mo.colorAdjust.set(this.colorAdjust.get());
+		if (this.colorAdjust.get() != null) {
+			mo.colorAdjust.set(this.colorAdjust.get().copy());
+		}
 		mo.loopEnabled.set(this.loopEnabled.get());
 		mo.mediaId.set(this.mediaId.get());
 		mo.mediaName.set(this.mediaName.get());

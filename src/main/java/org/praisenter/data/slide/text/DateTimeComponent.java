@@ -76,7 +76,10 @@ public final class DateTimeComponent extends TimedTextComponent implements ReadO
 	public DateTimeComponent copy() {
 		DateTimeComponent dtc = new DateTimeComponent();
 		this.copyTo(dtc);
-		dtc.dateTimeFormat.set(this.dateTimeFormat.get());
+		SimpleDateFormat format = this.dateTimeFormat.get();
+		if (format != null) {
+			dtc.dateTimeFormat.set((SimpleDateFormat)format.clone());
+		}
 		return dtc;
 	}
 	

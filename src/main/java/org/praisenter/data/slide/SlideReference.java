@@ -2,6 +2,7 @@ package org.praisenter.data.slide;
 
 import java.util.UUID;
 
+import org.praisenter.data.Copyable;
 import org.praisenter.data.TextStore;
 import org.praisenter.data.bible.BibleReferenceTextStore;
 import org.praisenter.data.song.SongReferenceTextStore;
@@ -16,7 +17,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
-public class SlideReference implements ReadOnlySlideReference {
+public class SlideReference implements ReadOnlySlideReference, Copyable {
 	private final ObjectProperty<UUID> slideId;
 	private final ObjectProperty<TextStore> placeholderData;
 	private final StringProperty name;
@@ -25,6 +26,17 @@ public class SlideReference implements ReadOnlySlideReference {
 		this.slideId = new SimpleObjectProperty<UUID>();
 		this.placeholderData = new SimpleObjectProperty<TextStore>();
 		this.name = new SimpleStringProperty();
+	}
+	
+	@Override
+	public SlideReference copy() {
+		SlideReference sr = new SlideReference();
+		sr.slideId.set(this.slideId.get());
+		if (this.placeholderData.get() != null) {
+			sr.placeholderData.set(this.placeholderData.get().copy());
+		}
+		sr.name.set(this.name.get());
+		return sr;
 	}
 	
 	@Override

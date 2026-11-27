@@ -27,6 +27,8 @@ package org.praisenter.data.bible;
 import java.util.Objects;
 import java.util.UUID;
 
+import org.praisenter.data.Copyable;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -36,7 +38,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author William Bittle
  * @version 3.0.0
  */
-public final class BibleReferenceVerse implements Comparable<BibleReferenceVerse> {
+public final class BibleReferenceVerse implements Comparable<BibleReferenceVerse>, Copyable {
 	/** The not set flag */
 	public static final short NOT_SET = -1;
 	
@@ -100,6 +102,11 @@ public final class BibleReferenceVerse implements Comparable<BibleReferenceVerse
 		this.chapterNumber = chapterNumber;
 		this.verseNumber = verseNumber;
 		this.text = text;
+	}
+
+	@Override
+	public BibleReferenceVerse copy() {
+		return new BibleReferenceVerse(this.bibleId, this.bibleName, this.bookName, this.bookNumber, this.chapterNumber, this.verseNumber, this.text);
 	}
 
 	/* (non-Javadoc)

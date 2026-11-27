@@ -2,11 +2,12 @@ package org.praisenter.data.song;
 
 import java.util.UUID;
 
+import org.praisenter.data.Copyable;
 import org.praisenter.data.TextType;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public final class SongReferenceVerse {
+public final class SongReferenceVerse implements Copyable {
 	@JsonProperty
 	private final UUID songId;
 	
@@ -41,6 +42,11 @@ public final class SongReferenceVerse {
 		this.title = title;
 		this.name = name;
 		this.text = text;
+	}
+
+	@Override
+	public SongReferenceVerse copy() {
+		return new SongReferenceVerse(this.songId, this.lyricsId, this.sectionId, this.title, this.name, this.text);
 	}
 	
 	public String getText(TextType type) {

@@ -122,7 +122,8 @@ public final class DisplayConfiguration implements BibleConfiguration, ReadOnlyD
 		dc.secondaryBibleId.set(this.secondaryBibleId.get());
 		dc.previewTransitionEnabled.set(this.previewTransitionEnabled.get());
 		dc.autoShowEnabled.set(this.autoShowEnabled.get());
-		dc.queuedSlides.addAll(this.queuedSlides);
+		this.queuedSlides.forEach(s -> dc.queuedSlides.add(s.copy()));
+		dc.active.set(this.active.get());
 		return dc;
 	}
 

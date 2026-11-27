@@ -35,7 +35,7 @@ import java.util.Map;
  * @author William Bittle
  * @version 3.0.0
  */
-public interface TextStore {
+public interface TextStore extends Copyable {
 	/**
 	 * Returns the text for the given variant and type.
 	 * @param variant the variant
@@ -45,9 +45,9 @@ public interface TextStore {
 	public abstract TextItem get(TextVariant variant, TextType type);
 	
 	/**
-	 * Returns a map from the text type to the text for the given variant.
+	 * Returns an unmodifiable map from the text type to the text for the given variant.
 	 * @param variant the variant
-	 * @return Map&lt;{@link TextType}, String&gt;
+	 * @return Map&lt;{@link TextType}, {@link TextItem}&gt;
 	 */
 	public abstract Map<TextType, TextItem> get(TextVariant variant);
 	

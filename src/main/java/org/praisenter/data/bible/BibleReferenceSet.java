@@ -32,6 +32,7 @@ import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.praisenter.data.Copyable;
 import org.praisenter.data.TextType;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -41,7 +42,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author William Bittle
  * @version 3.0.0
  */
-public final class BibleReferenceSet {
+public final class BibleReferenceSet implements Copyable {
 	/** The class level logger */
 	private static final Logger LOGGER = LogManager.getLogger();
 	
@@ -62,6 +63,7 @@ public final class BibleReferenceSet {
 	 * Returns a deep copy of this reference set.
 	 * @return {@link BibleReferenceSet}
 	 */
+	@Override 
 	public BibleReferenceSet copy() {
 		BibleReferenceSet rs = new BibleReferenceSet();
 		rs.references.addAll(this.references);

@@ -101,6 +101,8 @@ public class TextComponent extends SlideComponent implements ReadOnlyTextCompone
 		SlidePaint tp = this.textPaint.get();
 		if (tp != null) {
 			component.textPaint.set(tp.copy());
+		} else {
+			component.textPaint.set(null);
 		}
 		
 		SlideStroke ts = this.textBorder.get();
@@ -113,11 +115,15 @@ public class TextComponent extends SlideComponent implements ReadOnlyTextCompone
 		SlideFont sf = this.font.get();
 		if (sf != null) {
 			component.font.set(sf.copy());
+		} else {
+			component.font.set(null);
 		}
 		
 		SlidePadding sp = this.padding.get();
 		if (sp != null) {
 			component.padding.set(sp.copy());
+		} else {
+			component.padding.set(null);
 		}
 		
 		SlideShadow sg = this.textGlow.get();

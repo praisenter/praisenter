@@ -7,6 +7,7 @@ import java.util.UUID;
 
 import org.praisenter.Constants;
 import org.praisenter.Version;
+import org.praisenter.data.Copyable;
 import org.praisenter.data.Identifiable;
 import org.praisenter.data.media.MediaConfiguration;
 import org.praisenter.data.slide.SlideConfiguration;
@@ -33,7 +34,7 @@ import javafx.collections.ObservableList;
 	use = JsonTypeInfo.Id.NAME,
 	include = JsonTypeInfo.As.PROPERTY)
 @JsonTypeName(value = "workspace")
-public final class WorkspaceConfiguration implements ReadOnlyWorkspaceConfiguration, MediaConfiguration, SlideConfiguration, Identifiable {
+public final class WorkspaceConfiguration implements ReadOnlyWorkspaceConfiguration, MediaConfiguration, SlideConfiguration, Copyable, Identifiable {
 	public static final double POSITION_SIZE_UNSET = -1;
 	public static final double DEFAULT_FONT_SIZE = 14;
 	
@@ -160,6 +161,51 @@ public final class WorkspaceConfiguration implements ReadOnlyWorkspaceConfigurat
 		}
 		
 		return null;
+	}
+
+	@Override
+	public WorkspaceConfiguration copy() {
+		WorkspaceConfiguration copy = new WorkspaceConfiguration();
+		copy.setAccentName(this.accentName.get());
+		copy.setApplicationFontSize(this.applicationFontSize.get());
+		copy.setApplicationHeight(this.applicationHeight.get());
+		copy.setApplicationMaximized(this.applicationMaximized.get());
+		copy.setApplicationWidth(this.applicationWidth.get());
+		copy.setApplicationX(this.applicationX.get());
+		copy.setApplicationY(this.applicationY.get());
+		copy.setAudioTranscodeCommand(this.audioTranscodeCommand.get());
+		copy.setAudioTranscodeExtension(this.audioTranscodeExtension.get());
+		copy.setAudioTranscodingEnabled(this.audioTranscodingEnabled.get());
+		copy.setDebugModeEnabled(this.debugModeEnabled.get());
+		copy.setFormat(this.format.get());
+		copy.setId(this.id.get());
+		copy.setLanguageTag(this.languageTag.get());
+		copy.setNDIFramesPerSecond(this.ndiFramesPerSecond.get());
+		copy.setNDIRenderOptimizationsEnabled(this.ndiRenderOptimizationsEnabled.get());
+		copy.setPlaceholderTransitionBehavior(this.placeholderTransitionBehavior.get());
+		copy.setRenumberBibleWarningEnabled(this.renumberBibleWarningEnabled.get());
+		copy.setReorderBibleWarningEnabled(this.reorderBibleWarningEnabled.get());
+		copy.setTargetMeanVolume(this.targetMeanVolume.get());
+		copy.setThemeName(this.themeName.get());
+		copy.setThumbnailHeight(this.thumbnailHeight.get());
+		copy.setThumbnailWidth(this.thumbnailWidth.get());
+		copy.setVersion(this.version.get());
+		copy.setVideoFrameExtractCommand(this.videoFrameExtractCommand.get());
+		copy.setVideoTranscodeCommand(this.videoTranscodeCommand.get());
+		copy.setVideoTranscodeExtension(this.videoTranscodeExtension.get());
+		copy.setVideoTranscodingEnabled(this.videoTranscodingEnabled.get());
+		copy.setVolumeAdjustmentEnabled(this.volumeAdjustmentEnabled.get());
+		copy.setWaitForTransitionsToCompleteEnabled(this.waitForTransitionsToCompleteEnabled.get());
+
+		List<DisplayConfiguration> dcs = new ArrayList<>();
+		this.displayConfigurations.forEach(dc -> dcs.add(dc.copy()));
+		copy.setDisplayConfigurations(dcs);
+
+		List<Resolution> rs = new ArrayList<>();
+		this.resolutions.forEach(r -> rs.add(r.copy()));
+		copy.setResolutions(rs);
+
+		return copy;
 	}
 
 	@Override

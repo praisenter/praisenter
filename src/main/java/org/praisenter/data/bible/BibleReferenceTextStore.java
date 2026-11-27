@@ -24,6 +24,7 @@
  */
 package org.praisenter.data.bible;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -61,7 +62,8 @@ public final class BibleReferenceTextStore implements TextStore {
 	public BibleReferenceTextStore(BibleReferenceTextStore store) {
 		this();
 		for (TextVariant variant : store.variants.keySet()) {
-			this.variants.put(variant, store.variants.get(variant).copy());
+			BibleReferenceSet set = store.variants.get(variant);
+			this.variants.put(variant, set != null ? set.copy() : null);
 		}
 	}
 	
@@ -91,7 +93,7 @@ public final class BibleReferenceTextStore implements TextStore {
 				data.put(type, new TextItem(brs.getText(type)));
 			}
 		}
-		return data;
+		return Collections.unmodifiableMap(data);
 	}
 	
 	/* (non-Javadoc)
@@ -129,6 +131,10 @@ public final class BibleReferenceTextStore implements TextStore {
 	 * @param data the reference set
 	 */
 	public void setVariant(TextVariant variant, BibleReferenceSet data) {
+		if (variant == null)
+			throw new NullPointerException("TextVariant cannot be null");
+		if (data == null)
+			throw new NullPointerException("BibleReferenceSet cannot be null");
 		this.variants.put(variant, data);
 	}
 	

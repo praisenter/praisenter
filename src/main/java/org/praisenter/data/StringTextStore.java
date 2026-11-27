@@ -1,5 +1,6 @@
 package org.praisenter.data;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -21,7 +22,7 @@ public final class StringTextStore implements TextStore {
 	
 	@Override
 	public Map<TextType, TextItem> get(TextVariant variant) {
-		return this.items;
+		return Collections.unmodifiableMap(this.items);
 	}
 	
 	@Override

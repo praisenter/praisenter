@@ -1,5 +1,6 @@
 package org.praisenter.data.song;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -63,7 +64,7 @@ public final class SongReferenceTextStore implements TextStore {
 				data.put(type, new TextItem(srv.getText(type)));
 			}
 		}
-		return data;
+		return Collections.unmodifiableMap(data);
 	}
 	
 	/* (non-Javadoc)

@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import org.praisenter.Constants;
 import org.praisenter.Version;
+import org.praisenter.data.Copyable;
 import org.praisenter.data.Identifiable;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -24,7 +25,7 @@ import javafx.collections.ObservableSet;
 	use = JsonTypeInfo.Id.NAME,
 	include = JsonTypeInfo.As.PROPERTY)
 @JsonTypeName(value = "workspaces")
-public final class Workspaces implements ReadOnlyWorkspaces, Identifiable {
+public final class Workspaces implements ReadOnlyWorkspaces, Copyable, Identifiable {
 	public static final double POSITION_SIZE_UNSET = -1;
 	
 	private final StringProperty format;
@@ -39,6 +40,18 @@ public final class Workspaces implements ReadOnlyWorkspaces, Identifiable {
 		this.id = new SimpleObjectProperty<UUID>(UUID.randomUUID());
 
 		this.workspaces = FXCollections.observableSet(new HashSet<>());
+	}
+
+	@Override
+	public Workspaces copy() {
+		Workspaces copy = new Workspaces();
+		copy.setFormat(this.format.get());
+		copy.setVersion(this.version.get());
+		copy.setId(this.id.get());
+		
+		this.workspaces.forEach((w) -> copy.workspaces.add(w.copy()));
+
+		return copy;
 	}
 
 	@Override

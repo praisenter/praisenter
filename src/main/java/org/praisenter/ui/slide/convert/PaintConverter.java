@@ -77,6 +77,8 @@ public final class PaintConverter {
 	 */
 	public static Paint toJavaFX(SlidePaint paint) {
 		Paint bgPaint = null;
+		if (paint == null) 
+			return null;
 		if (paint instanceof SlideColor) {
 			bgPaint = toJavaFX((SlideColor)paint);
 		} else if (paint instanceof SlideGradient) {

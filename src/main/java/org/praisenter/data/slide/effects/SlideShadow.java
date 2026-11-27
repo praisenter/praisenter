@@ -32,7 +32,9 @@ public final class SlideShadow implements ReadOnlySlideShadow, Copyable {
 	@Override
 	public SlideShadow copy() {
 		SlideShadow shadow = new SlideShadow();
-		shadow.color.set(this.color.get());
+		if (this.color.get() != null) {
+			shadow.color.set(this.color.get().copy());
+		}
 		shadow.offsetX.set(this.offsetX.get());
 		shadow.offsetY.set(this.offsetY.get());
 		shadow.radius.set(this.radius.get());
