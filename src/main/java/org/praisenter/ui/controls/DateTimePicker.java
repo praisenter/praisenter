@@ -55,9 +55,12 @@ public final class DateTimePicker extends EditorFieldGroup {
 	}
 	
 	private LocalDateTime getControlValues() {
-		return LocalDateTime.of(
-				this.pkrDate.getValue(),
-				this.spnTime.getValue());
+		LocalDate date = this.pkrDate.getValue();
+		LocalTime time = this.spnTime.getValue();
+		if (date == null || time == null) {
+			return LocalDateTime.now();
+		}
+		return LocalDateTime.of(date, time);
 	}
 	
 	public LocalDateTime getValue() {
