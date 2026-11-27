@@ -3,29 +3,25 @@ package org.praisenter.data;
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Enumeration;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Stream;
 
-import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
-import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.LockMap;
 import org.praisenter.utility.MimeType;
 import org.praisenter.utility.RuntimeInterruptException;
+import org.praisenter.utility.FileHelper;
 
 public abstract class AbstractPersistAdapter<T extends Persistable, E extends PathResolver<T>> implements PersistAdapter<T> {
 	/** The class-level logger */
@@ -227,7 +223,7 @@ public abstract class AbstractPersistAdapter<T extends Persistable, E extends Pa
 				
 				try {
 					// extract the zip and lets try to read each file individually
-					this.unzip(path, tempPath);
+					FileHelper.unzip(path, tempPath);
 					LOGGER.debug("Unzip to '{}' completed successfully", tempPath.toAbsolutePath());
 					
 					// process the directory
@@ -251,65 +247,12 @@ public abstract class AbstractPersistAdapter<T extends Persistable, E extends Pa
 					}
 				} finally {
 					// when done, clean up the temp directory
-					if (tempPath != null && Files.exists(tempPath)) {
-						try(Stream<Path> fileStream = Files.walk(tempPath)) {
-							fileStream
-								.sorted((a, b) -> b.compareTo(a)) // reverse; files before dirs
-								.forEach(p -> {
-							        try { 
-							        	Files.delete(p); 
-							        } catch(IOException e) {
-							        	LOGGER.warn("Failed to delete the temp file '" + p.toAbsolutePath().toString() + "'.", e);
-							        }
-							     });
-						} catch (Exception ex) {
-							LOGGER.warn("Failed to clean up temp directory '" + tempPath.toAbsolutePath() + "'.", ex);
-						}
-					}
+					FileHelper.deleteDirectory(tempPath, false);
 				}
 			}
 		}
 		
 		return results;
-	}
-	
-	private void unzip(Path zip, Path folder) throws IOException {
-		// JAVABUG (L) 11/01/23 [workaround] Native java.util.zip package can't support zips 4GB or bigger or elements 2GB or bigger
-		Path extractionRoot = folder.toAbsolutePath().normalize();
-        try (ZipFile zipFile = ZipFile.builder().setPath(zip).get()) {
-        	Enumeration<ZipArchiveEntry> entries = zipFile.getEntries();
-        	while (entries.hasMoreElements()) {
-        		ZipArchiveEntry entry = entries.nextElement();
-        		
-        		if (entry.isDirectory()) 
-        			continue;
-        			
-        		if (zipFile.canReadEntryData(entry)) {
-					Path file = extractionRoot.resolve(entry.getName()).normalize();
-					if (!file.startsWith(extractionRoot)) {
-						throw new IOException("ZIP entry escapes the extraction directory: " + entry.getName());
-					}
-        			Files.createDirectories(file.getParent());
-        			// NOTE: I tried using Files.copy here but it was super slow
-        			// with large (> 1GB) files.  I'm guessing due to an internal 
-        			// buffer size that's pretty small
-					try (InputStream stream = zipFile.getInputStream(entry)) {
-        				this.copy(stream, file);
-					}
-        		}
-        	}
-        }
-	}
-	
-	private void copy(InputStream stream, Path path) throws IOException {
-		final int size = 1024 * 1024; // ~1MB
-	    try (OutputStream outStream = new FileOutputStream(path.toFile(), false)) {
-		    byte[] buffer = new byte[size];
-		    int bytesRead;
-		    while ((bytesRead = stream.read(buffer)) != -1) {
-		        outStream.write(buffer, 0, bytesRead);
-		    }
-	    }
 	}
 	
 	@Override

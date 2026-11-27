@@ -50,6 +50,7 @@ import org.praisenter.data.media.MediaCodec;
 import org.praisenter.data.media.MediaFormat;
 import org.praisenter.utility.CommandLine;
 import org.praisenter.utility.CommandLineExecutionException;
+import org.praisenter.utility.FileHelper;
 import org.praisenter.utility.ImageManipulator;
 import org.praisenter.utility.RuntimeProperties;
 import org.praisenter.utility.StringManipulator;
@@ -275,18 +276,7 @@ public final class MediaTools {
 				
 				return best;
 			} finally {
-				try (var stream = Files.walk(tempArea)) {
-			     	stream.sorted((a, b) -> b.compareTo(a)) // reverse; files before dirs
-					.forEach(p -> {
-						try { 
-							Files.delete(p); 
-						} catch(IOException e) {
-							LOGGER.warn("Failed to delete the temp file '" + p.toAbsolutePath().toString() + "'.", e);
-						}
-					});
-				} catch (Exception ex) {
-					LOGGER.warn("Failed to clean up temp area '" + tempArea.toAbsolutePath().toString() + "'.", ex);
-				}
+				FileHelper.deleteDirectory(tempArea, false);
 			}
 		}
 	}
@@ -443,18 +433,7 @@ public final class MediaTools {
 						hasVideo,
 						hasAudio);
 			} finally {
-				try (var stream = Files.walk(tempArea)) {
-			     	stream.sorted((a, b) -> b.compareTo(a)) // reverse; files before dirs
-					.forEach(p -> {
-						try { 
-							Files.delete(p); 
-						} catch(IOException e) {
-							LOGGER.warn("Failed to delete the temp file '" + p.toAbsolutePath().toString() + "'.", e);
-						}
-					});
-				} catch (Exception ex) {
-					LOGGER.warn("Failed to clean up temp area '" + tempArea.toAbsolutePath().toString() + "'.", ex);
-				}
+				FileHelper.deleteDirectory(tempArea, false);
 			}
 		}
 	}

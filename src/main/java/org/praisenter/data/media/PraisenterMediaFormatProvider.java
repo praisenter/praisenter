@@ -19,13 +19,13 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.praisenter.data.DataImportResult;
-import org.praisenter.data.DeleteFilesShutdownHook;
 import org.praisenter.data.PersistAdapter;
 import org.praisenter.data.PraisenterFormatProvider;
 import org.praisenter.data.json.JsonIO;
 import org.praisenter.data.json.PraisenterFormat;
 import org.praisenter.utility.MimeType;
 import org.praisenter.utility.Streams;
+import org.praisenter.utility.FileHelper;
 
 final class PraisenterMediaFormatProvider extends PraisenterFormatProvider<Media> {
 	/** The class-level logger */
@@ -189,22 +189,22 @@ final class PraisenterMediaFormatProvider extends PraisenterFormatProvider<Media
 		MediaPathResolver mpr = (MediaPathResolver)adapter.getPathResolver();
 		
 		// get the export paths for the media
-		String dep = FilenameUtils.separatorsToUnix(mpr.getExportPath(media).toString()); 	 // /{exportPath}/media/{id}.json
+		String jep = FilenameUtils.separatorsToUnix(mpr.getExportPath(media).toString()); 	 // /{exportPath}/media/{id}.json
 		String mep = FilenameUtils.separatorsToUnix(mpr.getExportMediaPath(media).toString()); // /{exportPath}/media/media/{id}.{ext}
 		String iep = FilenameUtils.separatorsToUnix(mpr.getExportImagePath(media).toString()); // /{exportPath}/media/images/{id}.jpg
 		String tep = FilenameUtils.separatorsToUnix(mpr.getExportThumbPath(media).toString()); // /{exportPath}/media/thumbs/{id}.png
 
-		// get the file paths for the media
-		Path dp = mpr.getPath(media);
+		// get the destination file paths for the media
+		Path jp = mpr.getPath(media);
 		Path mp = mpr.getMediaPath(media);
 		Path ip = mpr.getImagePath(media);
 		Path tp = mpr.getThumbPath(media);
-		
+
 		// backup paths
-		Path bdp = mpr.getImportPath().resolve(mpr.getFileName(media.getId(), "dpback"));
-		Path bmp = mpr.getImportPath().resolve(mpr.getFileName(media.getId(), "mpback"));
-		Path bip = mpr.getImportPath().resolve(mpr.getFileName(media.getId(), "ipback"));
-		Path btp = mpr.getImportPath().resolve(mpr.getFileName(media.getId(), "tpback"));
+		// Path bdp = mpr.getImportPath().resolve(mpr.getFileName(media.getId(), "dpback"));
+		// Path bmp = mpr.getImportPath().resolve(mpr.getFileName(media.getId(), "mpback"));
+		// Path bip = mpr.getImportPath().resolve(mpr.getFileName(media.getId(), "ipback"));
+		// Path btp = mpr.getImportPath().resolve(mpr.getFileName(media.getId(), "tpback"));
 		
 		// verify all components exist
 		LOGGER.trace("Verifying all files exist for '{}' (media, image, thumb, etc)", media.getName());
@@ -223,97 +223,146 @@ final class PraisenterMediaFormatProvider extends PraisenterFormatProvider<Media
 			LOGGER.trace("Getting lock for '{}'", media.getId());
 			synchronized(adapter.getLock(media.getId())) {
 				LOGGER.trace("Lock for '{}' obtained", media.getId());
-				// does the media already exist?
-				boolean update = Files.exists(mpr.getPath(media));
-				
-				if (update) {
-					LOGGER.info("Found exiting media with a matching id '" + media.getId() + "', backing up current data.");
-					try {
-						if (Files.exists(dp)) Files.move(dp, bdp, StandardCopyOption.REPLACE_EXISTING);
-						if (Files.exists(mp)) Files.move(mp, bmp, StandardCopyOption.REPLACE_EXISTING);
-						if (Files.exists(ip)) Files.move(ip, bip, StandardCopyOption.REPLACE_EXISTING);
-						if (Files.exists(tp)) Files.move(tp, btp, StandardCopyOption.REPLACE_EXISTING);
-					} catch (Exception ex) {
-						LOGGER.warn("Failed to backup all existing files for media '" + media.getName() + "' before performing update.", ex);
-					}
-				}
-				
-				// extract the files from the zip
-				LOGGER.trace("Extracting files from zip for '{}'", media.getName());
-				boolean success = true;
-				// NOTE: Native java.util.zip package can't support zips 4GB or bigger or elements 2GB or bigger
-		        try (ZipFile zipFile = ZipFile.builder().setPath(path).get()) {
-		        	Enumeration<ZipArchiveEntry> entries = zipFile.getEntries();
-		        	while (entries.hasMoreElements()) {
-		        		ZipArchiveEntry entry = entries.nextElement();
-		        		
-		        		if (entry.isDirectory()) 
-		        			continue;
-		        		
-		        		if (!zipFile.canReadEntryData(entry)) {
-		        			LOGGER.warn("Unable to read entry '{}'. This is usually caused by encryption or an unsupported compression algorithm.", entry.getName());
-		        			continue;
-		        		}
-		        		
-						Path outputPath = null;
+
+				// The item will only show up in Praisenter if the metadata file
+				// exists in the library location
+				boolean jExists = Files.exists(jp);
+				boolean mExists = Files.exists(mp);
+				boolean iExists = Files.exists(ip);
+				boolean tExists = Files.exists(tp);
+				boolean isUpdate = jExists;
+				boolean retainBackup = false;
+				boolean jOverwritten = false;
+				boolean mOverwritten = false;
+				boolean iOverwritten = false;
+				boolean tOverwritten = false;
+				Path tempPath = null;
+				Path backPath = null;
+				try {
+					// create a temp location to unzip the files to
+					tempPath = Files.createTempDirectory(mpr.getImportPath(), "IMPORT");
+					Path jtp = tempPath.resolve(mpr.getFileName(media));
+					Path mtp = tempPath.resolve(Path.of("media"), mpr.getMediaFileName(media));			
+					Path itp = tempPath.resolve(Path.of("image"), mpr.getImageFileName(media));
+					Path ttp = tempPath.resolve(Path.of("thumb"), mpr.getThumbFileName(media));
+					Files.createDirectories(mtp.getParent());
+					Files.createDirectories(itp.getParent());
+					Files.createDirectories(ttp.getParent());
+					
+					// create a temp location to backup existing files
+					backPath = Files.createTempDirectory(mpr.getImportPath(), "BACK");
+					Path jbp = backPath.resolve(mpr.getFileName(media));
+					Path mbp = backPath.resolve(Path.of("media"), mpr.getMediaFileName(media));
+					Path ibp = backPath.resolve(Path.of("image"), mpr.getImageFileName(media));
+					Path tbp = backPath.resolve(Path.of("thumb"), mpr.getThumbFileName(media));
+					Files.createDirectories(mbp.getParent());
+					Files.createDirectories(ibp.getParent());
+					Files.createDirectories(tbp.getParent());
+
+					// unzip the contents to a temp location first
+					FileHelper.unzip(path, tempPath, (entry, defaultPath) -> {
 						String name = entry.getName();
-						if (name.equals(dep)) outputPath = dp;
-						if (name.equals(mep)) outputPath = mp;
-						if (media.getMediaType() == MediaType.VIDEO && name.equals(iep)) outputPath = ip; // image is only for video
-						if (name.equals(tep)) outputPath = tp;
-						if (outputPath == null)  {
-							continue;
+						if (name.equals(jep)) 
+							return jtp;
+						if (name.equals(mep))
+							return mtp;
+						if (media.getMediaType() == MediaType.VIDEO && name.equals(iep))
+							return itp; // image is only for video
+						if (name.equals(tep))
+							return ttp;
+
+						// skip the file
+						return null;
+					});
+
+					// backup existing files before moving new ones into place
+					if (Files.exists(jp)) Files.copy(jp, jbp, StandardCopyOption.REPLACE_EXISTING);
+					if (Files.exists(mp)) Files.copy(mp, mbp, StandardCopyOption.REPLACE_EXISTING);
+					if (Files.exists(ip)) Files.copy(ip, ibp, StandardCopyOption.REPLACE_EXISTING);
+					if (Files.exists(tp)) Files.copy(tp, tbp, StandardCopyOption.REPLACE_EXISTING);
+
+					try {
+						// move the extracted files from the temp location to their final destination
+						jOverwritten = true;
+						FileHelper.moveFile(jtp, jp, FileHelper.FALLBACK_COPY); 
+						
+						mOverwritten = true;
+						FileHelper.moveFile(mtp, mp, FileHelper.FALLBACK_COPY); 
+
+						if (media.getMediaType() == MediaType.VIDEO) {
+							iOverwritten = true;
+							FileHelper.moveFile(itp, ip, FileHelper.FALLBACK_COPY); 
 						}
 
-						try (InputStream entryStream = zipFile.getInputStream(entry)) {
-							LOGGER.trace("Extracting file '{}'", name);
-							Files.copy(entryStream, outputPath, StandardCopyOption.REPLACE_EXISTING);
-						} catch (Exception ex) {
-							success = false;
-							LOGGER.warn("Failed to copy zip entry '" + entry.getName() + "' to '" + outputPath + "' due to: " + ex.getMessage(), ex);
-							result.getErrors().add(ex);
-							break;
+						tOverwritten = true;
+						FileHelper.moveFile(ttp, tp, FileHelper.FALLBACK_COPY); 
+
+						if (isUpdate) {
+							result.getUpdated().add(media);
+						} else {
+							result.getCreated().add(media);
 						}
-					}
-				}
-					
-				if (success) {
-					LOGGER.trace("Extract/import successful");
-					if (update)  {
-						// delete the backup files
-						this.deleteWithShutdownFallback(bdp);
-						this.deleteWithShutdownFallback(bmp);
-						this.deleteWithShutdownFallback(bip);
-						this.deleteWithShutdownFallback(btp);
+					} catch (IOException ex) {
+						// if the files didn't exist in the first place
+						// then delete them, since we can't trust if they
+						// were successfully moved or not
+						if (!jExists) try { Files.deleteIfExists(jp); } catch (IOException e) { LOGGER.warn("Failed to delete '{}' during recovery", jp.toAbsolutePath(), e); }
+						if (!mExists) try { Files.deleteIfExists(mp); } catch (IOException e) { LOGGER.warn("Failed to delete '{}' during recovery", mp.toAbsolutePath(), e); }
+						if (!iExists) try { Files.deleteIfExists(ip); } catch (IOException e) { LOGGER.warn("Failed to delete '{}' during recovery", ip.toAbsolutePath(), e); }
+						if (!tExists) try { Files.deleteIfExists(tp); } catch (IOException e) { LOGGER.warn("Failed to delete '{}' during recovery", tp.toAbsolutePath(), e); }
 						
-						result.getUpdated().add(media);
-					} else {
-						result.getCreated().add(media);
-					}
-				} else {
-					LOGGER.trace("Extract/import failed, one or more files were not found or failed to unzip");
-					// recovery
-					if (update) {
-						try {
-							if (Files.exists(bdp))Files.move(bdp, dp, StandardCopyOption.REPLACE_EXISTING);
-							if (Files.exists(bmp))Files.move(bmp, mp, StandardCopyOption.REPLACE_EXISTING);
-							if (Files.exists(bip))Files.move(bip, ip, StandardCopyOption.REPLACE_EXISTING);
-							if (Files.exists(btp))Files.move(btp, tp, StandardCopyOption.REPLACE_EXISTING);
-						} catch (Exception ex) {
-							LOGGER.warn("Failed to recover all existing files for media '" + media.getName() + "' after update failed", ex);
-							
-							// at this point we have to delete it all because it's in a unknown state
-							this.deleteWithShutdownFallback(dp);
-							this.deleteWithShutdownFallback(mp);
-							this.deleteWithShutdownFallback(ip);
-							this.deleteWithShutdownFallback(tp);
+						// restore backup files
+						if (jOverwritten && Files.exists(jbp)) {
+							try { 
+								FileHelper.moveFile(jbp, jp, FileHelper.FALLBACK_COPY); 
+							} catch (IOException e) { 
+								retainBackup = true; 
+								LOGGER.error("Failed to restore '{}' during recovery, you can find the backup file at '{}'", jp.toAbsolutePath(), jbp.toAbsolutePath(), e); 
+							}
 						}
-					} else {
-						// attempt to delete now, but delete on shutdown if necessary
-						this.deleteWithShutdownFallback(dp);
-						this.deleteWithShutdownFallback(mp);
-						this.deleteWithShutdownFallback(ip);
-						this.deleteWithShutdownFallback(tp);
+
+						if (mOverwritten && Files.exists(mbp)) {
+							try { 
+								FileHelper.moveFile(mbp, mp, FileHelper.FALLBACK_COPY); 
+							} catch (IOException e) { 
+								retainBackup = true; 
+								LOGGER.error("Failed to restore '{}' during recovery, you can find the backup file at '{}'", mp.toAbsolutePath(), mbp.toAbsolutePath(), e); 
+							}
+						}
+
+						if (iOverwritten && Files.exists(ibp)) {
+							try { 
+								FileHelper.moveFile(ibp, ip, FileHelper.FALLBACK_COPY); 
+							} catch (IOException e) { 
+								retainBackup = true; 
+								LOGGER.error("Failed to restore '{}' during recovery, you can find the backup file at '{}'", ip.toAbsolutePath(), ibp.toAbsolutePath(), e); 
+							}
+						}
+
+						if (tOverwritten && Files.exists(tbp)) {
+							try { 
+								FileHelper.moveFile(tbp, tp, FileHelper.FALLBACK_COPY); 
+							} catch (IOException e) { 
+								retainBackup = true; 
+								LOGGER.error("Failed to restore '{}' during recovery, you can find the backup file at '{}'", tp.toAbsolutePath(), tbp.toAbsolutePath(), e); 
+							}
+						}
+
+						throw ex;
+					}
+				} catch (IOException ex) {
+					result.getErrors().add(ex);
+					throw ex;
+				} finally {
+					try {
+						if (tempPath != null) FileHelper.deleteDirectory(tempPath, false);
+					} catch (IOException e) {
+						LOGGER.warn("Failed to clean up temp directory '{}'", tempPath.toAbsolutePath(), e);
+					}
+					try {
+						if (backPath != null && !retainBackup) FileHelper.deleteDirectory(backPath, false);
+					} catch (IOException e) {
+						LOGGER.warn("Failed to clean up backup directory '{}'", backPath.toAbsolutePath(), e);
 					}
 				}
 			}
@@ -322,14 +371,5 @@ final class PraisenterMediaFormatProvider extends PraisenterFormatProvider<Media
 		}
 		
 		return result;
-	}
-
-	private void deleteWithShutdownFallback(Path path) {
-		try {
-			Files.deleteIfExists(path);
-		} catch (Exception ex) {
-			LOGGER.warn("Failed to delete path '" + path.toAbsolutePath().toString() + "' due to: " + ex.getMessage() + ". Will try again at shutdown.");
-			DeleteFilesShutdownHook.deleteOnShutdown(path);
-		}
 	}
 }

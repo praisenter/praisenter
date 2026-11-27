@@ -27,9 +27,13 @@ package org.praisenter.data.json;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.praisenter.Constants;
+import org.praisenter.utility.FileHelper;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -51,6 +55,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
  * @version 3.1.5
  */
 public final class JsonIO {
+	private static final Logger LOGGER = LogManager.getLogger();
 	/** The mapper */
 	private static final ObjectMapper MAPPER = createObjectMapper();
 	
@@ -155,7 +160,20 @@ public final class JsonIO {
 	 * @throws JsonGenerationException if a JSON writing error occurs
 	 */
 	public static final void write(Path path, Object object) throws JsonGenerationException, JsonMappingException, IOException {
-		MAPPER.writerFor(object.getClass()).writeValue(path.toFile(), object);
+		// writing to a temp file, then doing an atomic move to the target path
+		// is the safest way to ensure that the target file is not left in a partially written state
+		Path dir = path.toAbsolutePath().getParent();
+		Path tmpFile = Files.createTempFile(dir, path.getFileName().toString(), "tmp");
+		try {
+			MAPPER.writerFor(object.getClass()).writeValue(tmpFile.toFile(), object);
+			FileHelper.moveFileSafe(tmpFile, path, dir);
+		} finally {
+			try {
+				Files.deleteIfExists(tmpFile);
+			} catch (IOException e) {
+				LOGGER.warn("Failed to delete temporary file '{}'", tmpFile.toAbsolutePath(), e);
+			}
+		}
 	}
 	
 	// identify

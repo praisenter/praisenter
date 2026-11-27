@@ -15,7 +15,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.stream.Stream;
 
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.logging.log4j.LogManager;
@@ -45,6 +44,7 @@ import org.praisenter.data.song.SongPersistAdapter;
 import org.praisenter.macos.ssb.SecurityScopedBookmarks;
 import org.praisenter.ui.WorkspaceInitializationException;
 import org.praisenter.ui.upgrade.InstallUpgradeHandler;
+import org.praisenter.utility.FileHelper;
 import org.praisenter.utility.RuntimeProperties;
 import org.praisenter.utility.StringManipulator;
 
@@ -200,21 +200,11 @@ public final class WorkspaceManager implements AutoCloseable {
 		boolean recreateIndex = installUpgradeHandler.isReindexRequired(LOGGER, version);
 		if (recreateIndex) {
 			Path indexPath = pathResolver.getSearchIndexPath();
-			if (Files.exists(indexPath)) {
-				try(Stream<Path> fileStream = Files.walk(indexPath)) {
-					fileStream
-						.sorted((a, b) -> b.compareTo(a)) // reverse; files before dirs
-						.forEach(p -> {
-							try { 
-								Files.delete(p); 
-							} catch(IOException e) {
-								LOGGER.warn("Failed to delete the temp file '" + p.toAbsolutePath().toString() + "'.", e);
-							}
-						});
-				} catch (IOException ex) {
-					LOGGER.error("Failed to clean up temp directory '" + indexPath.toAbsolutePath() + "'.", ex);
-					throw new WorkspaceInitializationException(ex);
-				}
+			try {
+				FileHelper.deleteDirectory(indexPath, true);
+			} catch (IOException ex) {
+				LOGGER.error("Failed to clean up temp directory '" + indexPath.toAbsolutePath() + "'.", ex);
+				throw new WorkspaceInitializationException(ex);
 			}
 		}
 
@@ -246,9 +236,13 @@ public final class WorkspaceManager implements AutoCloseable {
 	}
 	
 	public CompletableFuture<Void> saveWorkspaceConfiguration() {
+		WorkspaceConfiguration copy = this.workspaceConfiguration.copy();
 		return CompletableFuture.runAsync(() -> {
 			try {
-				JsonIO.write(this.pathResolver.getConfigurationFilePath(), this.workspaceConfiguration);
+				// make sure only one thread can write the configuration at a time
+				synchronized (this) {
+					JsonIO.write(this.pathResolver.getConfigurationFilePath(), copy);
+				}
 			} catch (Exception e) {
 				throw new CompletionException(e);
 			}
