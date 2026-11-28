@@ -240,7 +240,7 @@ final class PraisenterMediaFormatProvider extends PraisenterFormatProvider<Media
 				Path backPath = null;
 				try {
 					// create a temp location to unzip the files to
-					tempPath = Files.createTempDirectory(mpr.getImportPath(), "IMPORT");
+					tempPath = Files.createTempDirectory(mpr.getTempPath(), "IMPORT");
 					Path jtp = tempPath.resolve(mpr.getFileName(media));
 					Path mtp = tempPath.resolve(Path.of("media"), mpr.getMediaFileName(media));			
 					Path itp = tempPath.resolve(Path.of("image"), mpr.getImageFileName(media));
@@ -250,7 +250,7 @@ final class PraisenterMediaFormatProvider extends PraisenterFormatProvider<Media
 					Files.createDirectories(ttp.getParent());
 					
 					// create a temp location to backup existing files
-					backPath = Files.createTempDirectory(mpr.getImportPath(), "BACK");
+					backPath = Files.createTempDirectory(mpr.getTempPath(), "BACK");
 					Path jbp = backPath.resolve(mpr.getFileName(media));
 					Path mbp = backPath.resolve(Path.of("media"), mpr.getMediaFileName(media));
 					Path ibp = backPath.resolve(Path.of("image"), mpr.getImageFileName(media));

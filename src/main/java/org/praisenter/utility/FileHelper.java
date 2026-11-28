@@ -129,7 +129,7 @@ public final class FileHelper {
 	}
 
 	/**
-	 * Attempts to the source file to the target location atomically. If atomic
+	 * Attempts to move the source file to the target location atomically. If atomic
 	 * move isn't supported, it falls back to a non-atomic move, backing up the
 	 * existing target file to tempDir.  Upon success, everything is cleaned up
 	 * and on failure, recovery is attempted using the backup file.  If recovery
@@ -143,7 +143,7 @@ public final class FileHelper {
 	 */
 	public static final Path moveFileSafe(Path source, Path target, Path tempDir) throws IOException {
 		LOGGER.debug("Creating temporary backup file in directory '{}'", tempDir.toAbsolutePath());
-		Path backFile = Files.createTempFile(tempDir, source.getFileName().toString(), "bak");
+		Path backFile = Files.createTempFile(tempDir, target.getFileName().toString(), "bak");
 		boolean retainBackup = false;
 
 		try {

@@ -9,6 +9,7 @@ public final class WorkspacePathResolver {
 	private static final String SLIDES_RELATIVE_PATH = "slides";
 	private static final String BIBLES_RELATIVE_PATH = "bibles";
 	private static final String LOGS_RELATIVE_PATH = "logs";
+	private static final String TEMP_RELATIVE_PATH = "temp";
 	private static final String CONFIGURATION_FILE = "workspace.json";
 	
 	private final Path workspacePath;
@@ -51,5 +52,9 @@ public final class WorkspacePathResolver {
 	
 	public Path getBiblesPath() {
 		return this.workspacePath.resolve(WorkspacePathResolver.BIBLES_RELATIVE_PATH);
+	}
+	
+	public Path getTempPath() {
+		return this.workspacePath.resolve(WorkspacePathResolver.TEMP_RELATIVE_PATH);
 	}
 }

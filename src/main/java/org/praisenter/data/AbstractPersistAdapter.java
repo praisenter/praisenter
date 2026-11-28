@@ -144,11 +144,21 @@ public abstract class AbstractPersistAdapter<T extends Persistable, E extends Pa
 			LOGGER.trace("Getting lock for '{}'", item.getId());
 			synchronized (this.locks.get(item.getId())) {
 				LOGGER.trace("Lock for '{}' obtained", item.getId());
-				try (FileOutputStream fos = new FileOutputStream(path.toFile());
-					BufferedOutputStream bos = new BufferedOutputStream(fos)) {
-					LOGGER.debug("Exporting item '{}'", item.getName());
-					provider.exp(this, bos, item);
-				}	
+				Path tempPath = Files.createTempFile(this.pathResolver.getTempPath(), path.getFileName().toString(), "tmp");
+				try {
+					try (FileOutputStream fos = new FileOutputStream(tempPath.toFile());
+						BufferedOutputStream bos = new BufferedOutputStream(fos)) {
+						LOGGER.debug("Exporting item '{}'", item.getName());
+						provider.exp(this, bos, item);
+					}
+					FileHelper.moveFile(tempPath, path, FileHelper.FALLBACK_MOVE);
+				} finally {
+					try {
+						Files.deleteIfExists(tempPath);
+					} catch (IOException ex) {
+						LOGGER.warn("Failed to delete temporary file: " + tempPath, ex);
+					}
+				}
 			}
 		}
 	}
@@ -217,11 +227,11 @@ public abstract class AbstractPersistAdapter<T extends Persistable, E extends Pa
 			if (MimeType.ZIP.check(path)) {
 				LOGGER.debug("The file '{}' is a zip file, attempting to extract to import contents individually", path.toAbsolutePath());
 				// create a temp location to store the unzipped files
-				Path importPath = this.pathResolver.getBasePath().resolve("temp");
-				Files.createDirectories(importPath);
-				Path tempPath = Files.createTempDirectory(importPath, "IMPORT");
+				Path tempPath = null;
 				
 				try {
+					tempPath = Files.createTempDirectory(this.pathResolver.getTempPath(), "IMPORT");
+
 					// extract the zip and lets try to read each file individually
 					FileHelper.unzip(path, tempPath);
 					LOGGER.debug("Unzip to '{}' completed successfully", tempPath.toAbsolutePath());

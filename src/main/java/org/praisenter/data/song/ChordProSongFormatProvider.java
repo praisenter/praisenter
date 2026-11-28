@@ -12,6 +12,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -33,6 +34,7 @@ import org.praisenter.data.ImportExportProvider;
 import org.praisenter.data.PathResolver;
 import org.praisenter.data.PersistAdapter;
 import org.praisenter.data.Tag;
+import org.praisenter.utility.FileHelper;
 import org.praisenter.utility.MimeType;
 import org.praisenter.utility.StringManipulator;
 
@@ -106,9 +108,20 @@ final class ChordProSongFormatProvider implements ImportExportProvider<Song> {
 	
 	@Override
 	public void exp(PersistAdapter<Song> adapter, Path path, Song data) throws IOException {
-		try (FileOutputStream fos = new FileOutputStream(path.toFile());
-			BufferedOutputStream bos = new BufferedOutputStream(fos)) {
-			this.exp(adapter, bos, data);
+		PathResolver<Song> pr = adapter.getPathResolver();
+		Path tempPath = Files.createTempFile(pr.getTempPath(), path.getFileName().toString(), "tmp");
+		try {
+			try (FileOutputStream fos = new FileOutputStream(tempPath.toFile());
+				BufferedOutputStream bos = new BufferedOutputStream(fos)) {
+				this.exp(adapter, bos, data);
+			}
+			FileHelper.moveFile(tempPath, path, FileHelper.FALLBACK_MOVE);
+		} finally {
+			try {
+				Files.deleteIfExists(tempPath);
+			} catch (IOException ex) {
+				LOGGER.warn("Failed to delete temporary file: " + tempPath, ex);
+			}
 		}
 	}
 	

@@ -54,7 +54,7 @@ public final class SlidePersistAdapter extends AbstractPersistAdapter<Slide, Sli
 		
 		// NOTE: need to set the thumbnail path because it won't be set
 		item.setThumbnailPath(thumbnailPath);
-		JsonIO.write(path, item);
+		JsonIO.write(path, item, this.pathResolver.getTempPath());
 
 		if (image != null) {
 			// if this fails, it's fine - we've saved what was important
@@ -76,7 +76,7 @@ public final class SlidePersistAdapter extends AbstractPersistAdapter<Slide, Sli
 		// in the case of the slide being new where the field
 		// will stay null until the editor is closed and re-opened
 		item.setThumbnailPath(thumbnailPath);
-		JsonIO.write(path, item);
+		JsonIO.write(path, item, this.pathResolver.getTempPath());
 
 		if (image != null) {
 			// if this fails, it's fine - we've saved what was important
@@ -92,7 +92,11 @@ public final class SlidePersistAdapter extends AbstractPersistAdapter<Slide, Sli
 	@Override
 	protected void delete(Path path, Slide item) throws IOException {
 		Files.deleteIfExists(path);
-		Files.deleteIfExists(this.pathResolver.getThumbPath(item));
+		try {
+			Files.deleteIfExists(this.pathResolver.getThumbPath(item));
+		} catch (IOException ex) {
+			LOGGER.warn("Failed to delete thumbnail at path '{}'", this.pathResolver.getThumbPath(item).toAbsolutePath(), ex);
+		}
 	}
 
 	/**
@@ -106,7 +110,7 @@ public final class SlidePersistAdapter extends AbstractPersistAdapter<Slide, Sli
 	private void writeThumbnail(BufferedImage image, Path thumbnailPath) throws IOException {
 		// write to temporary file first
 		Path tempDir = this.pathResolver.getThumbPath();
-		Path tempFile = Files.createTempFile(tempDir, thumbnailPath.getFileName().toString(), "tmp");
+		Path tempFile = Files.createTempFile(this.pathResolver.getTempPath(), thumbnailPath.getFileName().toString(), "tmp");
 
 		try {
 			// then attempt a safe replace

@@ -10,11 +10,13 @@ import org.praisenter.utility.StringManipulator;
 
 public class BasicPathResolver<T extends Persistable> implements PathResolver<T> {
 	protected final Path basePath;
+	protected final Path tempPath;
 	protected final String exportBasePath;
 	protected final String extension;
 	
 	public BasicPathResolver(Path basePath, String exportBasePath, String extension) {
 		this.basePath = basePath;
+		this.tempPath = this.basePath.resolve("temp");
 		this.exportBasePath = exportBasePath;
 		this.extension = extension;
 	}
@@ -34,6 +36,7 @@ public class BasicPathResolver<T extends Persistable> implements PathResolver<T>
 	@Override
 	public void initialize() throws IOException {
 		Files.createDirectories(this.basePath);
+		Files.createDirectories(this.tempPath);
 	}
 	
 	@Override
@@ -64,6 +67,11 @@ public class BasicPathResolver<T extends Persistable> implements PathResolver<T>
 	@Override
 	public Path getExportPath(T item) {
 		return this.getExportBasePath().resolve(this.getRelativePath(item));
+	}
+	
+	@Override
+	public Path getTempPath() {
+		return this.tempPath;
 	}
 
 	// raw

@@ -52,6 +52,12 @@ public interface PathResolver<T extends Persistable> {
 	 */
 	public Path getExportPath(T item);
 
+	/**
+	 * Returns the path for temp files
+	 * @return Path
+	 */
+	public Path getTempPath();
+
 	// raw
 	
 	/**

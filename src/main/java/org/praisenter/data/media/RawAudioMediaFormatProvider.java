@@ -46,6 +46,7 @@ import org.praisenter.data.PersistAdapter;
 import org.praisenter.data.media.tools.FFProbeMediaMetadata;
 import org.praisenter.data.media.tools.MediaTools;
 import org.praisenter.utility.ClasspathLoader;
+import org.praisenter.utility.FileHelper;
 import org.praisenter.utility.MimeType;
 
 /**
@@ -103,7 +104,17 @@ final class RawAudioMediaFormatProvider extends AbstractMediaFormatProvider {
 	public void exp(PersistAdapter<Media> adapter, Path path, Media data) throws IOException {
 		MediaPathResolver mpr = (MediaPathResolver)adapter.getPathResolver();
 		Path sourcePath = mpr.getMediaPath(data);
-		Files.copy(sourcePath, path, StandardCopyOption.REPLACE_EXISTING);
+		Path tempPath = Files.createTempFile(mpr.getTempPath(), path.getFileName().toString(), "tmp");
+		try {
+			Files.copy(sourcePath, tempPath, StandardCopyOption.REPLACE_EXISTING);
+			FileHelper.moveFile(tempPath, path, FileHelper.FALLBACK_MOVE);
+		} finally {
+			try {
+				Files.deleteIfExists(tempPath);
+			} catch (IOException ex) {
+				LOGGER.warn("Failed to delete temporary file: " + tempPath, ex);
+			}
+		}
 	}
 	
 	@Override

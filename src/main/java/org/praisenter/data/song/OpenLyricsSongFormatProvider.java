@@ -8,6 +8,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -42,6 +43,7 @@ import org.praisenter.data.InvalidImportExportFormatException;
 import org.praisenter.data.PathResolver;
 import org.praisenter.data.PersistAdapter;
 import org.praisenter.data.Tag;
+import org.praisenter.utility.FileHelper;
 import org.praisenter.utility.MimeType;
 import org.praisenter.utility.Streams;
 import org.praisenter.utility.StringManipulator;
@@ -85,11 +87,23 @@ final class OpenLyricsSongFormatProvider implements ImportExportProvider<Song> {
 			throw new IOException(e);
 		}
 	}
+
 	@Override
 	public void exp(PersistAdapter<Song> adapter, Path path, Song data) throws IOException {
-		try (FileOutputStream fos = new FileOutputStream(path.toFile());
-			BufferedOutputStream bos = new BufferedOutputStream(fos)) {
-			this.exp(adapter, bos, data);
+		PathResolver<Song> pr = adapter.getPathResolver();
+		Path tempPath = Files.createTempFile(pr.getTempPath(), path.getFileName().toString(), "tmp");
+		try {
+			try (FileOutputStream fos = new FileOutputStream(tempPath.toFile());
+				BufferedOutputStream bos = new BufferedOutputStream(fos)) {
+				this.exp(adapter, bos, data);
+			}
+			FileHelper.moveFile(tempPath, path, FileHelper.FALLBACK_MOVE);
+		} finally {
+			try {
+				Files.deleteIfExists(tempPath);
+			} catch (IOException ex) {
+				LOGGER.warn("Failed to delete temporary file: " + tempPath, ex);
+			}
 		}
 	}
 	

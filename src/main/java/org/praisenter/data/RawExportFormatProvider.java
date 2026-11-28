@@ -11,8 +11,13 @@ import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.NotImplementedException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.praisenter.utility.FileHelper;
 
 public final class RawExportFormatProvider<T extends Persistable> implements ImportExportProvider<T> {
+	private static final Logger LOGGER = LogManager.getLogger();
+
 	public RawExportFormatProvider() {
 		
 	}
@@ -43,7 +48,17 @@ public final class RawExportFormatProvider<T extends Persistable> implements Imp
 	public void exp(PersistAdapter<T> adapter, Path path, T data) throws IOException {
 		PathResolver<T> pr = adapter.getPathResolver();
 		Path sourcePath = pr.getRawPath(data);
-		Files.copy(sourcePath, path, StandardCopyOption.REPLACE_EXISTING);
+		Path tempPath = Files.createTempFile(pr.getTempPath(), sourcePath.getFileName().toString(), "tmp");
+		try {
+			Files.copy(sourcePath, tempPath, StandardCopyOption.REPLACE_EXISTING);
+			FileHelper.moveFile(tempPath, path, FileHelper.FALLBACK_MOVE);
+		} finally {
+			try {
+				Files.deleteIfExists(tempPath);
+			} catch (IOException ex) {
+				LOGGER.warn("Failed to delete temporary file: " + tempPath, ex);
+			}
+		}
 	}
 	
 	@Override

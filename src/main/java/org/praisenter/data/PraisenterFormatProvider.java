@@ -86,7 +86,7 @@ public class PraisenterFormatProvider<T extends Persistable> implements ImportEx
 	
 	@Override
 	public void exp(PersistAdapter<T> adapter, Path path, T data) throws IOException {
-		JsonIO.write(path, data);
+		JsonIO.write(path, data, adapter.getPathResolver().getTempPath());
 	}
 	
 	@Override

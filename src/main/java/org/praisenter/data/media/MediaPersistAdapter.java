@@ -66,12 +66,12 @@ public final class MediaPersistAdapter extends AbstractPersistAdapter<Media, Med
 	
 	@Override
 	protected void create(Path path, Media item) throws IOException {
-		JsonIO.write(path, item);
+		JsonIO.write(path, item, this.pathResolver.getTempPath());
 	}
 	
 	@Override
 	protected void update(Path path, Media item) throws IOException {
-		JsonIO.write(path, item);
+		JsonIO.write(path, item, this.pathResolver.getTempPath());
 	}
 	
 	@Override

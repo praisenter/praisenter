@@ -52,12 +52,12 @@ public final class SongPersistAdapter extends AbstractPersistAdapter<Song, Basic
 	
 	@Override
 	protected void create(Path path, Song item) throws IOException {
-		JsonIO.write(path, item);
+		JsonIO.write(path, item, this.pathResolver.getTempPath());
 	}
 	
 	@Override
 	protected void update(Path path, Song item) throws IOException {
-		JsonIO.write(path, item);
+		JsonIO.write(path, item, this.pathResolver.getTempPath());
 	}
 	
 	@Override

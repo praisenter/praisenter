@@ -41,7 +41,8 @@ public final class SingleFileManager<T extends Copyable> {
 		} else {
 			// generate the file
 			data = defaultValue;
-			JsonIO.write(path, data);
+			// for the temp directory, just use the current directory
+			JsonIO.write(path, data, path.toAbsolutePath().getParent());
 		}
 		
 		return new SingleFileManager<T>(path, data);
@@ -56,7 +57,7 @@ public final class SingleFileManager<T extends Copyable> {
 		return CompletableFuture.runAsync(() -> {
 			try {
 				synchronized (this.lock) {
-					JsonIO.write(this.path, copy);
+					JsonIO.write(this.path, copy, this.path.toAbsolutePath().getParent());
 				}
 			} catch (Exception e) {
 				throw new CompletionException(e);

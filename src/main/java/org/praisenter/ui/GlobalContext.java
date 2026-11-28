@@ -59,6 +59,7 @@ import org.praisenter.ui.pages.Page;
 import org.praisenter.ui.themes.Accent;
 import org.praisenter.ui.themes.Theming;
 import org.praisenter.ui.translations.Translations;
+import org.praisenter.utility.FileHelper;
 import org.praisenter.utility.MimeType;
 
 import javafx.application.Application;
@@ -990,16 +991,12 @@ public final class GlobalContext implements AutoCloseable {
 		bt.setType(MimeType.get(name));
 		this.addBackgroundTask(bt);
 		
-		final Path path = this.getWorkspaceManager().getWorkspacePathResolver().getBasePath().resolve("temp");
-		
 		CompletableFuture<Persistable> future = new CompletableFuture<>();
 		Thread.startVirtualThread(() -> {
 			Path tempPath = null;
 			Path tempFile = null;
 			try {
-				LOGGER.debug("Creating temporary import directory at path {}", path.toAbsolutePath());
-				Files.createDirectories(path);
-				tempPath = Files.createTempDirectory(path, "IMPORT");
+				tempPath = Files.createTempDirectory(this.workspaceManager.getWorkspacePathResolver().getTempPath(), "IMPORT");
 				LOGGER.debug("Temporary path created for import of image: {}", tempPath.toAbsolutePath());
 				tempFile = tempPath.resolve(name);
 				BufferedImage img = SwingFXUtils.fromFXImage(image, null);
@@ -1010,7 +1007,7 @@ public final class GlobalContext implements AutoCloseable {
 				}
 
 				LOGGER.debug("Importing image from temporary file: {}", tempFile.toAbsolutePath());
-				var results = this.workspaceManager.importData(tempFile, Bible.class, Slide.class, Media.class, Song.class).get();
+				var results = this.workspaceManager.importData(tempFile, Media.class).get();
 
 				bt.setProgress(1.0);
 				if (results == null || results.size() <= 0) {
@@ -1075,18 +1072,33 @@ public final class GlobalContext implements AutoCloseable {
 		// export the dependencies
 		List<Persistable> dependentItems = dependencies.stream()
 				.map(id -> this.workspaceManager.getPersistableById(id))
+				.filter(item -> item != null)
 				.collect(Collectors.toList());
 		
 		LOGGER.debug("Found {} dependencies for the {} selected items", dependentItems.size(), items.size());
 		return CompletableFuture.runAsync(() -> {
-			try (ZipArchiveOutputStream zos = new ZipArchiveOutputStream(path, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE)) {
-				// export the items selected
-				LOGGER.info("Attempting export of {} selected items", items.size());
-				this.workspaceManager.exportData(formats, zos, items);
-				LOGGER.info("Attempting export of {} dependent items", dependentItems.size());
-				this.workspaceManager.exportData(formats, zos, dependentItems);
-			} catch (Exception ex) {
+			Path tempPath = null;
+			try {
+				tempPath = Files.createTempFile(this.workspaceManager.getWorkspacePathResolver().getTempPath(), path.getFileName().toString(), "tmp");
+				try (ZipArchiveOutputStream zos = new ZipArchiveOutputStream(tempPath, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE)) {
+					// export the items selected
+					LOGGER.info("Attempting export of {} selected items", items.size());
+					this.workspaceManager.exportData(formats, zos, items);
+					LOGGER.info("Attempting export of {} dependent items", dependentItems.size());
+					this.workspaceManager.exportData(formats, zos, dependentItems);
+				} catch (Exception ex) {
+					throw new CompletionException(ex);
+				}
+				FileHelper.moveFile(tempPath, path, FileHelper.FALLBACK_MOVE);
+			} catch (IOException ex) {
 				throw new CompletionException(ex);
+			} finally {
+				try {
+					if (tempPath != null)
+						Files.deleteIfExists(tempPath);
+				} catch (IOException ex) {
+					LOGGER.warn("Failed to delete temp file: '{}'", tempPath.toAbsolutePath().toString(), ex);
+				}
 			}
 		}).thenRun(() -> {
 			LOGGER.info("Export of {} selected items and {} dependent items completed successfully", items.size(), dependentItems.size());

@@ -154,7 +154,8 @@ public final class WorkspaceManager implements AutoCloseable {
 			pathResolver.getMediaPath(),
 			pathResolver.getSearchIndexPath(),
 			pathResolver.getSlidesPath(),
-			pathResolver.getSongsPath()
+			pathResolver.getSongsPath(),
+			pathResolver.getTempPath()
 		};
 		
 		for (Path path : paths) {
@@ -183,7 +184,7 @@ public final class WorkspaceManager implements AutoCloseable {
 			workspaceConfiguration = new WorkspaceConfiguration();
 			isNewWorkspace = true;
 			try {
-				JsonIO.write(configFilePath, workspaceConfiguration);
+				JsonIO.write(configFilePath, workspaceConfiguration, pathResolver.getTempPath());
 			} catch (Exception ex) {
 				LOGGER.error("Failed to save the file '" + configFilePath.toAbsolutePath() + "': " + ex.getMessage(), ex);
 				throw new WorkspaceInitializationException(ex);
@@ -241,7 +242,7 @@ public final class WorkspaceManager implements AutoCloseable {
 			try {
 				// make sure only one thread can write the configuration at a time
 				synchronized (this) {
-					JsonIO.write(this.pathResolver.getConfigurationFilePath(), copy);
+					JsonIO.write(this.pathResolver.getConfigurationFilePath(), copy, this.pathResolver.getTempPath());
 				}
 			} catch (Exception e) {
 				throw new CompletionException(e);

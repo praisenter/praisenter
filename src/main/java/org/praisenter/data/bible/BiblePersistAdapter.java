@@ -38,12 +38,12 @@ public final class BiblePersistAdapter extends AbstractPersistAdapter<Bible, Bas
 	
 	@Override
 	protected void create(Path path, Bible item) throws IOException {
-		JsonIO.write(path, item);
+		JsonIO.write(path, item, this.pathResolver.getTempPath());
 	}
 	
 	@Override
 	protected void update(Path path, Bible item) throws IOException {
-		JsonIO.write(path, item);
+		JsonIO.write(path, item, this.pathResolver.getTempPath());
 	}
 	
 	@Override

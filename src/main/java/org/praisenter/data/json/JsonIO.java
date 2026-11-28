@@ -155,18 +155,18 @@ public final class JsonIO {
 	 * Serializes the given object to the given file.
 	 * @param path the file to write the JSON to
 	 * @param object the object to serialize
+	 * @param tempDir the temporary directory used for temp files
 	 * @throws IOException if an IO error occurs
 	 * @throws JsonMappingException if a JSON mapping error occurs
 	 * @throws JsonGenerationException if a JSON writing error occurs
 	 */
-	public static final void write(Path path, Object object) throws JsonGenerationException, JsonMappingException, IOException {
+	public static final void write(Path path, Object object, Path tempDir) throws JsonGenerationException, JsonMappingException, IOException {
 		// writing to a temp file, then doing an atomic move to the target path
 		// is the safest way to ensure that the target file is not left in a partially written state
-		Path dir = path.toAbsolutePath().getParent();
-		Path tmpFile = Files.createTempFile(dir, path.getFileName().toString(), "tmp");
+		Path tmpFile = Files.createTempFile(tempDir, path.getFileName().toString(), "tmp");
 		try {
 			MAPPER.writerFor(object.getClass()).writeValue(tmpFile.toFile(), object);
-			FileHelper.moveFileSafe(tmpFile, path, dir);
+			FileHelper.moveFileSafe(tmpFile, path, tempDir);
 		} finally {
 			try {
 				Files.deleteIfExists(tmpFile);
