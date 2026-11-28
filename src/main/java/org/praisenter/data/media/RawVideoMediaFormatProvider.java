@@ -188,7 +188,13 @@ final class RawVideoMediaFormatProvider extends AbstractMediaFormatProvider {
 			this.delete(target);
 			throw ex;
 		} catch (IOException ex) {
-			LOGGER.warn("Failed to extract frame from video '" + path.toAbsolutePath().toString() + "'.");
+			LOGGER.warn("Failed to extract frame from video '" + path.toAbsolutePath().toString() + "'.", ex);
+			// just create a black image as a placeholder
+			image = new BufferedImage(metadata.getWidth(), metadata.getHeight(), BufferedImage.TYPE_INT_ARGB);
+			Graphics2D g2d = image.createGraphics();
+			g2d.setColor(java.awt.Color.BLACK);
+			g2d.fillRect(0, 0, image.getWidth(), image.getHeight());
+			g2d.dispose();
 		}
 
 		media = new Media();
