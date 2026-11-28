@@ -67,6 +67,7 @@ public final class FileHelper {
 					if (file == null)
 						continue;
 
+					file = file.toAbsolutePath().normalize();
 					if (!file.startsWith(extractionRoot)) {
                         LOGGER.warn("Skipping ZIP entry '{}' as it escapes the extraction directory", entry.getName());
 						continue;
