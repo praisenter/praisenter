@@ -559,5 +559,15 @@ public final class WorkspaceManager implements AutoCloseable {
 	@Override 
 	public void close() throws IOException {
 		this.searchIndex.close();
+		if (RuntimeProperties.IS_MAC_OS) {
+			String bookmark = this.workspaceReference.getSecurityToken();
+			if (bookmark != null && !bookmark.isEmpty()) {
+				try {
+					SecurityScopedBookmarks.stopResourceAccessing(bookmark);
+				} catch (Exception ex) {
+					LOGGER.warn("Failed to release security token for workspace: '{}'", this.workspaceReference.getPath().toAbsolutePath(), ex);
+				}
+			}
+		}
 	}
 }
